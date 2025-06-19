@@ -1,3 +1,167 @@
+# ------------------------------
+# Operating system artifacts
+# ------------------------------
+# macOS Finder
+.DS_Store
+# Windows thumbnail cache
+Thumbs.db
+
+# ------------------------------
+# Logs and databases
+# ------------------------------
+*.log
+*.sql
+*.sqlite
+*.sqlite3
+*.db
+
+# ------------------------------
+# Archives and packages
+# ------------------------------
+*.zip
+*.tar
+*.tar.gz
+*.tar.bz2
+*.tgz
+*.7z
+*.rar
+*.iso
+
+# ------------------------------
+# Large binary/model files
+# ------------------------------
+# Machine-learning checkpoints, HDF5 datasets
+*.h5
+*.hdf5
+*.ckpt
+*.pt
+*.model
+
+# ------------------------------
+# Raw data files
+# ------------------------------
+# CSV, TSV, and other tabular dumps
+*.csv
+*.tsv
+# FITS (astronomy images)
+*.fits
+*.fit
+*.fts
+# NetCDF
+*.nc
+# Parquet
+*.parquet
+
+# ------------------------------
+# Media (audio/video/images)
+# ------------------------------
+# Video formats
+*.mp4
+*.mov
+*.avi
+*.mkv
+# Audio formats
+*.mp3
+*.wav
+*.flac
+# High-res images
+*.tif
+*.tiff
+*.raw
+*.cr2
+*.nef
+
+# ------------------------------
+# Build artifacts
+# ------------------------------
+# C/C++
+*.o
+*.so
+*.dll
+# Java
+*.class
+*.jar
+# Python
+__pycache__/
+*.py[cod]
+# LaTeX
+*.aux
+*.log
+*.toc
+*.out
+*.pdf
+
+# ------------------------------
+# Temporary and IDE files
+# ------------------------------
+# Editors
+*~
+*.swp
+# VSCode
+.vscode/
+# JetBrains
+.idea/
+# Emacs
+*.elc
+
+# ------------------------------
+# Custom “large” folders
+# ------------------------------
+# raw data
+/data/raw/
+/data/interim/
+/data/processed/
+/models/
+/checkpoints/
+/archives/
+
+# ------------------------------
+# Large Image Files
+# ------------------------------
+# Raster & web formats
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.bmp
+# Camera raws & layered source files
+*.psd
+*.xcf
+# High-res / scientific imagery
+*.tif
+*.tiff
+*.raw
+*.cr2
+*.nef
+
+# ------------------------------
+# Astronomy / Scientific Data
+# ------------------------------
+# FITS (Flexible Image Transport System)
+*.fits
+*.fit
+*.fts
+# Case-insensitive variants
+*.FITS
+*.FIT
+*.FTS
+
+# HDF5 datasets & checkpoints
+*.h5
+*.hdf5
+
+# NumPy binary dumps
+*.npy
+*.npz
+
+# netCDF
+*.nc
+
+# Other large data containers
+*.vot
+*.votable
+*.ms    # Measurement Set (radio interferometry)
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

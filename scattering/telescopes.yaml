@@ -1,0 +1,22 @@
+# telescopes.yaml
+#
+# Store *raw* instrumental parameters for each facility in **one place**.
+# Add as many telescope blocks as you like, one per key.  All values are
+# plain numbers (SI units noted in comments); use YAML “null” (or leave
+# blank) as a placeholder until you know the number.
+
+# Example entry — DELETE or edit:
+# VLA:
+#   df_MHz_raw: 2.0          # native channel width [MHz]
+#   dt_ms_raw: 1.0           # native time sample  [ms]
+#   f_min_GHz: 1.0           # bottom of processed band [GHz]
+#   f_max_GHz: 2.0           # top of processed band    [GHz]
+
+# Telescope parameters
+DSA-110:
+  df_MHz_raw: 0.03051757812           # float, MHz
+  dt_ms_raw: 32.768e-3            # float, ms
+  f_min_GHz:  1.31125           # float, GHz
+  f_max_GHz:  1.49875           # float, GHz
+  
+

@@ -1,0 +1,19 @@
+# sampler.yaml ── flexible, one file for every engine
+
+samplers:
+  emcee:
+    n_walkers_mult: 8
+    n_steps_warm:   400
+    thin_warm:      4           # any keys you like
+
+  dynesty:
+    nlive_mult:     20
+    sample:         rwalk
+    walks:          25
+
+  zeus:             # you can add more engines later
+    n_walkers_mult: 10
+    n_steps_warm:   300
+    thin_warm:      2
+
+default_sampler: emcee        

@@ -1,0 +1,13 @@
+# ==============================================================================
+# File: scint_analysis/configs/telescopes/dsa.yaml
+# ==============================================================================
+# --- telescope_name must match the key in the burst config ---
+telescope_name: "DSA-110"
+instrument_type: "Multi-Dish Interferometer"
+
+# --- Default observational properties ---
+native_channel_width_mhz: 0.03051757812
+total_bandwidth_mhz: 187.5
+num_channels: 6144
+min_freq_mhz: 1311.25
+max_freq_mhz: 1498.75

@@ -1,0 +1,41 @@
+# Core numerical and scientific computing
+numpy>=1.20.0
+scipy>=1.7.0
+astropy>=5.0
+
+# Data analysis and manipulation
+pandas>=1.3.0
+
+# Plotting and visualization
+matplotlib>=3.4.0
+
+# Monte Carlo sampling and MCMC
+emcee>=3.1.0
+
+# Fitting and optimization
+lmfit>=1.0.0
+
+# MCMC visualization and analysis
+chainconsumer>=0.34.0
+corner>=2.2.0
+
+# Progress bars
+tqdm>=4.62.0
+
+# Configuration file handling
+PyYAML>=5.4.0
+
+# Optional performance enhancement (for JIT compilation)
+numba>=0.54.0
+
+# Optional for advanced ODR fitting
+scipy>=1.7.0  # Already included above, but specifically needed for scipy.odr
+
+# Optional for parallel processing
+joblib>=1.1.0
+
+# For Gaussian filtering in analysis
+scikit-image>=0.18.0  # or scipy.ndimage is included in scipy
+
+# Statistical analysis
+uncertainties>=3.1.4  # For error propagation if needed

@@ -53,17 +53,18 @@ log.setLevel(logging.INFO)
 # Log-probability wrapper
 # ----------------------------------------------------------------------
 
-def _log_prob_wrapper(theta, model, priors, order, key):
-    """Module-level function for multiprocessing compatibility."""
-    # Check priors
-    for value, name in zip(theta, order[key]):
+def _log_prob_stateless(theta, time, freq, data, dm_init,
+                        noise_std, priors, order, key):
+    # prior clip
+    for v, name in zip(theta, order[key]):
         lo, hi = priors[name]
-        if not (lo <= value <= hi):
+        if not (lo <= v <= hi):
             return -np.inf
-    
-    # Compute likelihood
-    params = FRBParams.from_sequence(theta, key)
-    return model.log_likelihood(params, key)
+
+    model = FRBModel(time=time, freq=freq, data=data,
+                   dm_init=dm_init, noise_std=noise_std)
+    pars = FRBParams.from_sequence(theta, key)
+    return mdl.log_likelihood(pars, key)
 
 # ----------------------------------------------------------------------
 # Dataclass – model parameters
@@ -225,6 +226,23 @@ class FRBModel:
             raise ValueError(f"unknown model '{model}'")
 
         return gauss
+    
+    # ------------------------------------------------------------------
+    def log_prior(self, p: FRBParams, model: str, priors: Dict[str, Tuple[float, float]]) -> float:
+        """Compute log prior probability for parameters."""
+        param_names = {
+            "M0": ("c0", "t0", "gamma"),
+            "M1": ("c0", "t0", "gamma", "zeta"),
+            "M2": ("c0", "t0", "gamma", "tau_1ghz"),
+            "M3": ("c0", "t0", "gamma", "zeta", "tau_1ghz"),
+        }[model]
+
+        for name in param_names:
+            value = getattr(p, name)
+            lo, hi = priors[name]
+            if not (lo <= value <= hi):
+                return -np.inf
+        return 0.0
 
     # ------------------------------------------------------------------
     def log_likelihood(self, p: FRBParams, model: str = "M3") -> float:
@@ -325,9 +343,16 @@ class FRBFitter:
 
         # Use the wrapper function instead of self._log_prob
         sampler = emcee.EnsembleSampler(
-            nwalk, ndim, _log_prob_wrapper,  # Changed from self._log_prob
-            args=(self.model, self.priors, self._ORDER, model_key),  # Pass needed objects as args
-            pool=self.pool
+            nwalk, ndim, _log_prob_stateless,
+            args=(self.model.time,
+                  self.model.freq,
+                  self.model.data,
+                  self.model.dm_init,
+                  self.model.noise_std,
+                  self.priors,
+                  self._ORDER,
+                  model_key),
+            pool=self.pool,
         )
         sampler.run_mcmc(p_walkers, self.n_steps, progress=True)
         return sampler

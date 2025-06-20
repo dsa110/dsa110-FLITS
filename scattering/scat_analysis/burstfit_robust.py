@@ -20,7 +20,7 @@ BIC scan (e.g. "M2" or "M3").
 from __future__ import annotations
 
 import warnings
-from typing import List, Tuple
+from typing import List, Tuple, Dict, Any
 import numpy as np
 from numpy.typing import NDArray
 
@@ -145,47 +145,11 @@ def spectral_index_evolution(
     window_ms: float = 1.0,
     min_snr: float = 3.0,
     stride_ms: float | None = None,
+    correct_for_scattering: bool = True,
+    tau_ref: float | None = None,
 ) -> Tuple[NDArray[np.floating], NDArray[np.floating], NDArray[np.floating]]:
     """
-    Track spectral index evolution across the burst duration.
-    
-    This function divides the burst into time windows and fits a power law
-    (flux ∝ frequency^gamma) to each window's spectrum, allowing us to see
-    if the spectral index changes over time.
-    
-    Parameters
-    ----------
-    data : array_like
-        Dynamic spectrum (nfreq, ntime)
-    freq : array_like
-        Frequency axis in GHz
-    time : array_like  
-        Time axis in ms
-    window_ms : float
-        Time window size in milliseconds for each spectral fit
-    min_snr : float
-        Minimum SNR threshold for including time samples
-    stride_ms : float, optional
-        Step size between windows. If None, uses window_ms/2 (50% overlap)
-        
-    Returns
-    -------
-    times : array_like
-        Center time of each window [ms]
-    gammas : array_like
-        Fitted spectral index for each window
-    gamma_errs : array_like
-        1-sigma uncertainty on each spectral index
-        
-    How it works
-    ------------
-    1. First identifies the "on-burst" region using SNR threshold
-    2. Slides a window across the burst with specified stride
-    3. For each window:
-       - Averages the spectrum over the time window
-       - Fits log(flux) = gamma * log(freq) + const
-       - Records the spectral index gamma and its uncertainty
-    4. This reveals if spectral index evolves (e.g., due to scattering)
+    Track spectral index evolution with optional scattering correction.
     """
     dt_ms = time[1] - time[0]
     window_samples = int(window_ms / dt_ms)
@@ -224,12 +188,30 @@ def spectral_index_evolution(
         spectrum_noise = np.std(data[:, :len(time)//4], axis=1).mean()
         good_channels = window_spectrum > min_snr * spectrum_noise
         
+        if correct_for_scattering and tau_ref is not None:
+            # Correct for scattering before fitting
+            # Scattering scales as ν^-4 typically
+            scattering_correction = (freq / 1.0) ** 4
+            window_spectrum_corrected = window_spectrum * scattering_correction
+            
+            # Re-evaluate good channels after correction
+            good_channels = window_spectrum_corrected > min_snr * spectrum_noise
+            
+            # Use corrected spectrum for fitting
+            spectrum_to_fit = window_spectrum_corrected
+        else:
+            spectrum_to_fit = window_spectrum
+        
         if np.sum(good_channels) < 10:  # Need enough points for fit
             continue
-        
+            
         # Fit power law in log space: log(S) = gamma * log(f) + C
         log_freq = np.log10(freq[good_channels])
-        log_flux = np.log10(window_spectrum[good_channels])
+        log_flux = np.log10(spectrum_to_fit[good_channels])  # Use spectrum_to_fit
+        
+        # Check for invalid values
+        if np.any(~np.isfinite(log_flux)) or np.any(~np.isfinite(log_freq)):
+            continue
         
         # Use weighted least squares if we have channel uncertainties
         try:
@@ -238,9 +220,11 @@ def spectral_index_evolution(
             gamma = coeffs[0]
             gamma_err = np.sqrt(cov[0, 0])
             
-            times.append(time[start_idx + window_samples//2])  # Window center
-            gammas.append(gamma)
-            gamma_errs.append(gamma_err)
+            # Sanity check on the fit
+            if np.isfinite(gamma) and np.isfinite(gamma_err) and gamma_err > 0:
+                times.append(time[start_idx + window_samples//2])  # Window center
+                gammas.append(gamma)
+                gamma_errs.append(gamma_err)
             
         except np.linalg.LinAlgError:
             # Singular matrix, skip this window
@@ -259,6 +243,7 @@ def dm_optimization_check(
     dm_center: float,
     dm_range: float = 10.0,
     n_trials: int = 21,
+    account_for_smearing: bool = True
 ) -> Tuple[NDArray[np.floating], NDArray[np.floating]]:
     """
     Check if the assumed DM is optimal by computing S/N vs DM.
@@ -285,7 +270,7 @@ def dm_optimization_check(
     snrs : array_like
         S/N for each trial DM
     """
-    from burstfit import DM_DELAY_MS
+    from burstfit import DM_DELAY_MS, DM_SMEAR_MS
     
     dms = np.linspace(dm_center - dm_range, dm_center + dm_range, n_trials)
     snrs = np.zeros(n_trials)
@@ -302,9 +287,24 @@ def dm_optimization_check(
             shift = int(round(delay / dt))
             if abs(shift) < data.shape[1]:
                 data_dedispersed[j] = np.roll(data[j], -shift)
+                
+        if account_for_smearing:
+            # Account for DM smearing within channels
+            df = freq[1] - freq[0]
+            # This affects the effective S/N
+            smear_time = DM_SMEAR_MS * dm_trial * freq**(-3) * df
+            
+            # Reduce S/N based on smearing
+            # (simplified model - could be more sophisticated)
+            burst_width = 1.0  # ms, estimate from data
+            smearing_factor = np.sqrt(1 + (smear_time / burst_width)**2)
+            
+            # Weight channels by inverse smearing
+            channel_weights = 1.0 / smearing_factor
+            profile = np.sum(data_dedispersed * channel_weights[:, None], axis=0)
+        else:
+            profile = np.sum(data_dedispersed, axis=0)
         
-        # Compute S/N as peak of summed profile over noise
-        profile = np.sum(data_dedispersed, axis=0)
         noise = np.std(profile[:len(profile)//4])
         signal = np.max(profile)
         snrs[i] = signal / noise if noise > 0 else 0

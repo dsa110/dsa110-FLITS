@@ -1,0 +1,13 @@
+# ==============================================================================
+# File: scint_analysis/configs/telescopes/dsa.yaml
+# ==============================================================================
+# --- telescope_name must match the key in the burst config ---
+telescope_name: "CHIME-FRB"
+instrument_type: "Cylindrical Parabolic Interferometer"
+
+# --- Default observational properties ---
+native_channel_width_mhz: 0.390625
+total_bandwidth_mhz: 400.0
+num_channels: None
+min_freq_mhz: 400.19
+max_freq_mhz: 800.19

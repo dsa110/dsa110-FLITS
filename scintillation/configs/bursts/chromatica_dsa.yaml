@@ -1,0 +1,48 @@
+# ==============================================================================
+# File: scint_analysis/configs/bursts/chromatica.yaml
+# ==============================================================================
+# Link to the telescope config and input data
+burst_id: "chromatica"
+input_data_path: "/arc/home/jfaber/baseband_morphologies/chime_dsa_codetections/FLITS/scintillation/data/chromatica.npz" 
+telescope: "dsa" 
+
+# Set all analysis parameters
+analysis:
+  rfi_masking:
+    find_burst_thres: 5.0
+    # adds 20% total padding to burst envelope
+    padding_factor: 2.
+    use_symmetric_noise_window: true
+    #off_burst_buffer: 100 # uncomment if above is false
+    rfi_downsample_factor: 16
+    enable_time_domain_flagging: false
+    time_threshold_sigma: 7.0
+    freq_threshold_sigma: 5.0
+  acf:
+    num_subbands: 4
+    max_lag_mhz: 45.0
+    use_snr_subbanding: true
+  fitting:
+    fit_lagrange_mhz: 45.0
+    reference_frequency_mhz: 1400.0
+    # to override BIC model selection
+    force_model: null #'fit_1c_lor' 
+  baseline_subtraction:
+    # Set to true to activate this stage
+    enable: true 
+    # Order of the polynomial to fit (1=linear, 2=quadratic)
+    poly_order: 1             
+
+# Set pipeline options
+pipeline_options:
+  log_level: "INFO"
+  save_intermediate_steps: true
+  output_plot_path: "/arc/home/jfaber/baseband_morphologies/chime_dsa_codetections/FLITS/scintillation/plots/chromatica_analysis_overview.png"
+  cache_directory: "/arc/home/jfaber/baseband_morphologies/chime_dsa_codetections/FLITS/scintillation/data/cache"
+
+  # --- ADD THIS SECTION ---
+  diagnostic_plots:
+    enable: true
+    # Directory where the plots will be saved.
+    # This will be created if it doesn't exist.
+    directory: "/arc/home/jfaber/baseband_morphologies/chime_dsa_codetections/FLITS/scintillation/plots/diagnostics"

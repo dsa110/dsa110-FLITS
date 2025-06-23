@@ -1,0 +1,13 @@
+chunk_size: 2000
+diagnostics: true
+dm_init: 0.0
+extend_chain: true
+f_factor: 64
+max_chunks: 5
+model_scan: true
+nproc: 16
+path: /arc/home/jfaber/baseband_morphologies/chime_dsa_codetections/data/DSA_bursts/hamilton_chime_I_518_8007_32000b_cntr_bpc.npy
+plot: true
+steps: 10000
+t_factor: 24
+telescope: chime

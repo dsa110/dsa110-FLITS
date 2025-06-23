@@ -44,31 +44,11 @@ def build_pool(
     auto_ok: bool = False,
     label: str = "BurstFit",
 ):
-    """Return a :class:`multiprocessing.Pool` or ``None``.
-
-    Parameters
-    ----------
-    n_requested
-        * ``None`` – propose ``cpu_count() - 1`` then **prompt** unless
-          *auto_ok* is ``True``.
-        * ``0``    – force serial (returns ``None``).
-        * ``>0``   – create a pool with that many processes.
-    auto_ok
-        Skip prompt when *n_requested* is ``None`` (use proposal).
-    label
-        Identifier for prompt/logging messages.
-    """
-    # Case 0: explicit serial run ------------------------------------
-    if n_requested == 0:
-        print(f"[{label}] running serially (nproc=0)")
-        return None
+    """Return a :class:`multiprocessing.Pool` or ``None``."""
     
-    elif n_requested >= 0:
-        print(f"[{label}] running with nproc={n_requested}")
-        return mp.Pool(processes=n_requested)
-
-    # Auto proposal --------------------------------------------------
-    elif n_requested is None:
+    # --- FIX: Check for None FIRST to avoid the TypeError ---
+    if n_requested is None:
+        # Auto-detect and prompt mode
         proposal = max(mp.cpu_count() - 1, 1)
         if auto_ok:
             n_requested = proposal
@@ -79,7 +59,8 @@ def build_pool(
                     f"Use how many workers? [default {proposal}, 0 = serial] » "
                 ).strip()
             except EOFError:
-                ans = ""
+                ans = "" # Handle case where input stream is closed
+                
             if ans == "":
                 n_requested = proposal
             else:
@@ -88,12 +69,23 @@ def build_pool(
                 except ValueError:
                     print(f"[{label}] invalid input; falling back to serial")
                     return None
-            if n_requested == 0:
-                print(f"[{label}] serial mode chosen")
-                return None
-            
-        # Final creation -------------------------------------------------
-        print(f"[{label}] starting Pool({n_requested})")
+        
+        # After getting user input, proceed to create the pool or run serially
+        if n_requested == 0:
+            print(f"[{label}] serial mode chosen")
+            return None
+        else:
+            print(f"[{label}] starting Pool({n_requested})")
+            return mp.Pool(processes=n_requested)
+
+    # Case for explicit serial run
+    elif n_requested == 0:
+        print(f"[{label}] running serially (nproc=0)")
+        return None
+    
+    # Case for explicit batch run
+    elif n_requested > 0:
+        print(f"[{label}] running with nproc={n_requested}")
         return mp.Pool(processes=n_requested)
 
 # ---------------------------------------------------------------------

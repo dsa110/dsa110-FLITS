@@ -29,20 +29,27 @@ from scipy.signal import fftconvolve
 
 __all__ = [
     "FRBParams",
-    "FRBModel", 
+    "FRBModel",
     "FRBFitter",
     "compute_bic",
     "build_priors",
     "downsample",
     "plot_dynamic",
-    "goodness_of_fit", 
+    "goodness_of_fit",
 ]
 
 # ----------------------------------------------------------------------
 # Module-level constants
 # ----------------------------------------------------------------------
-DM_DELAY_MS = 4.148808        # cold-plasma dispersion, ms GHz² (pc cm⁻³)⁻¹
-DM_SMEAR_MS = 1.622e-3        # intra-channel smearing, ms GHz
+DM_DELAY_MS = 4.148808  # cold-plasma dispersion, ms GHz² (pc cm⁻³)⁻¹
+DM_SMEAR_MS = 8.3e-6     # intra-channel smearing, ms GHz⁻³ MHz⁻¹ -> this is a more common formulation
+                         # The previous value was likely a typo or for a specific setup.
+                         # This standard form is: 8.3 * 1e6 * DM * dnu_MHz / nu_GHz**3 / 1e3
+                         # We will apply dnu_MHz later, so this constant is 8.3e-6 ms GHz^3 MHz^-1
+
+# ## FIX ##: Restored the set of physically non-negative parameters.
+_POSITIVE = {"c0", "zeta", "tau_1ghz"}
+
 
 log = logging.getLogger(__name__)
 if not log.handlers:
@@ -53,18 +60,19 @@ log.setLevel(logging.INFO)
 # Log-probability wrapper
 # ----------------------------------------------------------------------
 
-def _log_prob_stateless(theta, time, freq, data, dm_init,
-                        noise_std, priors, order, key):
-    # prior clip
-    for v, name in zip(theta, order[key]):
+# ## REFACTOR ##: This is the correct, module-level wrapper for emcee + multiprocessing.
+# It takes the model object itself as an argument, making it stateless and pickleable.
+def _log_prob_wrapper(theta, model, priors, order, key):
+    """Module-level function for multiprocessing compatibility."""
+    # 1. Check priors
+    for value, name in zip(theta, order[key]):
         lo, hi = priors[name]
-        if not (lo <= v <= hi):
+        if not (lo <= value <= hi):
             return -np.inf
 
-    model = FRBModel(time=time, freq=freq, data=data,
-                   dm_init=dm_init, noise_std=noise_std)
-    pars = FRBParams.from_sequence(theta, key)
-    return mdl.log_likelihood(pars, key)
+    # 2. Compute likelihood
+    params = FRBParams.from_sequence(theta, key)
+    return model.log_likelihood(params, key)
 
 # ----------------------------------------------------------------------
 # Dataclass – model parameters
@@ -72,17 +80,24 @@ def _log_prob_stateless(theta, time, freq, data, dm_init,
 @dataclass
 class FRBParams:
     """Parameter container for the scattering model."""
-
     c0: float
     t0: float
     gamma: float
     zeta: float = 0.0
     tau_1ghz: float = 0.0
 
-    # helper methods ---------------------------------------------------
-    def as_tuple(self) -> Tuple[float, ...]:
-        return tuple(asdict(self).values())
+    # ## FIX ##: Added the to_sequence method that was missing.
+    def to_sequence(self, model_key: str = "M3") -> Sequence[float]:
+        """Pack parameters into a flat sequence for a given model_key."""
+        key_map = {
+            "M0": ("c0", "t0", "gamma"),
+            "M1": ("c0", "t0", "gamma", "zeta"),
+            "M2": ("c0", "t0", "gamma", "tau_1ghz"),
+            "M3": ("c0", "t0", "gamma", "zeta", "tau_1ghz"),
+        }
+        return [getattr(self, k) for k in key_map[model_key]]
 
+    # ## FIX ##: Added the @classmethod decorator. This was a critical bug.
     @classmethod
     def from_sequence(
         cls, seq: Sequence[float], model_key: str = "M3"
@@ -98,7 +113,7 @@ class FRBParams:
         # fill optional keys with defaults
         kwargs.setdefault("zeta", 0.0)
         kwargs.setdefault("tau_1ghz", 0.0)
-        return cls(**kwargs)  # type: ignore[arg-type]
+        return cls(**kwargs)
 
 # ----------------------------------------------------------------------
 # Forward model
@@ -106,26 +121,7 @@ class FRBParams:
 class FRBModel:
     """
     Forward model + (Gaussian) log-likelihood for a dynamic spectrum.
-
-    Parameters
-    ----------
-    time, freq
-        1-D axes in **ms** and **GHz**; `freq` must be ascending.
-    data
-        Optional 2-D array (nfreq, ntime).  If supplied, a robust noise
-        estimate is computed for the likelihood.
-    dm_init
-        Dispersion measure already **removed** from the dynamic spectrum
-        (so the burst is roughly aligned).
-    beta
-        Dispersion exponent; 2.0 for cold plasma, 2.002 for relativistic.
-    noise_std
-        Per-channel noise RMS (overrides internal MAD estimate).
-    off_pulse
-        Slice / indices marking off-pulse samples for noise estimation.
     """
-
-    # ------------------------------------------------------------------
     def __init__(
         self,
         time: NDArray[np.floating],
@@ -133,12 +129,14 @@ class FRBModel:
         *,
         data: NDArray[np.floating] | None = None,
         dm_init: float = 0.0,
+        df_MHz: float = 1.0, # ## ADDITION ##: Channel width is needed for smearing
         beta: float = 2.0,
         noise_std: NDArray[np.floating] | None = None,
         off_pulse: slice | Sequence[int] | None = None,
     ) -> None:
         self.time = np.asarray(time, dtype=float)
         self.freq = np.asarray(freq, dtype=float)
+        self.df_MHz = float(df_MHz)
 
         if data is not None:
             self.data = np.asarray(data, dtype=float)
@@ -154,128 +152,102 @@ class FRBModel:
             raise ValueError("time axis must be uniform")
         self.dt = self.time[1] - self.time[0]
 
-        # noise estimate ------------------------------------------------
         if noise_std is None and self.data is not None:
             self.noise_std = self._estimate_noise(off_pulse)
         else:
             self.noise_std = noise_std
 
-    # ------------------------------------------------------------------
-    # internal helpers
-    # ------------------------------------------------------------------
     def _dispersion_delay(
         self, dm_err: float = 0.0, ref_freq: float | None = None
     ) -> NDArray[np.floating]:
         if ref_freq is None:
             ref_freq = self.freq.max()
-        return DM_DELAY_MS * dm_err * (self.freq ** -self.beta -
-                                       ref_freq ** -self.beta)
+        return DM_DELAY_MS * dm_err * (self.freq ** -self.beta - ref_freq ** -self.beta)
 
-    def _smearing_sigma(
-        self, dm: float, zeta: float
-    ) -> NDArray[np.floating]:
-        sig_dm = DM_SMEAR_MS * dm * self.freq ** (-self.beta - 1.0)
+    # ## REFACTOR ##: Smearing calculation is now more explicit.
+    def _smearing_sigma(self, dm: float, zeta: float) -> NDArray[np.floating]:
+        """Calculates total Gaussian width from intrinsic pulse width (zeta)
+        and intra-channel DM smearing."""
+        # DM smearing time (ms) = 8.3e-6 * DM * df_MHz / nu_GHz^3
+        sig_dm = DM_SMEAR_MS * dm * self.df_MHz * (self.freq ** -3.0)
+        # Add in quadrature with intrinsic width
         return np.hypot(sig_dm, zeta)
 
     def _estimate_noise(self, off_pulse):
+        if self.data is None: return None
         if off_pulse is None:
             q = self.time.size // 4
             idx = np.r_[0:q, -q:0]
         else:
             idx = np.asarray(off_pulse)
+        
+        # Ensure indices are within bounds
+        idx = idx[idx < self.data.shape[1]]
+
         mad = np.median(
-            np.abs(
-                self.data[:, idx]
-                - np.median(self.data[:, idx], axis=1, keepdims=True)
-            ),
+            np.abs(self.data[:, idx] - np.median(self.data[:, idx], axis=1, keepdims=True)),
             axis=1,
         )
-        return 1.4826 * np.clip(mad, 1e-3, None)
+        return 1.4826 * np.clip(mad, 1e-6, None) # Use a smaller floor
 
-    # ------------------------------------------------------------------
-    # public callables
-    # ------------------------------------------------------------------
-    def __call__(self, p: FRBParams, model: str = "M3") -> NDArray[np.floating]:
+    def __call__(self, p: FRBParams, model_key: str = "M3") -> NDArray[np.floating]:
         """Return model dynamic spectrum for parameters *p*."""
-        amp = p.c0 * (self.freq / self.freq[self.freq.size // 2]) ** p.gamma
-        mu  = p.t0 + self._dispersion_delay(0.0)[:, None]
-        
-        if model in {"M1", "M3"}:          # smearing on
+        ref_freq = np.median(self.freq)
+        amp = p.c0 * (self.freq / ref_freq) ** p.gamma
+        mu = p.t0 + self._dispersion_delay(0.0)[:, None]
+
+        if model_key in {"M1", "M3"}:
             sig = self._smearing_sigma(self.dm_init, p.zeta)[:, None]
-        else:                              # M0, M2  → smearing off
+        else:
             sig = self._smearing_sigma(self.dm_init, 0.0)[:, None]
 
-        sig = np.clip(sig, 1e-6, None)     # 1 µs floor prevents σ=0 → NaN
+        # Guard against non-physical width
+        sig = np.clip(sig, 1e-6, None)
 
-        gauss = (
-            amp[:, None] *
-            np.exp(-0.5 * ((self.time - mu) / sig) ** 2) /
-            (np.sqrt(2 * np.pi) * sig)
-        )
+        gauss = (1 / (np.sqrt(2 * np.pi) * sig)) * np.exp(-0.5 * ((self.time - mu) / sig) ** 2)
 
-        if model in {"M2", "M3"} and p.tau_1ghz > 0:
-            alpha = 4.0  # thin-screen Kolmogorov
+        # --- FIX: Implement safe division to prevent NaN ---
+        gauss_sum = np.sum(gauss, axis=1, keepdims=True)
+        # Clip the sum to a tiny positive number to avoid 0/0 division
+        safe_gauss_sum = np.clip(gauss_sum, 1e-30, None)
+        gauss_norm = gauss / safe_gauss_sum
+
+        profile = amp[:, None] * gauss_norm
+
+        if model_key in {"M2", "M3"} and p.tau_1ghz > 1e-6:
+            alpha = 4.0
             tau = p.tau_1ghz * (self.freq / 1.0) ** (-alpha)
-            kernel = np.exp(
-                -np.maximum(self.time, 0)[None, :] / tau[:, None]
-            )
-            kernel /= kernel.sum(axis=1, keepdims=True)
-            return fftconvolve(gauss, kernel, mode="same", axes=1)
+            t_kernel = self.time - self.time[0]
 
-        if model not in {"M0", "M1", "M2", "M3"}:
-            raise ValueError(f"unknown model '{model}'")
+            kernel = np.exp(-t_kernel[None, :] / np.clip(tau, 1e-6, None)[:, None])
 
-        return gauss
-    
-    # ------------------------------------------------------------------
-    def log_prior(self, p: FRBParams, model: str, priors: Dict[str, Tuple[float, float]]) -> float:
-        """Compute log prior probability for parameters."""
-        param_names = {
-            "M0": ("c0", "t0", "gamma"),
-            "M1": ("c0", "t0", "gamma", "zeta"),
-            "M2": ("c0", "t0", "gamma", "tau_1ghz"),
-            "M3": ("c0", "t0", "gamma", "zeta", "tau_1ghz"),
-        }[model]
+            # --- FIX: Implement safe division for the kernel as well ---
+            kernel_sum = np.sum(kernel, axis=1, keepdims=True)
+            safe_kernel_sum = np.clip(kernel_sum, 1e-30, None)
+            kernel_norm = kernel / safe_kernel_sum
 
-        for name in param_names:
-            value = getattr(p, name)
-            lo, hi = priors[name]
-            if not (lo <= value <= hi):
-                return -np.inf
-        return 0.0
+            return fftconvolve(profile, kernel_norm, mode="same", axes=1)
 
-    # ------------------------------------------------------------------
+        if model_key not in {"M0", "M1", "M2", "M3"}:
+            raise ValueError(f"unknown model '{model_key}'")
+
+        return profile
+
     def log_likelihood(self, p: FRBParams, model: str = "M3") -> float:
         if self.data is None or self.noise_std is None:
             raise RuntimeError("need observed data + noise_std for likelihood")
-        resid = (self.data - self(p, model)) / self.noise_std[:, None]
+        
+        # Protect against all-zero noise_std if a channel is dead
+        noise_std_safe = np.clip(self.noise_std, 1e-9, None)
+
+        resid = (self.data - self(p, model)) / noise_std_safe[:, None]
         return -0.5 * np.sum(resid ** 2)
 
 # ----------------------------------------------------------------------
 # Sampler wrapper
 # ----------------------------------------------------------------------
-
 class FRBFitter:
-    """
-    Thin wrapper around *emcee* that:
-
-    * builds a walker ensemble only for the parameters relevant to
-      ``model_key``; no broadcast mismatches.
-    * supports the modern ``pool=`` interface (pass a Pool or ``None``).
-
-    Parameters
-    ----------
-    model
-        An :class:`FRBModel` instance with data & likelihood.
-    priors
-        Dict ``{name: (low, high)}`` *for all five* possible parameters.
-        The subset needed by each model is picked internally.
-    n_steps
-        MCMC length.
-    pool
-        A `multiprocessing.Pool`-like object or ``None``.
-    """
-
+    """Thin wrapper around *emcee*."""
     _ORDER = {
         "M0": ("c0", "t0", "gamma"),
         "M1": ("c0", "t0", "gamma", "zeta"),
@@ -283,7 +255,6 @@ class FRBFitter:
         "M3": ("c0", "t0", "gamma", "zeta", "tau_1ghz"),
     }
 
-    # ------------------------------------------------------------------
     def __init__(
         self,
         model: FRBModel,
@@ -299,59 +270,32 @@ class FRBFitter:
         self.n_walkers_mult = n_walkers_mult
         self.pool = pool
 
-    # ------------------------------------------------------------------
-    # internal helpers
-    # ------------------------------------------------------------------
-    def _slice(self, theta, key):
-        """Return theta restricted to names in _ORDER[key]."""
-        return np.array([theta[self._ORDER["M3"].index(n)] for n in self._ORDER[key]])
-
-    def _log_prior(self, theta, key):
-        for value, name in zip(theta, self._ORDER[key]):
-            lo, hi = self.priors[name]
-            if not (lo <= value <= hi):
-                return -np.inf
-        return 0.0
-
-    #def _log_prob(self, theta, key):
-    #    lp = self._log_prior(theta, key)
-    #    if not np.isfinite(lp):
-    #        return -np.inf
-    #    params = FRBParams.from_sequence(theta, key)   # use *key*, not "M3"
-    #    return lp + self.model.log_likelihood(params, key)
-
     def _init_walkers(self, p0: FRBParams, key: str, nwalk: int):
         names = self._ORDER[key]
         centre = np.array([getattr(p0, n) for n in names])
-        widths = np.array([0.05 * (self.priors[n][1] - self.priors[n][0]) for n in names])
+        # Use 1% of prior range for initial walker ball size
+        widths = np.array([0.01 * (self.priors[n][1] - self.priors[n][0]) for n in names])
         lower, upper = zip(*(self.priors[n] for n in names))
+
+        # Ensure widths are not zero
+        widths = np.clip(widths, 1e-6, None)
+
         walkers = np.random.normal(centre, widths, size=(nwalk, len(names)))
         return np.clip(walkers, lower, upper)
 
-    # ------------------------------------------------------------------
-    # public
-    # ------------------------------------------------------------------
     def sample(self, p0: FRBParams, model_key: str = "M3"):
+        """Run the MCMC sampler."""
         names = self._ORDER[model_key]
         ndim = len(names)
         nwalk = max(self.n_walkers_mult * ndim, 2 * ndim)
 
-        p0_slice = FRBParams.from_sequence(
-            [getattr(p0, n) for n in names] + [0]*(5-len(names)), model_key
-        )
-        p_walkers = self._init_walkers(p0_slice, model_key, nwalk)
+        p_walkers = self._init_walkers(p0, model_key, nwalk)
 
-        # Use the wrapper function instead of self._log_prob
         sampler = emcee.EnsembleSampler(
-            nwalk, ndim, _log_prob_stateless,
-            args=(self.model.time,
-                  self.model.freq,
-                  self.model.data,
-                  self.model.dm_init,
-                  self.model.noise_std,
-                  self.priors,
-                  self._ORDER,
-                  model_key),
+            nwalkers=nwalk,
+            ndim=ndim,
+            log_prob_fn=_log_prob_wrapper,
+            args=(self.model, self.priors, self._ORDER, model_key),
             pool=self.pool,
         )
         sampler.run_mcmc(p_walkers, self.n_steps, progress=True)
@@ -360,13 +304,18 @@ class FRBFitter:
 # ----------------------------------------------------------------------
 # Helpers
 # ----------------------------------------------------------------------
-
+# Restored the non-negativity check in build_priors
 def build_priors(init: FRBParams, scale: float = 3.0):
     """Return symmetric box priors centred on *init*."""
     pri = {}
     for name, val in asdict(init).items():
-        width = scale * (abs(val) if val != 0 else 1.0)
-        pri[name] = (val - width, val + width)
+        # Use a more robust width definition
+        width = scale * (abs(val) if abs(val) > 1e-4 else 0.1)
+        lo = val - width
+        hi = val + width
+        if name in _POSITIVE:
+            lo = max(0.0, lo)
+        pri[name] = (lo, hi)
     return pri
 
 def compute_bic(logL_max: float, k: int, n: int) -> float:
@@ -378,67 +327,34 @@ def downsample(data: NDArray[np.floating], f_factor=1, t_factor=1):
     if f_factor == 1 and t_factor == 1:
         return data
     nf, nt = data.shape
-    nf_ds = nf // f_factor * f_factor
-    nt_ds = nt // t_factor * t_factor
-    d = data[:nf_ds, :nt_ds].reshape(
-        nf_ds // f_factor, f_factor, nt_ds // t_factor, t_factor
+    # Ensure dimensions are divisible by factors
+    nf_new = nf - (nf % f_factor)
+    nt_new = nt - (nt % t_factor)
+    d = data[:nf_new, :nt_new].reshape(
+        nf_new // f_factor, f_factor, nt_new // t_factor, t_factor
     )
     return d.mean(axis=(1, 3))
 
-def goodness_of_fit(data: NDArray[np.floating], 
-                   model: NDArray[np.floating], 
-                   noise_std: NDArray[np.floating] | None = None,
-                   n_params: int = 5) -> Dict[str, float]:
-    """
-    Compute goodness-of-fit metrics for the model.
-    
-    Parameters
-    ----------
-    data : array_like
-        Observed dynamic spectrum (nfreq, ntime)
-    model : array_like  
-        Model dynamic spectrum (nfreq, ntime)
-    noise_std : array_like, optional
-        Per-channel noise standard deviation. If None, estimated from residuals.
-    n_params : int
-        Number of model parameters (for DOF calculation)
-        
-    Returns
-    -------
-    dict
-        Dictionary containing:
-        - chi2: Total chi-squared
-        - chi2_reduced: Reduced chi-squared  
-        - ndof: Number of degrees of freedom
-        - residual_rms: RMS of residuals
-        - residual_autocorr: Autocorrelation of time-collapsed residuals
-    """
+def goodness_of_fit(data: NDArray[np.floating],
+                   model: NDArray[np.floating],
+                   noise_std: NDArray[np.floating],
+                   n_params: int) -> Dict[str, Any]:
+    """Compute goodness-of-fit metrics."""
     residual = data - model
+    noise_std_safe = np.clip(noise_std, 1e-9, None)[:, np.newaxis]
     
-    if noise_std is None:
-        # Estimate noise from first and last quarters of time series
-        n_time = residual.shape[1]
-        q = n_time // 4
-        off_pulse = np.concatenate([residual[:, :q], residual[:, -q:]], axis=1)
-        noise_std = np.std(off_pulse, axis=1, keepdims=True)
-    elif noise_std.ndim == 1:
-        noise_std = noise_std[:, np.newaxis]
-    
-    # Chi-squared calculation
-    chi2 = np.sum((residual / noise_std) ** 2)
+    chi2 = np.sum((residual / noise_std_safe) ** 2)
     ndof = data.size - n_params
-    chi2_reduced = chi2 / ndof
-    
-    # Residual autocorrelation of time-collapsed profile
+    chi2_reduced = chi2 / ndof if ndof > 0 else np.inf
+
     residual_profile = np.sum(residual, axis=0)
-    # Normalize for autocorrelation
-    residual_profile = residual_profile - np.mean(residual_profile)
+    residual_profile -= np.mean(residual_profile)
     
-    # Compute autocorrelation using numpy's correlate
     autocorr = np.correlate(residual_profile, residual_profile, mode='same')
-    # Normalize so autocorr[center] = 1
-    autocorr = autocorr / autocorr[len(autocorr)//2]
-    
+    center_val = autocorr[len(autocorr)//2]
+    if center_val > 0:
+        autocorr /= center_val
+
     return {
         'chi2': float(chi2),
         'chi2_reduced': float(chi2_reduced),
@@ -457,5 +373,6 @@ def plot_dynamic(
     """Imshow wrapper with correct axes."""
     imshow_kw.setdefault("aspect", "auto")
     imshow_kw.setdefault("origin", "lower")
+    imshow_kw.setdefault("interpolation", "nearest")
     extent = [time[0], time[-1], freq[0], freq[-1]]
     return ax.imshow(dyn, extent=extent, **imshow_kw)

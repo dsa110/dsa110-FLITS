@@ -42,7 +42,7 @@ from typing import Dict, Sequence, Tuple
 import numpy as np
 from numpy.typing import NDArray
 
-from burstfit import (
+from .burstfit import (
     FRBModel,
     FRBFitter,
     FRBParams,
@@ -52,7 +52,6 @@ from burstfit import (
 
 __all__ = ["fit_models_bic"]
 
-# Map of parameter names for each model key ---------------------------
 _PARAM_KEYS = {
     "M0": ("c0", "t0", "gamma"),
     "M1": ("c0", "t0", "gamma", "zeta"),
@@ -64,16 +63,8 @@ _PARAM_KEYS = {
 # private helpers
 # ---------------------------------------------------------------------
 
-def _restrict_params(p: FRBParams, key: str) -> FRBParams:
-    d = p.__dict__.copy()
-    keep = {k: d.get(k, 0.0) for k in _PARAM_KEYS[key]}
-    # ensure optional fields exist
-    keep.setdefault("zeta", 0.0)
-    keep.setdefault("tau_1ghz", 0.0)
-    return FRBParams(**keep)  # type: ignore[arg-type]
-
-
 def _restrict_priors(pri: Dict[str, Tuple[float, float]], key: str):
+    """Selects only the priors needed for a given model key."""
     return {k: pri[k] for k in _PARAM_KEYS[key]}
 
 # ---------------------------------------------------------------------
@@ -82,51 +73,55 @@ def _restrict_priors(pri: Dict[str, Tuple[float, float]], key: str):
 
 def fit_models_bic(
     *,
-    data: NDArray[np.floating],
-    freq: NDArray[np.floating],
-    time: NDArray[np.floating],
-    dm_init: float,
+    model: FRBModel,
     init: FRBParams,
     model_keys: Sequence[str] = ("M0", "M1", "M2", "M3"),
     n_steps: int = 1500,
-    pool = None,
+    pool=None,
 ) -> Tuple[str, Dict[str, Tuple["emcee.EnsembleSampler", float, float]]]:
-    """Fit each model, compute BIC, return best.
+    """
+    Fit each model, compute BIC, and return the best one.
 
     Parameters
     ----------
-    data, freq, time, dm_init
-        Dynamic spectrum and axes.
+    model
+        An initialized FRBModel instance containing the data and axes.
     init
-        Initial parameter guess (full 5‑param set).  Will be projected
+        Initial parameter guess (full 5-param set). It will be projected
         onto simpler models automatically.
     model_keys
-        Iterable subset of {"M0", "M1", "M2", "M3"}.
+        An iterable subset of {"M0", "M1", "M2", "M3"}.
     n_steps
-        Chain length **per** model.  Keep modest for evidence scan.
+        Chain length **per** model. Keep this modest for an evidence scan.
     pool
-        Passed to :class:`burstfit.FRBFitter`.
+        A multiprocessing pool, passed to FRBFitter.
 
     Returns
     -------
     best_key
-        Key with lowest BIC.
+        The model key with the lowest BIC.
     results
-        Dict mapping key → (sampler, bic, logL_max).
+        A dictionary mapping each model key to its (sampler, bic, logL_max).
     """
-    n_obs = data.size
-    base_model = FRBModel(time=time, freq=freq, data=data, dm_init=dm_init)
-
+    if model.data is None:
+        raise ValueError("The FRBModel instance must contain data for fitting.")
+        
+    n_obs = model.data.size
     results: Dict[str, Tuple] = {}
+    
+    # Priors are built once from the full initial guess
+    full_priors = build_priors(init, scale=3.0)
 
     for key in model_keys:
-        p0 = _restrict_params(init, key)
-        pri = _restrict_priors(build_priors(init, scale=3.0), key)
+        # For each model, we only need the relevant subset of priors
+        priors_subset = _restrict_priors(full_priors, key)
 
-        fitter = FRBFitter(base_model, pri, n_steps=n_steps, pool=pool)
-        sampler = fitter.sample(p0, model_key=key)
+        fitter = FRBFitter(model, priors_subset, n_steps=n_steps, pool=pool)
+        
+        # The fitter's `sample` method correctly uses the `init` guess
+        sampler = fitter.sample(init, model_key=key)
 
-        logL_max = float(np.nanmax(sampler.get_log_prob(flat=True)))
+        logL_max = float(np.nanmax(sampler.get_log_prob()))
         bic_val = compute_bic(logL_max, k=len(_PARAM_KEYS[key]), n=n_obs)
         results[key] = (sampler, bic_val, logL_max)
 

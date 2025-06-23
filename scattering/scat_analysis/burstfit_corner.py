@@ -1,3 +1,11 @@
+"""
+burstfit_corner.py
+==================
+
+Utility for constructing and plotting corner
+plots with posterior distributions.
+"""
+
 from __future__ import annotations
 
 import logging
@@ -6,17 +14,17 @@ import contextlib
 from pathlib import Path
 from typing import Any, Dict, Sequence
 
+import corner
 import matplotlib.pyplot as plt
 import numpy as np
 from numpy.typing import NDArray
 
-from typing import List, Tuple
+from typing import List, Tuple, Dict, Any
 
 from chainconsumer import ChainConsumer
 
 def diagnose_sampler_convergence(sampler, param_names):
     """Diagnose MCMC convergence issues"""
-    import matplotlib.pyplot as plt
     
     # Get the full chain
     chain = sampler.get_chain()
@@ -163,7 +171,6 @@ def get_clean_samples(sampler, param_names, verbose=True):
 
 def make_beautiful_corner(samples, param_names, best_params=None, title=""):
     """Create a well-formatted corner plot"""
-    import corner
     
     # Parameter labels with units
     label_map = {
@@ -179,7 +186,6 @@ def make_beautiful_corner(samples, param_names, best_params=None, title=""):
     # Compute quantiles for display
     quantiles = [0.16, 0.5, 0.84]
     
-    # Create corner plot with better defaults
     fig = corner.corner(
         samples,
         labels=labels,
@@ -199,23 +205,23 @@ def make_beautiful_corner(samples, param_names, best_params=None, title=""):
         bins=40,  # More bins for smoother histograms
         fill_contours=True,
         levels=(0.68, 0.95),  # 1 and 2 sigma contours
-        color='blue',
-        truth_color='red',
+        color='purple',
+        truth_color='magenta',
         # Data point appearance
         data_kwargs={
             'alpha': 0.5,
-            'ms': 1.0,
-            'color': 'blue'
+            'ms': 1.5,
+            'color': 'black'
         },
         # Contour appearance  
         contour_kwargs={
-            'colors': 'black',
-            'linewidths': 1.0
+            'colors': 'purple',
+            'linewidths': 1.5
         },
-        contourf_kwargs={
-            'colors': ['white', 'lightblue', 'blue'],
-            'alpha': 0.5
-        }
+        #contourf_kwargs={
+        #    'colors': ['white', 'orchid', 'purple'],
+        #    'alpha': 0.5
+        #}
     )
     
     # Add true values if provided
@@ -228,21 +234,116 @@ def make_beautiful_corner(samples, param_names, best_params=None, title=""):
         # Add vertical lines for true values
         for i in range(len(param_names)):
             ax = axes[i, i]
-            ax.axvline(truths[i], color='red', linestyle='--', linewidth=2)
+            ax.axvline(truths[i], color='orchid', linestyle='--', linewidth=1.5)
             
         # Add lines in 2D plots
         for yi in range(len(param_names)):
             for xi in range(yi):
                 ax = axes[yi, xi]
-                ax.axvline(truths[xi], color='red', linestyle='--', linewidth=1, alpha=0.5)
-                ax.axhline(truths[yi], color='red', linestyle='--', linewidth=1, alpha=0.5)
-                ax.plot(truths[xi], truths[yi], 'r*', markersize=15)
+                ax.axvline(truths[xi], color='orchid', linestyle='--', linewidth=1.5, alpha=0.75)
+                ax.axhline(truths[yi], color='orchid', linestyle='--', linewidth=1.5, alpha=0.75)
+                ax.plot(truths[xi], truths[yi], 'o', color='orchid', markersize=5)
     
     # Add title
     fig.suptitle(title, fontsize=16, y=1.02)
     
     # Adjust layout
-    plt.tight_layout()
+    #plt.tight_layout()
+    
+    # Print summary statistics
+    print("\nParameter Summary (median [16%, 84%]):")
+    for i, name in enumerate(param_names):
+        q16, q50, q84 = np.percentile(samples[:, i], [16, 50, 84])
+        print(f"{name}: {q50:.3f} [{q16:.3f}, {q84:.3f}]")
+    
+    return fig
+
+def make_beautiful_corner_wide(samples, param_names, best_params=None, title=""):
+    """Create a well-formatted corner plot"""
+    
+    # Parameter labels with units
+    label_map = {
+        'c0': r'$c_0$ [a.u.]',
+        't0': r'$t_0$ [ms]',
+        'gamma': r'$\gamma$',
+        'zeta': r'$\zeta$ [ms]',
+        'tau_1ghz': r'$\tau_{\rm 1\,GHz}$ [ms]'
+    }
+    
+    labels = [label_map.get(name, name) for name in param_names]
+    
+    # Compute quantiles for display
+    quantiles = [0.16, 0.5, 0.84]
+
+    q   = np.percentile(samples, [2, 98], axis=0)      # loose 96 % band
+    pad = 0.1 * (q[1] - q[0])                          # 10 % breathing room
+    ranges = [(low - d, high + d) for (low, high), d in zip(q.T, pad)]
+    
+    fig = corner.corner(
+        samples,
+        labels=param_names,
+        range=ranges,
+        quantiles=quantiles,
+        show_titles=True,
+        title_fmt='.3f',
+        max_n_ticks=4,
+        title_kwargs={"fontsize": 14},
+        label_kwargs={"fontsize": 14},
+        # Better plot defaults
+        plot_contours=True,
+        plot_density=True,
+        plot_datapoints=True,
+        # Smoothing
+        smooth=1.0,  # Slight smoothing for cleaner contours
+        smooth1d=1.0,
+        # Appearance
+        bins=40,  # More bins for smoother histograms
+        fill_contours=True,
+        levels=(0.68, 0.95),  # 1 and 2 sigma contours
+        color='purple',
+        truth_color='magenta',
+        # Data point appearance
+        data_kwargs={
+            'alpha': 0.5,
+            'ms': 1.5,
+            'color': 'black'
+        },
+        # Contour appearance  
+        contour_kwargs={
+            'colors': 'purple',
+            'linewidths': 1.5
+        },
+        #contourf_kwargs={
+        #    'colors': ['white', 'orchid', 'purple'],
+        #    'alpha': 0.5
+        #}
+    )
+    
+    # Add true values if provided
+    if best_params is not None:
+        truths = [getattr(best_params, name) for name in param_names]
+        
+        # Extract axes
+        axes = np.array(fig.axes).reshape((len(param_names), len(param_names)))
+        
+        # Add vertical lines for true values
+        for i in range(len(param_names)):
+            ax = axes[i, i]
+            ax.axvline(truths[i], color='orchid', linestyle='--', linewidth=1.5)
+            
+        # Add lines in 2D plots
+        for yi in range(len(param_names)):
+            for xi in range(yi):
+                ax = axes[yi, xi]
+                ax.axvline(truths[xi], color='orchid', linestyle='--', linewidth=1.5, alpha=0.75)
+                ax.axhline(truths[yi], color='orchid', linestyle='--', linewidth=1.5, alpha=0.75)
+                ax.plot(truths[xi], truths[yi], 'o', color='orchid', markersize=5)
+    
+    # Add title
+    fig.suptitle(title, fontsize=16, y=1.02)
+    
+    # Adjust layout
+    #plt.tight_layout()
     
     # Print summary statistics
     print("\nParameter Summary (median [16%, 84%]):")

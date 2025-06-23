@@ -1,0 +1,17 @@
+# FILE: mahi_config.yaml
+# ==========================================================
+# Run Configuration for 'mahi'
+# ==========================================================
+path: "/arc/home/jfaber/baseband_morphologies/chime_dsa_codetections/data/DSA_bursts/mahi_dsa_l_960_128_2500b_cntr_bpc.npy"
+dm_init: 0.0
+telescope: "dsa"
+steps: 10000
+f_factor: 384
+t_factor: 2
+nproc: 16
+extend_chain: true
+chunk_size: 2000
+max_chunks: 5
+model_scan: true
+diagnostics: true
+plot: true

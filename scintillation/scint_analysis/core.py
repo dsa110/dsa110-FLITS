@@ -3,6 +3,7 @@
 # ==============================================================================
 import numpy as np
 import logging
+from astropy.stats import sigma_clip
 from scipy.ndimage import label
 from scipy.stats import median_abs_deviation
 from tqdm import tqdm
@@ -107,195 +108,60 @@ class DynamicSpectrum:
         start, end = time_window_bins
         log.debug(f"Calculating time-averaged spectrum from bins {start} to {end}.")
         return np.ma.mean(self.power[:, start:end], axis=1)
-    
-    #def find_burst_envelope(self, thres=5, downsample_factor=32):
-    #    """
-    #    Generic implementation to find the burst envelope.
-    #    """
-    #    log.info(f"Finding burst envelope with S/N threshold > {thres}.")
-    #    
-    #    prof = self.get_profile()
-    #    if downsample_factor > 1:
-    #        remainder = prof.size % downsample_factor
-    #        if remainder > 0: 
-    #            prof = prof[:-remainder]
-    #        prof = np.mean(prof.reshape(-1, downsample_factor), axis=1)
-
-    #    floor = prof.copy()
-    #    snr_prof = (prof - np.ma.median(floor)) / np.ma.std(floor)
-    #    floor = (floor - np.ma.median(floor)) / np.ma.std(floor)
-
-    #    while True:
-    #        labeled_array, num_features = label(floor > thres)
-    #        if num_features == 0: 
-    #            break
-    #        
-    #        peak_fluences = [np.sum(floor[labeled_array == i]) for i in range(1, num_features + 1)]
-    #        brightest_label = np.argmax(peak_fluences) + 1
-    #        peak_indices = np.where(labeled_array == brightest_label)[0]
-    #        
-    #        if len(peak_indices) == 0: 
-    #            break
-    #        floor[peak_indices[0]:peak_indices[-1] + 1] = np.ma.masked
-
-    #    idx_is_signal = np.ma.getmask(floor)
-    #    if not np.any(idx_is_signal):
-    #        log.warning("No burst envelope found above threshold.")
-    #        return [0, 0]
-
-    #    lims = np.array([np.where(idx_is_signal)[0].min(), np.where(idx_is_signal)[0].max()])
-    #    final_lims = lims * downsample_factor
-    #    log.info(f"Burst envelope found between bins {final_lims[0]} and {final_lims[1]}.")
-    #    return final_lims.tolist()
-
-    #def find_burst_envelope_old(self, thres=7, downsample_factor=16):
-    #log.info(f"Finding burst envelope with S/N threshold > {thres} (downsample ×{downsample_factor}).")
-    #
-    ## 1. Get and optionally downsample the profile
-    #prof = self.get_profile().filled(np.nan)  # make sure it’s a 1D ndarray
-    #
-    #fig = plt.figure()
-    #plt.plot(prof)
-    #plt.title('Full Res Timeseries')
-    #plt.show()
-    #print(f'Prof shape: {prof.shape}')
-    #
-    #if downsample_factor > 1:
-    #    n = prof.size - (prof.size % downsample_factor)
-    #    prof_ds = prof[:n].reshape(-1, downsample_factor).mean(axis=1)
-    #
-    #fig = plt.figure()
-    #plt.plot(prof_ds)
-    #plt.title('Low Res Timeseries')
-    #plt.show()
-    #print(f'Prof shape: {prof.shape}')
-    #
-    ## 2. Compute robust S/N
-    #med = np.nanmedian(prof_ds)
-    #std = np.nanstd(prof_ds)
-    #
-    #if std == 0 or np.isnan(std):
-    #    log.warning("Zero-variance (or NaN) profile; returning zeros.")
-    #    return [0, 0]
-    #
-    #snr = (prof_ds - med) / std
-    #
-    #fig = plt.figure()
-    #plt.plot(snr)
-    #plt.title('S/N Timeseries')
-    #plt.show()
-    #print(f'Prof shape: {prof.shape}')
-    #
-    #
-    ## 3. threshold & label in one shot
-    #mask = snr > thres
-    #if not mask.any():
-    #    log.warning("No burst envelope found above threshold.")
-    #    return [0, 0]
-    #
-    #
-    #print(f'Mask: {mask}')
-    #
-    #labels, nregions = label(mask)
-    #
-    ## 4. Compute “fluence” (sum of S/N) per region via bincount
-    ##    Note: bincount index 0 is background, so skip it
-    #weights = snr[mask]
-    #reg_ids = labels[mask]
-    #fluences = np.bincount(reg_ids, weights=weights)
-    #if fluences.size <= 1:
-    #    # Only background, should not happen since mask.any() is True
-    #    first_bin = np.argmax(mask)
-    #    last_bin = prof.size - np.argmax(mask[::-1]) - 1
-    #else:
-    #    peak_reg = np.argmax(fluences[1:]) + 1
-    #    idx = np.nonzero(labels == peak_reg)[0]
-    #    first_bin, last_bin = idx.min(), idx.max()
-    #
-    ## 5. Scale back to original resolution
-    #final_lims = [int(first_bin * downsample_factor),
-    #              int((last_bin + 1) * downsample_factor) - 1]
-    #
-    #
-    #fig = plt.figure()
-    #plt.plot(prof[final_lims[0]:final_lims[1]])
-    #plt.title('S/N Timeseries')
-    #plt.show()
-    #print(f'Prof shape: {prof.shape}')
-    #
-    #log.info(f"Burst envelope found between bins {final_lims[0]} and {final_lims[1]}.")
-    #return final_lims
 
     
-    def find_burst_envelope(self, thres=5, downsample_factor=8):
+    def find_burst_envelope(self, thres=5, downsample_factor=8, padding_factor=0.0):
         """
-        Efficiently finds the full envelope of all signal above a threshold.
+        Finds the full time envelope containing ALL signal above a given S/N threshold.
+        Uses sigma-clipping for robust noise estimation and can apply padding.
         """
-        log.info(f"Efficiently finding burst envelope with S/N threshold > {thres} (downsample ×{downsample_factor}).")
+        log.info(f"Finding full signal envelope with S/N threshold > {thres} (downsample ×{downsample_factor}).")
 
         prof = self.get_profile().compressed()
         if downsample_factor > 1:
             n = prof.size - (prof.size % downsample_factor)
-            prof = prof[:n].reshape(-1, downsample_factor).mean(axis=1)
+            if n == 0:
+                 log.warning("Not enough data to downsample. Using full resolution profile.")
+            else:
+                prof = prof[:n].reshape(-1, downsample_factor).mean(axis=1)
 
-        med = np.nanmedian(prof[:5])
-        std = np.nanstd(prof[:5])
-        if std == 0:
-            log.warning("Zero-variance profile; returning empty envelope.")
+        # --- Robust noise estimation using sigma-clipping ---
+        filtered_prof = sigma_clip(prof, sigma=3, maxiters=5, masked=True)
+        med = np.ma.median(filtered_prof)
+        std = np.ma.std(filtered_prof)
+
+        if std is np.ma.masked or std == 0:
+            log.warning("Zero-variance profile in noise region; returning empty envelope.")
             return [0, 0]
+
         snr = (prof - med) / std
-
         mask = snr > thres
-        if not mask.any():
+        if not np.any(mask):
             log.warning("No burst envelope found above threshold.")
             return [0, 0]
 
-        # *** CORRECTED LOGIC: Find the full extent of ALL signal regions ***
-        #signal_indices = np.where(mask)[0]
-        #first_bin = signal_indices.min()
-        #last_bin = signal_indices.max()
-        #print(f'First/last bins DS: {first_bin, last_bin}')
-        mask = snr > thres
-        if not mask.any():
-            log.warning("No burst envelope found above threshold.")
-            return [0, 0]
-        
-        print(f'Mask: {mask}')
-        
-        labels, nregions = label(mask)
-        
-        # 4. Compute “fluence” (sum of S/N) per region via bincount
-        #    Note: bincount index 0 is background, so skip it
-        weights = snr[mask]
-        reg_ids = labels[mask]
-        fluences = np.bincount(reg_ids, weights=weights)
-        if fluences.size <= 1:
-            # Only background, should not happen since mask.any() is True
-            first_bin = np.argmax(mask)
-            last_bin = prof.size - np.argmax(mask[::-1]) - 1
-        else:
-            peak_reg = np.argmax(fluences[1:]) + 1
-            idx = np.nonzero(labels == peak_reg)[0]
-            print('idx: ', idx)
-            first_bin, last_bin = idx.min(), idx.max()
+        signal_indices = np.where(mask)[0]
+        first_bin_ds = signal_indices.min()
+        last_bin_ds = signal_indices.max()
 
-        final_lims = [int(first_bin * downsample_factor),
-                      int((last_bin+1) * downsample_factor) - 1]
-        
-        fig = plt.figure()
-        plt.plot(snr)
-        plt.title('S/N')
-        plt.show()
-        
-        fig = plt.figure()
-        fullprof = self.get_profile().compressed()
-        plt.plot(fullprof[final_lims[0]:final_lims[1]])
-        plt.title('Prof')
-        plt.show()
-        print(f'Prof shape: {prof.shape}')
-        print(f'Peak S/N: {np.nanmax(snr)}')   
-        
-        log.info(f"Burst envelope found between bins {final_lims[0]} and {final_lims[1]}.")
+        # --- Apply padding to widen burst envelope ---
+        if padding_factor > 0:
+            duration_ds = last_bin_ds - first_bin_ds
+            padding_ds = int(duration_ds * padding_factor)
+            log.info(f"Applying {padding_factor*100:.1f}% padding ({padding_ds} downsampled bins) to each side.")
+
+            first_bin_ds -= padding_ds
+            last_bin_ds += padding_ds
+
+            # Ensure we don't go out of bounds
+            first_bin_ds = max(0, first_bin_ds)
+            last_bin_ds = min(len(prof) - 1, last_bin_ds)
+
+        # --- Final calculation using the (potentially padded) bins ---
+        final_lims = [int(first_bin_ds * downsample_factor),
+                      int((last_bin_ds + 1) * downsample_factor) - 1]
+
+        log.info(f"Full signal envelope found between bins {final_lims[0]} and {final_lims[1]}.")
         return final_lims
 
     def mask_rfi(self, config):
@@ -392,6 +258,51 @@ class DynamicSpectrum:
 
         # 4. Build a *new* DynamicSpectrum so callers get a fresh object
         new_power = np.ma.MaskedArray(self.power.data.copy(), mask=final_mask)
+        return DynamicSpectrum(new_power, self.frequencies.copy(), self.times.copy())
+
+    def subtract_poly_baseline(self, off_pulse_spectrum, poly_order=1):
+        """
+        Fits a polynomial to a representative off-pulse 1D spectrum and subtracts
+        this baseline model from every timestep in the dynamic spectrum.
+
+        This method is more robust than fitting each timestep individually as it
+        models a stable instrumental bandpass shape from a high S/N, signal-free
+        average.
+
+        Args:
+            off_pulse_spectrum (np.ma.MaskedArray): A 1D spectrum representing the
+                                                 time-averaged, signal-free bandpass.
+            poly_order (int): The order of the polynomial to fit.
+
+        Returns:
+            DynamicSpectrum: A new DynamicSpectrum object with the baseline subtracted.
+        """
+        log.info(f"Performing order-{poly_order} polynomial baseline subtraction using off-pulse spectrum.")
+        
+        # Use only valid (unmasked) data from the off-pulse spectrum to fit the baseline
+        valid_mask = ~off_pulse_spectrum.mask
+        if np.sum(valid_mask) < poly_order + 2:
+            log.warning("Not enough valid data in off-pulse spectrum to fit baseline. Skipping subtraction.")
+            return self # Return the original object if fit is not possible
+
+        # Fit a single, stable polynomial to the time-averaged off-pulse bandpass
+        coeffs = np.polyfit(
+            self.frequencies[valid_mask],
+            off_pulse_spectrum.compressed(), # Use .compressed() to get only valid data
+            poly_order
+        )
+        
+        # Evaluate this single baseline model across all frequencies
+        baseline_model = np.poly1d(coeffs)(self.frequencies)
+        
+        # Subtract this 1D baseline model from the entire 2D data block.
+        # NumPy broadcasting subtracts the 1D array from every column (each time step).
+        new_power_data = self.power.data - baseline_model[:, np.newaxis]
+        
+        # Create the new object, preserving the original RFI mask
+        new_power = np.ma.MaskedArray(new_power_data, mask=self.power.mask)
+        
+        log.info("Baseline subtraction complete.")
         return DynamicSpectrum(new_power, self.frequencies.copy(), self.times.copy())
     
     def __repr__(self):

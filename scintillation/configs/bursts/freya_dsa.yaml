@@ -11,7 +11,7 @@ analysis:
   rfi_masking:
     find_burst_thres: 5.0
     # adds 20% total padding to burst envelope
-    padding_factor: 0.
+    padding_factor: 0.0
     use_symmetric_noise_window: true
     #off_burst_buffer: 100 # uncomment if above is false
     rfi_downsample_factor: 16
@@ -19,20 +19,30 @@ analysis:
     time_threshold_sigma: 7.0
     freq_threshold_sigma: 5.0
   acf:
-    num_subbands: 3
+    num_subbands: 2
     max_lag_mhz: 45.0
-    use_snr_subbanding: true
+    use_snr_subbanding: false
+    enable_intra_pulse_analysis: true
+    # Number of time slices
+    intra_pulse_time_bins: 5
   fitting:
     fit_lagrange_mhz: 45.0
     reference_frequency_mhz: 1400.0
     # to override BIC model selection
-    force_model: null #'fit_1c_lor' 
+    force_model: null 
+    #force_model: 'fit_2c_lor' 
   baseline_subtraction:
     # Set to true to activate this stage
     enable: true 
     # Order of the polynomial to fit (1=linear, 2=quadratic)
-    poly_order: 1             
-
+    poly_order: 1        
+  noise:
+    disable: true
+    disable_template: true
+    template_n_draws: 25
+  self_noise:
+    disable: true
+    
 # Set pipeline options
 pipeline_options:
   log_level: "INFO"

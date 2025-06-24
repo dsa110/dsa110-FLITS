@@ -123,7 +123,7 @@ def get_clean_samples(sampler, param_names, verbose=True):
     mean_log_prob = np.mean(log_prob, axis=1)
     
     # Use a running mean to find where log prob stabilizes
-    window = min(100, n_steps // 10)
+    window = max(1, min(100, n_steps // 10))   # never smaller than 1
     running_mean = np.convolve(mean_log_prob, np.ones(window)/window, mode='valid')
     running_std = np.array([np.std(mean_log_prob[max(0,i-window):i+window]) 
                            for i in range(len(mean_log_prob))])

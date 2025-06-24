@@ -83,9 +83,15 @@ def subband_consistency(
         priors = build_priors(init, scale=3.0)
 
         # The FRBFitter needs priors for ALL possible params, it will slice internally
-        full_priors = build_priors(init, scale=3.0)
+        full_priors, use_logw = build_priors(init, scale=3.0,
+                                       log_weight_pos=True)
+
+        fitter = FRBFitter(model,
+                           full_priors,
+                           n_steps= n_steps,
+                           pool=pool,
+                           log_weight_pos=use_logw)    
         
-        fitter = FRBFitter(model, full_priors, n_steps=n_steps, pool=pool)
         sampler = fitter.sample(init, model_key)
 
         burn = n_steps // 4

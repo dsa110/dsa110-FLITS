@@ -1,9 +1,15 @@
 # ==============================================================================
-# File: scint_analysis/scint_analysis/plotting.py (NEW FILE)
+# File: scint_analysis/scint_analysis/plotting.py 
 # ==============================================================================
-import matplotlib.pyplot as plt
-import numpy as np
+
+import os
 import logging
+import numpy as np
+import matplotlib.pyplot as plt
+from collections import defaultdict
+from matplotlib.colors import SymLogNorm, LogNorm
+
+from . import core
 
 log = logging.getLogger(__name__)
 
@@ -45,6 +51,55 @@ def plot_dynamic_spectrum(spectrum_obj, ax=None, **kwargs):
         ax.set_title(kwargs['title'])
     
     return fig, ax
+
+def plot_pulse_window_diagnostic(spectrum_obj, title, save_path=None, **kwargs):
+    """
+    Generates a 2-panel diagnostic plot for a given time window of a dynamic spectrum.
+
+    The top panel shows the 2D dynamic spectrum, and the bottom panel shows the
+    frequency-averaged 1D time series.
+
+    Args:
+        spectrum_obj (core.DynamicSpectrum): A DynamicSpectrum object, typically
+                                             containing a sliced portion of data.
+        title (str): The title for the entire plot.
+        save_path (str, optional): Path to save the figure to. Defaults to None.
+    """
+    log.info(f"Generating diagnostic plot: {title}")
+
+    # Calculate the frequency-averaged time series from the input spectrum object
+    time_series = np.ma.mean(spectrum_obj.power, axis=0)
+
+    # Create the 2-panel figure
+    fig, (ax1, ax2) = plt.subplots(
+        2, 1,
+        figsize=kwargs.get('figsize', (10, 8)),
+        gridspec_kw={'height_ratios': [3, 1]}
+    )
+    fig.suptitle(title, fontsize=16)
+
+    # Panel 1: 2D Dynamic Spectrum
+    plot_dynamic_spectrum(spectrum_obj, ax=ax1) # Use the existing function
+    ax1.set_title("") # The main title is now the suptitle
+
+    # Panel 2: 1D Time Series
+    ax2.plot(spectrum_obj.times, time_series)
+    ax2.set_xlabel("Time (s)")
+    ax2.set_ylabel("Mean Power")
+    ax2.grid(True, alpha=0.5)
+    ax2.set_xlim(spectrum_obj.times.min(), spectrum_obj.times.max())
+
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+    
+    if save_path:
+        try:
+            plt.savefig(save_path, dpi=150, bbox_inches='tight')
+            log.info(f"Diagnostic plot saved to: {save_path}")
+        except Exception as e:
+            log.error(f"Failed to save diagnostic plot to {save_path}: {e}")
+
+    plt.show()
+    plt.close(fig)
 
 
 def plot_acf(acf_obj, fit_result=None, **kwargs):
@@ -122,23 +177,60 @@ def plot_analysis_overview(
     if final_xlim < 0.1: final_xlim = 1.0
 
     # --- Panel 1: Stacked Sub-band ACFs with Fits ---
+    #ax_acf = fig.add_subplot(gs[0:2, 0])
+    #cmap = plt.get_cmap('plasma')
+    #num_subbands = len(acf_results['subband_acfs'])
+    #for i in range(num_subbands):
+    #    offset = i * 1.5
+    #    rgba = cmap(i*0.8 / (num_subbands - 1)) if num_subbands > 1 else cmap(0.5)
+    #    lags = acf_results['subband_lags_mhz'][i]
+    #    acf = acf_results['subband_acfs'][i]
+    #    peak_val = np.max(acf)
+    #    acf_normalized = acf / peak_val if peak_val > 0 else acf
+    #    ax_acf.plot(lags, acf_normalized + offset, color=rgba)
+    #    
+    #    fit_obj = all_subband_fits[i].get(best_model_name)
+    #    if fit_obj and fit_obj.success:
+    #        fit_normalized = fit_obj.eval(x=lags) / peak_val
+    #        ax_acf.plot(lags, fit_normalized + offset, 'k--', alpha=0.7, label='Best Fit' if i == 0 else "")
+            
+    # --- Panel 1: Stacked Sub-band ACFs with Fits ---
     ax_acf = fig.add_subplot(gs[0:2, 0])
     cmap = plt.get_cmap('plasma')
     num_subbands = len(acf_results['subband_acfs'])
+    
     for i in range(num_subbands):
-        offset = i * 1.5
+        offset = i * 1.5 # The vertical offset for stacking
         rgba = cmap(i*0.8 / (num_subbands - 1)) if num_subbands > 1 else cmap(0.5)
+        
         lags = acf_results['subband_lags_mhz'][i]
         acf = acf_results['subband_acfs'][i]
-        peak_val = np.max(acf)
-        acf_normalized = acf / peak_val if peak_val > 0 else acf
-        ax_acf.plot(lags, acf_normalized + offset, color=rgba)
         
+        ### FIX: Normalize by the peak of the feature, not the noise spike ###
+        
+        # 1. Create a mask to exclude the zero-lag point
+        plot_mask = (lags != 0)
+        
+        # 2. Find the peak value of the ACF *excluding* the zero-lag spike
+        if np.any(acf[plot_mask]):
+            peak_val = np.max(acf[plot_mask])
+        else:
+            peak_val = 1.0 # Fallback
+            
+        # 3. Normalize the entire ACF by this new peak value
+        acf_normalized = acf / peak_val if peak_val > 0 else acf
+
+        # 4. Plot the data using the mask
+        ax_acf.plot(lags[plot_mask], acf_normalized[plot_mask] + offset, color=rgba)
+        
+        # 5. Normalize the fit by the same value for consistency
         fit_obj = all_subband_fits[i].get(best_model_name)
         if fit_obj and fit_obj.success:
-            fit_normalized = fit_obj.eval(x=lags) / peak_val
-            ax_acf.plot(lags, fit_normalized + offset, 'k--', alpha=0.7, label='Best Fit' if i == 0 else "")
-
+            fit_lags = fit_obj.userkws['x']
+            # Ensure the fit is normalized by the same peak_val as the data
+            fit_normalized = fit_obj.best_fit / peak_val
+            ax_acf.plot(fit_lags, fit_normalized + offset, 'k--', alpha=0.7, label='Best Fit' if i == 0 else "")
+            
     ax_acf.set_yticks([(i * 1.5) for i in range(num_subbands)])
     ax_acf.set_yticklabels([f"{cf:.1f}" for cf in acf_results['subband_center_freqs_mhz']])
     ax_acf.set_title("Normalized Sub-band ACFs & Best Fit")
@@ -146,30 +238,64 @@ def plot_analysis_overview(
     ax_acf.set_ylabel("Center Freq. (MHz)")
     if num_subbands > 0: ax_acf.legend()
     # Apply the robustly calculated x-limit
-    ax_acf.set_xlim(-final_xlim, final_xlim)
+    #ax_acf.set_xlim(-final_xlim, final_xlim)
+    ax_acf.set_xlim(-10, 10)
 
-    # --- Panel 2: Complete BIC Model Comparison ---
+    # ---- Panel 2 :  BIC model comparison ---------------------------------
     ax_bic = fig.add_subplot(gs[0, 1])
-    model_names = ['fit_1c_lor', 'fit_2c_lor', 'fit_3c_lor', 'fit_1c_gauss', 'fit_2c_gauss', 'fit_3c_gauss', 'fit_2c_mixed']
-    bic_data = {name: [] for name in model_names}
-    bic_freqs = acf_results['subband_center_freqs_mhz']
 
-    for i in range(num_subbands):
-        fits = all_subband_fits[i]
-        for name in model_names:
-            fit_result = fits.get(name)
-            bic_val = fit_result.bic if (fit_result and fit_result.success) else np.nan
-            bic_data[name].append(bic_val)
-    
-    for name in model_names:
-        if not np.isnan(bic_data[name]).all():
-            ax_bic.plot(bic_freqs, bic_data[name], 'o-', label=name.replace('fit_',''), alpha=0.8, markersize=4)
+    # ------------------------------------------------------------------
+    # 1) accumulate BIC totals and counts
+    # ------------------------------------------------------------------
+    bic_sum   = defaultdict(float)
+    bic_count = defaultdict(int)
 
-    ax_bic.set_ylabel("BIC (Lower is Better)")
-    ax_bic.set_xlabel("Frequency (MHz)")
-    ax_bic.set_title("Model Comparison")
-    ax_bic.legend(fontsize='small')
-    ax_bic.grid(True, alpha=0.3)
+    for band in all_subband_fits:
+        for name, fit in band.items():
+            if fit and fit.success:
+                bic_sum[name]   += fit.bic
+                bic_count[name] += 1
+
+    n_bands = len(all_subband_fits)
+
+    # ------------------------------------------------------------------
+    # 2) baseline names in the order you’d like to show
+    # ------------------------------------------------------------------
+    base_keys = [
+        'fit_1c_lor', 'fit_2c_lor', 'fit_3c_lor',
+        'fit_1c_gauss', 'fit_2c_gauss', 'fit_3c_gauss',
+        'fit_2c_mixed', 'fit_2c_unresolved'
+    ]
+
+    labels, delta_bic = [], []
+    best_total = np.inf
+
+    for core in base_keys:                              # outer loop
+        for prefix in ['', 'sn_tpl_', 'sn_', 'tpl_']:   # try each variant
+            key = f'{prefix}{core}'
+            if bic_count[key] == n_bands:               # keeps only complete models
+                total = bic_sum[key]
+                labels.append(key)
+                delta_bic.append(total)                 # store raw; Δ later
+                best_total = min(best_total, total)
+                break                                   # stop at first valid variant
+
+    # convert totals → ΔBIC relative to the best
+    delta_bic = np.array(delta_bic) - best_total
+
+    # ------------------------------------------------------------------
+    # 3) plot
+    # ------------------------------------------------------------------
+    ax_bic.clear()
+    ax_bic.barh(labels, delta_bic, color='skyblue')
+    ax_bic.set_xlabel(r'$\Delta$BIC  (relative to best model)')
+    ax_bic.set_title('Model Comparison (complete fits only)')
+    ax_bic.invert_yaxis()
+    ax_bic.grid(True, axis='x', alpha=0.3)
+
+    # annotate exact ΔBIC on the bars (optional)
+    for y, dx in enumerate(delta_bic):
+        ax_bic.text(dx + 0.5, y, f'{dx:,.0f}', va='center')
 
     # --- Panel 3: Modulation Indices vs. Frequency ---
     ax_mod = fig.add_subplot(gs[1, 1])
@@ -236,12 +362,13 @@ def plot_analysis_overview(
             scint_model = c * (freq_model ** n)
             ax_plaw.plot(freq_model, scint_model, 'k--', label=f'Power-Law Fit ($\\alpha={n:.2f}$)')
 
-        ax_plaw.set_title(f"Power-Law Fit: {name.replace('_', ' ').title()}")
+        interpretation_text = component_data.get('scaling_interpretation', '')
+        ax_plaw.set_title(f"Power-Law Fit: {name.replace('_', ' ').title()}\n{interpretation_text}")
         ax_plaw.set_xlabel("Frequency (MHz)")
         ax_plaw.set_ylabel("Decorrelation BW (MHz)")
         ax_plaw.legend()
         ax_plaw.grid(True, alpha=0.2)
-        ax_plaw.set_ylim(0, 5)
+        ax_plaw.set_ylim(0, np.max(bws))
         
     plt.tight_layout(rect=[0, 0.03, 1, 0.95])
     
@@ -312,3 +439,298 @@ def plot_noise_distribution(spectrum_obj, downsample_factor=8, save_path=None, *
             log.error(f"Failed to save plot to {save_path}: {e}")
 
     plt.show()
+
+def plot_intra_pulse_evolution(
+    intra_pulse_results,
+    on_pulse_profile,
+    on_pulse_times,
+    save_path=None,
+    **kwargs
+):
+    """
+    Plots the evolution of scintillation parameters across the burst profile.
+    The left panel shows the ACFs as a 2D heatmap over time, and the right
+    panels show the evolution of the fitted parameters.
+
+    Args:
+        intra_pulse_results (list): The output from analyze_intra_pulse_scintillation.
+        on_pulse_profile (np.ndarray): The frequency-averaged time series of the burst.
+        on_pulse_times (np.ndarray): The time axis for the on_pulse_profile.
+        save_path (str, optional): Path to save the figure to. Defaults to None.
+        **kwargs: Additional keyword arguments.
+    """
+    if not intra_pulse_results:
+        log.warning("Intra-pulse results are empty. Skipping evolution plot.")
+        return
+
+    log.info("Generating intra-pulse evolution plot with 2D ACF heatmap.")
+
+    # --- 1. Set up the Figure Layout ---
+    fig = plt.figure(figsize=kwargs.get('figsize', (16, 10)))
+    gs = fig.add_gridspec(3, 2, width_ratios=[2, 1])
+    fig.suptitle("Intra-Pulse Scintillation Evolution", fontsize=16, y=0.98)
+
+    ax_acf = fig.add_subplot(gs[:, 0])
+    ax_prof = fig.add_subplot(gs[0, 1])
+    ax_bw = fig.add_subplot(gs[1, 1], sharex=ax_prof)
+    ax_mod = fig.add_subplot(gs[2, 1], sharex=ax_prof)
+    
+    plt.setp(ax_prof.get_xticklabels(), visible=False)
+    plt.setp(ax_bw.get_xticklabels(), visible=False)
+
+    # --- 2. Prepare data for the 2D ACF Heatmap ---
+    # Ensure all ACFs have the same length by taking the minimum length
+    min_len = min(len(res['acf_data']) for res in intra_pulse_results)
+    lags = intra_pulse_results[0]['acf_lags'][:min_len]
+    
+    # Create the 2D array for the image
+    acf_image = np.array([res['acf_data'][:min_len] for res in intra_pulse_results])
+    
+    # Get the time extent for the y-axis
+    times_axis = [res['time_s'] for res in intra_pulse_results]
+
+    # --- 3. Plot the 2D ACF Heatmap (Left Side) ---
+    # Use a symmetric log scale for color to handle peaks and troughs, with a linear range near zero
+    norm = SymLogNorm(linthresh=0.05, vmin=np.min(acf_image), vmax=np.max(acf_image))
+    
+    im = ax_acf.imshow(
+        acf_image,
+        aspect='auto',
+        origin='lower',
+        extent=[lags.min(), lags.max(), times_axis[0], times_axis[-1]],
+        cmap='plasma',
+        norm=norm
+    )
+    fig.colorbar(im, ax=ax_acf, label="ACF Amplitude")
+    
+    # Overplot the fitted decorrelation bandwidth (HWHM) on the heatmap
+    for res in intra_pulse_results:
+        if res.get('fit_success', False):
+            t = res['time_s']
+            bw = res['bw']
+            # Plot white lines to indicate the +/- HWHM of the fit
+            ax_acf.plot([-bw, -bw], [t-0.00005, t+0.00005], color='w', lw=1.5, alpha=0.8)
+            ax_acf.plot([bw, bw], [t-0.00005, t+0.00005], color='w', lw=1.5, alpha=0.8, label='Fit HWHM' if 'HWHM' not in ax_acf.get_legend_handles_labels()[1] else '')
+
+    ax_acf.set_title("ACF vs. Time")
+    ax_acf.set_xlabel("Frequency Lag (MHz)")
+    ax_acf.set_ylabel("Time in Burst (s)")
+    if any(res.get('fit_success', False) for res in intra_pulse_results):
+        ax_acf.legend(loc='upper right')
+    
+    # --- 4. Plot the Parameter Evolution Panels (Right Side) ---
+    times = np.array([res['time_s'] for res in intra_pulse_results])
+    bws = np.array([res['bw'] for res in intra_pulse_results])
+    bw_errs = np.array([res.get('bw_err', 0) for res in intra_pulse_results])
+    mods = np.array([res['mod'] for res in intra_pulse_results])
+    mod_errs = np.array([res.get('mod_err', 0) for res in intra_pulse_results])
+
+    ax_prof.plot(on_pulse_times, on_pulse_profile, color='k', alpha=0.8)
+    ax_prof.set_ylabel("Mean Power")
+    ax_prof.set_title("Burst Profile")
+    
+    ax_bw.errorbar(times, bws, yerr=bw_errs, fmt='o', capsize=5, color='C0')
+    ax_bw.set_ylabel("Decorrelation BW (MHz)")
+    ax_bw.set_ylim(bottom=0)
+
+    ax_mod.errorbar(times, mods, yerr=mod_errs, fmt='s', capsize=5, color='C1')
+    ax_mod.set_xlabel("Time (s)")
+    ax_mod.set_ylabel("Modulation Index (m)")
+    ax_mod.set_ylim(0, max(1.2, np.nanmax(mods) * 1.1) if np.any(~np.isnan(mods)) else 1.2)
+
+    for ax in [ax_prof, ax_bw, ax_mod]:
+        ax.grid(True, alpha=0.3)
+
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+
+    if save_path:
+        try:
+            import os
+            os.makedirs(os.path.dirname(save_path), exist_ok=True)
+            plt.savefig(save_path, dpi=200, bbox_inches='tight')
+            log.info(f"Intra-pulse evolution plot saved to: {save_path}")
+        except Exception as e:
+            log.error(f"Failed to save plot to {save_path}: {e}")
+            
+    plt.show()
+    
+def plot_intra_pulse_evolution_stackacfs(
+    intra_pulse_results,
+    on_pulse_profile,
+    on_pulse_times,
+    save_path=None,
+    **kwargs
+):
+    """
+    Plots the evolution of scintillation parameters across the burst profile,
+    including a panel showing the individual ACFs and their fits.
+
+    Args:
+        intra_pulse_results (list): The output from analyze_intra_pulse_scintillation.
+        on_pulse_profile (np.ndarray): The frequency-averaged time series of the burst.
+        on_pulse_times (np.ndarray): The time axis for the on_pulse_profile.
+        save_path (str, optional): Path to save the figure to. Defaults to None.
+        **kwargs: Additional keyword arguments.
+    """
+    if not intra_pulse_results:
+        log.warning("Intra-pulse results are empty. Skipping evolution plot.")
+        return
+
+    log.info("Generating intra-pulse evolution plot with ACF panel.")
+
+    # --- 1. Set up the Figure Layout ---
+    fig = plt.figure(figsize=kwargs.get('figsize', (16, 10)))
+    gs = fig.add_gridspec(3, 2, width_ratios=[2, 1])
+    fig.suptitle("Intra-Pulse Scintillation Evolution", fontsize=16, y=0.98)
+
+    ax_acf = fig.add_subplot(gs[:, 0])
+    ax_prof = fig.add_subplot(gs[0, 1])
+    ax_bw = fig.add_subplot(gs[1, 1], sharex=ax_prof)
+    ax_mod = fig.add_subplot(gs[2, 1], sharex=ax_prof)
+    
+    plt.setp(ax_prof.get_xticklabels(), visible=False)
+    plt.setp(ax_bw.get_xticklabels(), visible=False)
+
+    # --- 2. Plot the new ACF Panel (Left Side) ---
+    cmap = plt.get_cmap('plasma')
+    num_results = len(intra_pulse_results)
+    # find max acf value for offsetting, handle case where all fits might fail
+    successful_results = [res for res in intra_pulse_results if res['fit_success']]
+    if not successful_results:
+        log.warning("No successful fits in intra-pulse analysis, ACF panel may be incomplete.")
+        max_acf_val = 1.0 # Default offset
+    else:
+        max_acf_val = max(res['acf_data'].max() for res in successful_results)
+    
+    for i, res in enumerate(intra_pulse_results):
+        offset = i * max_acf_val * 1.1 
+        color = cmap(i / num_results)
+        
+        ax_acf.plot(res['acf_lags'], res['acf_data']*1.5 + offset, color=color, alpha=0.9)
+        
+        if res['fit_success']:
+            ### FIX: Use 'acf_fit_lags' which has the same dimension as 'acf_fit_best'
+            ax_acf.plot(res['acf_fit_lags'], res['acf_fit_best']*1.5 + offset, 'k--', alpha=0.7, lw=1.5)
+
+    ax_acf.set_title("ACF Evolution (Earliest to Latest)")
+    ax_acf.set_xlabel("Frequency Lag (MHz)")
+    ax_acf.set_ylabel("Stacked & Offset ACFs")
+    ax_acf.grid(True, linestyle=':', alpha=0.5)
+    ax_acf.set_yticks([])
+    
+    avg_bw_list = [res['bw'] for res in successful_results if 'bw' in res and not np.isnan(res['bw'])]
+    if avg_bw_list:
+        avg_bw = np.nanmean(avg_bw_list)
+        ax_acf.set_xlim(-8 * avg_bw, 8 * avg_bw)
+
+    # --- 3. Plot the Parameter Evolution Panels (Right Side) ---
+    # (This section remains unchanged)
+    times = np.array([res['time_s'] for res in intra_pulse_results])
+    bws = np.array([res['bw'] for res in intra_pulse_results])
+    bw_errs = np.array([res.get('bw_err', 0) for res in intra_pulse_results])
+    mods = np.array([res['mod'] for res in intra_pulse_results])
+    mod_errs = np.array([res.get('mod_err', 0) for res in intra_pulse_results])
+
+    ax_prof.plot(on_pulse_times, on_pulse_profile, color='k', alpha=0.8)
+    ax_prof.set_ylabel("Mean Power")
+    ax_prof.set_title("Burst Profile & Measurement Times")
+    for t in times:
+        ax_prof.axvline(t, color='red', linestyle='--', alpha=0.4, lw=1)
+    
+    ax_bw.errorbar(times, bws, yerr=bw_errs, fmt='o', capsize=5, color='C0')
+    ax_bw.set_ylabel("Decorrelation BW (MHz)")
+    ax_bw.set_ylim(0, 5)
+
+    ax_mod.errorbar(times, mods, yerr=mod_errs, fmt='s', capsize=5, color='C1')
+    ax_mod.set_xlabel("Time (s)")
+    ax_mod.set_ylabel("Modulation Index (m)")
+    ax_mod.set_ylim(0, min(1.2, np.nanmax(mods) * 1.1) if np.any(~np.isnan(mods)) else 1.2)
+
+    for ax in [ax_prof, ax_bw, ax_mod]:
+        ax.grid(True, alpha=0.3)
+
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+
+    if save_path:
+        try:
+            import os
+            os.makedirs(os.path.dirname(save_path), exist_ok=True)
+            plt.savefig(save_path, dpi=200, bbox_inches='tight')
+            log.info(f"Intra-pulse evolution plot saved to: {save_path}")
+        except Exception as e:
+            log.error(f"Failed to save plot to {save_path}: {e}")
+            
+    plt.show()
+    
+def plot_baseline_fit(
+    off_pulse_spectrum,
+    fitted_baseline,
+    frequencies,
+    poly_order,
+    save_path=None,
+    **kwargs
+):
+    """
+    Generates a diagnostic plot showing the off-pulse spectrum, the fitted
+    polynomial baseline, and the residuals after subtraction.
+
+    Args:
+        off_pulse_spectrum (np.ma.MaskedArray): The original 1D off-pulse spectrum.
+        fitted_baseline (np.ndarray): The 1D array of the fitted baseline model.
+        frequencies (np.ndarray): The frequency axis in MHz.
+        poly_order (int): The order of the polynomial that was fit.
+        save_path (str, optional): Path to save the figure to. Defaults to None.
+    """
+    log.info("Generating baseline fit diagnostic plot.")
+    fig, ax = plt.subplots(figsize=kwargs.get('figsize', (10, 6)))
+
+    # 1. Plot the original off-pulse data (only unmasked points)
+    valid_mask = ~off_pulse_spectrum.mask
+    ax.plot(
+        frequencies[valid_mask],
+        off_pulse_spectrum.compressed(),
+        '.',
+        color='C0',
+        alpha=0.5,
+        label="Off-Pulse Spectrum Data"
+    )
+
+    # 2. Plot the fitted polynomial baseline
+    ax.plot(
+        frequencies,
+        fitted_baseline,
+        'r--',
+        lw=2,
+        label=f"Polynomial Fit (order={poly_order})"
+    )
+
+    # 3. Plot the residuals after subtraction
+    residuals = off_pulse_spectrum - fitted_baseline
+    ax.plot(
+        frequencies[valid_mask],
+        residuals.compressed(),
+        color='gray',
+        alpha=0.8,
+        label="Residuals (Data - Fit)"
+    )
+    
+    # Add a horizontal line at y=0 for reference
+    ax.axhline(0, color='k', linestyle=':', alpha=0.6)
+
+    ax.set_title("Baseline Subtraction Diagnostic")
+    ax.set_xlabel("Frequency (MHz)")
+    ax.set_ylabel("Power (arbitrary units)")
+    ax.legend()
+    ax.grid(True, linestyle='--', alpha=0.3)
+
+    plt.tight_layout()
+
+    if save_path:
+        try:
+            plt.savefig(save_path, dpi=150, bbox_inches='tight')
+            log.info(f"Baseline diagnostic plot saved to: {save_path}")
+        except Exception as e:
+            log.error(f"Failed to save baseline plot to {save_path}: {e}")
+    
+    plt.show()
+    plt.close(fig)

@@ -8,6 +8,7 @@ into a coherent, runnable sequence.
 """
 from __future__ import annotations
 
+import os
 import logging
 import warnings
 import argparse
@@ -58,7 +59,7 @@ def create_four_panel_plot(
     dataset: "BurstDataset",
     results: Dict[str, Any],
     *,
-    output_path: Path | None = None,
+    save: bool = True,
     show: bool = True
 ):
     """Creates a four-panel diagnostic plot comparing data, model, and residuals."""
@@ -130,9 +131,10 @@ def create_four_panel_plot(
     plt.subplots_adjust(hspace=0.05, wspace=0.05)
     fig.suptitle("Four-Panel Fit Summary", fontsize=20, weight='bold')
 
-    if output_path:
+    if save:
+        output_path = os.path.join(dataset.outpath, f"{dataset.name}_four_panel.pdf")
         log.info(f"Saving 4-panel plot to {output_path}")
-        fig.savefig(output_path, bbox_inches='tight', dpi=150)
+        fig.savefig(output_path) #, bbox_inches='tight', dpi=150)
     if show: plt.show()
     else: plt.close(fig)
     return fig
@@ -141,7 +143,7 @@ def create_sixteen_panel_plot(
     dataset: "BurstDataset",
     results: Dict[str, Any],
     *,
-    output_path: Path | None = None,
+    save: bool = True,
     show: bool = True
 ):
     """Creates a comprehensive 16-panel diagnostic plot summarizing the fit."""
@@ -210,12 +212,16 @@ def create_sixteen_panel_plot(
     if gof: ax[13].text(0.05, 0.95, f"GoF:\nχ²/dof = {gof['chi2_reduced']:.2f}", va='top', fontfamily='monospace', fontsize=12)
     p_summary = "Best Fit (Median & 1σ):\n" + "\n".join([f"{n}: {np.median(flat_chain[:,i]):.3f} ± {np.std(flat_chain[:,i]):.3f}" for i, n in enumerate(param_names)])
     ax[14].text(0.05, 0.95, p_summary, va='top', fontfamily='monospace', fontsize=12)
-    ax[15].text(0.05, 0.95, f"File:\n{dataset.path.name}", va='top', fontfamily='monospace', fontsize=12)
+    ax[15].text(0.05, 0.95, f"File:\n{dataset.inpath.name}", va='top', fontfamily='monospace', fontsize=12)
     
-    fig.suptitle(f"Comprehensive Fit Diagnostics: {dataset.path.name}", fontsize=24, weight='bold')
-    if output_path: fig.savefig(output_path, bbox_inches='tight', dpi=150)
-    if show: plt.show()
-    else: plt.close(fig)
+    fig.suptitle(f"Comprehensive Fit Diagnostics: {dataset.inpath.name}", fontsize=24, weight='bold')
+    if save: 
+        comp_diag_path = os.path.join(dataset.outpath, f"{dataset.name}_comp_diagnostics.pdf")
+        fig.savefig(comp_diag_path)
+    if show: 
+        plt.show()
+    else: 
+        plt.close(fig)
     return fig
 
 ###############################################################################
@@ -225,8 +231,10 @@ class BurstDataset:
     """Loads and preprocesses a burst from a .npy file."""
     def __init__(
         self,
-        path: str | Path,
+        inpath: str | Path,
+        outpath: str | Path,
         *,
+        name: str = "FRB",
         telescope: str = "CHIME",
         telcfg_path: str = "telescopes.yaml",
         sampcfg_path: str = "sampler.yaml",
@@ -238,7 +246,9 @@ class BurstDataset:
         flip_freq: bool = False,
         lazy: bool = False,
     ):
-        self.path = Path(path)
+        self.inpath = Path(inpath)
+        self.outpath = Path(outpath)
+        self.name = name
         self.telname, self.telparams = load_telescope_block(telcfg_path, telescope=telescope)
         self.sampname, self.sampparams = load_sampler_block(sampcfg_path)
         self.f_factor, self.t_factor = f_factor, t_factor
@@ -266,10 +276,10 @@ class BurstDataset:
         self.model = FRBModel(time=self.time, freq=self.freq, data=self.data, df_MHz=self.df_MHz)
 
     def _load_raw(self):
-        if not self.path.exists(): raise FileNotFoundError(f"Data not found: {self.path}")
+        if not self.inpath.exists(): raise FileNotFoundError(f"Data not found: {self.inpath}")
         try:
-            data = np.load(self.path); return np.nan_to_num(data.astype(np.float64))
-        except Exception as e: raise IOError(f"Failed to load {self.path}: {e}")
+            data = np.load(self.inpath); return np.nan_to_num(data.astype(np.float64))
+        except Exception as e: raise IOError(f"Failed to load {self.inpath}: {e}")
 
     def _build_axes(self, shape, f_factor=None, t_factor=None):
         f_factor = f_factor if f_factor is not None else self.f_factor
@@ -346,17 +356,21 @@ class BurstDiagnostics:
 ###############################################################################
 class BurstPipeline:
     """Main orchestrator for the fitting pipeline."""
-    def __init__(self, path: str | Path, *, dm_init: float = 0.0, **kwargs):
+    def __init__(self, inpath: str | Path, outpath: str | Path, name: str, *, dm_init: float = 0.0, **kwargs):
         """
         Initializes the pipeline.
 
         Args:
-            path: Path to the input .npy data file.
+            name: FRB name
+            inpath: Path to the input .npy data file.
+            outpath: Path to the output files.
             dm_init: Initial dispersion measure for the data.
             **kwargs: Keyword arguments for pipeline configuration. These are
                       intelligently split between BurstDataset and the pipeline.
         """
-        self.path = path
+        self.inpath = inpath
+        self.outpath = outpath
+        self.name = name
         self.dm_init = dm_init
 
         # --- FIX: Intelligently separate kwargs for different components ---
@@ -377,11 +391,11 @@ class BurstPipeline:
             auto_ok=self.pipeline_kwargs.get("yes", False)
         )
 
-    def run_full(self, model_scan=True, diagnostics=True, plot=True, show=True, model_keys=("M0","M1","M2","M3"), **kwargs):
+    def run_full(self, model_scan=True, diagnostics=True, plot=True, save=True, show=True, model_keys=("M0","M1","M2","M3"), **kwargs):
         """Main pipeline execution flow."""
         with self.pool or contextlib.nullcontext(self.pool) as pool:
             # --- FIX: Use the filtered kwargs to instantiate BurstDataset ---
-            self.dataset = BurstDataset(self.path, **self.dataset_kwargs)
+            self.dataset = BurstDataset(self.inpath, self.outpath, **self.dataset_kwargs)
             self.dataset.model.dm_init = self.dm_init
 
             n_steps = self.pipeline_kwargs.get('steps', 2000)
@@ -397,10 +411,13 @@ class BurstPipeline:
             else:
                 best_key = "M3"; log.info(f"Fitting model {best_key} directly...")
                 # right before sampling
-                priors = build_priors(init_guess, scale=6.0)
+                priors, use_logw = build_priors_linear(init_guess,
+                                    scale=6.0,
+                                    abs_max={"tau_1ghz": 5e4, "zeta": 5e4},
+                                    log_weight_pos=True)   # Jeffreys weighting
                 # give generous log-uniform‐ish bounds to the two broadening params
-                priors["tau_1ghz"] = (1e-4, 5e4)   # ms
-                priors["zeta"]     = (1e-4, 5e4)   # ms
+                priors["tau_1ghz"] = (1e-6, 5e4)   # ms
+                priors["zeta"]     = (1e-6, 5e4)   # ms
                 fitter = FRBFitter(self.dataset.model, priors, n_steps=n_steps, pool=pool)
                 sampler = fitter.sample(init_guess, model_key=best_key)
 
@@ -430,10 +447,10 @@ class BurstPipeline:
             log.info(f"Best model: {best_key} | χ²/dof = {results['goodness_of_fit']['chi2_reduced']:.2f}")
 
             if plot:
-                p_path_sixt = self.path.with_name(f"{self.path.stem}_diagnostics.pdf")
-                create_sixteen_panel_plot(self.dataset, results, output_path=p_path_sixt, show=show)
-                p_path_four = self.path.with_name(f"{self.path.stem}_fullmodel.pdf")
-                create_four_panel_plot(self.dataset, results, output_path=p_path_four, show=show)
+                p_path_sixt = os.path.join(self.outpath, f"{self.name}_diagnostics.pdf")
+                create_sixteen_panel_plot(self.dataset, results, save=save, show=show)
+                p_path_four = os.path.join(self.outpath, f"{self.name}_fullmodel.pdf")
+                create_four_panel_plot(self.dataset, results, save=save, show=show)
 
             return results
 
@@ -442,7 +459,11 @@ class BurstPipeline:
         prof = np.nansum(model.data, axis=0)
         if np.all(prof == 0): return FRBParams(c0=0, t0=model.time.mean(), gamma=0, zeta=0, tau_1ghz=0)
         rough_guess = FRBParams(c0=np.sum(prof), t0=model.time[np.argmax(prof)], gamma=-1.6, zeta=0.1, tau_1ghz=0.1)
-        priors = build_priors(rough_guess, scale=1.5); model_key = "M3"
+        priors, use_logw = build_priors(rough_guess,
+                                    scale=1.5,
+                                    abs_max={"tau_1ghz": 5e4, "zeta": 5e4},
+                                    log_weight_pos=True)   # Jeffreys weightin
+        model_key = "M3"
         x0 = rough_guess.to_sequence(model_key); bounds = [priors[n] for n in FRBFitter._ORDER[model_key]]
         def nll(theta):
             p = FRBParams.from_sequence(theta, model_key); ll = model.log_likelihood(p, model_key)
@@ -469,7 +490,9 @@ def auto_burn_thin(sampler, safety_factor_burn=3.0, safety_factor_thin=0.5):
 def _main():
     p = argparse.ArgumentParser(description="Run BurstFit pipeline on a .npy file.")
     # Add all possible arguments here
-    p.add_argument("path", type=Path, help="Input .npy file")
+    p.add_argument("inpath", type=Path, help="Input .npy file")
+    p.add_argument("--frb", type=str, help="Event name")
+    p.add_argument("--outpath", type=Path, help="Output filepath")
     p.add_argument("--dm_init", type=float, default=0.0)
     p.add_argument("--telescope", default="CHIME")
     p.add_argument("--telcfg", default="telescopes.yaml")
@@ -491,7 +514,9 @@ def _main():
     pipeline_kwargs = vars(args)
     
     pipe = BurstPipeline(
-        path=pipeline_kwargs.pop('path'), # path is a positional arg
+        name=pipeline_kwars.pop('frb'),
+        inpath=pipeline_kwargs.pop('inpath'), # path is a positional arg
+        outpath=pipeline_kwargs.pop('outpath'),
         dm_init=pipeline_kwargs.pop('dm_init'), # dm_init is also explicit
         **pipeline_kwargs
     )

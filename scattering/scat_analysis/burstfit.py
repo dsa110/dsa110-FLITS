@@ -48,7 +48,8 @@ DM_SMEAR_MS = 8.3e-6     # intra-channel smearing, ms GHz⁻³ MHz⁻¹ -> this 
                          # We will apply dnu_MHz later, so this constant is 8.3e-6 ms GHz^3 MHz^-1
 
 # ## FIX ##: Restored the set of physically non-negative parameters.
-_POSITIVE = {"c0", "zeta", "tau_1ghz"}
+_POSITIVE = {"c0", "zeta", "tau_1ghz"}        # keep in ONE place only
+_MIN_POS  = 1e-6   
 
 
 log = logging.getLogger(__name__)
@@ -62,13 +63,22 @@ log.setLevel(logging.INFO)
 
 # ## REFACTOR ##: This is the correct, module-level wrapper for emcee + multiprocessing.
 # It takes the model object itself as an argument, making it stateless and pickleable.
-def _log_prob_wrapper(theta, model, priors, order, key):
+def _log_prob_wrapper(theta, model, priors, order, key, log_weight_pos):
     """Module-level function for multiprocessing compatibility."""
+    
+    logp = 0.0
+    
     # 1. Check priors
     for value, name in zip(theta, order[key]):
         lo, hi = priors[name]
         if not (lo <= value <= hi):
             return -np.inf
+        
+    # optional Jeffreys 1/x weight while *still* sampling x linearly
+    if log_weight_pos:
+        for name, v in zip(order[key], theta):
+            if name in _POSITIVE:
+                logp += -np.log(v)          # p(x) ∝ 1/x
 
     # 2. Compute likelihood
     params = FRBParams.from_sequence(theta, key)
@@ -129,7 +139,7 @@ class FRBModel:
         *,
         data: NDArray[np.floating] | None = None,
         dm_init: float = 0.0,
-        df_MHz: float = 1.0, # ## ADDITION ##: Channel width is needed for smearing
+        df_MHz: float = 0.03051757812, #Channel width is needed for smearing
         beta: float = 2.0,
         noise_std: NDArray[np.floating] | None = None,
         off_pulse: slice | Sequence[int] | None = None,
@@ -263,12 +273,15 @@ class FRBFitter:
         n_steps: int = 1000,
         n_walkers_mult: int = 8,
         pool=None,
+        log_weight_pos=False,
+        **kwargs
     ):
         self.model = model
         self.priors = priors
         self.n_steps = n_steps
         self.n_walkers_mult = n_walkers_mult
         self.pool = pool
+        self.log_weight_pos = log_weight_pos
 
     def _init_walkers(self, p0: FRBParams, key: str, nwalk: int):
         names = self._ORDER[key]
@@ -295,7 +308,7 @@ class FRBFitter:
             nwalkers=nwalk,
             ndim=ndim,
             log_prob_fn=_log_prob_wrapper,
-            args=(self.model, self.priors, self._ORDER, model_key),
+            args=(self.model, self.priors, self._ORDER, model_key, self.log_weight_pos),
             pool=self.pool,
         )
         sampler.run_mcmc(p_walkers, self.n_steps, progress=True)
@@ -304,19 +317,44 @@ class FRBFitter:
 # ----------------------------------------------------------------------
 # Helpers
 # ----------------------------------------------------------------------
-# Restored the non-negativity check in build_priors
-def build_priors(init: FRBParams, scale: float = 3.0):
-    """Return symmetric box priors centred on *init*."""
+def build_priors(
+    init: "FRBParams",
+    *,
+    scale: float = 6.0,            # half-width multiplier (wide!)
+    abs_min: float = _MIN_POS,     # floor for positive parameters
+    abs_max: dict[str, float] | None = None,  # optional hard ceilings
+    log_weight_pos: bool = False,  # True → Jeffreys p(x)∝1/x   (still linear sampling)
+) -> dict[str, tuple[float, float]]:
+    """
+    Build simple linear-space top-hat priors that *won’t* strangle the chain.
+
+    Parameters
+    ----------
+    init
+        The optimiser-derived initial parameter set.
+    scale
+        Half-width multiplier around each init value.
+    abs_min
+        Lower floor for every positive-definite parameter.
+    abs_max
+        Optional per-parameter upper caps, e.g. {"tau_1ghz": 1e5}.
+    log_weight_pos
+        If True, you still sample in linear units but will later *add*
+        -log(x) to the log-prior for each positive parameter.
+    """
+    from dataclasses import asdict
     pri = {}
+    ceiling = abs_max or {}
     for name, val in asdict(init).items():
-        # Use a more robust width definition
-        width = scale * (abs(val) if abs(val) > 1e-4 else 0.1)
-        lo = val - width
-        hi = val + width
-        if name in _POSITIVE:
-            lo = max(0.0, lo)
-        pri[name] = (lo, hi)
-    return pri
+        w     = max(scale * max(abs(val), 1e-3), 0.5)     # ≥ 0.5 half-width
+        lower = val - w
+        upper = val + w
+        if name in _POSITIVE:               # enforce positivity
+            lower = max(lower, abs_min)
+        if name in ceiling:                 # honour hard caps
+            upper = min(upper, ceiling[name])
+        pri[name] = (lower, upper)
+    return pri, log_weight_pos
 
 def compute_bic(logL_max: float, k: int, n: int) -> float:
     """Bayesian Information Criterion (lower = preferred)."""

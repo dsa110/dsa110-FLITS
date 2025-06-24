@@ -38,9 +38,9 @@ class DynamicSpectrum:
         self.times = time_axis_s
         
         # Immediately after you assign self.power, self.frequencies, self.times
-        #if self.frequencies[0] > self.frequencies[-1]:
-        #    self.frequencies = self.frequencies[::-1]
-        #    self.power       = self.power[::-1, :]         # flip channel axis
+        if self.frequencies[0] > self.frequencies[-1]:
+            self.frequencies = self.frequencies[::-1]
+            self.power       = self.power[::-1, :]         # flip channel axis
 
         
         log.info(f"Spectrum shape: ({self.num_channels}, {self.num_timesteps})")
@@ -262,20 +262,12 @@ class DynamicSpectrum:
 
     def subtract_poly_baseline(self, off_pulse_spectrum, poly_order=1):
         """
-        Fits a polynomial to a representative off-pulse 1D spectrum and subtracts
-        this baseline model from every timestep in the dynamic spectrum.
-
-        This method is more robust than fitting each timestep individually as it
-        models a stable instrumental bandpass shape from a high S/N, signal-free
-        average.
-
-        Args:
-            off_pulse_spectrum (np.ma.MaskedArray): A 1D spectrum representing the
-                                                 time-averaged, signal-free bandpass.
-            poly_order (int): The order of the polynomial to fit.
+        Fits a polynomial to an off-pulse spectrum and subtracts this baseline
+        from the dynamic spectrum.
 
         Returns:
             DynamicSpectrum: A new DynamicSpectrum object with the baseline subtracted.
+            np.ndarray: The 1D baseline model that was subtracted. ### NEW RETURN VALUE ###
         """
         log.info(f"Performing order-{poly_order} polynomial baseline subtraction using off-pulse spectrum.")
         
@@ -303,31 +295,38 @@ class DynamicSpectrum:
         new_power = np.ma.MaskedArray(new_power_data, mask=self.power.mask)
         
         log.info("Baseline subtraction complete.")
-        return DynamicSpectrum(new_power, self.frequencies.copy(), self.times.copy())
+        return DynamicSpectrum(new_power, self.frequencies.copy(), self.times.copy()), baseline_model
     
     def __repr__(self):
         return (f"<DynamicSpectrum ({self.num_channels} channels x {self.num_timesteps} timesteps, "
                 f"{self.frequencies.min():.1f}-{self.frequencies.max():.1f} MHz)>")
 
-
 class ACF:
     """
-    A class to represent an Autocorrelation Function.
+    Container for a 1-D spectral autocorrelation function.
     """
-    def __init__(self, acf_data, lags_mhz):
-        """
-        Initializes the ACF object.
 
-        Args:
-            acf_data (np.ndarray): 1D array of ACF values.
-            lags_mhz (np.ndarray): 1D array of corresponding lags in MHz.
-        """
-        # Data Validation
-        assert acf_data.ndim == 1, "ACF data must be a 1D array."
-        assert len(acf_data) == len(lags_mhz), "ACF data and lags must have the same length."
-        
-        self.acf = acf_data
+    def __init__(self, acf_data, lags_mhz, acf_err=None):
+        # --- validate & coerce to NumPy arrays
+        acf_data = np.asarray(acf_data, dtype=float)
+        lags_mhz = np.asarray(lags_mhz, dtype=float)
+        if acf_err is not None:
+            acf_err = np.asarray(acf_err, dtype=float)
+
+        if acf_data.ndim != 1:
+            raise ValueError("ACF data must be 1-D.")
+        if len(acf_data) != len(lags_mhz):
+            raise ValueError("acf_data and lags_mhz must have the same length.")
+        if acf_err is not None and len(acf_err) != len(acf_data):
+            raise ValueError("acf_err must match acf_data length.")
+
+        self.acf  = acf_data
         self.lags = lags_mhz
+        self.err  = acf_err          # may be None
+
+    # optional convenience: length & repr
+    def __len__(self):
+        return self.acf.size
 
     def __repr__(self):
-        return f"<ACF ({len(self.acf)} points)>"
+        return f"<ACF ({len(self)} points)>"

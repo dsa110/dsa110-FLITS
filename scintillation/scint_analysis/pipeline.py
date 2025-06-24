@@ -23,6 +23,7 @@ class ScintillationAnalysis:
         self.all_subband_fits = None 
         self.final_results = None  
         self.all_powerlaw_fits = None
+        self.intra_pulse_results = None
         
         self.cache_dir = self.config.get('pipeline_options', {}).get('cache_directory', './cache')
         if self.config.get('pipeline_options', {}).get('save_intermediate_steps'):
@@ -34,7 +35,7 @@ class ScintillationAnalysis:
         burst_id = self.config.get('burst_id', 'unknown_burst')
         return os.path.join(self.cache_dir, f"{burst_id}_{stage_name}.pkl")
         
-    def _create_diagnostic_plots(self, burst_lims, off_pulse_lims):
+    def _create_diagnostic_plots(self, burst_lims, off_pulse_lims, baseline_info=None):
         """Internal helper to generate and save diagnostic plots."""
         diag_config = self.config.get('pipeline_options', {}).get('diagnostic_plots', {})
         if not diag_config.get('enable', False):
@@ -44,53 +45,52 @@ class ScintillationAnalysis:
         plot_dir = diag_config.get('directory', './plots/diagnostics')
         os.makedirs(plot_dir, exist_ok=True)
         burst_id = self.config.get('burst_id', 'unknown_burst')
-
+        
+        # --- On-pulse and Off-pulse Window Plots ---
         try:
-            # --- On-pulse plots ---
+            # 1. Prepare and plot the on-pulse window
             on_pulse_power = self.masked_spectrum.power[:, burst_lims[0]:burst_lims[1]]
             on_pulse_times = self.masked_spectrum.times[burst_lims[0]:burst_lims[1]]
+            on_pulse_ds_obj = core.DynamicSpectrum(
+                on_pulse_power, self.masked_spectrum.frequencies, on_pulse_times
+            )
+            on_pulse_save_path = os.path.join(plot_dir, f"{burst_id}_on_pulse_diagnostic.png")
+            
+            plotting.plot_pulse_window_diagnostic(
+                on_pulse_ds_obj,
+                title="On-Pulse Region",
+                save_path=on_pulse_save_path
+            )
 
-            # Create a temporary DynamicSpectrum object for plotting
-            on_pulse_ds_obj = core.DynamicSpectrum(on_pulse_power, self.masked_spectrum.frequencies, on_pulse_times)
-            on_pulse_ts = np.ma.mean(on_pulse_power, axis=0)
-
-            fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8), gridspec_kw={'height_ratios': [3, 1]})
-            # Pass the full DynamicSpectrum object to the plotting function
-            plotting.plot_dynamic_spectrum(on_pulse_ds_obj, ax=ax1)
-            ax1.set_title("On-Pulse Region")
-
-            ax2.plot(on_pulse_times, on_pulse_ts)
-            ax2.set_xlabel("Time (s)"); ax2.set_ylabel("Mean Power")
-            ax2.grid(True, alpha=0.5)
-            plt.tight_layout()
-            plt.show()
-            plt.savefig(os.path.join(plot_dir, f"{burst_id}_on_pulse_diagnostic.png"), dpi=150)
-            plt.close(fig)
-
-            # --- Off-pulse plots ---
+            # 2. Prepare and plot the off-pulse (noise) window
             off_pulse_power = self.masked_spectrum.power[:, off_pulse_lims[0]:off_pulse_lims[1]]
             off_pulse_times = self.masked_spectrum.times[off_pulse_lims[0]:off_pulse_lims[1]]
+            off_pulse_ds_obj = core.DynamicSpectrum(
+                off_pulse_power, self.masked_spectrum.frequencies, off_pulse_times
+            )
+            off_pulse_save_path = os.path.join(plot_dir, f"{burst_id}_off_pulse_diagnostic.png")
+            
+            plotting.plot_pulse_window_diagnostic(
+                off_pulse_ds_obj,
+                title="Off-Pulse (Noise) Region",
+                save_path=off_pulse_save_path
+            )
 
-            # Create a temporary DynamicSpectrum object for plotting
-            off_pulse_ds_obj = core.DynamicSpectrum(off_pulse_power, self.masked_spectrum.frequencies, off_pulse_times)
-            off_pulse_ts = np.ma.mean(off_pulse_power, axis=0)
+            log.info(f"On/Off pulse diagnostic plots saved to: {plot_dir}")
 
-            fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8), gridspec_kw={'height_ratios': [3, 1]})
-            plotting.plot_dynamic_spectrum(off_pulse_ds_obj, ax=ax1)
-            ax1.set_title("Off-Pulse (Noise) Region")
-
-            ax2.plot(off_pulse_times, off_pulse_ts)
-            ax2.set_xlabel("Time (s)"); ax2.set_ylabel("Mean Power")
-            ax2.grid(True, alpha=0.5)
-            plt.tight_layout()
-            plt.show()
-            plt.savefig(os.path.join(plot_dir, f"{burst_id}_off_pulse_diagnostic.png"), dpi=150)
-            plt.close(fig)
-
-            log.info(f"Diagnostic plots saved to: {plot_dir}")
         except Exception as e:
-            log.error(f"Failed to generate diagnostic plots: {e}")
-
+            log.error(f"Failed to generate on/off pulse diagnostic plots: {e}")
+            
+        if baseline_info:
+            log.info("Generating baseline fit diagnostic plot.")
+            baseline_save_path = os.path.join(plot_dir, f"{burst_id}_baseline_diagnostic.png")
+            plotting.plot_baseline_fit(
+                off_pulse_spectrum=baseline_info['original_data'],
+                fitted_baseline=baseline_info['model'],
+                frequencies=self.masked_spectrum.frequencies,
+                poly_order=baseline_info['poly_order'],
+                save_path=baseline_save_path
+            )
 
     def run(self):
         """
@@ -99,17 +99,28 @@ class ScintillationAnalysis:
         log.info(f"--- Starting Scintillation Pipeline for {self.config['burst_id']} ---")
 
         processed_spec_cache = self._get_cache_path('processed_spectrum')
+        
+        if self.config.get('analysis', {}).get('noise', {}).get('disable', False):
+            log.info("Noise modelling disabled by config.")
+            self.noise_descriptor = None
 
         if os.path.exists(processed_spec_cache):
             log.info(f"Loading cached processed spectrum from {processed_spec_cache}")
             with open(processed_spec_cache, 'rb') as f:
-                self.masked_spectrum = pickle.load(f)
+                # Load the entire cache dictionary
+                cache_data = pickle.load(f)
+            # Unpack the dictionary into the necessary instance variables
+            self.masked_spectrum = cache_data['masked_spectrum']
+            baseline_info_for_plotting = cache_data.get('baseline_info') # Use .get for safety
+            
         else:
             log.info("Loading and processing raw data...")
             spectrum = core.DynamicSpectrum.from_numpy_file(self.config['input_data_path'])
             rfi_masked_spectrum = spectrum.mask_rfi(self.config)
 
             baseline_config = self.config.get('analysis', {}).get('baseline_subtraction', {})
+            baseline_info_for_plotting = None 
+
             if baseline_config.get('enable', False):
                 log.info("Applying polynomial baseline subtraction...")
                 burst_lims_pre = rfi_masked_spectrum.find_burst_envelope(
@@ -117,32 +128,45 @@ class ScintillationAnalysis:
                     padding_factor=self.config.get('analysis',{}).get('rfi_masking',{}).get('padding_factor', 0.2)
                 )
                 off_pulse_end_bin = burst_lims_pre[0] - 200
-                
+
                 if off_pulse_end_bin < 100:
                     log.warning("Not enough pre-burst data to model baseline. Skipping subtraction.")
                     self.masked_spectrum = rfi_masked_spectrum
                 else:
                     poly_order = baseline_config.get('poly_order', 1)
                     off_pulse_spectrum_1d = rfi_masked_spectrum.get_spectrum((0, off_pulse_end_bin))
-                    self.masked_spectrum = rfi_masked_spectrum.subtract_poly_baseline(off_pulse_spectrum_1d, poly_order=poly_order)
+                    self.masked_spectrum, baseline_model = rfi_masked_spectrum.subtract_poly_baseline(
+                        off_pulse_spectrum_1d, poly_order=poly_order
+                    )
+                    if baseline_model is not None:
+                        baseline_info_for_plotting = {
+                            'original_data': off_pulse_spectrum_1d,
+                            'model': baseline_model,
+                            'poly_order': poly_order
+                        }
             else:
                 log.info("Skipping optional baseline subtraction.")
                 self.masked_spectrum = rfi_masked_spectrum
-
+            
+            # Save the processed data to cache
             if self.config.get('pipeline_options', {}).get('save_intermediate_steps'):
+                log.info(f"Saving processed spectrum and metadata to cache: {processed_spec_cache}")
+                cache_data = {
+                    'masked_spectrum': self.masked_spectrum,
+                    'baseline_info'  : baseline_info_for_plotting
+                }
                 with open(processed_spec_cache, 'wb') as f:
-                    pickle.dump(self.masked_spectrum, f)
-                log.info(f"Saved processed spectrum to cache: {processed_spec_cache}")
-        
+                    pickle.dump(cache_data, f)
+
         log.info("Locating burst and defining analysis windows...")
         burst_lims = self.masked_spectrum.find_burst_envelope(
-                    thres=self.config.get('analysis',{}).get('rfi_masking',{}).get('find_burst_thres', 5),
-                    padding_factor=self.config.get('analysis',{}).get('rfi_masking',{}).get('padding_factor', 0.2)
-                )
+            thres=self.config.get('analysis',{}).get('rfi_masking',{}).get('find_burst_thres', 5),
+            padding_factor=self.config.get('analysis',{}).get('rfi_masking',{}).get('padding_factor', 0.2)
+        )
         noise_end_bin = burst_lims[0] - 200
-        
-        self._create_diagnostic_plots(burst_lims, (0, noise_end_bin))
-        
+
+        self._create_diagnostic_plots(burst_lims, (0, noise_end_bin), baseline_info=baseline_info_for_plotting)
+
         if noise_end_bin < 100:
             log.warning("Not enough pre-burst data for robust noise characterization. Skipping.")
             self.noise_descriptor = None
@@ -151,10 +175,9 @@ class ScintillationAnalysis:
             off_pulse_data = self.masked_spectrum.power.data[:, 0:noise_end_bin].T
             self.noise_descriptor = noise.estimate_noise_descriptor(off_pulse_data)
             log.info(f"Noise characterization complete. Detected kind: '{self.noise_descriptor.kind}'")
-        
+
         # --- Stage 3: Calculate ACFs ---
         acf_results_cache = self._get_cache_path('acf_results')
-        # Check for cached ACF results
         if os.path.exists(acf_results_cache) and os.path.getmtime(acf_results_cache) > os.path.getmtime(processed_spec_cache):
             log.info(f"Loading cached ACF results from {acf_results_cache}")
             with open(acf_results_cache, 'rb') as f:
@@ -165,10 +188,24 @@ class ScintillationAnalysis:
                 self.masked_spectrum, self.config, burst_lims=burst_lims, noise_desc=self.noise_descriptor
             )
             if self.config.get('pipeline_options', {}).get('save_intermediate_steps'):
-                # Use standard open() function on the string path
                 with open(acf_results_cache, 'wb') as f:
                     pickle.dump(self.acf_results, f)
                 log.info(f"Saved ACF results to cache: {acf_results_cache}")
+        
+        # --- Run the intra-pulse analysis ---
+        acf_config = self.config.get('analysis', {}).get('acf', {})
+        if acf_config.get('enable_intra_pulse_analysis', False):
+            ### FIX: Log message moved inside the conditional check ###
+            log.info(f"Running intra-pulse analysis...")
+            if self.noise_descriptor:
+                self.intra_pulse_results = analysis.analyze_intra_pulse_scintillation(
+                    self.masked_spectrum,
+                    burst_lims,
+                    self.config,
+                    self.noise_descriptor
+                )
+            else:
+                log.warning("Cannot run intra-pulse analysis without a valid noise descriptor. Skipping.")
         
         # --- Stage 4: Fit Models and Derive Parameters ---
         if not self.acf_results or not self.acf_results['subband_acfs']:

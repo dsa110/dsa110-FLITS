@@ -1,9 +1,9 @@
 # ==============================================================================
-# File: scint_analysis/configs/bursts/casey.yaml
+# File: scint_analysis/configs/bursts/isha.yaml
 # ==============================================================================
 # Link to the telescope config and input data
-burst_id: "casey"
-input_data_path: "/arc/home/jfaber/baseband_morphologies/chime_dsa_codetections/FLITS/scintillation/data/casey.npz" 
+burst_id: "isha"
+input_data_path: "/arc/home/jfaber/baseband_morphologies/chime_dsa_codetections/FLITS/scintillation/data/isha.npz" 
 telescope: "dsa" 
 
 # Set all analysis parameters
@@ -29,8 +29,8 @@ analysis:
     fit_lagrange_mhz: 45.0
     reference_frequency_mhz: 1400.0
     # to override BIC model selection
-    force_model: null 
-    #force_model: 'fit_2c_lor' 
+    #force_model: null 
+    force_model: 'fit_2c_lor' 
   baseline_subtraction:
     # Set to true to activate this stage
     enable: true 
@@ -42,12 +42,11 @@ analysis:
     template_n_draws: 25
   self_noise:
     disable: true
-    
 # Set pipeline options
 pipeline_options:
   log_level: "INFO"
   save_intermediate_steps: false
-  output_plot_path: "/arc/home/jfaber/baseband_morphologies/chime_dsa_codetections/FLITS/scintillation/plots/casey_analysis_overview.png"
+  output_plot_path: "/arc/home/jfaber/baseband_morphologies/chime_dsa_codetections/FLITS/scintillation/plots/isha_analysis_overview.png"
   cache_directory: "/arc/home/jfaber/baseband_morphologies/chime_dsa_codetections/FLITS/scintillation/data/cache"
 
   # --- ADD THIS SECTION ---

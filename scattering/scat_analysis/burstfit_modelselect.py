@@ -78,54 +78,38 @@ def fit_models_bic(
     model_keys: Sequence[str] = ("M0", "M1", "M2", "M3"),
     n_steps: int = 1500,
     pool=None,
-) -> Tuple[str, Dict[str, Tuple["emcee.EnsembleSampler", float, float]]]:
-    """
-    Fit each model, compute BIC, and return the best one.
+) -> tuple[str, dict[str, tuple["emcee.EnsembleSampler", float, float]]]:
 
-    Parameters
-    ----------
-    model
-        An initialized FRBModel instance containing the data and axes.
-    init
-        Initial parameter guess (full 5-param set). It will be projected
-        onto simpler models automatically.
-    model_keys
-        An iterable subset of {"M0", "M1", "M2", "M3"}.
-    n_steps
-        Chain length **per** model. Keep this modest for an evidence scan.
-    pool
-        A multiprocessing pool, passed to FRBFitter.
-
-    Returns
-    -------
-    best_key
-        The model key with the lowest BIC.
-    results
-        A dictionary mapping each model key to its (sampler, bic, logL_max).
-    """
     if model.data is None:
         raise ValueError("The FRBModel instance must contain data for fitting.")
-        
+
     n_obs = model.data.size
-    results: Dict[str, Tuple] = {}
-    
-    # Priors are built once from the full initial guess
-    full_priors = build_priors(init, scale=3.0)
+    results: dict[str, tuple] = {}
+
+    # 1. global prior dict + Jeffreys flag
+    full_priors, use_logw = build_priors(
+        init, scale=6.0, log_weight_pos=True
+    )
 
     for key in model_keys:
-        # For each model, we only need the relevant subset of priors
-        priors_subset = _restrict_priors(full_priors, key)
+        # 2. keep only the params relevant for this model
+        pri_subset = _restrict_priors(full_priors, key)
 
-        fitter = FRBFitter(model, priors_subset, n_steps=n_steps, pool=pool)
-        
-        # The fitter's `sample` method correctly uses the `init` guess
+        fitter = FRBFitter(
+            model,
+            pri_subset,
+            n_steps=n_steps,
+            pool=pool,
+            log_weight_pos=use_logw,
+        )
         sampler = fitter.sample(init, model_key=key)
 
-        logL_max = float(np.nanmax(sampler.get_log_prob()))
-        bic_val = compute_bic(logL_max, k=len(_PARAM_KEYS[key]), n=n_obs)
+        logL_max = float(np.nanmax(sampler.get_log_prob(flat=True)))
+        bic_val  = compute_bic(logL_max,
+                               k=len(_PARAM_KEYS[key]),
+                               n=n_obs)
         results[key] = (sampler, bic_val, logL_max)
-
-        print(f"[Model {key}]  logL_max = {logL_max:8.1f} | BIC = {bic_val:8.1f}")
+        print(f"[Model {key}]  logL_max = {logL_max:9.1f} | BIC = {bic_val:9.1f}")
 
     best_key = min(results, key=lambda k: results[k][1])
     print(f"\n→ Best model by BIC: {best_key}")

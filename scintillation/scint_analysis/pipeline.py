@@ -191,6 +191,12 @@ class ScintillationAnalysis:
                 with open(acf_results_cache, 'wb') as f:
                     pickle.dump(self.acf_results, f)
                 log.info(f"Saved ACF results to cache: {acf_results_cache}")
+                
+        # Check if the user wants to halt the pipeline here
+        if self.config.get('pipeline_options', {}).get('halt_after_acf', False):
+            log.info("'halt_after_acf' is set to True. Halting pipeline as requested.")
+            log.info("ACF results are calculated and cached. You can now run the interactive fitter.")
+            return # This gracefully exits the run() method
         
         # --- Run the intra-pulse analysis ---
         acf_config = self.config.get('analysis', {}).get('acf', {})

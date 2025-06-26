@@ -46,9 +46,12 @@ analysis:
 # Set pipeline options
 pipeline_options:
   log_level: "INFO"
-  save_intermediate_steps: false
-  output_plot_path: "/arc/home/jfaber/baseband_morphologies/chime_dsa_codetections/FLITS/scintillation/plots/casey_analysis_overview.png"
-  cache_directory: "/arc/home/jfaber/baseband_morphologies/chime_dsa_codetections/FLITS/scintillation/data/cache"
+  save_intermediate_steps: true
+  output_plot_path: "/arc/home/jfaber/baseband_morphologies/chime_dsa_codetections/FLITS/scintillation/plots/casey/casey_analysis_overview.png"
+  cache_directory: "/arc/home/jfaber/baseband_morphologies/chime_dsa_codetections/FLITS/scintillation/data/cache/casey/"
+  
+  # If true, the pipeline will stop after calculating and caching the ACFs.
+  halt_after_acf: true
 
   # --- ADD THIS SECTION ---
   diagnostic_plots:

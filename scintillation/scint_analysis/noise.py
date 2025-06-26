@@ -15,7 +15,7 @@ import json
 import warnings
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Literal, Optional
+from typing import Literal, Optional, Union
 
 import numpy as np
 from numpy.typing import NDArray
@@ -46,7 +46,7 @@ def _lag1(acf: NDArray[np.floating]) -> float:
     return float(np.clip(acf[1], -0.99, 0.99))
 
 
-def _robust_std(a: NDArray[np.floating], axis: int | None = None) -> NDArray[np.floating]:
+def _robust_std(a: NDArray[np.floating], axis: Union[int, None] = None) -> NDArray[np.floating]:
     """σ ≈ 1.4826·MAD, NaN‑safe."""
     med = np.nanmedian(a, axis=axis, keepdims=True)
     mad = np.nanmedian(np.abs(a - med), axis=axis)
@@ -80,13 +80,13 @@ class NoiseDescriptor:
     # ------------------------------------------------------------------
     # (de)serialisation
     # ------------------------------------------------------------------
-    def to_json(self, path: str | Path) -> None:
+    def to_json(self, path: Union[str, Path]) -> None:
         d = asdict(self)
         d["g_t"], d["b_f"] = self.g_t.tolist(), self.b_f.tolist()
         Path(path).write_text(json.dumps(d, indent=2))
 
     @classmethod
-    def from_json(cls, path: str | Path) -> "NoiseDescriptor":
+    def from_json(cls, path: Union[str, Path]) -> "NoiseDescriptor":
         d = json.loads(Path(path).read_text())
         d["g_t"], d["b_f"] = np.asarray(d["g_t"], dtype=np.float32), np.asarray(d["b_f"], dtype=np.float32)
         return cls(**d)  # type: ignore[arg-type]

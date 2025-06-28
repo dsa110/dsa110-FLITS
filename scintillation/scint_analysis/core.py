@@ -216,8 +216,8 @@ class DynamicSpectrum:
             if np.ma.is_masked(np.ma.std(means)) or np.ma.std(stds) == 0: continue
             snr_means = (means - np.ma.median(means)) / np.ma.std(means)
             snr_stds = (stds - np.ma.median(stds)) / np.ma.std(stds)
-            newly_flagged = Union[(np.abs(snr_means) > rfi_config.get('freq_threshold_sigma', 5.0)), \
-                            (np.abs(snr_stds) > rfi_config.get('freq_threshold_sigma', 5.0))]
+            newly_flagged = (np.abs(snr_means) > rfi_config.get('freq_threshold_sigma', 5.0)) | \
+                (np.abs(snr_stds) > rfi_config.get('freq_threshold_sigma', 5.0))
             if not np.any(newly_flagged): break
             channel_mask |= newly_flagged
         
@@ -255,7 +255,7 @@ class DynamicSpectrum:
         time_mask_full = np.broadcast_to(time_mask[None, :], self.power.shape)
 
         # 3. Combine
-        final_mask = Union[base_mask, chan_mask_full, time_mask_full]
+        final_mask = base_mask | chan_mask_full | time_mask_full
 
         # 4. Build a *new* DynamicSpectrum so callers get a fresh object
         new_power = np.ma.MaskedArray(self.power.data.copy(), mask=final_mask)

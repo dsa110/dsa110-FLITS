@@ -238,8 +238,8 @@ def plot_analysis_overview(
     ax_acf.set_ylabel("Center Freq. (MHz)")
     if num_subbands > 0: ax_acf.legend()
     # Apply the robustly calculated x-limit
-    #ax_acf.set_xlim(-final_xlim, final_xlim)
-    ax_acf.set_xlim(-10, 10)
+    ax_acf.set_xlim(-final_xlim, final_xlim)
+    #ax_acf.set_xlim(-10, 10)
 
     # ---- Panel 2 :  BIC model comparison ---------------------------------
     ax_bic = fig.add_subplot(gs[0, 1])

@@ -54,3 +54,106 @@ def load_config(burst_config_path):
     log.info("Configurations successfully loaded and merged.")
     
     return merged_config
+
+def update_yaml_guesses(config_path, model_name, new_params_dict):
+    """
+    Reads a YAML config file, updates the initial guesses for a specific
+    model, and writes the changes back to the file.
+
+    Args:
+        config_path (str): The full path to the YAML configuration file.
+        model_name (str): The key for the model to update (e.g., '2c_lor').
+        new_params_dict (dict): A dictionary of the new initial guess parameters.
+    """
+    try:
+        # Read the entire YAML file into a Python dictionary
+        with open(config_path, 'r') as f:
+            config_data = yaml.safe_load(f)
+
+        # Safely navigate and create nested keys if they don't exist
+        # This gets config_data['analysis']['fitting']['init_guess']
+        init_guess_section = config_data.setdefault('analysis', {})\
+                                        .setdefault('fitting', {})\
+                                        .setdefault('init_guess', {})
+
+        # Update the parameters for the specified model
+        init_guess_section[model_name] = new_params_dict
+
+        # Write the modified dictionary back to the YAML file
+        with open(config_path, 'w') as f:
+            # default_flow_style=False keeps the block format
+            # sort_keys=False preserves the original order as much as possible
+            yaml.dump(config_data, f, default_flow_style=False, sort_keys=False)
+
+        print(f"Successfully updated initial guesses for '{model_name}' in {config_path}")
+
+    except FileNotFoundError:
+        print(f"ERROR: Config file not found at {config_path}")
+    except Exception as e:
+        print(f"An error occurred while updating the YAML file: {e}")
+
+def update_fitting_parameter(config_path, param_name, new_value):
+    """
+    Reads a YAML config file, updates a specific parameter in the
+    'analysis:fitting' section, and writes the changes back.
+
+    Args:
+        config_path (str): The full path to the YAML configuration file.
+        param_name (str): The name of the parameter to change (e.g., 'fit_lagrange_mhz').
+        new_value: The new value for the parameter.
+    """
+    try:
+        # Read the entire YAML file into a Python dictionary
+        with open(config_path, 'r') as f:
+            config_data = yaml.safe_load(f)
+
+        # Safely navigate to the 'fitting' section
+        fitting_section = config_data.setdefault('analysis', {})\
+                                     .setdefault('fitting', {})\
+                                     .setdefault('pipeline_options', {})
+
+        # Update the specified parameter with the new value
+        fitting_section[param_name] = new_value
+
+        # Write the modified dictionary back to the YAML file
+        with open(config_path, 'w') as f:
+            yaml.dump(config_data, f, default_flow_style=False, sort_keys=False)
+
+        print(f"Successfully updated '{param_name}' to '{new_value}' in {config_path}")
+
+    except FileNotFoundError:
+        print(f"ERROR: Config file not found at {config_path}")
+    except Exception as e:
+        print(f"An error occurred while updating the YAML file: {e}")
+        
+def update_pipeline_parameter(config_path, param_name, new_value):
+    """
+    Reads a YAML config file, updates a specific parameter in the
+    'analysis:fitting' section, and writes the changes back.
+
+    Args:
+        config_path (str): The full path to the YAML configuration file.
+        param_name (str): The name of the parameter to change (e.g., 'fit_lagrange_mhz').
+        new_value: The new value for the parameter.
+    """
+    try:
+        # Read the entire YAML file into a Python dictionary
+        with open(config_path, 'r') as f:
+            config_data = yaml.safe_load(f)
+
+        # Safely navigate to the 'fitting' section
+        fitting_section = config_data.setdefault('pipeline_options', {})
+
+        # Update the specified parameter with the new value
+        fitting_section[param_name] = new_value
+
+        # Write the modified dictionary back to the YAML file
+        with open(config_path, 'w') as f:
+            yaml.dump(config_data, f, default_flow_style=False, sort_keys=False)
+
+        print(f"Successfully updated '{param_name}' to '{new_value}' in {config_path}")
+
+    except FileNotFoundError:
+        print(f"ERROR: Config file not found at {config_path}")
+    except Exception as e:
+        print(f"An error occurred while updating the YAML file: {e}")

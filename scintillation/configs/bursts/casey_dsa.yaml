@@ -1,61 +1,49 @@
-# ==============================================================================
-# File: scint_analysis/configs/bursts/casey.yaml
-# ==============================================================================
-# Link to the telescope config and input data
-burst_id: "casey"
-input_data_path: "/arc/home/jfaber/baseband_morphologies/chime_dsa_codetections/FLITS/scintillation/data/casey.npz" 
-telescope: "dsa" 
-
-# Set all analysis parameters
+burst_id: casey
+input_data_path: /arc/home/jfaber/baseband_morphologies/chime_dsa_codetections/FLITS/scintillation/data/casey.npz
+telescope: dsa
 analysis:
   rfi_masking:
     find_burst_thres: 5.0
-    # adds 20% total padding to burst envelope
     padding_factor: 0.0
     use_symmetric_noise_window: true
-    #off_burst_buffer: 100 # uncomment if above is false
     rfi_downsample_factor: 16
     enable_time_domain_flagging: false
     time_threshold_sigma: 7.0
     freq_threshold_sigma: 5.0
   acf:
     num_subbands: 2
-    max_lag_mhz: 45.0
+    max_lag_mhz: 200.0
     use_snr_subbanding: false
     enable_intra_pulse_analysis: true
-    # Number of time slices
     intra_pulse_time_bins: 5
   fitting:
-    fit_lagrange_mhz: 45.0
+    fit_lagrange_mhz: 30.0
     reference_frequency_mhz: 1400.0
-    # to override BIC model selection
-    force_model: null 
-    #force_model: 'fit_2c_lor' 
+    force_model: null
+    init_guess:
+      2c_lor:
+        l2_gamma1: 1.55
+        l2_m1: 0.29
+        l2_gamma2: 5.33
+        l2_m2: 0.58
+        l2_c2: 0.01
+    pipeline_options:
+      halt_after_acf: false
   baseline_subtraction:
-    # Set to true to activate this stage
-    enable: true 
-    # Order of the polynomial to fit (1=linear, 2=quadratic)
-    poly_order: 1        
+    enable: true
+    poly_order: 1
   noise:
     disable: true
     disable_template: true
     template_n_draws: 25
   self_noise:
     disable: true
-    
-# Set pipeline options
 pipeline_options:
-  log_level: "INFO"
+  log_level: INFO
   save_intermediate_steps: true
-  output_plot_path: "/arc/home/jfaber/baseband_morphologies/chime_dsa_codetections/FLITS/scintillation/plots/casey/casey_analysis_overview.png"
-  cache_directory: "/arc/home/jfaber/baseband_morphologies/chime_dsa_codetections/FLITS/scintillation/data/cache/casey/"
-  
-  # If true, the pipeline will stop after calculating and caching the ACFs.
-  halt_after_acf: true
-
-  # --- ADD THIS SECTION ---
+  output_plot_path: /arc/home/jfaber/baseband_morphologies/chime_dsa_codetections/FLITS/scintillation/plots/casey/casey_analysis_overview.png
+  cache_directory: /arc/home/jfaber/baseband_morphologies/chime_dsa_codetections/FLITS/scintillation/data/cache/casey/
+  halt_after_acf: false
   diagnostic_plots:
     enable: true
-    # Directory where the plots will be saved.
-    # This will be created if it doesn't exist.
-    directory: "/arc/home/jfaber/baseband_morphologies/chime_dsa_codetections/FLITS/scintillation/plots/diagnostics"
+    directory: /arc/home/jfaber/baseband_morphologies/chime_dsa_codetections/FLITS/scintillation/plots/diagnostics

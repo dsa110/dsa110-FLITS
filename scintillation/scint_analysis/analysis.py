@@ -686,6 +686,12 @@ def _fit_acf_models(acf_object,
         # run the fit -------------------------------------------------------
         label = f"fit_{'sn_tpl_' if has_sn and has_tpl else 'sn_' if has_sn else 'tpl_' if has_tpl else ''}{key}"
         try:
+            
+            # Print the model being tested for the current sub-band
+            print(f"\n--- Initial Guesses for: {label} ---")
+            # Print a detailed list of the parameters, their values, and bounds
+            print(params)
+            
             fit_results[label] = model.fit(y, params, x=x, weights=w,
                                            method='nelder', max_nfev=4000)
         except Exception as e:

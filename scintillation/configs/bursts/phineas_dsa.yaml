@@ -1,0 +1,86 @@
+burst_id: phineas
+input_data_path: /Users/jakobfaber/Documents/research/caltech/ovro/dsa110/chime_dsa_codetections/FLITS/scintillation/data/phineas.npz
+telescope: dsa
+analysis:
+  rfi_masking:
+    find_burst_thres: 8.0
+    padding_factor: 0.0
+    use_symmetric_noise_window: true
+    rfi_downsample_factor: 16
+    enable_time_domain_flagging: false
+    time_threshold_sigma: 7.0
+    freq_threshold_sigma: 5.0
+    manual_burst_window:
+    - 1278
+    - 1319
+    manual_noise_window:
+    - 0
+    - 1210
+  acf:
+    num_subbands: 2
+    max_lag_mhz: 200.0
+    use_snr_subbanding: true
+    enable_intra_pulse_analysis: true
+    intra_pulse_time_bins: 8
+  fitting:
+    fit_lagrange_mhz: 25.0
+    reference_frequency_mhz: 1400.0
+  baseline_subtraction:
+    enable: true
+    poly_order: 1
+  noise:
+    disable: false
+    disable_template: false
+    template_n_draws: 25
+  self_noise:
+    disable: true
+  stored_fits:
+    subband_0:
+      Lorentzian:
+        reference_frequency_mhz: 1339.3002197623312
+        best_fit_params:
+          l_1_gamma:
+            value: 9.885028232272205
+            stderr: 1.2785891203792985
+          l_1_m:
+            value: 0.6189756310200669
+            stderr: 0.02696614058597379
+          c_c:
+            value: -0.24806319176462427
+            stderr: 0.03674547638480808
+        redchi: 1.1202628416341847
+        bic: 144.4363876235258
+        fit_range_mhz:
+        - -17.04
+        - 16.96
+    subband_1:
+      Lorentzian:
+        reference_frequency_mhz: 1433.0654810353249
+        best_fit_params:
+          l_1_gamma:
+            value: 3.7723706151187053
+            stderr: 1.7801422814749825
+          l_1_m:
+            value: 0.45202064274692555
+            stderr: 0.05195685321746382
+          c_c:
+            value: -0.06938624647120988
+            stderr: 0.02906995331166947
+        redchi: 1.013478302719307
+        bic: 32.94154651936445
+        fit_range_mhz:
+        - -17.04
+        - 16.96
+pipeline_options:
+  downsample:
+    f_factor: 1
+    t_factor: 1
+  log_level: INFO
+  save_intermediate_steps: true
+  force_recalc: true
+  output_plot_path: /Users/jakobfaber/Documents/research/caltech/ovro/dsa110/chime_dsa_codetections/FLITS/scintillation/plots/phineas/phineas_analysis_overview.png
+  cache_directory: /Users/jakobfaber/Documents/research/caltech/ovro/dsa110/chime_dsa_codetections/FLITS/scintillation/data/cache/phineas/
+  halt_after_acf: true
+  diagnostic_plots:
+    enable: true
+    directory: /Users/jakobfaber/Documents/research/caltech/ovro/dsa110/chime_dsa_codetections/FLITS/scintillation/plots/diagnostics

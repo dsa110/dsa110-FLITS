@@ -1,0 +1,4 @@
+# This file is used internally by FFMPEG.
+file 'file:/Users/jakobfaber/Documents/research/caltech/ovro/dsa110/chime_dsa_codetections/FLITS/animations/media/videos/frb_delay/480p15/partial_movie_files/FRBDelay/1185818338_2921443789_557275334.mp4'
+file 'file:/Users/jakobfaber/Documents/research/caltech/ovro/dsa110/chime_dsa_codetections/FLITS/animations/media/videos/frb_delay/480p15/partial_movie_files/FRBDelay/624642324_1347402436_1618266871.mp4'
+file 'file:/Users/jakobfaber/Documents/research/caltech/ovro/dsa110/chime_dsa_codetections/FLITS/animations/media/videos/frb_delay/480p15/partial_movie_files/FRBDelay/624642324_2834709167_3675898428.mp4'

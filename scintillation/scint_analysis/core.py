@@ -85,6 +85,51 @@ class DynamicSpectrum:
         return np.abs(np.mean(np.diff(self.times)))
         
     # --- Core Methods ---
+    def downsample(
+        self,
+        f_factor: int = 1,
+        t_factor: int = 1,
+        *,
+        in_place: bool = False,
+    ) -> "DynamicSpectrum":
+        """
+        Block-average the spectrum along frequency (``f_factor``) and time
+        (``t_factor``).
+
+        Returns
+        -------
+        DynamicSpectrum
+            * ``self`` (unchanged) if both factors are 1.
+            * The same instance, modified in-place, if ``in_place=True``.
+            * A new, down-sampled instance otherwise.
+        """
+        # ── quick exit ──────────────────────────────────────────────────────────────
+        if f_factor == 1 and t_factor == 1:
+            return self            # keeps the wrapper and its methods
+
+        nf, nt = self.power.shape
+        nf_new = nf - (nf % f_factor)
+        nt_new = nt - (nt % t_factor)
+
+        # ── power (masked) ─────────────────────────────────────────────────────────
+        reshaped  = self.power[:nf_new, :nt_new].reshape(
+            nf_new // f_factor, f_factor, nt_new // t_factor, t_factor
+        )
+        new_power = np.ma.mean(reshaped, axis=(1, 3))     # keep mask!
+
+        # ── axes ───────────────────────────────────────────────────────────────────
+        new_freqs = self.frequencies[:nf_new].reshape(-1, f_factor).mean(axis=1)
+        new_times = self.times[:nt_new].reshape(-1, t_factor).mean(axis=1)
+
+        # ── return ────────────────────────────────────────────────────────────────
+        if in_place:
+            self.power       = new_power
+            self.frequencies = new_freqs
+            self.times       = new_times
+            return self
+        else:
+            return DynamicSpectrum(new_power, new_freqs, new_times)
+
     def get_profile(self, time_window_bins=None):
         """
         Returns the 1D frequency-averaged time series.
@@ -180,7 +225,13 @@ class DynamicSpectrum:
         power_for_stats = self.power[:, :-remainder] if remainder > 0 else self.power
         power_ds = np.ma.mean(power_for_stats.reshape(self.num_channels, -1, ds_factor), axis=2)
 
-        burst_lims = self.find_burst_envelope(thres=rfi_config.get('find_burst_thres', 5))
+        manual_window = rfi_config.get('manual_burst_window')
+        print(f"Manual window set to {manual_window}")
+        if manual_window and len(manual_window) == 2:
+            burst_lims = manual_window
+            log.info(f"RFI MASKING: Using manually specified on-pulse window: {burst_lims}")
+        else:
+            burst_lims = self.find_burst_envelope(thres=rfi_config.get('find_burst_thres', 5))
         
         # Symmetric noise window
         if rfi_config.get('use_symmetric_noise_window', False):

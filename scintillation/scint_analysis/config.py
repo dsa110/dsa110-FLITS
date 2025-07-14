@@ -55,6 +55,37 @@ def load_config(burst_config_path):
     
     return merged_config
 
+def update_yaml_config(config_path, key_path, new_value):
+    """
+    Updates a specific nested key in a YAML file.
+
+    Args:
+        config_path (str): Path to the YAML file.
+        key_path (list): A list of keys representing the path to the value.
+                         For example: ['analysis', 'acf', 'num_subbands']
+        new_value: The new value to set.
+    """
+    try:
+        with open(config_path, 'r') as f:
+            config_data = yaml.safe_load(f)
+
+        # Navigate to the target dictionary, creating keys if they don't exist
+        d = config_data
+        for key in key_path[:-1]:
+            d = d.setdefault(key, {})
+        
+        # Set the new value on the final key
+        d[key_path[-1]] = new_value
+
+        # Write the modified dictionary back to the file
+        with open(config_path, 'w') as f:
+            yaml.dump(config_data, f, default_flow_style=False, sort_keys=False)
+        
+        print(f"Successfully updated '{'.'.join(key_path)}' to {new_value}")
+
+    except Exception as e:
+        print(f"Error updating YAML file: {e}")
+
 def update_yaml_guesses(config_path, model_name, new_params_dict):
     """
     Reads a YAML config file, updates the initial guesses for a specific

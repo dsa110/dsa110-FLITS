@@ -1,0 +1,251 @@
+burst_id: whitney
+input_data_path: /Users/jakobfaber/Documents/research/caltech/ovro/dsa110/chime_dsa_codetections/FLITS/scintillation/data/whitney.npz
+telescope: dsa
+analysis:
+  rfi_masking:
+    find_burst_thres: 8.0
+    padding_factor: 0.0
+    use_symmetric_noise_window: true
+    rfi_downsample_factor: 16
+    enable_time_domain_flagging: false
+    time_threshold_sigma: 7.0
+    freq_threshold_sigma: 5.0
+    manual_burst_window:
+    - 1264
+    - 1274
+    manual_noise_window:
+    - 0
+    - 624
+  acf:
+    num_subbands: 2
+    max_lag_mhz: 200.0
+    use_snr_subbanding: true
+    enable_intra_pulse_analysis: true
+    intra_pulse_time_bins: 8
+  fitting:
+    fit_lagrange_mhz: 25.0
+    reference_frequency_mhz: 1400.0
+  baseline_subtraction:
+    enable: true
+    poly_order: 1
+  noise:
+    disable: false
+    disable_template: false
+    template_n_draws: 25
+  self_noise:
+    disable: true
+  stored_fits:
+    subband_0:
+      Gaussian+Lorentzian:
+        reference_frequency_mhz: 1405.0
+        best_fit_params:
+          g_1_sigma:
+            value: 11.462561103120516
+            stderr: 0.2508684991691462
+          g_1_m:
+            value: 0.5133181153361039
+            stderr: 0.02960200000594665
+          l_2_gamma:
+            value: 28.675462925314488
+            stderr: 3.9067349724276714
+          l_2_m:
+            value: 0.466212075626234
+            stderr: 0.030436392978143
+          c_c:
+            value: -0.13432077278304988
+            stderr: 0.003863554306933241
+        redchi: 0.0855751216993205
+        bic: -12846.449332773376
+        fit_range_mhz:
+        - -80.03
+        - 79.97
+      Lorentzian:
+        reference_frequency_mhz: 1371.56255087091
+        best_fit_params:
+          l_1_gamma:
+            value: 24.544518874967583
+            stderr: 0.6351683029993612
+          l_1_m:
+            value: 0.6704004490154294
+            stderr: 0.005002489617574362
+          c_c:
+            value: -0.20538599735803592
+            stderr: 0.00739412076864107
+        redchi: 0.9092217865133645
+        bic: -290.38854232156746
+        fit_range_mhz:
+        - -49.95
+        - 50.05
+      Gen-Lorentz+Gaussian:
+        reference_frequency_mhz: 1328.403670844864
+        best_fit_params:
+          lg_1_gamma:
+            value: 0.5006486129842389
+            stderr: 0.25955841426435394
+          lg_1_alpha:
+            value: 0.9901375161316491
+            stderr: 4.374594683223983
+          lg_1_m:
+            value: 0.12965941704132788
+            stderr: 0.04135622027748494
+          g_2_sigma:
+            value: 23.330243633631785
+            stderr: 2932.657940318067
+          g_2_m:
+            value: 0.6075402149883247
+            stderr: 75.43215109795938
+          c_c:
+            value: -0.3657150278899687
+            stderr: 91.65432052896655
+        redchi: 0.888154517529149
+        bic: -10.101288777056673
+        fit_range_mhz:
+        - -5.02
+        - 4.98
+      Lorentzian+Gaussian:
+        reference_frequency_mhz: 1373.0734168972815
+        best_fit_params:
+          l_1_gamma:
+            value: 23.98495484241855
+            stderr: 0.35350595332736706
+          l_1_m:
+            value: 0.7481875644757678
+            stderr: 0.002931531076055114
+          g_2_sigma:
+            value: 0.6350014644756661
+            stderr: 0.5264865538579101
+          g_2_m:
+            value: 0.11761842157696023
+            stderr: 0.041771660603807985
+          c_c:
+            value: -0.24587782990921775
+            stderr: 0.004947020442471534
+        redchi: 0.8223290399091661
+        bic: -605.3655932904749
+        fit_range_mhz:
+        - -50.00265342666458
+        - 49.99734657333545
+    subband_1:
+      Lorentzian:
+        reference_frequency_mhz: 1388.7009604427803
+        best_fit_params:
+          l_1_gamma:
+            value: 15.122728597518863
+            stderr: 0.9806934542899405
+          l_1_m:
+            value: 0.6541561282797521
+            stderr: 0.01842766335857794
+          c_c:
+            value: -0.27954924731814373
+            stderr: 0.025818385602971897
+        redchi: 0.9501081200729594
+        bic: -48.466339453337966
+        fit_range_mhz:
+        - -20.02
+        - 19.98
+      Gen-Lorentz+Gaussian:
+        reference_frequency_mhz: 1388.7009604427803
+        best_fit_params:
+          lg_1_gamma:
+            value: 0.06000000768202107
+            stderr: 0.11924282093121795
+          lg_1_alpha:
+            value: 5.999991657423978
+            stderr: 35.2628306602125
+          lg_1_m:
+            value: 0.1895633065319391
+            stderr: 0.10536426436312789
+          g_2_sigma:
+            value: 2.2688249149467277
+            stderr: 1.8017366652457063
+          g_2_m:
+            value: 0.16121322297545881
+            stderr: 0.050068017748063215
+          c_c:
+            value: 0.12319431652610383
+            stderr: 0.01782994410017407
+        redchi: 0.685124092644525
+        bic: -94.97275068848433
+        fit_range_mhz:
+        - -5.02
+        - 4.98
+      Lorentzian+Gaussian:
+        reference_frequency_mhz: 1466.8386781702752
+        best_fit_params:
+          l_1_gamma:
+            value: 8.082635345975074
+            stderr: 0.284656221100251
+          l_1_m:
+            value: 0.578577651643885
+            stderr: 0.005209979675243665
+          g_2_sigma:
+            value: 0.060000235758074894
+            stderr: 0.2298917630109316
+          g_2_m:
+            value: 0.094730714544768
+            stderr: 0.378585396250806
+          c_c:
+            value: -0.10648954382654649
+            stderr: 0.0030909456337180853
+        redchi: 7.331681518981873
+        bic: 6561.93129859533
+        fit_range_mhz:
+        - -50.00265342666458
+        - 49.99734657333545
+      Gaussian:
+        reference_frequency_mhz: 1466.8386781702752
+        best_fit_params:
+          g_1_sigma:
+            value: 8.083030345802834
+            stderr: 0.1652971308104499
+          g_1_m:
+            value: 0.5510949319665996
+            stderr: 0.004247717523059032
+          c_c:
+            value: -0.09257730458514603
+            stderr: 0.0022560511402631256
+        redchi: 6.399529215121112
+        bic: 6102.272985433474
+        fit_range_mhz:
+        - -50.00265342666458
+        - 49.99734657333545
+    subband_2:
+      Gen-Lorentz+Gaussian:
+        reference_frequency_mhz: 1448.67776330783
+        best_fit_params:
+          lg_1_gamma:
+            value: 12.272679298157428
+            stderr: 5.003518342246902
+          lg_1_alpha:
+            value: 0.10000001254977142
+            stderr: 4.7270546119118055
+          lg_1_m:
+            value: 0.5883799750150798
+            stderr: 0.1466107894926741
+          g_2_sigma:
+            value: 0.07239383556737633
+            stderr: 0.0570743887996078
+          g_2_m:
+            value: 0.22563849490462862
+            stderr: 0.09583504802832077
+          c_c:
+            value: -0.21162704385427877
+            stderr: 0.16920219425446004
+        redchi: 0.1123775773083015
+        bic: -1396.7016652520904
+        fit_range_mhz:
+        - -10.02
+        - 9.98
+pipeline_options:
+  downsample:
+    f_factor: 1
+    t_factor: 1
+  log_level: INFO
+  save_intermediate_steps: true
+  force_recalc: true
+  output_plot_path: /Users/jakobfaber/Documents/research/caltech/ovro/dsa110/chime_dsa_codetections/FLITS/scintillation/plots/whitney/whitney_analysis_overview.png
+  cache_directory: /Users/jakobfaber/Documents/research/caltech/ovro/dsa110/chime_dsa_codetections/FLITS/scintillation/data/cache/whitney/
+  halt_after_acf: true
+  diagnostic_plots:
+    enable: true
+    directory: /Users/jakobfaber/Documents/research/caltech/ovro/dsa110/chime_dsa_codetections/FLITS/scintillation/plots/diagnostics

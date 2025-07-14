@@ -139,7 +139,7 @@ class FRBModel:
         *,
         data: NDArray[np.floating] | None = None,
         dm_init: float = 0.0,
-        df_MHz: float = 0.03051757812, #Channel width is needed for smearing
+        df_MHz: float = 0.390625, #0.03051757812, #Channel width is needed for smearing
         beta: float = 2.0,
         noise_std: NDArray[np.floating] | None = None,
         off_pulse: slice | Sequence[int] | None = None,

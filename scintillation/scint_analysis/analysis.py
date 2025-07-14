@@ -5,6 +5,7 @@ import numpy as np
 import logging
 from .core import ACF
 from lmfit import Model, Parameters
+from lmfit.models import ConstantModel
 from tqdm import tqdm
 from collections import defaultdict
 from scipy.interpolate import interp1d
@@ -18,56 +19,41 @@ log = logging.getLogger(__name__)
 # --- Model Definitions ---
 # -------------------------
 
-def lorentzian_model_1_comp(x, gamma1, m1, c1):
-    return (m1**2 / (1 + (x / gamma1)**2)) + c1
+def lorentzian_component(x, gamma, m):
+    """A single Lorentzian component without a baseline constant."""
+    return (m**2) / (1 + (x / gamma)**2)
 
-def lorentzian_model_2_comp(x, gamma1, m1, gamma2, m2, c2):
-    lor1 = m1**2 / (1 + (x / gamma1)**2)
-    lor2 = m2**2 / (1 + (x / gamma2)**2)
-    return lor1 + lor2 + c2
+def gaussian_component(x, sigma, m):
+    """A single Gaussian component without a baseline constant."""
+    return (m**2) * np.exp(-0.5 * (x / sigma)**2)
 
-def lorentzian_model_3_comp(x, gamma1, m1, gamma2, m2, gamma3, m3, c3):
-    lor1 = m1**2 / (1 + (x / gamma1)**2)
-    lor2 = m2**2 / (1 + (x / gamma2)**2)
-    lor3 = m3**2 / (1 + (x / gamma3)**2)
-    return lor1 + lor2 + lor3 + c3
+def lorentzian_generalised(x: np.ndarray | float,
+                           gamma: float,
+                           alpha: float,
+                           m: float) -> np.ndarray:
+    """Generalised (power‑law) Lorentzian without a baseline constant.
 
-def gaussian_model_1_comp(x, sigma1, m1, c1):
-    return (m1**2 * np.exp(-0.5 * (x / sigma1)**2)) + c1
+    C(x) = m1² / [1 + |x/γ₁|^{α+2}]
 
-def gaussian_model_2_comp(x, sigma1, m1, sigma2, m2, c2):
-    gauss1 = m1**2 * np.exp(-0.5 * (x / sigma1)**2)
-    gauss2 = m2**2 * np.exp(-0.5 * (x / sigma2)**2)
-    return gauss1 + gauss2 + c2
+    *alpha = 0* reproduces the standard Lorentzian; *alpha = 5/3* is the
+    Kolmogorov diffractive prediction.
+    """
+    z = np.abs(x / gamma)
+    return (m ** 2.0) / (1.0 + z ** (alpha + 2.0))
 
-def gaussian_model_3_comp(x, sigma1, m1, sigma2, m2, sigma3, m3, c3):
-    gauss1 = m1**2 * np.exp(-0.5 * (x / sigma1)**2)
-    gauss2 = m2**2 * np.exp(-0.5 * (x / sigma2)**2)
-    gauss3 = m3**2 * np.exp(-0.5 * (x / sigma3)**2)
-    return gauss1 + gauss2 + gauss3 + c3
 
-def gauss_plus_lor_model(x, sigma1, m1, gamma2, m2, c):
-    gauss = m1**2 * np.exp(-0.5 * (x / sigma1)**2)
-    lor = m2**2 / (1 + (x / gamma2)**2)
-    return gauss + lor + c
-
-def two_screen_unresolved_model(x, gamma1, m1, gamma2, m2, c):
-    """ A physically-motivated model for two unresolved screens. """
-    lor1 = (m1**2) / (1 + (x / gamma1)**2)
-    lor2 = (m2**2) / (1 + (x / gamma2)**2)
-    return lor1 + lor2 + (lor1 * lor2) + c
-
-def power_law_model(x, c, n):
-    """A simple power-law model: y = c * x^n."""
-    return c * (x**n)
+def power_law_model(x: np.ndarray | float, c: float, n: float) -> np.ndarray:
+    """Pure power-law tail without a baseline constant."""
+    eps = 1.0e-12
+    return c * (np.abs(x) + eps) ** n
 
 # -----------------------------------------------------------------------------
 # Fixed‑width self‑noise Gaussian
 # -----------------------------------------------------------------------------
 
-def gauss_fixed_width(x, sigma_self, m_self, c):
-    """Pure Gaussian that models the pulse-width self-noise component."""
-    return m_self**2 * np.exp(-0.5 * (x / sigma_self) ** 2) + c
+def gauss_fixed_width(x, sigma_self, m_self):
+    """Pure Gaussian that models the pulse-width self‑noise component without a baseline constant."""
+    return m_self**2 * np.exp(-0.5 * (x / sigma_self) ** 2)
 
 def _self_noise_model(sigma_self_mhz: float):
     sn = Model(gauss_fixed_width, prefix="sn_")
@@ -77,167 +63,58 @@ def _self_noise_model(sigma_self_mhz: float):
         min=sigma_self_mhz*0.25,   
         max=sigma_self_mhz*1.75,   # ±25 %
         m_self=0.3,
-        c=0.0,
     )
     return sn, p
 
-    
-def _baseline_registry(cfg_init=None):
+def _baseline_registry(cfg_init: dict | None = None):
+    """Return a list describing **all** baseline scattering models.
+
+    Parameters
+    ----------
+    cfg_init : dict | None
+        Overrides for the initial‑guess dictionaries below, typically taken
+        from YAML → ``analysis → fitting → init_guess``.
     """
-    Return list describing all baseline scattering models.
-    cfg_init : dict  (values from YAML → analysis.fitting.init_guess)
-    """
+
     if cfg_init is None:
         cfg_init = {}
 
     def merge(seed: dict, tag: str):
-        """override hard-coded seed with YAML values"""
+        """Override hard‑coded seed with YAML values for the given *tag*."""
         merged = seed.copy()
         merged.update(cfg_init.get(tag, {}))
         return merged
 
     return [
-        # ---------- 1-component Lorentzian ---------------------------------
-        ('1c_lor', lorentzian_model_1_comp, 'l1_',
-         merge(dict(l1_gamma1=0.05, l1_m1=0.8, l1_c1=0), tag='1c_lor'),
-         lambda p: (
-             p['l1_gamma1'].set(min=1e-6),
-             p['l1_m1'].set(min=0))),
+        # ------------------------------------------------------------------
+        #  SINGLE‑COMPONENT MODELS
+        # ------------------------------------------------------------------
 
-        # ---------- 2-component Lorentzian ---------------------------------
-        ('2c_lor', lorentzian_model_2_comp, 'l2_',
-         merge(dict(l2_gamma1=0.01, l2_gamma2=0.05,
-                    l2_m1=0.5,  l2_m2=0.5, l2_c2=0), tag='2c_lor'),
+        ('lor', lorentzian_component, 'l_',
+         merge(dict(l_gamma=0.05, l_m=0.8), tag='lor'),
          lambda p: (
-             p['l2_gamma1'].set(min=1e-6),
-             p['l2_gamma2'].set(min=1e-6),
-             p['l2_m1'].set(min=0),
-             p['l2_m2'].set(min=0))),
+             p['l_gamma'].set(min=1e-6),
+             p['l_m'].set(min=0))),
 
-        # ---------- 3-component Lorentzian ---------------------------------
-        ('3c_lor', lorentzian_model_3_comp, 'l3_',
-         merge(dict(l3_gamma1=0.01, l3_gamma2=0.10, l3_gamma3=0.30,
-                    l3_m1=0.3,   l3_m2=0.3,   l3_m3=0.3, l3_c3=0), tag='3c_lor'),
+        ('gauss', gaussian_component, 'g_',
+         merge(dict(g_sigma=0.05, g_m=0.8), tag='gauss'),
          lambda p: (
-             p['l3_gamma1'].set(min=1e-6),
-             p['l3_gamma2'].set(min=1e-6),
-             p['l3_gamma3'].set(min=1e-6),
-             p['l3_m1'].set(min=0),
-             p['l3_m2'].set(min=0),
-             p['l3_m3'].set(min=0))),
+             p['g_sigma'].set(min=1e-6),
+             p['g_m'].set(min=0))),
+
+        ('lor_gen', lorentzian_generalised, 'lg_',
+         merge(dict(lg_gamma=0.05, lg_alpha=5/3, lg_m=0.8),
+               tag='lor_gen'),
+         lambda p: (
+             p['lg_gamma'].set(min=1e-6),
+             p['lg_alpha'].set(min=0.1, max=4.0),
+             p['lg_m'].set(min=0))),
+
+        ('power', power_law_model, 'p_',
+         merge(dict(p_c=0.01, p_n=-2.0), tag='power'),
+         lambda p: (
+             p['p_c'].set(min=1e-6))),
     ]
-
-def _baseline_registry_v0():
-    """Return list of tuples describing all baseline scattering models."""
-    return [
-        # --- 1‑component models ------------------------------------------------
-        ('1c_lor',  lorentzian_model_1_comp,  'l1_',
-         dict(l1_gamma1=0.05, l1_m1=0.8, l1_c1=0),
-         lambda p: (p['l1_gamma1'].set(min=1e-6), p['l1_m1'].set(min=0))),
-
-        #('1c_gauss', gaussian_model_1_comp,  'g1_',
-        # dict(g1_sigma1=0.05, g1_m1=0.8, g1_c1=0),
-        # lambda p: (p['g1_sigma1'].set(min=1e-6), p['g1_m1'].set(min=0))),
-
-        # --- 2‑component models ----------------------------------------------
-        #('2c_lor',  lorentzian_model_2_comp, 'l2_',
-        # dict(l2_gamma1=0.01, l2_m1=0.5, l2_c2=0),
-        # lambda p: (
-        #     p['l2_gamma1'].set(min=1e-6), p['l2_m1'].set(min=0),
-        #     p['l2_m2'].set(value=0.5, min=0),
-        #     p.add('l2_gamma_factor', value=5, min=1.01),
-        #     p['l2_gamma2'].set(expr='l2_gamma1 * l2_gamma_factor'))),
-        
-        ('2c_lor', lorentzian_model_2_comp, 'l2_',
-        dict(l2_gamma1=0.01, l2_m1=0.5, l2_c2=0),
-        lambda p: (
-             p['l2_gamma1'].set(min=1e-6),
-             p['l2_m1'].set(min=0),
-             # NEW – free gamma2, just require ≥ gamma1
-             p.add('l2_gamma2', value=0.05, min=1e-6),
-             p['l2_m2'].set(value=0.5, min=0))),
-        
-        #('2c_gauss', gaussian_model_2_comp, 'g2_',
-        # dict(g2_sigma1=0.01, g2_m1=0.5, g2_c2=0),
-        # lambda p: (
-        #     p['g2_sigma1'].set(min=1e-6), 
-        #     p['g2_m1'].set(min=0),
-        #     p.add('g2_sigma2', value=5, min=1e-6),
-        #     p['g2_m2'].set(value=0.5, min=0))),
-        
-        #('2c_gauss', gaussian_model_2_comp, 'g2_',
-        # dict(g2_sigma1=0.01, g2_m1=0.5, g2_c2=0),
-        # lambda p: (
-        #     p['g2_sigma1'].set(min=1e-6), p['g2_m1'].set(min=0),
-        #     p['g2_m2'].set(value=0.5, min=0),
-        #     p.add('g2_sigma_factor', value=5, min=1.01),
-        #     p['g2_sigma2'].set(expr='g2_sigma1 * g2_sigma_factor'))),
-
-        #('2c_mixed', gauss_plus_lor_model, 'gl_',
-        # dict(gl_sigma1=0.01, gl_m1=0.5, gl_gamma2=0.1, gl_m2=0.5, gl_c=0),
-        # lambda p: (
-        #     p['gl_sigma1'].set(min=1e-6), p['gl_m1'].set(min=0),
-        #     p['gl_gamma2'].set(min=1e-6), p['gl_m2'].set(min=0))),
-
-        #('2c_unresolved', two_screen_unresolved_model, 'tsu_',
-        # dict(tsu_gamma1=0.01, tsu_m1=0.5, tsu_c=0),
-        # lambda p: (
-        #     p['tsu_gamma1'].set(min=1e-6), 
-        #     p['tsu_m1'].set(value=0.5, min=0),
-        #     p.add('tsu_gamma2', value=5, min=1e-6),
-        #     p['tsu_m2'].set(value=0.5, min=0))),
-        
-        #('2c_unresolved', two_screen_unresolved_model, 'tsu_',
-        # dict(tsu_gamma1=0.01, tsu_m1=0.5, tsu_c=0),
-        # lambda p: (
-        #     p['tsu_gamma1'].set(min=1e-6), p['tsu_m1'].set(min=0),
-        #     p['tsu_m2'].set(value=0.5, min=0),
-        #     p.add('tsu_gamma_factor', value=5, min=1.01),
-        #     p['tsu_gamma2'].set(expr='tsu_gamma1 * tsu_gamma_factor'))),
-
-        # --- 3‑component models ----------------------------------------------
-        
-        
-        ('3c_lor',  lorentzian_model_3_comp, 'l3_',
-         dict(l3_gamma1=0.01, l3_m1=0.3, l3_c3=0),
-         lambda p: (
-             p['l3_gamma1'].set(min=1e-6), 
-             p['l3_m1'].set(min=0),
-             p['l3_m2'].set(value=0.3, min=0),
-             p.add('l3_gamma2', value=1, min=1e-6),
-             p.add('l3_gamma3', value=3, min=1e-6),
-             p['l3_m3'].set(value=0.3, min=0))),
-        
-        #('3c_gauss', gaussian_model_3_comp, 'g3_',
-        # dict(g3_sigma1=0.01, g3_m1=0.3, g3_c3=0),
-        # lambda p: (
-        #     p['g3_sigma1'].set(min=1e-6), p['g3_m1'].set(min=0),
-        #     p['g3_m2'].set(value=0.3, min=0),
-        #     p.add('g3_sigma2', value=1, min=1e-6),
-        #     p.add('g3_sigma3', value=3, min=1e-6),
-        #     p['g3_m3'].set(value=0.3, min=0))),
-        
-        #('3c_lor',  lorentzian_model_3_comp, 'l3_',
-        # dict(l3_gamma1=0.01, l3_m1=0.3, l3_c3=0),
-        # lambda p: (
-        #     p['l3_gamma1'].set(min=1e-6), p['l3_m1'].set(min=0),
-        #     p['l3_m2'].set(value=0.3, min=0), p['l3_m3'].set(value=0.3, min=0),
-        #     p.add('l3_gamma_factor2', value=5, min=1.01),
-        #     p.add('l3_gamma_factor3', value=5, min=1.01),
-        #     p['l3_gamma2'].set(expr='l3_gamma1 * l3_gamma_factor2'),
-        #     p['l3_gamma3'].set(expr='l3_gamma2 * l3_gamma_factor3'))),
-
-        #('3c_gauss', gaussian_model_3_comp, 'g3_',
-        # dict(g3_sigma1=0.01, g3_m1=0.3, g3_c3=0),
-        # lambda p: (
-        #     p['g3_sigma1'].set(min=1e-6), p['g3_m1'].set(min=0),
-        #     p['g3_m2'].set(value=0.3, min=0), p['g3_m3'].set(value=0.3, min=0),
-        #     p.add('g3_sigma_factor2', value=5, min=1.01),
-        #     p.add('g3_sigma_factor3', value=5, min=1.01),
-        #     p['g3_sigma2'].set(expr='g3_sigma1 * g3_sigma_factor2'),
-        #     p['g3_sigma3'].set(expr='g3_sigma2 * g3_sigma_factor3'))),
-    ]
-
 
 # ----------------------------------------------
 # --- Core Calculation and Fitting Functions ---
@@ -523,6 +400,7 @@ def calculate_acfs_for_subbands(masked_spectrum, config, burst_lims, noise_desc=
     results = {
         "subband_acfs": [],
         "subband_lags_mhz": [],
+        "subband_acfs_err": [],
         "subband_center_freqs_mhz": [],
         "subband_channel_widths_mhz": [],
         "subband_num_channels": [],
@@ -601,6 +479,7 @@ def calculate_acfs_for_subbands(masked_spectrum, config, burst_lims, noise_desc=
         results["noise_template"].append(mean_noise_acf)
         results["subband_acfs"].append(acf_obj.acf)
         results["subband_lags_mhz"].append(acf_obj.lags)
+        results["subband_acfs_err"].append(acf_obj.err)
         results["subband_center_freqs_mhz"].append(float(np.mean(sub_freqs)))
         results["subband_channel_widths_mhz"].append(chan_width)
         results["subband_num_channels"].append(sub_spec.count())
@@ -626,30 +505,21 @@ def _make_noise_model(template, lags):
 def _fit_acf_models(acf_object,
                     fit_lagrange_mhz: float,
                     *,
+                    sub_freq: float, # <-- Parameter added
                     sigma_self_mhz: Optional[float] = None,
                     noise_template: Optional[np.ndarray] = None,
                     config=None):
     """
     Fit every scattering candidate to one ACF.
-
-    Parameters
-    ----------
-    acf_object : ACF
-    fit_lagrange_mhz : float
-    sigma_self_mhz : float or None
-        Fixed pulse-width self-noise HWHM.  If supplied, skip baseline-only fits.
-    noise_template : 1-D ndarray or None
-        Pre-computed radiometer-noise ACF shape for this sub-band.
-        If None, the fitter omits that component.
     """
     fit_results: Dict[str, Optional["lmfit.ModelResult"]] = {}
 
-    # --- data slice & weights ---------------------------------------------
+    # --- data slice & weights ---
     m = (np.abs(acf_object.lags) <= fit_lagrange_mhz) & (acf_object.lags != 0)
     x, y = acf_object.lags[m], acf_object.acf[m]
     w = None if acf_object.err is None else 1.0 / np.maximum(acf_object.err[m], 1e-9)
 
-    # --- optional components ----------------------------------------------
+    # --- optional components ---
     has_sn   = sigma_self_mhz is not None
     has_tpl  = noise_template is not None
 
@@ -658,127 +528,64 @@ def _fit_acf_models(acf_object,
     if has_tpl:
         tpl_model, tpl_params = _make_noise_model(noise_template, acf_object.lags)
 
-    # --- iterate over baseline registry -----------------------------------
+    # --- iterate over baseline registry ---
     init_cfg = config.get('analysis', {}).get('fitting', {}).get('init_guess', {})
+    # Note: The `_baseline_registry` needs to be called with the raw `init_cfg`
     for key, mfn, prefix, seed, hook in _baseline_registry(init_cfg):
 
-        base = Model(mfn, prefix=prefix)
-        p0   = base.make_params(**seed)   # create once
+        # Check if there is a frequency-evolving guess configuration for this model key
+        if key in init_cfg and 'components' in init_cfg[key]:
+            adv_cfg = init_cfg[key]
+            ref_freq = adv_cfg['reference_frequency_mhz']
+            p0_dict = adv_cfg.get('constants', {}).copy()
+
+            for i, comp_cfg in enumerate(adv_cfg['components']):
+                comp_idx = i + 1
+                alpha = comp_cfg['gamma_scaling_index']
+                gamma_ref = comp_cfg['gamma_guess']
+                scaled_gamma = gamma_ref * (sub_freq / ref_freq) ** alpha
+                p0_dict[f'{prefix}gamma{comp_idx}'] = scaled_gamma
+                p0_dict[f'{prefix}m{comp_idx}'] = comp_cfg['m_guess']
+
+        else:
+            # Fallback to the old method (static guesses from YAML or defaults)
+            merged_seed = seed.copy()
+            if key in init_cfg:
+                merged_seed.update(init_cfg.get(key, {}))
+            p0_dict = merged_seed
+
+        # Build the baseline model and its parameters from our calculated p0_dict
+        base_model = Model(mfn, prefix=prefix)
+        base_params = base_model.make_params(**p0_dict)
         if hook:
-            hook(p0)                      # inject bounds / ties
+            hook(base_params)
 
-        # decide which composite we will fit -------------------------------
+        # Decide which composite we will fit, using the correctly generated base_params
         if has_sn and has_tpl:
-            model  = sn_model + tpl_model + base
-            params = sn_params.copy() + tpl_params.copy() + p0.copy()
+            model  = sn_model + tpl_model + base_model
+            params = sn_params.copy() + tpl_params.copy() + base_params.copy()
 
-        elif has_sn:                      # self-noise only
-            model  = sn_model + base
-            params = sn_params.copy() + p0.copy()
+        elif has_sn:
+            model  = sn_model + base_model
+            params = sn_params.copy() + base_params.copy()
 
-        elif has_tpl:                     # template only
-            model  = tpl_model + base
-            params = tpl_params.copy() + p0.copy()
+        elif has_tpl:
+            model  = tpl_model + base_model
+            params = tpl_params.copy() + base_params.copy()
 
-        else:                             # baseline only
-            model, params = base, p0.copy()
+        else:
+            model, params = base_model, base_params.copy()
 
-        # run the fit -------------------------------------------------------
+        # Run the fit
         label = f"fit_{'sn_tpl_' if has_sn and has_tpl else 'sn_' if has_sn else 'tpl_' if has_tpl else ''}{key}"
         try:
-            
-            # Print the model being tested for the current sub-band
-            print(f"\n--- Initial Guesses for: {label} ---")
-            # Print a detailed list of the parameters, their values, and bounds
-            print(params)
-            
             fit_results[label] = model.fit(y, params, x=x, weights=w,
                                            method='nelder', max_nfev=4000)
         except Exception as e:
             log.debug(f"{label} failed ({e})")
             fit_results[label] = None
 
-        # keep legacy key when baseline-only was skipped
-        if has_sn and not has_tpl:
-            fit_results.setdefault(f"fit_{key}", None)
-
     return fit_results
-
-def _fit_acf_models_v0(acf_object, fit_lagrange_mhz: float, sigma_self_mhz: Optional[float] = None):
-    """Fit every scattering candidate to one ACF.
-
-    If *sigma_self_mhz* is given we **always** include the fixed‑width
-    self‑noise Gaussian and *skip* the baseline‐only fit to save time.
-    The function still returns a dictionary with all keys; baseline keys that
-    were not evaluated are set to ``None`` so downstream code remains stable.
-    """
-
-    fit_results: Dict[str, Optional["lmfit.ModelResult"]] = {}
-
-    # 0.  Prepare data & weights ------------------------------------------------
-    mask = (np.abs(acf_object.lags) <= fit_lagrange_mhz) & (acf_object.lags != 0)
-    x = acf_object.lags[mask]
-    y = acf_object.acf[mask]
-    w = None if acf_object.err is None else 1.0 / np.maximum(acf_object.err[mask], 1e-9)
-
-    # 1.  Self‑noise component (optional) --------------------------------------
-    has_sn = sigma_self_mhz is not None
-    if has_sn:
-        sn_model, sn_params = _self_noise_model(sigma_self_mhz)
-
-    # 2.  Iterate through baseline candidate registry --------------------------
-    for key, model_fn, prefix, init_vals, hook in _baseline_registry():
-        # Build baseline model (needed by combo regardless)
-        base_model  = Model(model_fn, prefix=prefix)
-        base_params = base_model.make_params(**init_vals)
-        if hook is not None:
-            hook(base_params)
-
-        # --- (a) baseline‑only fit -------------------------------------------
-        if not has_sn:
-            try:
-                fit_results[f"fit_{key}"] = base_model.fit(y, base_params, x=x, weights=w)
-            except Exception as e:
-                log.debug(f"Baseline model '{key}' failed: {e}")
-                fit_results[f"fit_{key}"] = None
-        else:
-            # keep dict key for consistency
-            fit_results[f"fit_{key}"] = None
-
-        # --- (b) self‑noise + baseline ---------------------------------------
-        if has_sn:
-            try:
-                combo_model  = sn_model + base_model
-                combo_params = sn_params.copy() + base_model.make_params(**init_vals)
-                if hook is not None:
-                    hook(combo_params)
-                fit_results[f"fit_sn_{key}"] = combo_model.fit(y, combo_params, x=x, weights=w)
-            except Exception as e:
-                log.debug(f"Self‑noise+{key} fit failed: {e}")
-                fit_results[f"fit_sn_{key}"] = None
-
-    return fit_results
-
-
-def _select_overall_best_model_new(all_subband_fits):
-    totals = defaultdict(float)
-    counts = defaultdict(int)
-
-    for band_fits in all_subband_fits:
-        for name, fit in band_fits.items():
-            if fit and fit.success:
-                totals[name] += fit.bic
-                counts[name] += 1
-
-    # Require completeness: same number of successes as sub-bands
-    n_bands = len(all_subband_fits)
-    complete = {k: v for k, v in totals.items() if counts[k] == n_bands}
-
-    if not complete:
-        raise RuntimeError("No model fit succeeded on all sub-bands.")
-
-    best = min(complete, key=complete.get)          # minimum total BIC
-    return best
 
 def _select_overall_best_model(all_subband_fits):
     """
@@ -819,8 +626,8 @@ def _select_overall_best_model(all_subband_fits):
             log.info(f"Model '{model_name}': No successful fits.")
     
     if best_model is None:
-        log.warning("No successful fits for any model. Defaulting to 'fit_1c_lor'.")
-        return 'fit_1c_lor'
+        log.warning("No successful fits for any model. Defaulting to 'lorentzian_component'.")
+        return 'lorentzian_component'
 
     log.info(f"==> Best overall model selected: {best_model}")
     return best_model
@@ -841,12 +648,14 @@ def analyze_scintillation_from_acfs(acf_results, config):
     for i in tqdm(range(len(acf_results['subband_acfs'])), desc="Fitting Sub-band ACFs"):
         acf_data = acf_results['subband_acfs'][i]
         lags = acf_results['subband_lags_mhz'][i]
+        sub_freq = acf_results['subband_center_freqs_mhz'][i] 
         sub_bandwidth = (acf_results['subband_num_channels'][i] * acf_results['subband_channel_widths_mhz'][i])
         current_fit_lagrange = min(fit_lagrange_mhz, sub_bandwidth / 2.0)
         tpl = noise_templates[i] if noise_templates else None
         fit_result = _fit_acf_models(
                 ACF(acf_data, lags),
                 current_fit_lagrange,
+                sub_freq=sub_freq,
                 sigma_self_mhz=sigma_self_mhz,
                 noise_template=tpl,
                 config=config)  
@@ -906,60 +715,13 @@ def analyze_scintillation_from_acfs(acf_results, config):
             return param.stderr if param is not None and param.stderr is not None else np.nan
 
         component_params = []
-        if '1c' in best_model_name:
-            is_gauss = 'gauss' in best_model_name
-            prefix = 'g1_' if is_gauss else 'l1_'
-            p_root = 'sigma' if is_gauss else 'gamma'
-            bw, bw_err = get_bw_params(f'{prefix}{p_root}1', is_gauss)
-            mod = p[f'{prefix}m1'].value
-            mod_err = get_mod_err(f'{prefix}m1')
-            component_params.append((bw, mod, bw_err, mod_err))
-
-        elif '2c' in best_model_name and 'mixed' not in best_model_name and 'unresolved' not in best_model_name:
-            is_gauss = 'gauss' in best_model_name
-            prefix = 'g2_' if is_gauss else 'l2_'
-            p_root = 'sigma' if is_gauss else 'gamma'
-            for j in range(1, 3):
-                bw, bw_err = get_bw_params(f'{prefix}{p_root}{j}', is_gauss)
-                mod = p[f'{prefix}m{j}'].value
-                mod_err = get_mod_err(f'{prefix}m{j}')
-                component_params.append((bw, mod, bw_err, mod_err))
-        
-        # Added case for the two_screen_unresolved_model
-        elif 'unresolved' in best_model_name:
-            prefix = 'tsu_'
-            p_root = 'gamma'
-            for j in range(1, 3):
-                bw, bw_err = get_bw_params(f'{prefix}{p_root}{j}', is_gauss=False)
-                mod = p[f'{prefix}m{j}'].value
-                mod_err = get_mod_err(f'{prefix}m{j}')
-                component_params.append((bw, mod, bw_err, mod_err))
-
-        elif '3c' in best_model_name:
-            is_gauss = 'gauss' in best_model_name
-            prefix = 'g3_' if is_gauss else 'l3_'
-            p_root = 'sigma' if is_gauss else 'gamma'
-            for j in range(1, 4):
-                bw, bw_err = get_bw_params(f'{prefix}{p_root}{j}', is_gauss)
-                mod = p[f'{prefix}m{j}'].value
-                mod_err = get_mod_err(f'{prefix}m{j}')
-                component_params.append((bw, mod, bw_err, mod_err))
-
-        elif best_model_name == 'fit_2c_mixed':
-            bw_g, bw_err_g = get_bw_params('gl_sigma1', is_gauss=True)
-            bw_l, bw_err_l = get_bw_params('gl_gamma2', is_gauss=False)
-            mod_g, mod_l = p['gl_m1'].value, p['gl_m2'].value
-            mod_err_g, mod_err_l = get_mod_err('gl_m1'), get_mod_err('gl_m2')
-            component_params.extend([(bw_g, mod_g, bw_err_g, mod_err_g), (bw_l, mod_l, bw_err_l, mod_err_l)])
-        
-        # Sort components by bandwidth (narrowest first) before assigning
-        for comp_idx, (bw, mod, bw_err, mod_err) in enumerate(sorted(component_params)):
-            num_scintles = max(1, sub_bw / bw) if bw > 0 else 1
-            finite_err = bw / (2 * np.sqrt(num_scintles))
-            param_dict = {'bw': bw, 'mod': mod, 'bw_err': bw_err, 'mod_err': mod_err, 'finite_err': finite_err}
-            if comp_idx < len(params_per_comp):
-                if comp_idx == 0: param_dict['gof'] = gof_metrics
-                params_per_comp[comp_idx].append(param_dict)
+        is_gauss = 'gauss' in best_model_name
+        prefix = 'g_' if is_gauss else 'l_'
+        p_root = 'sigma' if is_gauss else 'gamma'
+        bw, bw_err = get_bw_params(f'{prefix}{p_root}', is_gauss)
+        mod = p[f'{prefix}m'].value
+        mod_err = get_mod_err(f'{prefix}m')
+        component_params.append((bw, mod, bw_err, mod_err))
 
     final_results = {'best_model': best_model_name, 'components': {}}
     all_powerlaw_fits = {}
@@ -979,8 +741,6 @@ def analyze_scintillation_from_acfs(acf_results, config):
         bw_errs = np.array([p.get('bw_err') for p in measurements])
         finite_errs = np.array([p.get('finite_err') for p in measurements])
         total_errs = np.sqrt(np.nan_to_num(bw_errs)**2 + np.nan_to_num(finite_errs)**2)
-
-        ### FIX: Perform the fit in log-space for numerical stability ###
 
         # Log-transform the data and errors
         log_freqs = np.log10(freqs)
@@ -1018,20 +778,6 @@ def analyze_scintillation_from_acfs(acf_results, config):
         # Use the fitted alpha and its error to suggest a 
         # physical scenario based on the findings from Pradeep et al. (2025)
         # and Nimmo et al. (2025).
-
-        interpretation = "Undetermined"
-        # Check for consistency within 3-sigma of the theoretical values
-        if alpha_err is not None and not np.isnan(alpha_err):
-            if abs(alpha_fit - 4.0) < 3 * alpha_err:
-                # α ≈ 4 is expected for an unresolved point source 
-                interpretation = "Consistent with unresolved point source (α ≈ 4)"
-            elif abs(alpha_fit - 3.0) < 3 * alpha_err:
-                # α ≈ 3 is expected for a screen resolving an incoherent emission region 
-                interpretation = "Consistent with resolved emission region (α ≈ 3)"
-            elif abs(alpha_fit - 1.0) < 3 * alpha_err:
-                # α ≈ 1 is the flattened slope for two fully resolving screens 
-                interpretation = "Consistent with resolved screens (α ≈ 1)"
-        # ================================================================= #
 
         subband_measurements = []
         for j, p_dict in enumerate(measurements):
@@ -1086,9 +832,12 @@ def analyze_intra_pulse_scintillation(masked_spectrum, burst_lims, config, noise
     noise_template = None          # always None for temporal analysis
 
     num_time_bins  = acf_config.get('intra_pulse_time_bins', 10)
-    model_to_fit   = fit_config.get('intra_pulse_fit_model', 'fit_1c_lor')
+    model_to_fit   = fit_config.get('intra_pulse_fit_model', 'lorentzian_component')
     max_lag_mhz    = acf_config.get('max_lag_mhz', 45.0)
     
+    # NEW: Calculate the center frequency of the entire band once.
+    band_center_freq = np.mean(masked_spectrum.frequencies)
+
     if '1c' not in model_to_fit:
         log.error(f"Model '{model_to_fit}' is not a 1-component model. Intra-pulse analysis requires a simple model to track evolution. Aborting.")
         return []
@@ -1137,6 +886,7 @@ def analyze_intra_pulse_scintillation(masked_spectrum, burst_lims, config, noise
         fit_results = _fit_acf_models(
             acf_obj,
             fit_lagrange_mhz = fit_config.get('fit_lagrange_mhz', 45.0),
+            sub_freq         = band_center_freq, # MODIFIED: Use the pre-calculated band center frequency
             sigma_self_mhz   = sigma_self_mhz,
             noise_template   = noise_template,    # always None here
             config=config
@@ -1153,7 +903,7 @@ def analyze_intra_pulse_scintillation(masked_spectrum, burst_lims, config, noise
         # Extract parameters from the 1-component fit
         p = fit_obj.params
         is_gauss = 'gauss' in model_to_fit
-        prefix = 'g1_' if is_gauss else 'l1_'
+        prefix = 'g_' if is_gauss else 'l_'
         p_root = 'sigma' if is_gauss else 'gamma'
         
         bw_val = p[f'{prefix}{p_root}1'].value

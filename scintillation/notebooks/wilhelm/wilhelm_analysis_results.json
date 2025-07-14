@@ -1,0 +1,115 @@
+{
+    "best_model": "fit_2c_lor",
+    "components": {
+        "component_1": {
+            "power_law_fit_report": [
+                4.216903017211721e-38,
+                11.69068629328239
+            ],
+            "scaling_index": 11.69068629328239,
+            "scaling_index_err": 8.564711817130318,
+            "bw_at_ref_mhz": 0.25432527137994376,
+            "bw_at_ref_mhz_err": 3.4244780295670387,
+            "subband_measurements": [
+                {
+                    "freq_mhz": 1334.676054045255,
+                    "bw": 0.10429847717761487,
+                    "mod": 0.21059742488403366,
+                    "bw_err": NaN,
+                    "mod_err": NaN,
+                    "finite_err": 0.002467739486983679,
+                    "gof": {
+                        "bic": -9178.548377054289,
+                        "redchi": 8.466863455003597e-05
+                    }
+                },
+                {
+                    "freq_mhz": 1381.5586846817514,
+                    "bw": 0.9966389160068666,
+                    "mod": 0.11453425650352345,
+                    "bw_err": NaN,
+                    "mod_err": NaN,
+                    "finite_err": 0.07289355327699763,
+                    "gof": {
+                        "bic": -8750.232520818474,
+                        "redchi": 0.00013096263853597796
+                    }
+                },
+                {
+                    "freq_mhz": 1428.4413153182484,
+                    "bw": 0.13820664408785344,
+                    "mod": 0.16581246185684995,
+                    "bw_err": NaN,
+                    "mod_err": NaN,
+                    "finite_err": 0.003751953096272164,
+                    "gof": {
+                        "bic": -8831.61962521686,
+                        "redchi": 0.00012054620886234355
+                    }
+                },
+                {
+                    "freq_mhz": 1475.323945954745,
+                    "bw": 0.3220774910783609,
+                    "mod": 0.18561312722875023,
+                    "bw_err": NaN,
+                    "mod_err": NaN,
+                    "finite_err": 0.013351989981024713,
+                    "gof": {
+                        "bic": -8508.467562511934,
+                        "redchi": 0.00016752097641095065
+                    }
+                }
+            ],
+            "scaling_interpretation": "Consistent with unresolved point source (\u03b1 \u2248 4)"
+        },
+        "component_2": {
+            "power_law_fit_report": [
+                2.6938458491808165e-87,
+                27.755717651175654
+            ],
+            "scaling_index": 27.755717651175654,
+            "scaling_index_err": 25.70131673338192,
+            "bw_at_ref_mhz": 5.667795774038331,
+            "bw_at_ref_mhz_err": 182.55950121181564,
+            "subband_measurements": [
+                {
+                    "freq_mhz": 1334.676054045255,
+                    "bw": 3.321122665936689,
+                    "mod": 0.1395648053101619,
+                    "bw_err": NaN,
+                    "mod_err": NaN,
+                    "finite_err": 0.4434143399794318,
+                    "gof": {}
+                },
+                {
+                    "freq_mhz": 1381.5586846817514,
+                    "bw": 8.812316582294407,
+                    "mod": 0.06159485502576234,
+                    "bw_err": NaN,
+                    "mod_err": NaN,
+                    "finite_err": 1.9165382679114296,
+                    "gof": {}
+                },
+                {
+                    "freq_mhz": 1428.4413153182484,
+                    "bw": 3.3822819462857945,
+                    "mod": 0.17650519089856886,
+                    "bw_err": NaN,
+                    "mod_err": NaN,
+                    "finite_err": 0.4542330489638238,
+                    "gof": {}
+                },
+                {
+                    "freq_mhz": 1475.323945954745,
+                    "bw": 14.33421700669973,
+                    "mod": 0.26697640573523707,
+                    "bw_err": NaN,
+                    "mod_err": NaN,
+                    "finite_err": 3.9642989601833545,
+                    "gof": {}
+                }
+            ],
+            "scaling_interpretation": "Consistent with unresolved point source (\u03b1 \u2248 4)"
+        }
+    }
+}

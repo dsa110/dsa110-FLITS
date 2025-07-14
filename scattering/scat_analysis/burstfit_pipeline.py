@@ -243,7 +243,7 @@ class BurstDataset:
         outer_trim: float = 0.45,
         smooth_ms: float = 0.1,
         center_burst: bool = True,
-        flip_freq: bool = False,
+        flip_freq: bool = True,
         lazy: bool = False,
     ):
         self.inpath = Path(inpath)
@@ -456,9 +456,26 @@ class BurstPipeline:
 
     def _get_initial_guess(self, model: "FRBModel") -> "FRBParams":
         log.info("Finding initial guess for MCMC...")
-        prof = np.nansum(model.data, axis=0)
-        if np.all(prof == 0): return FRBParams(c0=0, t0=model.time.mean(), gamma=0, zeta=0, tau_1ghz=0)
-        rough_guess = FRBParams(c0=np.sum(prof), t0=model.time[np.argmax(prof)], gamma=-1.6, zeta=0.1, tau_1ghz=0.1)
+        f_ds = 1 #getattr(self, "f_factor", self.f_factor)
+        t_ds = 1 #getattr(self, "init_t_factor", self.t_factor)
+
+        # 2) build down-sampled arrays
+        data_ds = model.data[::f_ds, ::t_ds]
+        time_ds = model.time[::t_ds]
+        freq_ds = model.freq[::f_ds]
+
+        # 3) wrap into a temporary FRBModel (same API as your real one)
+        model_ds = FRBModel(
+            data=data_ds,
+            time=time_ds,
+            freq=freq_ds,
+            dm_init=self.dm_init,
+            df_MHz=model.df_MHz
+        )
+
+        prof = np.nansum(model_ds.data, axis=0)
+        if np.all(prof == 0): return FRBParams(c0=0, t0=model_ds.time.mean(), gamma=0, zeta=0, tau_1ghz=0)
+        rough_guess = FRBParams(c0=np.sum(prof), t0=model_ds.time[np.argmax(prof)], gamma=-1.6, zeta=0.1, tau_1ghz=0.1)
         priors, use_logw = build_priors(rough_guess,
                                     scale=1.5,
                                     abs_max={"tau_1ghz": 5e4, "zeta": 5e4},
@@ -466,7 +483,7 @@ class BurstPipeline:
         model_key = "M3"
         x0 = rough_guess.to_sequence(model_key); bounds = [priors[n] for n in FRBFitter._ORDER[model_key]]
         def nll(theta):
-            p = FRBParams.from_sequence(theta, model_key); ll = model.log_likelihood(p, model_key)
+            p = FRBParams.from_sequence(theta, model_key); ll = model_ds.log_likelihood(p, model_key)
             return -ll if np.isfinite(ll) else np.inf
         res = minimize(nll, x0, method='L-BFGS-B', bounds=bounds, options={'maxiter': 200, 'ftol': 1e-7})
         if not res.success: warnings.warn("Initial guess optimization failed. Using rough guess."); return rough_guess

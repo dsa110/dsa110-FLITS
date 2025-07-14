@@ -1,0 +1,26 @@
+[
+    {
+        "chime_id": "210456500",
+        "name": "Burst-A",
+        "measured_offset_ms": -123.0,
+        "geometric_delay_ms": -125.5,
+        "combined_dm_uncertainty_ms": 1.5,
+        "fwhm_ms": 2.0
+    },
+    {
+        "chime_id": "210456501",
+        "name": "Burst-B",
+        "measured_offset_ms": -234.0,
+        "geometric_delay_ms": -236.1,
+        "combined_dm_uncertainty_ms": 1.8,
+        "fwhm_ms": 3.5
+    },
+    {
+        "chime_id": "210456502",
+        "name": "Burst-C",
+        "measured_offset_ms": -345.0,
+        "geometric_delay_ms": -343.2,
+        "combined_dm_uncertainty_ms": 2.1,
+        "fwhm_ms": 1.8
+    }
+]

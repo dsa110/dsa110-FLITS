@@ -38,10 +38,11 @@ __all__ = [
     "goodness_of_fit",
 ]
 
+from flits.common.constants import DM_DELAY_MS
+
 # ----------------------------------------------------------------------
 # Module-level constants
 # ----------------------------------------------------------------------
-DM_DELAY_MS = 4.148808  # cold-plasma dispersion, ms GHz² (pc cm⁻³)⁻¹
 DM_SMEAR_MS = 8.3e-6     # intra-channel smearing, ms GHz⁻³ MHz⁻¹ -> this is a more common formulation
                          # The previous value was likely a typo or for a specific setup.
                          # This standard form is: 8.3 * 1e6 * DM * dnu_MHz / nu_GHz**3 / 1e3

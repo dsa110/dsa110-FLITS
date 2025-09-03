@@ -20,9 +20,9 @@ from .burstfit import (
     FRBFitter,
     FRBParams,
     build_priors,
-    DM_DELAY_MS,
     DM_SMEAR_MS,
 )
+from flits.common.constants import DM_DELAY_MS
 
 __all__ = [
     "subband_consistency",

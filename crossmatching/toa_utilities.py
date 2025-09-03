@@ -31,6 +31,13 @@ from astropy.coordinates import SkyOffsetFrame
 import astropy.constants as const
 from astropy.table import Table
 
+from flits.common.utils import (
+    downsample_time,
+    calculate_dm_timing_error,
+    clean_and_serialize_dict,
+    append_to_json,
+)
+
 # Assume these are defined elsewhere in your script
 from baseband_analysis.core.bbdata import BBData
 from baseband_analysis.core.dedispersion import delay_across_the_band
@@ -42,57 +49,6 @@ from baseband_analysis.core.dedispersion import incoherent_dedisp, coherent_dedi
 
 from numpy.typing import NDArray
 import numpy as np
-
-def downsample_time(data, t_factor):
-    """
-    Block-average by integer factor along the time axis.
-    
-    Works on either
-      • 1D array of shape (ntime,)
-      • 2D array of shape (nfreq, ntime)
-    
-    Parameters
-    ----------
-    data
-        Input time series or spectrogram.
-    t_factor
-        Integer factor ≥1 by which to downsample time.
-    
-    Returns
-    -------
-    downsampled
-        If input is 1D of length nt, returns 1D of length floor(nt/t_factor).
-        If input is 2D (nf, nt), returns 2D of shape (nf, floor(nt/t_factor)).
-    
-    Raises
-    ------
-    ValueError
-        If `t_factor < 1` or input is not 1D/2D.
-    """
-    if t_factor < 1:
-        raise ValueError(f"t_factor must be ≥1, got {t_factor}")
-    
-    arr = np.asarray(data)
-    
-    # Handle 1D time series
-    if arr.ndim == 1:
-        nt = arr.shape[0]
-        nt_trim = nt - (nt % t_factor)
-        # reshape into (ntime_out, t_factor) then average
-        return arr[:nt_trim].reshape(nt_trim // t_factor, t_factor).mean(axis=1)
-    
-    # Handle 2D spectrogram-like input
-    elif arr.ndim == 2:
-        nfreq, nt = arr.shape
-        nt_trim = nt - (nt % t_factor)
-        # reshape into (nfreq, ntime_out, t_factor) then average over last axis
-        blocks = arr[:, :nt_trim].reshape(nfreq, nt_trim // t_factor, t_factor)
-        return blocks.mean(axis=2)
-    
-    else:
-        raise ValueError(
-            f"Unsupported array shape {arr.shape}; expected 1D or 2D."
-        )
 
 
 def measure_fwhm(timeseries, time_resolution, t_factor):
@@ -177,83 +133,4 @@ def measure_fwhm(timeseries, time_resolution, t_factor):
         print(f"An unexpected error occurred during FWHM measurement: {e}")
         return np.nan
 
-def calculate_dm_timing_error(dDM, f_obs, f_ref, K_DM = 4.148808e3):
-    """
-    Calculates the timing error due to DM uncertainty.
-
-    Parameters
-    ----------
-    dDM : float
-        The uncertainty in the Dispersion Measure (pc/cm^3).
-    f_obs : astropy.units.Quantity
-        The central observing frequency in MHz.
-    f_ref : astropy.units.Quantity
-        The reference frequency in MHz.
-
-    Returns
-    -------
-    astropy.units.Quantity
-        The timing error in milliseconds.
-    """
-    # Calculate the time shift in seconds
-    time_shift = K_DM * dDM * (1 / f_obs.value**2 - 1 / f_ref.value**2) * u.s
-    
-    # Return the absolute value in milliseconds
-    return np.abs(time_shift.to(u.ms))
-
-def clean_and_serialize_dict(burst_dict):
-    """
-    Converts a dictionary containing astropy objects into a
-    JSON-serializable dictionary.
-    """
-    clean_dict = {}
-    for key, value in burst_dict.items():
-        if isinstance(value, u.Quantity):
-            clean_dict[key] = value.value
-        elif isinstance(value, Time):
-            clean_dict[key] = value.iso
-        else:
-            clean_dict[key] = value
-    return clean_dict
-
-def append_to_json(new_data_dict, filename):
-    """
-    Reads a JSON file containing a list of dictionaries, appends a new
-    dictionary to the list, and writes it back to the file.
-
-    Parameters
-    ----------
-    new_data_dict : dict
-        The new dictionary to append. It can contain astropy objects.
-    filename : str
-        The path to the JSON file.
-    """
-    # First, clean the new data to make it serializable
-    clean_new_data = clean_and_serialize_dict(new_data_dict)
-    
-    # Check if the file exists and read its content
-    if os.path.exists(filename) and os.path.getsize(filename) > 0:
-        try:
-            with open(filename, 'r') as f:
-                data_list = json.load(f)
-            # Ensure the loaded data is a list
-            if not isinstance(data_list, list):
-                print(f"Error: JSON file '{filename}' does not contain a list.")
-                # Start with a new list containing the new data
-                data_list = [clean_new_data]
-            else:
-                # Append the new dictionary
-                data_list.append(clean_new_data)
-        except json.JSONDecodeError:
-            print(f"Warning: Could not decode JSON from '{filename}'. Starting a new file.")
-            data_list = [clean_new_data]
-    else:
-        # If the file doesn't exist or is empty, start a new list
-        data_list = [clean_new_data]
-
-    # Write the updated list back to the file
-    with open(filename, 'w') as f:
-        json.dump(data_list, f, indent=4)
-        
-    print(f"Successfully appended data to {filename}")
 

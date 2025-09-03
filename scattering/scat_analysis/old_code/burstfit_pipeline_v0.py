@@ -314,8 +314,10 @@ class BurstDataset:
         lazy: bool = False,
     ) -> None:
         self.path = Path(path)
-        self.telname, self.telparams = load_telescope_block(telcfg_path, telescope=telescope)
-        self.sampname, self.sampparams = load_sampler_block(sampcfg_path)
+        self.telparams = load_telescope_block(telcfg_path, telescope=telescope)
+        self.telname = self.telparams.name
+        self.sampparams = load_sampler_block(sampcfg_path)
+        self.sampname = self.sampparams.name
         assert 0.0 <= outer_trim < 0.5, "outer_trim must be < 0.5"
         self.f_factor = f_factor
         self.t_factor = t_factor
@@ -487,9 +489,9 @@ class BurstDataset:
 
     def _build_axes(self, ds):
         p = self.telparams
-        self.df_MHz = p["df_MHz_raw"] * self.f_factor
-        self.dt_ms = p["dt_ms_raw"] * self.t_factor
-        freq = np.linspace(p["f_min_GHz"], p["f_max_GHz"], ds.shape[0])
+        self.df_MHz = p.df_MHz_raw * self.f_factor
+        self.dt_ms = p.dt_ms_raw * self.t_factor
+        freq = np.linspace(p.f_min_GHz, p.f_max_GHz, ds.shape[0])
         time = np.arange(ds.shape[1]) * self.dt_ms
         return freq, time
 

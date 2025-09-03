@@ -43,7 +43,7 @@ from .burstfit_robust import (
     plot_subband_profiles,
     dm_optimization_check,
 )
-from .config_utils import load_telescope_block, load_sampler_block
+from .config_utils import SamplerConfig, TelescopeConfig
 from .pool_utils import build_pool
 
 # --- Setup Logging ---
@@ -235,9 +235,8 @@ class BurstDataset:
         outpath: str | Path,
         *,
         name: str = "FRB",
-        telescope: str = "CHIME",
-        telcfg_path: str = "telescopes.yaml",
-        sampcfg_path: str = "sampler.yaml",
+        telescope: TelescopeConfig | None = None,
+        sampler: SamplerConfig | None = None,
         f_factor: int = 1,
         t_factor: int = 1,
         outer_trim: float = 0.45,
@@ -249,13 +248,16 @@ class BurstDataset:
         self.inpath = Path(inpath)
         self.outpath = Path(outpath)
         self.name = name
-        self.telname, self.telparams = load_telescope_block(telcfg_path, telescope=telescope)
-        self.sampname, self.sampparams = load_sampler_block(sampcfg_path)
+        if telescope is None:
+            raise ValueError("telescope configuration must be provided")
+        self.telescope = telescope
+        self.sampler = sampler
         self.f_factor, self.t_factor = f_factor, t_factor
         self.outer_trim, self.smooth_ms = outer_trim, smooth_ms
         self.center_burst, self.flip_freq = center_burst, flip_freq
         self.data = self.freq = self.time = self.df_MHz = self.dt_ms = self.model = None
-        if not lazy: self.load()
+        if not lazy:
+            self.load()
 
     def load(self):
         if self.data is not None: return
@@ -286,16 +288,16 @@ class BurstDataset:
         t_factor = t_factor if t_factor is not None else self.t_factor
         
         # Get raw shape from config, not from current array shape
-        p = self.telparams
-        n_ch_raw = int(p.get("n_ch_raw", shape[0] * f_factor))
-        
-        df_MHz = p["df_MHz_raw"] * f_factor
-        dt_ms = p["dt_ms_raw"] * t_factor
-        
+        p = self.telescope
+        n_ch_raw = p.n_ch_raw if p.n_ch_raw is not None else shape[0] * f_factor
+
+        df_MHz = p.df_MHz_raw * f_factor
+        dt_ms = p.dt_ms_raw * t_factor
+
         final_n_ch = shape[0]
         final_n_t = shape[1]
 
-        freq = np.linspace(p["f_min_GHz"], p["f_max_GHz"], final_n_ch)
+        freq = np.linspace(p.f_min_GHz, p.f_max_GHz, final_n_ch)
         time = np.arange(final_n_t) * dt_ms
         return freq, time, df_MHz, dt_ms
 

@@ -260,8 +260,10 @@ class BurstDataset:
         lazy: bool = False,
     ):
         self.path = Path(path)
-        self.telname, self.telparams = load_telescope_block(telcfg_path, telescope=telescope)
-        self.sampname, self.sampparams = load_sampler_block(sampcfg_path)
+        self.telparams = load_telescope_block(telcfg_path, telescope=telescope)
+        self.telname = self.telparams.name
+        self.sampparams = load_sampler_block(sampcfg_path)
+        self.sampname = self.sampparams.name
         self.f_factor, self.t_factor = f_factor, t_factor
         self.outer_trim, self.smooth_ms = outer_trim, smooth_ms
         self.center_burst, self.flip_freq = center_burst, flip_freq
@@ -299,11 +301,11 @@ class BurstDataset:
     def _build_axes(self, shape):
         n_ch_raw, n_t_raw = shape
         p = self.telparams
-        df_MHz = p["df_MHz_raw"] * self.f_factor
-        dt_ms = p["dt_ms_raw"] * self.t_factor
+        df_MHz = p.df_MHz_raw * self.f_factor
+        dt_ms = p.dt_ms_raw * self.t_factor
         final_n_ch = n_ch_raw // self.f_factor
         final_n_t = n_t_raw // self.t_factor
-        freq = np.linspace(p["f_min_GHz"], p["f_max_GHz"], final_n_ch)
+        freq = np.linspace(p.f_min_GHz, p.f_max_GHz, final_n_ch)
         time = np.arange(final_n_t) * dt_ms
         return freq, time, df_MHz, dt_ms
 

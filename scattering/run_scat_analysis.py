@@ -16,9 +16,16 @@ Overriding a setting from the command line:
 """
 import sys
 import argparse
-import yaml
 from pathlib import Path
 import matplotlib.pyplot as plt
+
+from scat_analysis.config_utils import (
+    Config,
+    PipelineOptions,
+    load_config,
+    load_sampler_block,
+    load_telescope_block,
+)
 
 # --- Ensure the project's root directory is in the Python path ---
 # This allows the script to be run from anywhere and still find the scat_analysis module.
@@ -63,43 +70,48 @@ def main():
     args = parser.parse_args()
 
     print(f"--- Loading configuration from: {args.config_path} ---")
-    with open(args.config_path, 'r') as f:
-        config = yaml.safe_load(f)
+    config = load_config(args.config_path)
 
-    # --- FIX: Smartly determine paths for general configs ---
-    # The base directory is the directory of the run-specific config file.
-    config_base_dir = args.config_path.parent
+    # Optional overrides from CLI
+    if args.path:
+        config.path = Path(args.path)
+    if args.dm_init is not None:
+        config.dm_init = args.dm_init
+    if args.steps is not None:
+        config.pipeline.steps = args.steps
+    if args.nproc is not None:
+        config.pipeline.nproc = args.nproc
+    if args.extend_chain is not None:
+        config.pipeline.extend_chain = args.extend_chain
 
-    # If --telcfg was NOT provided, assume telescopes.yaml is in the same dir
-    # as the run config. Otherwise, use the provided path.
-    telcfg_path = args.telcfg if args.telcfg else config_base_dir / "telescopes.yaml"
-    sampcfg_path = args.sampcfg if args.sampcfg else config_base_dir / "sampler.yaml"
+    # Overrides for telescope/sampler YAML paths
+    if args.telcfg:
+        config.telescope = load_telescope_block(args.telcfg, config.telescope.name)
+    if args.sampcfg:
+        config.sampler = load_sampler_block(args.sampcfg, config.sampler.name)
 
-    # Add these paths to the config dictionary
-    config['telcfg_path'] = telcfg_path
-    config['sampcfg_path'] = sampcfg_path
-    
-    # Override other config settings with command-line arguments
-    for key, value in vars(args).items():
-        if key not in ['config_path', 'telcfg', 'sampcfg'] and value is not None:
-            config[key] = value
-            print(f"  -> Overriding '{key}' with command-line value: {value}")
-            
-    if 'path' not in config:
-        raise ValueError("Data file 'path' must be specified in the YAML config or via --path.")
+    print(f"\n--- Starting analysis for: {config.path.name} ---")
 
-    # --- Run the Pipeline ---
-    data_path = Path(config.pop('path'))
-    dm_init = config.pop('dm_init', 0.0)
-    
-    print(f"\n--- Starting analysis for: {data_path.name} ---")
-
-    pipe = BurstPipeline(path=data_path, dm_init=dm_init, **config)
+    pipe = BurstPipeline(
+        inpath=config.path,
+        outpath=config.path.parent,
+        name=config.path.stem,
+        dm_init=config.dm_init,
+        telescope=config.telescope,
+        sampler=config.sampler,
+        steps=config.pipeline.steps,
+        f_factor=config.pipeline.f_factor,
+        t_factor=config.pipeline.t_factor,
+        nproc=config.pipeline.nproc,
+        extend_chain=config.pipeline.extend_chain,
+        chunk_size=config.pipeline.chunk_size,
+        max_chunks=config.pipeline.max_chunks,
+    )
     results = pipe.run_full(
-        model_scan=config.get('model_scan', True),
-        diagnostics=config.get('diagnostics', True),
-        plot=config.get('plot', True),
-        show=False
+        model_scan=config.pipeline.model_scan,
+        diagnostics=config.pipeline.diagnostics,
+        plot=config.pipeline.plot,
+        show=False,
     )
     
     print("\n--- Initial Pipeline Run Summary ---")
@@ -109,14 +121,14 @@ def main():
     print("Best-fit parameters (from highest-likelihood sample):")
     print(results['best_params'])
 
-    if config.get('extend_chain', False):
+    if config.pipeline.extend_chain:
         sampler = results["sampler"]
         sampler.pool = None
 
         print("\n--- Starting Interactive Chain Convergence Check ---")
         chunks_added = 0
-        max_chunks = config.get('max_chunks', 5)
-        chunk_size = config.get('chunk_size', 2000)
+        max_chunks = config.pipeline.max_chunks or 5
+        chunk_size = config.pipeline.chunk_size or 2000
         
         while not quick_chain_check(sampler):
             if chunks_added >= max_chunks:
@@ -138,7 +150,7 @@ def main():
             title=f"Posterior for {results['best_key']} ({final_clean_samples.shape[0]} samples)"
         )
 
-        corner_path = data_path.with_name(f"{data_path.stem}_corner.png")
+        corner_path = config.path.with_name(f"{config.path.stem}_corner.png")
         fig_corner.savefig(corner_path, dpi=200, bbox_inches="tight")
         print(f"Saved final corner plot to: {corner_path}")
         plt.show()

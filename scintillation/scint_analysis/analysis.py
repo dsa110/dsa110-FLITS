@@ -3,6 +3,14 @@
 # ==============================================================================
 import numpy as np
 import logging
+
+try:
+    import numba as nb
+    _NUMBA = True
+    log.info("Numba detected. Using JIT-accelerated ACF computations.")
+except ModuleNotFoundError:  # pragma: no cover - optional dependency
+    _NUMBA = False
+    log.info("Numba not found. Using pure Python ACF computations.")
 from .core import ACF
 from lmfit import Model, Parameters
 from lmfit.models import ConstantModel
@@ -120,6 +128,81 @@ def _baseline_registry(cfg_init: dict | None = None):
 # --- Core Calculation and Fitting Functions ---
 # ----------------------------------------------
 
+if _NUMBA:
+    @nb.njit(cache=True)
+    def _acf_with_errs(x, lags, denom):
+        nlag = lags.size
+        acf_vals = np.empty(nlag, dtype=np.float64)
+        stat_errs = np.empty(nlag, dtype=np.float64)
+        for i in range(nlag):
+            lag = lags[i]
+            prod = x[:-lag] * x[lag:]
+            count = 0
+            sum_prod = 0.0
+            sum_sq = 0.0
+            for p in prod:
+                if not np.isnan(p):
+                    count += 1
+                    sum_prod += p
+                    sum_sq += p * p
+            if count > 1:
+                mean = sum_prod / count
+                acf_vals[i] = mean / denom
+                var = (sum_sq - count * mean * mean) / (count - 1)
+                stat_errs[i] = np.sqrt(var / count) / denom
+            else:
+                acf_vals[i] = np.nan
+                stat_errs[i] = np.nan
+        return acf_vals, stat_errs
+
+    @nb.njit(cache=True)
+    def _acf_noerrs(x, lags, denom):
+        nlag = lags.size
+        acf_vals = np.empty(nlag, dtype=np.float64)
+        for i in range(nlag):
+            lag = lags[i]
+            prod = x[:-lag] * x[lag:]
+            count = 0
+            sum_prod = 0.0
+            for p in prod:
+                if not np.isnan(p):
+                    count += 1
+                    sum_prod += p
+            if count > 1:
+                acf_vals[i] = sum_prod / (count * denom)
+            else:
+                acf_vals[i] = np.nan
+        return acf_vals
+else:
+    def _acf_with_errs(x, lags, denom):
+        acf_vals = np.zeros(len(lags))
+        stat_errs = np.zeros(len(lags))
+        for i, lag in enumerate(lags):
+            prod = x[:-lag] * x[lag:]
+            valid_products = prod[~np.isnan(prod)]
+            num_valid = len(valid_products)
+            if num_valid > 1:
+                acf_vals[i] = np.mean(valid_products) / denom
+                var_of_products = np.var(valid_products, ddof=1)
+                std_err_of_mean = np.sqrt(var_of_products / num_valid)
+                stat_errs[i] = std_err_of_mean / denom
+            else:
+                acf_vals[i] = np.nan
+                stat_errs[i] = np.nan
+        return acf_vals, stat_errs
+
+    def _acf_noerrs(x, lags, denom):
+        acf_vals = np.zeros(len(lags))
+        for i, lag in enumerate(lags):
+            v1, v2 = x[:-lag], x[lag:]
+            prod = v1 * v2
+            num_valid = np.sum(~np.isnan(prod))
+            if num_valid > 1:
+                acf_vals[i] = np.nansum(prod) / (num_valid * denom)
+            else:
+                acf_vals[i] = np.nan
+        return acf_vals
+
 def calculate_acf(spectrum_1d, channel_width_mhz, off_burst_spectrum_mean=None, max_lag_bins=None):
     """
     Calculates the ACF and its diagonal errors, including statistical and
@@ -166,26 +249,7 @@ def calculate_acf(spectrum_1d, channel_width_mhz, off_burst_spectrum_mean=None, 
     x = spectrum_1d.filled(np.nan) - mean_on
     lags = np.arange(1, max_lag_bins)
 
-    acf_vals = np.zeros(len(lags))
-    stat_errs = np.zeros(len(lags))
-    
-    for i, lag in enumerate(lags):
-        prod = x[:-lag] * x[lag:]
-        valid_products = prod[~np.isnan(prod)]
-        num_valid = len(valid_products)
-
-        if num_valid > 1:
-            # Calculate the ACF value (mean of the products)
-            acf_vals[i] = np.mean(valid_products) / denom
-            
-            # Calculate the statistical error (standard error of the mean of the products)
-            # Use ddof=1 for sample standard deviation
-            var_of_products = np.var(valid_products, ddof=1)
-            std_err_of_mean = np.sqrt(var_of_products / num_valid)
-            stat_errs[i] = std_err_of_mean / denom
-        else:
-            acf_vals[i] = np.nan
-            stat_errs[i] = np.nan
+    acf_vals, stat_errs = _acf_with_errs(x, lags, denom)
 
     # --- 2. Finite Scintle Error Calculation ---
     # Use the calculated ACF to estimate the decorrelation bandwidth (Δν_DC)
@@ -336,18 +400,7 @@ def calculate_acf_noerrs(spectrum_1d, channel_width_mhz, off_burst_spectrum_mean
     if max_lag_bins is None: max_lag_bins = n_chan
     
     lags = np.arange(1, max_lag_bins)
-    acf_vals = np.zeros(len(lags))
-
-    for i, lag in enumerate(lags):
-        # Create two shifted versions of the array
-        v1, v2 = x[:-lag], x[lag:]
-        # The product will be NaN if either element was originally masked
-        prod = v1 * v2
-        # Count only the pairs where both elements were valid
-        num_valid = np.sum(~np.isnan(prod))
-        if num_valid > 1:
-            # Sum only the valid (non-NaN) products in numerator
-            acf_vals[i] = np.nansum(prod) / (num_valid * denom)
+    acf_vals = _acf_noerrs(x, lags, denom)
             
     pos_lags_mhz = lags * channel_width_mhz
     full_acf = np.concatenate((acf_vals[::-1], acf_vals))

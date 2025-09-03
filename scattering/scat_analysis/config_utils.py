@@ -188,8 +188,13 @@ def load_config(path: str | Path) -> Config:
         plot=bool(cfg.get("plot", True)),
     )
 
-    return Config(path=Path(data_path), dm_init=dm_init,
-                  telescope=telescope, sampler=sampler, pipeline=pipe)
+    return Config(
+        path=Path(data_path),
+        dm_init=dm_init,
+        telescope=telescope,
+        sampler=sampler,
+        pipeline=pipe,
+    )
 
 
 def clear_config_cache() -> None:

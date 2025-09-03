@@ -43,13 +43,16 @@ from baseband_analysis.core.dedispersion import incoherent_dedisp, coherent_dedi
 from numpy.typing import NDArray
 import numpy as np
 
+import logging
+logger = logging.getLogger(__name__)
+
 try:
     import numba as nb
     _NUMBA = True
-    print("Numba detected. Using JIT-accelerated timing utilities.")
+    logger.info("Numba detected. Using JIT-accelerated timing utilities.")
 except ModuleNotFoundError:  # pragma: no cover - optional dependency
     _NUMBA = False
-    print("Numba not found. Falling back to pure Python utilities.")
+    logger.info("Numba not found. Falling back to pure Python utilities.")
 
 def downsample_time(data, t_factor):
     """

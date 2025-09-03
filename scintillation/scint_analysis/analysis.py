@@ -7,10 +7,10 @@ import logging
 try:
     import numba as nb
     _NUMBA = True
-    print("Numba detected. Using JIT-accelerated ACF computations.")
+    log.info("Numba detected. Using JIT-accelerated ACF computations.")
 except ModuleNotFoundError:  # pragma: no cover - optional dependency
     _NUMBA = False
-    print("Numba not found. Using pure Python ACF computations.")
+    log.info("Numba not found. Using pure Python ACF computations.")
 from .core import ACF
 from lmfit import Model, Parameters
 from lmfit.models import ConstantModel

@@ -7,7 +7,6 @@ __all__ = [
     "FRBModel",
     "FRBParams",
     "FRBFitter",
-    "_log_prob_wrapper",
     "plot_time_series",
     "plot_model",
 ]

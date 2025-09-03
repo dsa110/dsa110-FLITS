@@ -24,7 +24,8 @@ from scipy.optimize import curve_fit
 from tqdm import trange
 
 # Assumes the updated frb_scintillator.py is in the same directory or path
-from frb_scintillator import SimCfg, ScreenCfg, FRBScintillator
+from screen import ScreenCfg
+from engine import SimCfg, FRBScintillator
 
 def run_broadband_analysis(n_trials: int = 30):
     """

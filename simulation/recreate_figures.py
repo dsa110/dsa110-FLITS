@@ -23,7 +23,8 @@ import matplotlib.pyplot as plt
 import astropy.units as u
 
 # Assumes the updated frb_scintillator.py (v2.3) is in the same directory or path
-from frb_scintillator import SimCfg, ScreenCfg, FRBScintillator
+from screen import ScreenCfg
+from engine import SimCfg, FRBScintillator
 
 # ============================================================================
 # 1. CENTRALIZED CONFIGURATIONS

@@ -12,7 +12,8 @@ import matplotlib.pyplot as plt
 import astropy.units as u
 
 # Import the simulator classes from your script
-from frb_scintillator import SimCfg, ScreenCfg, FRBScintillator
+from screen import ScreenCfg
+from engine import SimCfg, FRBScintillator
 
 def calculate_theoretical_max_doppler(sim: FRBScintillator) -> float:
     """

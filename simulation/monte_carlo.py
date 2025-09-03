@@ -16,7 +16,9 @@ from scipy.signal import firwin, stft
 from scipy.optimize import least_squares
 from tqdm import tqdm, trange
 from pprint import pprint
-from frb_scintillator_v6 import _DA, SimCfg, ScreenCfg, FRBScintillator
+from geometry import _DA
+from screen import ScreenCfg
+from engine import SimCfg, FRBScintillator
 from analysis_utils import calculate_theoretical_observables, DistanceEstimator
 
 def run_single_trial(trial_index: int):

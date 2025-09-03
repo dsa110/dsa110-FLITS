@@ -31,6 +31,13 @@ from astropy.coordinates import SkyOffsetFrame
 import astropy.constants as const
 from astropy.table import Table
 
+from flits.common.utils import (
+    downsample_time,
+    calculate_dm_timing_error,
+    clean_and_serialize_dict,
+    append_to_json,
+)
+
 # Assume these are defined elsewhere in your script
 from baseband_analysis.core.bbdata import BBData
 from baseband_analysis.core.dedispersion import delay_across_the_band
@@ -104,7 +111,6 @@ def downsample_time(data, t_factor):
         raise ValueError(
             f"Unsupported array shape {arr.shape}; expected 1D or 2D."
         )
-
 
 if _NUMBA:
     @nb.njit(cache=True)
@@ -197,83 +203,4 @@ def measure_fwhm(timeseries, time_resolution, t_factor):
         print(f"An unexpected error occurred during FWHM measurement: {e}")
         return np.nan
 
-def calculate_dm_timing_error(dDM, f_obs, f_ref, K_DM = 4.148808e3):
-    """
-    Calculates the timing error due to DM uncertainty.
-
-    Parameters
-    ----------
-    dDM : float
-        The uncertainty in the Dispersion Measure (pc/cm^3).
-    f_obs : astropy.units.Quantity
-        The central observing frequency in MHz.
-    f_ref : astropy.units.Quantity
-        The reference frequency in MHz.
-
-    Returns
-    -------
-    astropy.units.Quantity
-        The timing error in milliseconds.
-    """
-    # Calculate the time shift in seconds
-    time_shift = K_DM * dDM * (1 / f_obs.value**2 - 1 / f_ref.value**2) * u.s
-    
-    # Return the absolute value in milliseconds
-    return np.abs(time_shift.to(u.ms))
-
-def clean_and_serialize_dict(burst_dict):
-    """
-    Converts a dictionary containing astropy objects into a
-    JSON-serializable dictionary.
-    """
-    clean_dict = {}
-    for key, value in burst_dict.items():
-        if isinstance(value, u.Quantity):
-            clean_dict[key] = value.value
-        elif isinstance(value, Time):
-            clean_dict[key] = value.iso
-        else:
-            clean_dict[key] = value
-    return clean_dict
-
-def append_to_json(new_data_dict, filename):
-    """
-    Reads a JSON file containing a list of dictionaries, appends a new
-    dictionary to the list, and writes it back to the file.
-
-    Parameters
-    ----------
-    new_data_dict : dict
-        The new dictionary to append. It can contain astropy objects.
-    filename : str
-        The path to the JSON file.
-    """
-    # First, clean the new data to make it serializable
-    clean_new_data = clean_and_serialize_dict(new_data_dict)
-    
-    # Check if the file exists and read its content
-    if os.path.exists(filename) and os.path.getsize(filename) > 0:
-        try:
-            with open(filename, 'r') as f:
-                data_list = json.load(f)
-            # Ensure the loaded data is a list
-            if not isinstance(data_list, list):
-                print(f"Error: JSON file '{filename}' does not contain a list.")
-                # Start with a new list containing the new data
-                data_list = [clean_new_data]
-            else:
-                # Append the new dictionary
-                data_list.append(clean_new_data)
-        except json.JSONDecodeError:
-            print(f"Warning: Could not decode JSON from '{filename}'. Starting a new file.")
-            data_list = [clean_new_data]
-    else:
-        # If the file doesn't exist or is empty, start a new list
-        data_list = [clean_new_data]
-
-    # Write the updated list back to the file
-    with open(filename, 'w') as f:
-        json.dump(data_list, f, indent=4)
-        
-    print(f"Successfully appended data to {filename}")
 

@@ -28,13 +28,13 @@ from scipy.signal import fftconvolve
 from scipy.optimize import curve_fit
 
 from .burstfit import (
-    FRBModel, 
-    FRBFitter, 
-    FRBParams, 
+    FRBModel,
+    FRBFitter,
+    FRBParams,
     build_priors,
-    DM_DELAY_MS, 
     DM_SMEAR_MS
 )
+from flits.common.constants import DM_DELAY_MS
 
 __all__ = [
     "BROADENING_BY_MODEL",

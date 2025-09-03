@@ -22,6 +22,8 @@ import logging
 from dataclasses import dataclass, asdict
 from typing import Dict, Sequence, Tuple
 
+from flits.common.constants import DM_DELAY_MS
+
 import emcee
 import numpy as np
 from numpy.typing import NDArray
@@ -41,7 +43,6 @@ __all__ = [
 # ----------------------------------------------------------------------
 # Module-level constants
 # ----------------------------------------------------------------------
-DM_DELAY_MS = 4.148808        # cold-plasma dispersion, ms GHz² (pc cm⁻³)⁻¹
 DM_SMEAR_MS = 1.622e-3        # intra-channel smearing, ms GHz
 
 log = logging.getLogger(__name__)

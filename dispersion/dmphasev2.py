@@ -2,12 +2,13 @@ import numpy as np
 from numpy.fft import fft, fftfreq
 from scipy.optimize import curve_fit
 
+from flits.common.constants import K_DM
+
 __all__ = ["DMPhaseEstimator", "quadratic"]
 
 # ------------------------------------------------------------------
 # Constants & helpers
 # ------------------------------------------------------------------
-K_DM_S = 4.148808e3  # MHz^2 pc^-1 cm^3 ms
 EPS = 1e-30
 
 
@@ -52,7 +53,7 @@ class DMPhaseEstimator:
         self.n_t, self.n_ch = self.wf.shape
         self.fft_wf = fft(self.wf, axis=0)
         self.freq_axis = fftfreq(self.n_t, self.dt)
-        self.delay_sec = 1e-3 * K_DM_S * (1 / self.freqs**2 - 1 / self.nu_ref**2)
+        self.delay_sec = 1e-3 * K_DM * (1 / self.freqs**2 - 1 / self.nu_ref**2)
 
         self.dm_curve, self.dm_err, self._bs_curves = self._make_dm_curve()
         self.dm_best, self.dm_sigma = self._fit_peak_bootstrap()

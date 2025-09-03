@@ -23,7 +23,8 @@ import sys
 # Add the parent directory to the path to find the frb_scintillator module
 # This allows the script to be run from within the validation/ directory
 sys.path.append('..')
-from frb_scintillator import SimCfg, ScreenCfg, FRBScintillator
+from screen import ScreenCfg
+from engine import SimCfg, FRBScintillator
 
 def run_validation():
     """

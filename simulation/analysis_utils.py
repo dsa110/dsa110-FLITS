@@ -14,7 +14,7 @@ from scipy.signal import firwin, stft
 from scipy.optimize import least_squares
 from tqdm import trange
 from pprint import pprint
-from frb_scintillator_v6 import SimCfg, FRBScintillator # Assumes file saving
+from engine import SimCfg, FRBScintillator
 
 def calculate_theoretical_observables(sim: FRBScintillator) -> dict:
     """Calculates theoretical nu_s and tau_s from simulation parameters."""

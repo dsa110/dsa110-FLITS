@@ -1,10 +1,4 @@
-import sys
-import pathlib
 import numpy as np
-
-# Ensure package root is on the path
-sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))
-
 from flits.params import FRBParams
 from flits.models import FRBModel, K_DM
 

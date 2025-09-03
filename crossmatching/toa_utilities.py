@@ -50,6 +50,127 @@ from baseband_analysis.core.dedispersion import incoherent_dedisp, coherent_dedi
 from numpy.typing import NDArray
 import numpy as np
 
+import logging
+logger = logging.getLogger(__name__)
+
+try:
+    import numba as nb
+    _NUMBA = True
+    logger.info("Numba detected. Using JIT-accelerated timing utilities.")
+except ModuleNotFoundError:  # pragma: no cover - optional dependency
+    _NUMBA = False
+    logger.info("Numba not found. Falling back to pure Python utilities.")
+
+def downsample_time(data, t_factor):
+    """
+    Block-average by integer factor along the time axis.
+    
+    Works on either
+      • 1D array of shape (ntime,)
+      • 2D array of shape (nfreq, ntime)
+    
+    Parameters
+    ----------
+    data
+        Input time series or spectrogram.
+    t_factor
+        Integer factor ≥1 by which to downsample time.
+    
+    Returns
+    -------
+    downsampled
+        If input is 1D of length nt, returns 1D of length floor(nt/t_factor).
+        If input is 2D (nf, nt), returns 2D of shape (nf, floor(nt/t_factor)).
+    
+    Raises
+    ------
+    ValueError
+        If `t_factor < 1` or input is not 1D/2D.
+    """
+    if t_factor < 1:
+        raise ValueError(f"t_factor must be ≥1, got {t_factor}")
+    
+    arr = np.asarray(data)
+    
+    # Handle 1D time series
+    if arr.ndim == 1:
+        nt = arr.shape[0]
+        nt_trim = nt - (nt % t_factor)
+        # reshape into (ntime_out, t_factor) then average
+        return arr[:nt_trim].reshape(nt_trim // t_factor, t_factor).mean(axis=1)
+    
+    # Handle 2D spectrogram-like input
+    elif arr.ndim == 2:
+        nfreq, nt = arr.shape
+        nt_trim = nt - (nt % t_factor)
+        # reshape into (nfreq, ntime_out, t_factor) then average over last axis
+        blocks = arr[:, :nt_trim].reshape(nfreq, nt_trim // t_factor, t_factor)
+        return blocks.mean(axis=2)
+    
+    else:
+        raise ValueError(
+            f"Unsupported array shape {arr.shape}; expected 1D or 2D."
+        )
+
+if _NUMBA:
+    @nb.njit(cache=True)
+    def _measure_fwhm_core(timeseries, time_resolution):
+        peak_val = np.max(timeseries)
+        half_max = peak_val / 2.5
+        n = timeseries.size
+        first_idx = -1
+        last_idx = -1
+        for i in range(n):
+            if timeseries[i] > half_max:
+                first_idx = i
+                break
+        for i in range(n - 1, -1, -1):
+            if timeseries[i] > half_max:
+                last_idx = i
+                break
+        if first_idx == -1 or last_idx == -1:
+            return np.nan
+        if first_idx == 0 or last_idx == n - 1:
+            width_in_bins = last_idx - first_idx + 1
+            return width_in_bins * time_resolution
+        idx_after_rise = first_idx
+        idx_before_rise = first_idx - 1
+        val_before_rise = timeseries[idx_before_rise]
+        val_after_rise = timeseries[idx_after_rise]
+        t_rise = idx_before_rise + (half_max - val_before_rise) / (val_after_rise - val_before_rise)
+        idx_before_fall = last_idx
+        idx_after_fall = last_idx + 1
+        if idx_after_fall >= n:
+            return np.nan
+        val_before_fall = timeseries[idx_before_fall]
+        val_after_fall = timeseries[idx_after_fall]
+        t_fall = idx_before_fall + (half_max - val_before_fall) / (val_after_fall - val_before_fall)
+        width_in_bins = t_fall - t_rise
+        return width_in_bins * time_resolution
+else:
+    def _measure_fwhm_core(timeseries, time_resolution):
+        peak_val = np.max(timeseries)
+        peak_idx = np.argmax(timeseries)
+        half_max = peak_val / 2.5
+        above_indices = np.where(timeseries > half_max)[0]
+        if not above_indices.size:
+            return np.nan
+        if above_indices[0] == 0 or above_indices[-1] == len(timeseries) - 1:
+            width_in_bins = len(above_indices)
+            return width_in_bins * time_resolution
+        idx_after_rise = above_indices[0]
+        idx_before_rise = idx_after_rise - 1
+        val_before_rise = timeseries[idx_before_rise]
+        val_after_rise = timeseries[idx_after_rise]
+        t_rise = idx_before_rise + (half_max - val_before_rise) / (val_after_rise - val_before_rise)
+        idx_before_fall = above_indices[-1]
+        idx_after_fall = idx_before_fall + 1
+        val_before_fall = timeseries[idx_before_fall]
+        val_after_fall = timeseries[idx_after_fall]
+        t_fall = idx_before_fall + (half_max - val_before_fall) / (val_after_fall - val_before_fall)
+        width_in_bins = t_fall - t_rise
+        return width_in_bins * time_resolution
+
 
 def measure_fwhm(timeseries, time_resolution, t_factor):
     """
@@ -72,64 +193,13 @@ def measure_fwhm(timeseries, time_resolution, t_factor):
         Returns np.nan if the FWHM cannot be determined.
     """
     try:
-        # Downsample the timeseries
-        timeseries = downsample_time(timeseries, t_factor = t_factor)
-        time_resoution = time_resolution * t_factor
-        
-        # Find the peak value and its index
-        peak_val = np.max(timeseries)
-        peak_idx = np.argmax(timeseries)
-
-        # Calculate the half maximum value
-        half_max = peak_val / 2.5
-
-        # Find all indices where the timeseries is greater than half max
-        above_indices = np.where(timeseries > half_max)[0]
-
-        # --- Edge Case Checks ---
-        if not above_indices.any():
-            # Pulse never crosses the half-maximum level
-            return np.nan
-        
-        # Check if pulse is truncated at the start or end of the window
-        if above_indices[0] == 0 or above_indices[-1] == len(timeseries) - 1:
-            print("Warning: Pulse may be truncated. FWHM could be inaccurate.")
-            # Fallback to the simple method for truncated pulses
-            width_in_bins = len(above_indices)
-            return width_in_bins * time_resolution
-
-        # --- Interpolate Rising Edge ---
-        # Find the point on the curve just before and after crossing the half-max line
-        idx_after_rise = above_indices[0]
-        idx_before_rise = idx_after_rise - 1
-        val_before_rise = timeseries[idx_before_rise]
-        val_after_rise = timeseries[idx_after_rise]
-        
-        # Linearly interpolate to find the precise time (in bins) of the crossing
-        t_rise = idx_before_rise + (half_max - val_before_rise) / (val_after_rise - val_before_rise)
-
-        # --- Interpolate Falling Edge ---
-        idx_before_fall = above_indices[-1]
-        idx_after_fall = idx_before_fall + 1
-        val_before_fall = timeseries[idx_before_fall]
-        val_after_fall = timeseries[idx_after_fall]
-        
-        t_fall = idx_before_fall + (half_max - val_before_fall) / (val_after_fall - val_before_fall)
-
-        # Calculate the width in number of bins
-        width_in_bins = t_fall - t_rise
-
-        # Convert width to time units
-        fwhm = width_in_bins * time_resolution
-        
-        return fwhm
-
+        timeseries = downsample_time(timeseries, t_factor=t_factor)
+        adjusted_time_resolution = time_resolution * t_factor
+        return _measure_fwhm_core(timeseries, adjusted_time_resolution)
     except IndexError:
-        # This can happen if the pulse is right at the edge (e.g., peak is the last bin).
         print("Could not measure FWHM: Pulse is at the edge of the time window.")
         return np.nan
     except Exception as e:
-        # Catch any other unexpected errors
         print(f"An unexpected error occurred during FWHM measurement: {e}")
         return np.nan
 

@@ -31,9 +31,9 @@ def downsample_time(data, t_factor):
         raise ValueError(f"Unsupported array shape {arr.shape}; expected 1D or 2D.")
 
 
-def calculate_dm_timing_error(dDM, f_obs, f_ref, K_DM: float = K_DM):
+def calculate_dm_timing_error(dDM, f_obs, f_ref, K_DM_value: float = K_DM):
     """Calculate timing error due to DM uncertainty."""
-    time_shift = K_DM * dDM * (1 / f_obs.value**2 - 1 / f_ref.value**2) * u.s
+    time_shift = K_DM_value * dDM * (1 / f_obs.value**2 - 1 / f_ref.value**2) * u.s
     return np.abs(time_shift.to(u.ms))
 
 

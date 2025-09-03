@@ -412,10 +412,32 @@ class FRBScintillator:
         spectrum = np.abs(irf_freq)**2
 
         # Add noise if instrumental parameters are specified
-        if self.cfg.instrument.get_sefd_jy() is not None:
-            spectrum = self._add_spectral_noise(spectrum, rng)
-
         return spectrum
+
+
+    def _add_spectral_noise(self, spectrum: np.ndarray, rng=None) -> np.ndarray:
+        """
+        Adds Gaussian noise to the spectrum according to the SEFD and instrumental parameters.
+        Args:
+            spectrum (np.ndarray): The input spectrum to which noise will be added.
+            rng: A numpy random generator instance.
+        Returns:
+            np.ndarray: The spectrum with added noise.
+        """
+        sefd_jy = self.cfg.instrument.get_sefd_jy()
+        if sefd_jy is None:
+            return spectrum
+        # Estimate noise standard deviation per channel
+        # Use radiometer equation: sigma = SEFD / sqrt(B * t)
+        # Assume integration time = 1 s if not specified
+        # Assume channel bandwidth = self.dnu_hz
+        integration_time_s = getattr(self.cfg.instrument, "integration_time_s", 1.0)
+        bandwidth_hz = self.dnu_hz
+        sigma = sefd_jy / np.sqrt(bandwidth_hz * integration_time_s)
+        if rng is None:
+            rng = np.random.default_rng()
+        noise = rng.normal(loc=0.0, scale=sigma, size=spectrum.shape)
+        return spectrum + noise
     
     def simulate_1d_time_series(self, duration: u.Quantity, rng=None):
         """

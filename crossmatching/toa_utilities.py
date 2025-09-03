@@ -185,8 +185,8 @@ def measure_fwhm(timeseries, time_resolution, t_factor):
     """
     try:
         timeseries = downsample_time(timeseries, t_factor=t_factor)
-        time_resolution = time_resolution * t_factor
-        return _measure_fwhm_core(timeseries, time_resolution)
+        adjusted_time_resolution = time_resolution * t_factor
+        return _measure_fwhm_core(timeseries, adjusted_time_resolution)
     except IndexError:
         print("Could not measure FWHM: Pulse is at the edge of the time window.")
         return np.nan

@@ -1,0 +1,23 @@
+name: flits
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.12
+  - numpy
+  - scipy
+  - matplotlib
+  - ipython
+  - jupyter
+  - notebook
+  - ipywidgets
+  - pandas
+  - astropy
+  - h5py
+  - pyyaml
+  - tqdm
+  - pip
+  - pip:
+    - emcee
+    - corner
+    - lmfit

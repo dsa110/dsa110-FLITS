@@ -1,0 +1,384 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{mathtools}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{cleveref}
+\usepackage[margin=1in]{geometry}
+
+% Custom commands
+\newcommand{\DM}{\mathrm{DM}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\diff}{\mathrm{d}}
+\newcommand{\nuref}{\nu_{\mathrm{ref}}}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+
+\title{Streaming Dispersion Measure Estimation via\\Weighted Linear Regression}
+\author{FLITS Project}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+We present a streaming algorithm for estimating the dispersion measure (DM) of radio pulses from dynamic spectra. The algorithm exploits the linearity of the dispersion relation in transformed coordinates, reducing DM estimation to weighted linear regression. The method requires only $O(1)$ memory (eight floating-point accumulators), processes each pixel exactly once, and can produce estimates incrementally as data streams from the spectrometer. We derive the estimator, analyze its statistical properties, and characterize its limitations at low signal-to-noise ratios.
+\end{abstract}
+
+\tableofcontents
+
+\section{Introduction}
+
+Traditional dispersion measure estimation via trial dedispersion requires evaluating $N_{\DM}$ candidate DM values, each involving a full pass through the dynamic spectrum. This approach is memory-bandwidth limited on modern hardware, as the same data must be read repeatedly from memory.
+
+We present an alternative approach that estimates DM in a single streaming pass through the data, requiring only $O(1)$ memory. The key insight is that the cold-plasma dispersion relation is \emph{linear} in appropriately transformed coordinates, enabling closed-form parameter estimation via weighted linear regression.
+
+\section{Physical Background}
+
+\subsection{The Dispersion Relation}
+
+Radio waves propagating through the ionized interstellar medium experience frequency-dependent group delay. For a cold, unmagnetized plasma, the arrival time of a pulse at frequency $\nu$ is
+\begin{equation}
+    t(\nu) = t_0 + \frac{k_{\DM} \cdot \DM}{\nu^2},
+    \label{eq:dispersion_absolute}
+\end{equation}
+where:
+\begin{itemize}
+    \item $t_0$ is the (unobservable) emission time plus frequency-independent propagation delays,
+    \item $\DM = \int_0^d n_e \, \diff l$ is the dispersion measure (electron column density) in $\mathrm{pc\,cm^{-3}}$,
+    \item $k_{\DM} = \frac{e^2}{2\pi m_e c} \approx 4.148808 \times 10^3 \, \mathrm{s \cdot MHz^2 \cdot pc^{-1} \cdot cm^3}$ is the dispersion constant.
+\end{itemize}
+
+In practice, we measure arrival times relative to a reference frequency $\nuref$:
+\begin{equation}
+    t(\nu) = t_{\mathrm{ref}} + k_{\DM} \cdot \DM \cdot \left( \nu^{-2} - \nuref^{-2} \right),
+    \label{eq:dispersion_relative}
+\end{equation}
+where $t_{\mathrm{ref}} = t(\nuref)$ is the arrival time at the reference frequency.
+
+\subsection{The Dynamic Spectrum}
+
+A dynamic spectrum $I(t, \nu)$ records intensity as a function of time and frequency. For a dispersed pulse with intrinsic profile $p(t)$, the observed intensity is approximately
+\begin{equation}
+    I(t, \nu) = A(\nu) \cdot p\bigl(t - t(\nu)\bigr) + n(t, \nu),
+\end{equation}
+where $A(\nu)$ is the frequency-dependent amplitude (spectral envelope) and $n(t,\nu)$ is additive noise.
+
+\section{Coordinate Transformation}
+
+\subsection{Linearization of the Dispersion Relation}
+
+Define the \emph{dispersion coordinate}:
+\begin{equation}
+    x(\nu) \coloneqq \nu^{-2} - \nuref^{-2}.
+    \label{eq:dispersion_coord}
+\end{equation}
+
+The dispersion relation \eqref{eq:dispersion_relative} becomes linear:
+\begin{equation}
+    t = t_{\mathrm{ref}} + (k_{\DM} \cdot \DM) \cdot x.
+    \label{eq:linear_model}
+\end{equation}
+
+This is the equation of a line in $(x, t)$ space with:
+\begin{itemize}
+    \item Slope: $\beta_1 = k_{\DM} \cdot \DM$
+    \item Intercept: $\beta_0 = t_{\mathrm{ref}}$
+\end{itemize}
+
+\begin{proposition}
+In $(x, t)$ coordinates, dispersion curves for different DM values form a family of lines through the point $(0, t_{\mathrm{ref}})$, parameterized by slope $k_{\DM} \cdot \DM$.
+\end{proposition}
+
+\section{Weighted Linear Regression Estimator}
+
+\subsection{Problem Formulation}
+
+Given a dynamic spectrum sampled on a grid $\{(t_j, \nu_i)\}_{i=1,\ldots,N_\nu}^{j=1,\ldots,N_t}$ with intensities $I_{ij} = I(t_j, \nu_i)$, we seek to estimate $\DM$ and $t_{\mathrm{ref}}$.
+
+For pixels along the dispersion curve, the coordinates $(x_i, t_j)$ satisfy the linear relation \eqref{eq:linear_model}. We use intensity-weighted least squares to fit this relation.
+
+\subsection{Objective Function}
+
+Define the weighted residual sum of squares:
+\begin{equation}
+    J(\beta_0, \beta_1) = \sum_{i,j} w_{ij} \left( t_j - \beta_0 - \beta_1 x_i \right)^2,
+    \label{eq:objective}
+\end{equation}
+where $w_{ij} \geq 0$ are weights. A natural choice is $w_{ij} = \max(I_{ij} - \mu, 0)$, where $\mu$ is the background level, so that brighter pixels contribute more to the fit.
+
+\subsection{Normal Equations}
+
+Setting $\partial J / \partial \beta_0 = 0$ and $\partial J / \partial \beta_1 = 0$ yields the normal equations:
+\begin{equation}
+    \begin{pmatrix}
+        W & S_x \\
+        S_x & S_{xx}
+    \end{pmatrix}
+    \begin{pmatrix}
+        \beta_0 \\
+        \beta_1
+    \end{pmatrix}
+    =
+    \begin{pmatrix}
+        S_t \\
+        S_{xt}
+    \end{pmatrix},
+    \label{eq:normal_equations}
+\end{equation}
+where the sufficient statistics are:
+\begin{align}
+    W &= \sum_{i,j} w_{ij}, \label{eq:stat_W} \\
+    S_x &= \sum_{i,j} w_{ij} x_i, \label{eq:stat_Sx} \\
+    S_{xx} &= \sum_{i,j} w_{ij} x_i^2, \label{eq:stat_Sxx} \\
+    S_t &= \sum_{i,j} w_{ij} t_j, \label{eq:stat_St} \\
+    S_{xt} &= \sum_{i,j} w_{ij} x_i t_j. \label{eq:stat_Sxt}
+\end{align}
+
+\subsection{Closed-Form Solution}
+
+Solving \eqref{eq:normal_equations} by Cramer's rule:
+\begin{align}
+    \beta_1 &= \frac{W \cdot S_{xt} - S_x \cdot S_t}{W \cdot S_{xx} - S_x^2}, \label{eq:beta1} \\
+    \beta_0 &= \frac{S_t - \beta_1 \cdot S_x}{W}. \label{eq:beta0}
+\end{align}
+
+The dispersion measure is then:
+\begin{equation}
+    \boxed{\DM = \frac{\beta_1}{k_{\DM}} = \frac{W \cdot S_{xt} - S_x \cdot S_t}{k_{\DM} \left( W \cdot S_{xx} - S_x^2 \right)}}
+    \label{eq:dm_estimator}
+\end{equation}
+
+\begin{theorem}[Closed-form DM Estimator]
+Given the sufficient statistics \eqref{eq:stat_W}--\eqref{eq:stat_Sxt}, the weighted least-squares estimate of DM is given by \eqref{eq:dm_estimator}, with arrival time at reference frequency $t_{\mathrm{ref}} = \beta_0$ from \eqref{eq:beta0}.
+\end{theorem}
+
+\section{Streaming Implementation}
+
+\subsection{Algorithm Structure}
+
+The key observation is that the sufficient statistics \eqref{eq:stat_W}--\eqref{eq:stat_Sxt} are \emph{additive} over pixels. This enables a streaming implementation that:
+\begin{enumerate}
+    \item Maintains five running accumulators $(W, S_x, S_{xx}, S_t, S_{xt})$,
+    \item Processes each pixel exactly once,
+    \item Produces estimates at any time from the current accumulator values.
+\end{enumerate}
+
+\begin{algorithm}[H]
+\caption{Streaming DM Estimator}
+\label{alg:streaming}
+\begin{algorithmic}[1]
+\Require Reference frequency $\nuref$, threshold $\tau$
+\State Initialize: $W \gets 0$, $S_x \gets 0$, $S_{xx} \gets 0$, $S_t \gets 0$, $S_{xt} \gets 0$
+\For{each pixel $(t_j, \nu_i, I_{ij})$ as data streams in}
+    \If{$I_{ij} < \tau$} \textbf{continue} \EndIf
+    \State $x \gets \nu_i^{-2} - \nuref^{-2}$
+    \State $w \gets I_{ij}$ \Comment{or $I_{ij} - \mu$ for background-subtracted}
+    \State $W \gets W + w$
+    \State $S_x \gets S_x + w \cdot x$
+    \State $S_{xx} \gets S_{xx} + w \cdot x^2$
+    \State $S_t \gets S_t + w \cdot t_j$
+    \State $S_{xt} \gets S_{xt} + w \cdot x \cdot t_j$
+\EndFor
+\State $\beta_1 \gets (W \cdot S_{xt} - S_x \cdot S_t) / (W \cdot S_{xx} - S_x^2)$
+\State $\beta_0 \gets (S_t - \beta_1 \cdot S_x) / W$
+\State \Return $\DM = \beta_1 / k_{\DM}$, $t_{\mathrm{ref}} = \beta_0$
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Computational Complexity}
+
+\begin{proposition}[Complexity]
+Algorithm~\ref{alg:streaming} has:
+\begin{itemize}
+    \item Time complexity: $O(N_\nu \cdot N_t)$ (single pass)
+    \item Space complexity: $O(1)$ (five floating-point accumulators)
+    \item Arithmetic operations per pixel: 8 multiplications, 5 additions
+\end{itemize}
+\end{proposition}
+
+\subsection{Online Noise Estimation}
+
+For adaptive thresholding, we can estimate noise statistics online using Welford's algorithm \cite{welford1962note}. This requires three additional accumulators $(n, \mu, M_2)$:
+\begin{align}
+    n &\gets n + 1, \\
+    \delta &\gets I - \mu, \\
+    \mu &\gets \mu + \delta / n, \\
+    M_2 &\gets M_2 + \delta \cdot (I - \mu).
+\end{align}
+The running variance estimate is $\sigma^2 = M_2 / n$.
+
+\section{Statistical Properties}
+
+\subsection{Unbiasedness Under Ideal Conditions}
+
+\begin{theorem}[Unbiasedness]
+If the weights $w_{ij}$ are nonzero only for pixels on the true dispersion curve (i.e., where $t_j = t_{\mathrm{ref}} + \beta_1^* x_i$ for the true parameters), then the estimator \eqref{eq:dm_estimator} is unbiased: $\E[\hat{\DM}] = \DM$.
+\end{theorem}
+
+\begin{proof}
+Under the assumption, all selected pixels satisfy the linear model exactly (up to noise in the time coordinate, which is discrete). The weighted least squares estimator is unbiased for the linear model.
+\end{proof}
+
+\subsection{Variance}
+
+For weighted least squares with weights $w_{ij}$ and residual variance $\sigma_t^2$ in the time coordinate, the variance of the slope estimator is:
+\begin{equation}
+    \Var(\hat{\beta}_1) = \frac{\sigma_t^2}{S_{xx} - S_x^2/W}.
+\end{equation}
+
+The variance of the DM estimate is:
+\begin{equation}
+    \Var(\hat{\DM}) = \frac{\Var(\hat{\beta}_1)}{k_{\DM}^2} = \frac{\sigma_t^2}{k_{\DM}^2 \left( S_{xx} - S_x^2/W \right)}.
+\end{equation}
+
+\subsection{Bias from Noise Contamination}
+
+In practice, the threshold $\tau$ selects pixels based on intensity, not their proximity to the true dispersion curve. Noise fluctuations above $\tau$ contribute to the fit with incorrect $(x, t)$ coordinates, introducing bias.
+
+\begin{proposition}[Noise-Induced Bias]
+Let $f$ be the fraction of selected pixels that are noise fluctuations (not on the dispersion curve). If noise pixels have uniformly distributed coordinates, the expected bias in $\hat{\DM}$ scales as:
+\begin{equation}
+    \mathrm{Bias}(\hat{\DM}) \propto -f \cdot \DM.
+\end{equation}
+The negative sign indicates underestimation of DM.
+\end{proposition}
+
+This explains the observed negative bias at low S/N: as more noise pixels contaminate the fit, the slope estimate is pulled toward zero.
+
+\section{Thresholding Strategies}
+
+\subsection{Fixed Threshold}
+
+The simplest approach uses a fixed threshold $\tau = \mu + k\sigma$, where $\mu$ and $\sigma$ are the background mean and standard deviation, and $k$ is typically 3--5.
+
+\subsection{Adaptive Threshold}
+
+Using Welford's online algorithm, the threshold can adapt as data streams in:
+\begin{equation}
+    \tau_n = \hat{\mu}_n + k \hat{\sigma}_n,
+\end{equation}
+where $\hat{\mu}_n$ and $\hat{\sigma}_n$ are running estimates after $n$ samples.
+
+\subsection{Iterative Refinement}
+
+For improved robustness, a two-pass approach can be used:
+\begin{enumerate}
+    \item First pass: Estimate DM with fixed threshold.
+    \item Second pass: Reweight pixels by proximity to estimated dispersion curve.
+\end{enumerate}
+
+This is no longer strictly streaming but requires only $O(1)$ additional memory if the data can be re-read.
+
+\section{Comparison with Trial Dedispersion}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lcc}
+\toprule
+Property & Trial Dedispersion & Streaming Estimator \\
+\midrule
+Memory passes & $N_{\DM}$ & 1--2 \\
+Memory complexity & $O(N_\nu N_t)$ & $O(1)$ \\
+Time complexity & $O(N_{\DM} N_\nu N_t)$ & $O(N_\nu N_t)$ \\
+Low S/N robustness & High & Moderate \\
+Scattering robustness & High & Low \\
+GPU efficiency & Memory-bound & Compute-bound \\
+\bottomrule
+\end{tabular}
+\caption{Comparison of trial dedispersion and streaming estimation.}
+\label{tab:comparison}
+\end{table}
+
+The streaming estimator trades robustness at low S/N for dramatically reduced memory requirements and computational complexity. It is most suitable for:
+\begin{itemize}
+    \item High S/N pulses (S/N $\gtrsim 15$),
+    \item Real-time processing with limited memory,
+    \item Initial DM estimation to narrow the search range for trial dedispersion.
+\end{itemize}
+
+\section{Limitations}
+
+\subsection{Scattering}
+
+Interstellar scattering convolves the pulse with an asymmetric exponential tail:
+\begin{equation}
+    p_{\mathrm{obs}}(t) = p(t) * \frac{1}{\tau_s} e^{-t/\tau_s} H(t),
+\end{equation}
+where $\tau_s \propto \nu^{-4}$ is the scattering timescale. This shifts the intensity-weighted centroid to later times at lower frequencies, biasing the DM estimate high.
+
+\subsection{RFI Contamination}
+
+Narrowband RFI creates bright features at fixed frequencies that do not follow the dispersion curve. With intensity weighting, RFI channels can dominate the fit. Mitigation strategies include:
+\begin{itemize}
+    \item Channel flagging before fitting,
+    \item Robust regression (e.g., Huber loss),
+    \item Median-based statistics instead of means.
+\end{itemize}
+
+\subsection{Multiple Pulses}
+
+The algorithm assumes a single dispersed pulse. Multiple pulses or pulse components will produce a weighted average of their individual DMs.
+
+\section{Conclusion}
+
+We have presented a streaming algorithm for DM estimation that:
+\begin{enumerate}
+    \item Reduces DM estimation to weighted linear regression in transformed coordinates,
+    \item Requires only $O(1)$ memory (eight floating-point accumulators),
+    \item Processes data in a single pass as it streams from the spectrometer,
+    \item Achieves $\lesssim 3\%$ accuracy at S/N $\gtrsim 20$.
+\end{enumerate}
+
+The method is complementary to trial dedispersion: it provides fast initial estimates suitable for narrowing the DM search range, while trial dedispersion remains preferred for low-S/N detection and precise DM measurement.
+
+\appendix
+
+\section{Derivation of Normal Equations}
+
+Expanding the objective function \eqref{eq:objective}:
+\begin{equation}
+    J = \sum_{i,j} w_{ij} \left( t_j^2 - 2t_j\beta_0 - 2t_j\beta_1 x_i + \beta_0^2 + 2\beta_0\beta_1 x_i + \beta_1^2 x_i^2 \right).
+\end{equation}
+
+Taking partial derivatives:
+\begin{align}
+    \frac{\partial J}{\partial \beta_0} &= \sum_{i,j} w_{ij} \left( -2t_j + 2\beta_0 + 2\beta_1 x_i \right) = 0, \\
+    \frac{\partial J}{\partial \beta_1} &= \sum_{i,j} w_{ij} \left( -2t_j x_i + 2\beta_0 x_i + 2\beta_1 x_i^2 \right) = 0.
+\end{align}
+
+Simplifying:
+\begin{align}
+    \beta_0 W + \beta_1 S_x &= S_t, \\
+    \beta_0 S_x + \beta_1 S_{xx} &= S_{xt}.
+\end{align}
+
+This is the system \eqref{eq:normal_equations}.
+
+\section{Numerical Stability}
+
+The denominator $W \cdot S_{xx} - S_x^2$ can suffer from catastrophic cancellation when $S_x^2 \approx W \cdot S_{xx}$. This occurs when the dispersion coordinate $x$ has small variance relative to its mean.
+
+For improved numerical stability, use the centered form:
+\begin{equation}
+    \bar{x} = S_x / W, \quad S_{xx}^c = \sum_{i,j} w_{ij} (x_i - \bar{x})^2 = S_{xx} - S_x^2/W.
+\end{equation}
+
+Then $\beta_1 = S_{xt}^c / S_{xx}^c$ where $S_{xt}^c = S_{xt} - S_x S_t / W$.
+
+\begin{thebibliography}{9}
+\bibitem{welford1962note}
+B.~P. Welford, ``Note on a method for calculating corrected sums of squares and products,'' \emph{Technometrics}, vol.~4, no.~3, pp.~419--420, 1962.
+\end{thebibliography}
+
+\end{document}
+

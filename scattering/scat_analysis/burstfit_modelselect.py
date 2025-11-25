@@ -78,6 +78,7 @@ def fit_models_bic(
     model_keys: Sequence[str] = ("M0", "M1", "M2", "M3"),
     n_steps: int = 1500,
     pool=None,
+    **fitter_kwargs
 ) -> tuple[str, dict[str, tuple["emcee.EnsembleSampler", float, float]]]:
 
     if model.data is None:
@@ -101,6 +102,7 @@ def fit_models_bic(
             n_steps=n_steps,
             pool=pool,
             log_weight_pos=use_logw,
+            **fitter_kwargs,
         )
         sampler = fitter.sample(init, model_key=key)
 

@@ -42,6 +42,26 @@ def main():
     logging.basicConfig(level=log_level, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
     
     # 4. Initialize and Run the Pipeline
+    # Resolve fallback paths for helper configs if not provided in YAML
+    # This mirrors robust resolution used by the scattering CLI.
+    from pathlib import Path as _P
+    base_dir = _P(args.burst_config_path).parent
+    def _resolve_cfg(base_dir: _P, filename: str) -> _P:
+        cands = [
+            base_dir / filename,
+            base_dir.parent / filename,
+            base_dir.parent.parent / filename,
+        ]
+        for c in cands:
+            if c.exists():
+                return c
+        return cands[-1]
+
+    loaded_config.setdefault('pipeline_options', {})
+    # no explicit helper files here, but ensure any relative paths are rooted
+    if 'input_data_path' in loaded_config:
+        loaded_config['input_data_path'] = str(_P(loaded_config['input_data_path']))
+
     scint_pipeline = pipeline.ScintillationAnalysis(loaded_config)
     scint_pipeline.run()
 
@@ -67,7 +87,7 @@ def main():
             scint_pipeline.final_results, 
             scint_pipeline.acf_results, 
             scint_pipeline.all_subband_fits,
-            scint_pipeline.powlaw_params
+            scint_pipeline.all_powerlaw_fits
         )
     else:
         logging.warning("Intermediate results not available, skipping overview plot.")

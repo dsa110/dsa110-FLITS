@@ -49,6 +49,7 @@ def subband_consistency(
     n_sub: int = 4,
     n_steps: int = 500,
     pool=None,
+    walker_width_frac: float = 0.02,
 ) -> Tuple[str | None, List[Tuple[float, float]], List[NDArray]]:
     """
     Re-fit the *same* model in `n_sub` frequency slices and return
@@ -90,7 +91,8 @@ def subband_consistency(
                            full_priors,
                            n_steps= n_steps,
                            pool=pool,
-                           log_weight_pos=use_logw)    
+                           log_weight_pos=use_logw,
+                           walker_width_frac=walker_width_frac)    
         
         sampler = fitter.sample(init, model_key)
 

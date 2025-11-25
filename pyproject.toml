@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=65", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "flits"
+version = "0.1.0"
+description = "Fitting Likelihoods In Time-Frequency Spectra: FRB scattering and scintillation pipelines"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Jakob Faber" }]
+dependencies = [
+  "numpy>=1.20",
+  "scipy>=1.7",
+  "matplotlib>=3.4",
+  "pandas>=1.3",
+  "emcee>=3.1",
+  "lmfit>=1.0",
+  "PyYAML>=5.4",
+  "tqdm>=4.62",
+  "corner>=2.2",
+  "chainconsumer>=0.34",
+]
+
+[project.scripts]
+flits-scat = "scattering.run_scat_analysis:main"
+flits-scint = "scintillation.scint_analysis.run_analysis:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+namespaces = true
+

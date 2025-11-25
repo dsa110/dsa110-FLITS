@@ -204,7 +204,33 @@ def create_sixteen_panel_plot(
         ax[10].scatter(flat_chain[:,i], flat_chain[:,j], s=1, alpha=0.1, c='k'); ax[10].set_xlabel(param_names[i]); ax[10].set_ylabel(param_names[j]); ax[10].set_title(f'Highest Correlation (ρ={corr[i,j]:.2f})')
     
     # Panel 11-12: ACF and DM Check
-    if gof: ax[11].plot((np.arange(len(gof['residual_autocorr'])) - len(gof['residual_autocorr'])//2) * dataset.dt_ms, gof['residual_autocorr'], 'k-'); ax[11].set_title('Residual ACF'); ax[11].set_xlabel('Lag [ms]')
+    if gof:
+        lags_ms = (np.arange(len(gof['residual_autocorr'])) - len(gof['residual_autocorr'])//2) * dataset.dt_ms
+        ax[11].plot(lags_ms, gof['residual_autocorr'], 'k-', label='Data')
+        # Posterior predictive residual ACF envelope (fast PPC via noise-only)
+        try:
+            n_ppc = 50
+            noise_std = model_instance.noise_std
+            acfs = []
+            for _ in range(n_ppc):
+                noise = np.random.normal(0.0, noise_std[:, None], size=dataset.data.shape)
+                resid_ppc = np.sum(noise, axis=0)
+                resid_ppc -= np.mean(resid_ppc)
+                acf_ppc = np.correlate(resid_ppc, resid_ppc, mode='same')
+                center_val = acf_ppc[len(acf_ppc)//2]
+                if center_val > 0: acf_ppc = acf_ppc / center_val
+                acfs.append(acf_ppc)
+            acfs = np.asarray(acfs)
+            ppc_med = np.median(acfs, axis=0)
+            ppc_lo = np.percentile(acfs, 5, axis=0)
+            ppc_hi = np.percentile(acfs, 95, axis=0)
+            ax[11].plot(lags_ms, ppc_med, color='m', lw=1.5, label='PPC median')
+            ax[11].fill_between(lags_ms, ppc_lo, ppc_hi, color='m', alpha=0.15, label='PPC 5–95%')
+        except Exception as e:
+            log.warning(f"PPC ACF generation failed: {e}")
+        ax[11].set_title('Residual ACF')
+        ax[11].set_xlabel('Lag [ms]')
+        ax[11].legend(loc='upper right', fontsize=9)
     if diag_results.get("dm_check") is not None: dms, snrs = diag_results['dm_check']; ax[12].plot(dms, snrs, 'o-k'); ax[12].set_title('DM Optimization'); ax[12].set_xlabel(r'ΔDM (pc cm$^{-3}$)')
 
     # Panels 13-15: Text Summaries
@@ -212,7 +238,29 @@ def create_sixteen_panel_plot(
     if gof: ax[13].text(0.05, 0.95, f"GoF:\nχ²/dof = {gof['chi2_reduced']:.2f}", va='top', fontfamily='monospace', fontsize=12)
     p_summary = "Best Fit (Median & 1σ):\n" + "\n".join([f"{n}: {np.median(flat_chain[:,i]):.3f} ± {np.std(flat_chain[:,i]):.3f}" for i, n in enumerate(param_names)])
     ax[14].text(0.05, 0.95, p_summary, va='top', fontfamily='monospace', fontsize=12)
-    ax[15].text(0.05, 0.95, f"File:\n{dataset.inpath.name}", va='top', fontfamily='monospace', fontsize=12)
+    # Δν_d diagnostic from τ (report only)
+    try:
+        alpha = getattr(best_p, 'alpha', 4.4)
+        tau1 = getattr(best_p, 'tau_1ghz', 0.0)
+        if tau1 > 0:
+            f = dataset.freq
+            tau_ms = tau1 * (f / 1.0) ** (-alpha)
+            tau_sec = tau_ms * 1e-3
+            dnu_hz = 1.16 / (2.0 * np.pi * np.clip(tau_sec, 1e-12, None))
+            dnu_mhz = dnu_hz / 1e6
+            dnu_center = float(np.median(dnu_mhz))
+            dnu_min, dnu_max = float(np.min(dnu_mhz)), float(np.max(dnu_mhz))
+            diag_text = (
+                f"Δν_d (implied, MHz)\n"
+                f"center: {dnu_center:.3g}\n"
+                f"band: [{dnu_min:.3g}, {dnu_max:.3g}]\n"
+                f"(2π τ Δν_d ≈ 1.16)"
+            )
+        else:
+            diag_text = "Δν_d (implied): n/a"
+    except Exception as e:
+        diag_text = f"Δν_d diagnostic failed: {e}"
+    ax[15].text(0.05, 0.95, f"File:\n{dataset.inpath.name}\n\n{diag_text}", va='top', fontfamily='monospace', fontsize=12)
     
     fig.suptitle(f"Comprehensive Fit Diagnostics: {dataset.inpath.name}", fontsize=24, weight='bold')
     if save: 
@@ -393,6 +441,44 @@ class BurstPipeline:
             auto_ok=self.pipeline_kwargs.get("yes", False)
         )
 
+        # Optional seed init-guess
+        self.seed_single: FRBParams | None = None
+        self.seed_multi: dict[str, float] | None = None
+        init_guess_path = self.pipeline_kwargs.get("init_guess") or self.pipeline_kwargs.get("init_guess_path")
+        if init_guess_path:
+            try:
+                import json
+                with Path(init_guess_path).expanduser().open('r', encoding='utf-8') as fh:
+                    seed = json.load(fh)
+                mk = seed.get("model_key", "M3")
+                if mk == "M3":
+                    self.seed_single = FRBParams(
+                        c0=float(seed.get("c0", 1.0)),
+                        t0=float(seed.get("t0", 0.0)),
+                        gamma=float(seed.get("gamma", -1.6)),
+                        zeta=float(seed.get("zeta", 0.1)),
+                        tau_1ghz=float(seed.get("tau_1ghz", 0.1)),
+                        alpha=float(seed.get("alpha", 4.4)),
+                        delta_dm=float(seed.get("delta_dm", 0.0)),
+                    )
+                elif mk == "M3_multi":
+                    shared = seed.get("shared", {})
+                    comp = seed.get("components", [])
+                    d: dict[str, float] = {}
+                    d["gamma"] = float(shared.get("gamma", -1.6))
+                    d["tau_1ghz"] = float(shared.get("tau_1ghz", 0.1))
+                    d["alpha"] = float(shared.get("alpha", 4.4))
+                    d["delta_dm"] = float(shared.get("delta_dm", 0.0))
+                    for i, c in enumerate(comp, start=1):
+                        d[f"c0_{i}"] = float(c.get("c0", 1.0))
+                        d[f"t0_{i}"] = float(c.get("t0", 0.0))
+                        d[f"zeta_{i}"] = float(c.get("zeta", 0.1))
+                    self.seed_multi = d
+                    # ensure ncomp matches seed
+                    self.pipeline_kwargs['ncomp'] = max(1, len(comp))
+            except Exception as e:
+                warnings.warn(f"Failed to read init-guess '{init_guess_path}': {e}")
+
     def run_full(self, model_scan=True, diagnostics=True, plot=True, save=True, show=True, model_keys=("M0","M1","M2","M3"), **kwargs):
         """Main pipeline execution flow."""
         with self.pool or contextlib.nullcontext(self.pool) as pool:
@@ -402,26 +488,113 @@ class BurstPipeline:
 
             n_steps = self.pipeline_kwargs.get('steps', 2000)
 
-            init_guess = self._get_initial_guess(self.dataset.model)
+            # Seed initial guess from file if provided
+            if self.seed_single is not None:
+                init_guess = self.seed_single
+            else:
+                init_guess = self._get_initial_guess(self.dataset.model)
 
-            if model_scan:
+            # Configure priors/likelihood controls
+            alpha_fixed = self.pipeline_kwargs.get('alpha_fixed')
+            alpha_mu = self.pipeline_kwargs.get('alpha_mu', 4.4)
+            alpha_sigma = self.pipeline_kwargs.get('alpha_sigma', 0.6)
+            delta_dm_sigma = self.pipeline_kwargs.get('delta_dm_sigma', 0.1)
+            likelihood_kind = self.pipeline_kwargs.get('likelihood', 'gaussian')
+            studentt_nu = float(self.pipeline_kwargs.get('studentt_nu', 5.0))
+            sample_log_params = bool(self.pipeline_kwargs.get('sample_log_params', True))
+
+            # Components
+            ncomp = int(self.pipeline_kwargs.get('ncomp', 1))
+            auto_components = bool(self.pipeline_kwargs.get('auto_components', False))
+
+            if model_scan and ncomp == 1:
                 log.info("Starting model selection scan (BIC)...")
                 best_key, all_res = fit_models_bic(
                     model=self.dataset.model, init=init_guess, n_steps=n_steps//2, pool=pool, model_keys = model_keys,
+                    sample_log_params=sample_log_params,
+                    alpha_prior=(alpha_mu, alpha_sigma) if alpha_fixed is None else (alpha_fixed, None),
+                    likelihood_kind=likelihood_kind,
+                    student_nu=studentt_nu,
+                    walker_width_frac=self.pipeline_kwargs.get('walker_width_frac', 0.01),
                 )
                 sampler = all_res[best_key][0]
-            else:
+            elif ncomp == 1:
                 best_key = "M3"; log.info(f"Fitting model {best_key} directly...")
                 # right before sampling
-                priors, use_logw = build_priors_linear(init_guess,
-                                    scale=6.0,
-                                    abs_max={"tau_1ghz": 5e4, "zeta": 5e4},
-                                    log_weight_pos=True)   # Jeffreys weighting
-                # give generous log-uniform‐ish bounds to the two broadening params
+                priors, use_logw = build_priors(
+                    init_guess,
+                    scale=6.0,
+                    abs_max={"tau_1ghz": 5e4, "zeta": 5e4},
+                    log_weight_pos=True,
+                )   # Jeffreys weighting in prior weight
+                # give generous bounds to the two broadening params
                 priors["tau_1ghz"] = (1e-6, 5e4)   # ms
                 priors["zeta"]     = (1e-6, 5e4)   # ms
-                fitter = FRBFitter(self.dataset.model, priors, n_steps=n_steps, pool=pool)
+                # alpha prior bounds
+                if alpha_fixed is not None:
+                    priors["alpha"] = (float(alpha_fixed), float(alpha_fixed))
+                    alpha_prior = (float(alpha_fixed), None)
+                else:
+                    lo_a = max(0.1, float(alpha_mu) - 6.0 * float(alpha_sigma))
+                    hi_a = float(alpha_mu) + 6.0 * float(alpha_sigma)
+                    priors["alpha"] = (lo_a, hi_a)
+                    alpha_prior = (float(alpha_mu), float(alpha_sigma))
+                # delta_dm bounds (top-hat prior)
+                dm_w = float(delta_dm_sigma)
+                priors["delta_dm"] = (-3.0 * dm_w, 3.0 * dm_w)
+
+                fitter = FRBFitter(self.dataset.model, priors, n_steps=n_steps, pool=pool,
+                                   log_weight_pos=use_logw,
+                                   sample_log_params=sample_log_params,
+                                   alpha_prior=alpha_prior,
+                                   likelihood_kind=likelihood_kind,
+                                   student_nu=studentt_nu,
+                                   walker_width_frac=self.pipeline_kwargs.get('walker_width_frac', 0.01))
                 sampler = fitter.sample(init_guess, model_key=best_key)
+            else:
+                # Multi-component with shared PBF
+                K = ncomp
+                log.info(f"Fitting multi-component model with K={K} (shared PBF)...")
+                # Build initial multi guess
+                if self.seed_multi is not None:
+                    init_multi = self.seed_multi
+                else:
+                    init_multi = self._get_initial_guess_multi(self.dataset.model, K, base=init_guess)
+                # Build priors for shared + component params
+                priors = {}
+                # shared from build_priors around base guess
+                shared_priors, use_logw = build_priors(init_guess, scale=6.0,
+                                abs_max={"tau_1ghz": 5e4, "zeta": 5e4}, log_weight_pos=True)
+                priors.update({k: v for k, v in shared_priors.items() if k in ("gamma","tau_1ghz")})
+                # alpha, delta_dm
+                if alpha_fixed is not None:
+                    priors["alpha"] = (float(alpha_fixed), float(alpha_fixed))
+                    alpha_prior = (float(alpha_fixed), None)
+                else:
+                    lo_a = max(0.1, float(alpha_mu) - 6.0 * float(alpha_sigma))
+                    hi_a = float(alpha_mu) + 6.0 * float(alpha_sigma)
+                    priors["alpha"] = (lo_a, hi_a)
+                    alpha_prior = (float(alpha_mu), float(alpha_sigma))
+                dm_w = float(delta_dm_sigma)
+                priors["delta_dm"] = (-3.0 * dm_w, 3.0 * dm_w)
+
+                # per-component bounds
+                tmin, tmax = float(self.dataset.time.min()), float(self.dataset.time.max())
+                for i in range(1, K+1):
+                    priors[f"c0_{i}"] = (1e-6, 1e9)
+                    priors[f"t0_{i}"] = (tmin, tmax)
+                    priors[f"zeta_{i}"] = (1e-6, 5e4)
+
+                fitter = FRBFitter(self.dataset.model, priors, n_steps=n_steps, pool=pool,
+                                   log_weight_pos=use_logw,
+                                   sample_log_params=sample_log_params,
+                                   alpha_prior=alpha_prior,
+                                   likelihood_kind=likelihood_kind,
+                                   student_nu=studentt_nu,
+                                   walker_width_frac=self.pipeline_kwargs.get('walker_width_frac', 0.01))
+                names = fitter.build_multicomp_order(K)
+                sampler = fitter.sample(init_multi, model_key="M3_multi")
+                best_key = "M3_multi"
 
             log.info("Processing MCMC chains...")
             burn, thin = auto_burn_thin(sampler)
@@ -429,23 +602,45 @@ class BurstPipeline:
             if flat_chain.shape[0] == 0:
                 raise RuntimeError("MCMC chain is empty after burn-in and thinning. Check sampler settings or increase n_steps.")
 
-            best_params = FRBParams.from_sequence(flat_chain[np.argmax(sampler.get_log_prob(discard=burn, thin=thin, flat=True))], best_key)
+            if best_key == "M3_multi":
+                # keep theta_best and names for downstream
+                idx_best = int(np.argmax(sampler.get_log_prob(discard=burn, thin=thin, flat=True)))
+                theta_best = flat_chain[idx_best]
+            else:
+                best_params = FRBParams.from_sequence(flat_chain[np.argmax(sampler.get_log_prob(discard=burn, thin=thin, flat=True))], best_key)
 
-            results = {
-                "best_key": best_key, "best_params": best_params, "sampler": sampler, 
-                "flat_chain": flat_chain, "param_names": FRBFitter._ORDER[best_key], 
-                "dm_init": self.dm_init, "model_instance": self.dataset.model, 
-                "chain_stats": {"burn_in": burn, "thin": thin}
-            }
+            if best_key == "M3_multi":
+                param_names = list(fitter.custom_order["M3_multi"])  # type: ignore[attr-defined]
+                results = {
+                    "best_key": best_key, "sampler": sampler,
+                    "flat_chain": flat_chain, "param_names": param_names,
+                    "dm_init": self.dm_init, "model_instance": self.dataset.model,
+                    "chain_stats": {"burn_in": burn, "thin": thin},
+                    "is_multi": True, "K": K, "theta_best": theta_best,
+                }
+            else:
+                results = {
+                    "best_key": best_key, "best_params": best_params, "sampler": sampler, 
+                    "flat_chain": flat_chain, "param_names": FRBFitter._ORDER[best_key], 
+                    "dm_init": self.dm_init, "model_instance": self.dataset.model, 
+                    "chain_stats": {"burn_in": burn, "thin": thin}
+                }
 
             if diagnostics:
                 diag_runner = BurstDiagnostics(self.dataset, results)
                 results['diagnostics'] = diag_runner.run_all(sb_steps=n_steps//4, pool=pool)
 
-            results['goodness_of_fit'] = goodness_of_fit(
-                self.dataset.data, self.dataset.model(best_params, best_key), 
-                self.dataset.model.noise_std, len(results['param_names'])
-            )
+            if best_key == "M3_multi":
+                model_dyn = self._build_multi_model(results)
+                results['goodness_of_fit'] = goodness_of_fit(
+                    self.dataset.data, model_dyn,
+                    self.dataset.model.noise_std, len(results['param_names'])
+                )
+            else:
+                results['goodness_of_fit'] = goodness_of_fit(
+                    self.dataset.data, self.dataset.model(best_params, best_key), 
+                    self.dataset.model.noise_std, len(results['param_names'])
+                )
             log.info(f"Best model: {best_key} | χ²/dof = {results['goodness_of_fit']['chi2_reduced']:.2f}")
 
             if plot:
@@ -492,6 +687,45 @@ class BurstPipeline:
         log.info("Refined initial guess found via optimization.")
         return FRBParams.from_sequence(res.x, model_key)
 
+    def _get_initial_guess_multi(self, model: "FRBModel", K: int, base: "FRBParams") -> dict[str, float]:
+        # Smooth profile and find K peaks
+        prof = np.nansum(model.data, axis=0)
+        if model.dt > 0:
+            sigma_samps = max(1, int((0.1 / 2.355) / model.dt))
+            if sigma_samps > 1:
+                prof = sp.ndimage.gaussian_filter1d(prof, sigma_samps)
+        idxs = np.argpartition(prof, -K)[-K:]
+        idxs = np.sort(idxs)
+        # initial guesses
+        total = np.sum(prof)
+        init: dict[str, float] = {
+            "gamma": base.gamma,
+            "tau_1ghz": max(base.tau_1ghz, 1e-3),
+            "alpha": getattr(base, 'alpha', 4.4),
+            "delta_dm": 0.0,
+        }
+        for j, ix in enumerate(idxs, start=1):
+            init[f"t0_{j}"] = model.time[ix]
+            init[f"c0_{j}"] = max(total / K, 1e-3)
+            init[f"zeta_{j}"] = max(getattr(base, 'zeta', 0.05), 1e-3)
+        return init
+
+    def _build_multi_model(self, results: Dict[str, Any]):
+        names = results["param_names"]
+        theta = results["theta_best"]
+        K = int(results["K"]) 
+        model = results["model_instance"]
+        # helper
+        def get(name):
+            return theta[names.index(name)] if name in names else None
+        gamma = get("gamma"); tau1 = get("tau_1ghz"); alpha = get("alpha"); delta_dm = get("delta_dm")
+        model_sum = np.zeros_like(model.data)
+        for i in range(1, K+1):
+            c0 = get(f"c0_{i}"); t0 = get(f"t0_{i}"); zeta = get(f"zeta_{i}")
+            p = FRBParams(c0=c0, t0=t0, gamma=gamma, zeta=zeta, tau_1ghz=tau1, alpha=alpha, delta_dm=delta_dm)
+            model_sum = model_sum + model(p, "M3")
+        return model_sum
+
 def auto_burn_thin(sampler, safety_factor_burn=3.0, safety_factor_thin=0.5):
     try:
         tau = sampler.get_autocorr_time(tol=0.01)
@@ -521,22 +755,59 @@ def _main():
     p.add_argument("--steps", type=int, default=2000)
     p.add_argument("--f_factor", type=int, default=1)
     p.add_argument("--t_factor", type=int, default=1)
+    p.add_argument("--outer-trim", dest='outer_trim', type=float, help="Fraction to trim from each time edge (0-0.49)")
+    p.add_argument("--flip-freq", dest='flip_freq', action='store_true', help="Flip frequency axis (high at top)")
+    p.add_argument("--no-flip-freq", dest='flip_freq', action='store_false', help="Do not flip frequency axis")
+    # New modeling controls
+    p.add_argument("--alpha-fixed", type=float, default=None, help="Fix alpha frequency scaling exponent")
+    p.add_argument("--alpha-mu", type=float, default=4.4, help="Gaussian prior mean for alpha")
+    p.add_argument("--alpha-sigma", type=float, default=0.6, help="Gaussian prior sigma for alpha")
+    p.add_argument("--delta-dm-sigma", type=float, default=0.1, help="Top-hat prior sigma for delta DM (pc cm^-3)")
+    p.add_argument("--likelihood", type=str, choices=["gaussian","studentt"], default="gaussian")
+    p.add_argument("--studentt-nu", type=float, default=5.0, help="Student-t degrees of freedom")
+    p.add_argument("--no-logspace", dest='sample_log_params', action='store_false', help="Disable log-space sampling for positive params")
+    # Seeding / walkers
+    p.add_argument("--init-guess", type=Path, default=None, help="Path to JSON seed for initial guess (single or multi)")
+    p.add_argument("--walker-width-frac", type=float, default=0.01, help="Initial walker cloud width as fraction of prior span")
+    # Multi-component controls
+    p.add_argument("--ncomp", type=int, default=1, help="Number of Gaussian components (shared PBF)")
+    p.add_argument("--auto-components", action='store_true', help="Greedy BIC-based component selection (placeholder)")
+    # Earmarks / placeholders
+    p.add_argument("--anisotropy-enabled", action='store_true', help="Earmark: enable anisotropy option (not implemented)")
+    p.add_argument("--anisotropy-axial-ratio", type=float, default=1.0, help="Earmark: anisotropy axial ratio (not implemented)")
+    p.add_argument("--baseline-order", type=int, default=0, help="Earmark: polynomial baseline order to marginalize (not implemented)")
+    p.add_argument("--correlated-resid", action='store_true', help="Earmark: AR(1)/GP residual model (not implemented)")
+    p.add_argument("--sampler", type=str, choices=["emcee","nested"], default="emcee", help="Sampler choice (nested is a placeholder)")
     # Add flags for boolean pipeline controls
     p.add_argument("--no-scan", dest='model_scan', action='store_false')
     p.add_argument("--no-diag", dest='diagnostics', action='store_false')
     p.add_argument("--no-plot", dest='plot', action='store_false')
-    p.set_defaults(model_scan=True, diagnostics=True, plot=True)
+    p.set_defaults(model_scan=True, diagnostics=True, plot=True, flip_freq=True)
     args = p.parse_args()
     
     # --- FIX: Pass all arguments as a dict to the pipeline constructor ---
     # The new __init__ will sort them out automatically.
     pipeline_kwargs = vars(args)
     
+    # Extract required args and provide sensible defaults
+    inpath = pipeline_kwargs.pop('inpath')
+    outpath = pipeline_kwargs.pop('outpath') or inpath.parent
+    name = pipeline_kwargs.pop('frb') or inpath.stem
+    dm_init = pipeline_kwargs.pop('dm_init')
+
+    # Harmonize config key names for dataset constructor
+    telcfg_cli = pipeline_kwargs.pop('telcfg', None)
+    if telcfg_cli is not None:
+        pipeline_kwargs['telcfg_path'] = telcfg_cli
+    sampcfg_cli = pipeline_kwargs.pop('sampcfg', None)
+    if sampcfg_cli is not None:
+        pipeline_kwargs['sampcfg_path'] = sampcfg_cli
+
     pipe = BurstPipeline(
-        name=pipeline_kwars.pop('frb'),
-        inpath=pipeline_kwargs.pop('inpath'), # path is a positional arg
-        outpath=pipeline_kwargs.pop('outpath'),
-        dm_init=pipeline_kwargs.pop('dm_init'), # dm_init is also explicit
+        name=name,
+        inpath=inpath, # positional arg extracted above
+        outpath=outpath,
+        dm_init=dm_init,
         **pipeline_kwargs
     )
     

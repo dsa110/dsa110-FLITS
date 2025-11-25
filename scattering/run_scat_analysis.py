@@ -18,30 +18,33 @@ import sys
 import argparse
 from pathlib import Path
 import matplotlib.pyplot as plt
+import csv
 
-from scat_analysis.config_utils import (
-    Config,
-    PipelineOptions,
-    load_config,
-    load_sampler_block,
-    load_telescope_block,
-)
-
-# --- Ensure the project's root directory is in the Python path ---
-# This allows the script to be run from anywhere and still find the scat_analysis module.
-# It assumes this script is in the project root, and the package is in 'scat_analysis/'.
+# --- Package-relative imports (work via console-script entry point) ---
 try:
-    from scat_analysis.burstfit_pipeline import BurstPipeline
-    from scat_analysis.burstfit_corner import (
+    from .scat_analysis.burstfit_pipeline import BurstPipeline
+    from .scat_analysis.burstfit_corner import (
         quick_chain_check,
         get_clean_samples,
-        make_beautiful_corner
+        make_beautiful_corner,
     )
-except ImportError:
-    print("Error: Could not import the 'scat_analysis' package.")
-    print("Please ensure this script is in the project's root directory,")
-    print("or add the project root to your PYTHONPATH.")
-    sys.exit(1)
+except Exception:
+    # Fallback for direct execution without installation:
+    # add this directory to sys.path and import again
+    sys.path.insert(0, str(Path(__file__).parent))
+    try:
+        from scat_analysis.burstfit_pipeline import BurstPipeline
+        from scat_analysis.burstfit_corner import (
+            quick_chain_check,
+            get_clean_samples,
+            make_beautiful_corner,
+        )
+    except Exception as e:
+        print("Error: Could not import 'scat_analysis'.")
+        print("Try installing the package (pip install -e .) and using 'flits-scat',")
+        print("or run with: python -m FLITS.scattering.run_scat_analysis <args>.")
+        print(f"Details: {e}")
+        sys.exit(1)
 
 
 def main():
@@ -66,47 +69,108 @@ def main():
     parser.add_argument("--nproc", type=int, help="Override the number of cores.")
     parser.add_argument("--extend-chain", action='store_true', dest='extend_chain', default=None)
     parser.add_argument("--no-extend-chain", action='store_false', dest='extend_chain')
+    # New modeling controls
+    parser.add_argument("--alpha-fixed", type=float, default=None)
+    parser.add_argument("--alpha-mu", type=float, default=4.4)
+    parser.add_argument("--alpha-sigma", type=float, default=0.6)
+    parser.add_argument("--delta-dm-sigma", type=float, default=0.1)
+    parser.add_argument("--likelihood", choices=["gaussian","studentt"], default="gaussian")
+    parser.add_argument("--studentt-nu", type=float, default=5.0)
+    parser.add_argument("--no-logspace", dest='sample_log_params', action='store_false')
+    parser.add_argument("--ncomp", type=int, default=1, help="Number of Gaussian components (shared PBF)")
+    parser.add_argument("--auto-components", action='store_true', help="Greedy BIC-based component selection")
+    # Earmarks / placeholders
+    parser.add_argument("--anisotropy-enabled", action='store_true')
+    parser.add_argument("--anisotropy-axial-ratio", type=float, default=1.0)
+    parser.add_argument("--baseline-order", type=int, default=0)
+    parser.add_argument("--correlated-resid", action='store_true')
+    parser.add_argument("--sampler", choices=["emcee","nested"], default="emcee")
+    parser.add_argument("--init-guess", type=str, default=None, help="Path to JSON seed for initial guess")
+    parser.add_argument("--walker-width-frac", type=float, default=0.01, help="Fraction of prior span for walker init width")
     
     args = parser.parse_args()
 
     print(f"--- Loading configuration from: {args.config_path} ---")
     config = load_config(args.config_path)
 
-    # Optional overrides from CLI
-    if args.path:
-        config.path = Path(args.path)
-    if args.dm_init is not None:
-        config.dm_init = args.dm_init
-    if args.steps is not None:
-        config.pipeline.steps = args.steps
-    if args.nproc is not None:
-        config.pipeline.nproc = args.nproc
-    if args.extend_chain is not None:
-        config.pipeline.extend_chain = args.extend_chain
+    # --- Resolve config helper files (telescopes.yaml, sampler.yaml) ---
+    # Prefer CLI overrides; otherwise, search sensible locations relative to the
+    # run config path and this script's directory.
+    def _resolve_cfg(base_dir: Path, filename: str) -> Path:
+        candidates = [
+            base_dir / filename,
+            base_dir.parent / filename,
+            base_dir.parent.parent / filename,
+            Path(__file__).parent / "configs" / filename,
+        ]
+        for c in candidates:
+            if c.exists():
+                return c
+        # Fallback: return the first candidate even if missing; downstream code may handle
+        return candidates[-1]
 
-    # Overrides for telescope/sampler YAML paths
-    if args.telcfg:
-        config.telescope = load_telescope_block(args.telcfg, config.telescope.name)
-    if args.sampcfg:
-        config.sampler = load_sampler_block(args.sampcfg, config.sampler.name)
+    config_base_dir = args.config_path.parent
+    telcfg_path = Path(args.telcfg) if args.telcfg else _resolve_cfg(config_base_dir, "telescopes.yaml")
+    sampcfg_path = Path(args.sampcfg) if args.sampcfg else _resolve_cfg(config_base_dir, "sampler.yaml")
 
-    print(f"\n--- Starting analysis for: {config.path.name} ---")
+    # Add these paths to the config dictionary with names expected by BurstDataset
+    config['telcfg_path'] = telcfg_path
+    config['sampcfg_path'] = sampcfg_path
+    
+    # Override other config settings with command-line arguments
+    for key, value in vars(args).items():
+        if key not in ['config_path', 'telcfg', 'sampcfg'] and value is not None:
+            config[key] = value
+            print(f"  -> Overriding '{key}' with command-line value: {value}")
+            
+    if 'path' not in config:
+        raise ValueError("Data file 'path' must be specified in the YAML config or via --path.")
 
-    pipe = BurstPipeline(
-        inpath=config.path,
-        outpath=config.path.parent,
-        name=config.path.stem,
-        dm_init=config.dm_init,
-        telescope=config.telescope,
-        sampler=config.sampler,
-        steps=config.pipeline.steps,
-        f_factor=config.pipeline.f_factor,
-        t_factor=config.pipeline.t_factor,
-        nproc=config.pipeline.nproc,
-        extend_chain=config.pipeline.extend_chain,
-        chunk_size=config.pipeline.chunk_size,
-        max_chunks=config.pipeline.max_chunks,
-    )
+    # --- Run the Pipeline ---
+    data_path = Path(config.pop('path'))
+    dm_in_cfg = 'dm_init' in config
+    dm_init = config.pop('dm_init', None)
+    outpath = Path(config.pop('outpath', data_path.parent))
+    frb_name = config.pop('frb', data_path.stem)
+    
+    print(f"\n--- Starting analysis for: {data_path.name} ---")
+
+    # Optional: auto-populate dm_init from burst_props.csv if not provided
+    try:
+        # Resolve CSV path within the repo
+        flits_root = Path(__file__).resolve().parents[1]
+        csv_candidates = [
+            flits_root / 'scintillation' / 'burst_props.csv',
+            flits_root.parent / 'scintillation' / 'burst_props.csv',
+        ]
+        csv_path = next((p for p in csv_candidates if p.exists()), None)
+        if csv_path is not None:
+            with csv_path.open('r', encoding='utf-8') as fh:
+                reader = csv.DictReader(fh)
+                def _norm_key(k):
+                    return ''.join(ch for ch in k.lower() if ch.isalnum())
+                rows = [{_norm_key(k): v for k, v in r.items()} for r in reader]
+                # Find row by name
+                key_name = frb_name.strip().lower()
+                hit = next((r for r in rows if r.get('names', '').strip().lower() == key_name), None)
+                if hit is not None and not dm_in_cfg and dm_init is None:
+                    val = hit.get('dmopt') or hit.get('dmheimdall')
+                    if val:
+                        # Strip non-numeric
+                        v = ''.join(ch for ch in val if (ch.isdigit() or ch in '.-'))
+                        try:
+                            dm_init = float(v)
+                            print(f"  -> Using DM from burst_props.csv for '{frb_name}': {dm_init}")
+                        except ValueError:
+                            pass
+    except Exception as e:
+        # Non-fatal; continue without CSV metadata
+        print(f"(warn) Unable to read burst_props.csv: {e}")
+
+    if dm_init is None:
+        dm_init = 0.0
+
+    pipe = BurstPipeline(inpath=data_path, outpath=outpath, name=frb_name, dm_init=dm_init, **config)
     results = pipe.run_full(
         model_scan=config.pipeline.model_scan,
         diagnostics=config.pipeline.diagnostics,

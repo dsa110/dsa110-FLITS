@@ -64,26 +64,83 @@ log.setLevel(logging.INFO)
 
 # ## REFACTOR ##: This is the correct, module-level wrapper for emcee + multiprocessing.
 # It takes the model object itself as an argument, making it stateless and pickleable.
-def _log_prob_wrapper(theta, model, priors, order, key, log_weight_pos):
+def _log_prob_wrapper(theta_raw, model, priors, order, key, log_weight_pos,
+                      log_params_names=None, alpha_gauss=None, likelihood_kind="gaussian", student_nu=5.0,
+                      param_mode="single", K: int = 1):
     """Module-level function for multiprocessing compatibility."""
-    
+    # Map raw parameters (possibly in log-space) to linear domain
+    names = order[key]
+    log_params_names = set(log_params_names or [])
+    theta = []
+    for raw, name in zip(theta_raw, names):
+        if name in log_params_names:
+            theta.append(np.exp(raw))
+        else:
+            theta.append(raw)
+
     logp = 0.0
-    
-    # 1. Check priors
-    for value, name in zip(theta, order[key]):
+
+    # 1. Check top-hat priors
+    for value, name in zip(theta, names):
         lo, hi = priors[name]
         if not (lo <= value <= hi):
             return -np.inf
-        
-    # optional Jeffreys 1/x weight while *still* sampling x linearly
-    if log_weight_pos:
-        for name, v in zip(order[key], theta):
-            if name in _POSITIVE:
-                logp += -np.log(v)          # p(x) ∝ 1/x
 
-    # 2. Compute likelihood
-    params = FRBParams.from_sequence(theta, key)
-    return model.log_likelihood(params, key)
+    # 2. Optional Gaussian prior on alpha
+    if alpha_gauss is not None and ("alpha" in names):
+        mu, sigma = alpha_gauss
+        if sigma is not None and sigma > 0:
+            idx = names.index("alpha")
+            a = theta[idx]
+            logp += -0.5 * ((a - mu) / sigma) ** 2 - np.log(sigma * np.sqrt(2 * np.pi))
+
+    # 3. Jeffreys 1/x weight for positive params (still sampling in linear units)
+    if log_weight_pos:
+        for name, v in zip(names, theta):
+            if name in _POSITIVE:
+                logp += -np.log(max(v, 1e-30))
+
+    # 4. Compute likelihood
+    if param_mode == "single":
+        params = FRBParams.from_sequence(theta, key)
+        if likelihood_kind == "gaussian":
+            return logp + model.log_likelihood(params, key)
+        elif likelihood_kind == "studentt":
+            return logp + model.log_likelihood_student_t(params, key, nu=float(student_nu))
+        else:
+            return logp + model.log_likelihood(params, key)
+    else:
+        # multi-component: parse shared + component params and sum models
+        # shared
+        def get(name):
+            return theta[names.index(name)] if name in names else None
+        gamma = get("gamma") if "gamma" in names else -1.6
+        tau1 = get("tau_1ghz") if "tau_1ghz" in names else 0.0
+        alpha = get("alpha") if "alpha" in names else 4.4
+        delta_dm = get("delta_dm") if "delta_dm" in names else 0.0
+        # sum components
+        model_sum = np.zeros_like(model.data)
+        for idx in range(1, int(K)+1):
+            c0 = get(f"c0_{idx}")
+            t0 = get(f"t0_{idx}")
+            zeta = get(f"zeta_{idx}")
+            if c0 is None or t0 is None or zeta is None:
+                continue
+            p_i = FRBParams(c0=c0, t0=t0, gamma=gamma, zeta=zeta, tau_1ghz=tau1, alpha=alpha, delta_dm=delta_dm)
+            model_sum = model_sum + model(p_i, "M3")
+        # compute likelihood against summed model
+        if likelihood_kind == "gaussian":
+            noise_std_safe = np.clip(model.noise_std, 1e-9, None)
+            resid = (model.data - model_sum) / noise_std_safe[:, None]
+            return logp + (-0.5 * np.sum(resid ** 2))
+        else:
+            # student-t
+            noise_std_safe = np.clip(model.noise_std, 1e-9, None)
+            resid = (model.data - model_sum) / noise_std_safe[:, None]
+            r2_over_nu = (resid ** 2) / float(student_nu)
+            term = -0.5 * (float(student_nu) + 1.0) * np.log1p(r2_over_nu)
+            const = -0.5 * model.data.size * np.log(float(student_nu) * np.pi) - np.sum(np.log(noise_std_safe))
+            return logp + const + float(np.sum(term))
 
 # ----------------------------------------------------------------------
 # Dataclass – model parameters
@@ -96,6 +153,8 @@ class FRBParams:
     gamma: float
     zeta: float = 0.0
     tau_1ghz: float = 0.0
+    alpha: float = 4.4       # frequency scaling exponent τ ∝ ν^{-alpha}
+    delta_dm: float = 0.0    # residual DM error around dm_init
 
     # ## FIX ##: Added the to_sequence method that was missing.
     def to_sequence(self, model_key: str = "M3") -> Sequence[float]:
@@ -104,7 +163,8 @@ class FRBParams:
             "M0": ("c0", "t0", "gamma"),
             "M1": ("c0", "t0", "gamma", "zeta"),
             "M2": ("c0", "t0", "gamma", "tau_1ghz"),
-            "M3": ("c0", "t0", "gamma", "zeta", "tau_1ghz"),
+            # M3 now includes alpha and delta_dm as part of the parameterization
+            "M3": ("c0", "t0", "gamma", "zeta", "tau_1ghz", "alpha", "delta_dm"),
         }
         return [getattr(self, k) for k in key_map[model_key]]
 
@@ -118,7 +178,7 @@ class FRBParams:
             "M0": ("c0", "t0", "gamma"),
             "M1": ("c0", "t0", "gamma", "zeta"),
             "M2": ("c0", "t0", "gamma", "tau_1ghz"),
-            "M3": ("c0", "t0", "gamma", "zeta", "tau_1ghz"),
+            "M3": ("c0", "t0", "gamma", "zeta", "tau_1ghz", "alpha", "delta_dm"),
         }
         kwargs = {k: v for k, v in zip(key_map[model_key], seq)}
         # fill optional keys with defaults
@@ -205,7 +265,8 @@ class FRBModel:
         """Return model dynamic spectrum for parameters *p*."""
         ref_freq = np.median(self.freq)
         amp = p.c0 * (self.freq / ref_freq) ** p.gamma
-        mu = p.t0 + self._dispersion_delay(0.0)[:, None]
+        # include residual DM offset around dm_init
+        mu = p.t0 + self._dispersion_delay(p.delta_dm)[:, None]
 
         if model_key in {"M1", "M3"}:
             sig = self._smearing_sigma(self.dm_init, p.zeta)[:, None]
@@ -227,6 +288,8 @@ class FRBModel:
 
         if model_key in {"M2", "M3"} and p.tau_1ghz > 1e-6:
             alpha = 4.0
+            # use parameterized frequency scaling exponent for scattering
+            alpha = getattr(p, "alpha", 4.4)
             tau = p.tau_1ghz * (self.freq / 1.0) ** (-alpha)
             t_kernel = self.time - self.time[0]
 
@@ -254,6 +317,18 @@ class FRBModel:
         resid = (self.data - self(p, model)) / noise_std_safe[:, None]
         return -0.5 * np.sum(resid ** 2)
 
+    def log_likelihood_student_t(self, p: FRBParams, model: str = "M3", nu: float = 5.0) -> float:
+        if self.data is None or self.noise_std is None:
+            raise RuntimeError("need observed data + noise_std for likelihood")
+        noise_std_safe = np.clip(self.noise_std, 1e-9, None)
+        resid = (self.data - self(p, model)) / noise_std_safe[:, None]
+        # Student-t log-pdf up to constant per element
+        # logL = sum( - (nu+1)/2 * log(1 + r^2/nu) ) - N * 0.5*log(nu*pi) - sum(log(sigma))
+        r2_over_nu = (resid ** 2) / nu
+        term = -0.5 * (nu + 1.0) * np.log1p(r2_over_nu)
+        const = -0.5 * self.data.size * np.log(nu * np.pi) - np.sum(np.log(noise_std_safe))
+        return const + float(np.sum(term))
+
 # ----------------------------------------------------------------------
 # Sampler wrapper
 # ----------------------------------------------------------------------
@@ -263,7 +338,8 @@ class FRBFitter:
         "M0": ("c0", "t0", "gamma"),
         "M1": ("c0", "t0", "gamma", "zeta"),
         "M2": ("c0", "t0", "gamma", "tau_1ghz"),
-        "M3": ("c0", "t0", "gamma", "zeta", "tau_1ghz"),
+        # M3 extended to include alpha and delta_dm
+        "M3": ("c0", "t0", "gamma", "zeta", "tau_1ghz", "alpha", "delta_dm"),
     }
 
     def __init__(
@@ -275,6 +351,11 @@ class FRBFitter:
         n_walkers_mult: int = 8,
         pool=None,
         log_weight_pos=False,
+        sample_log_params: bool = True,
+        alpha_prior: Tuple[float, float] | None = None,
+        likelihood_kind: str = "gaussian",
+        student_nu: float = 5.0,
+        walker_width_frac: float = 0.01,
         **kwargs
     ):
         self.model = model
@@ -283,37 +364,86 @@ class FRBFitter:
         self.n_walkers_mult = n_walkers_mult
         self.pool = pool
         self.log_weight_pos = log_weight_pos
+        self.sample_log_params = sample_log_params
+        self._log_param_names = {"c0", "zeta", "tau_1ghz"} if sample_log_params else set()
+        self.alpha_prior = alpha_prior
+        self.likelihood_kind = likelihood_kind
+        self.student_nu = student_nu
+        self.custom_order: dict[str, tuple[str, ...]] = {}
+        self.walker_width_frac = max(1e-4, float(walker_width_frac))
 
-    def _init_walkers(self, p0: FRBParams, key: str, nwalk: int):
-        names = self._ORDER[key]
-        centre = np.array([getattr(p0, n) for n in names])
-        # Use 1% of prior range for initial walker ball size
-        widths = np.array([0.01 * (self.priors[n][1] - self.priors[n][0]) for n in names])
+    def _init_walkers(self, p0, key: str, nwalk: int):
+        names = self._ORDER[key] if key in self._ORDER else self.custom_order[key]
         lower, upper = zip(*(self.priors[n] for n in names))
+        lower = np.array(lower, dtype=float)
+        upper = np.array(upper, dtype=float)
 
-        # Ensure widths are not zero
-        widths = np.clip(widths, 1e-6, None)
+        centre = []
+        widths = []
+        frac = self.walker_width_frac
+        for i, n in enumerate(names):
+            if hasattr(p0, n):
+                val = getattr(p0, n)
+            elif isinstance(p0, dict):
+                val = p0.get(n, (lower[i] + upper[i]) / 2.0)
+            else:
+                val = (lower[i] + upper[i]) / 2.0
+            if n in self._log_param_names:
+                lo = max(lower[i], 1e-30)
+                hi = max(upper[i], lo * (1.0 + 1e-6))
+                centre.append(np.log(max(val, 1e-30)))
+                widths.append(frac * (np.log(hi) - np.log(lo)))
+            else:
+                centre.append(val)
+                widths.append(frac * (upper[i] - lower[i]))
+
+        centre = np.array(centre)
+        widths = np.clip(np.array(widths), 1e-6, None)
 
         walkers = np.random.normal(centre, widths, size=(nwalk, len(names)))
-        return np.clip(walkers, lower, upper)
 
-    def sample(self, p0: FRBParams, model_key: str = "M3"):
+        # Clip in appropriate domain
+        for j, n in enumerate(names):
+            if n in self._log_param_names:
+                walkers[:, j] = np.clip(walkers[:, j], np.log(max(lower[j], 1e-30)), np.log(max(upper[j], 1e-30)))
+            else:
+                walkers[:, j] = np.clip(walkers[:, j], lower[j], upper[j])
+
+        return walkers
+
+    def sample(self, p0, model_key: str = "M3"):
         """Run the MCMC sampler."""
-        names = self._ORDER[model_key]
+        names = self._ORDER[model_key] if model_key in self._ORDER else self.custom_order[model_key]
         ndim = len(names)
         nwalk = max(self.n_walkers_mult * ndim, 2 * ndim)
 
         p_walkers = self._init_walkers(p0, model_key, nwalk)
 
+        # log-params by full name
+        log_param_fullnames = set()
+        if self.sample_log_params:
+            base = self._log_param_names
+            for n in names:
+                root = n.split('_')[0]
+                if root in base:
+                    log_param_fullnames.add(n)
+
         sampler = emcee.EnsembleSampler(
             nwalkers=nwalk,
             ndim=ndim,
             log_prob_fn=_log_prob_wrapper,
-            args=(self.model, self.priors, self._ORDER, model_key, self.log_weight_pos),
+            args=(self.model, self.priors, (self.custom_order if model_key in self.custom_order else self._ORDER), model_key, self.log_weight_pos, list(log_param_fullnames), self.alpha_prior, self.likelihood_kind, self.student_nu, "multi" if model_key=="M3_multi" else "single", len(names) if model_key=="M3_multi" else 1),
             pool=self.pool,
         )
         sampler.run_mcmc(p_walkers, self.n_steps, progress=True)
         return sampler
+
+    def build_multicomp_order(self, K: int) -> tuple[str, ...]:
+        order = ["gamma", "tau_1ghz", "alpha", "delta_dm"]
+        for i in range(1, K+1):
+            order.extend([f"c0_{i}", f"t0_{i}", f"zeta_{i}"])
+        self.custom_order["M3_multi"] = tuple(order)
+        return self.custom_order["M3_multi"]
 
 # ----------------------------------------------------------------------
 # Helpers

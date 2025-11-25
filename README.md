@@ -93,3 +93,36 @@ Please cite **Faber et al., *in prep.* (2025)** if you use this code.
 
 
 These scripts contain helper functions that facilitate the analysis of burst properties within the PARSEC dashboard (see dsa110-pol repository).
+
+---
+
+## Scattering: new options (v0.1)
+
+CLI flags in `scattering/run_scat_analysis.py` and `scat_analysis/burstfit_pipeline.py`:
+
+- Alpha controls
+  - `--alpha-fixed <val>`: fix frequency scaling exponent α (τ ∝ ν^-α)
+  - `--alpha-mu <4.4>` / `--alpha-sigma <0.6>`: Gaussian prior for α when free
+
+- DM offset
+  - `--delta-dm-sigma <0.1>`: top-hat prior half-width for δDM around dm_init
+
+- Likelihood
+  - `--likelihood {gaussian,studentt}`: residual likelihood
+  - `--studentt-nu <5.0>`: degrees of freedom for Student‑t
+
+- Sampling
+  - `--no-logspace`: disable log-space sampling for positive params
+
+- Multi-component bursts (shared PBF)
+  - `--ncomp K`: fit K Gaussian components sharing (τ_1GHz, α, δDM)
+  - `--auto-components`: placeholder for greedy BIC selection (earmarked)
+
+- Earmarks / future
+  - `--sampler nested`: nested sampling route (earmarked)
+  - `--anisotropy-enabled`, `--anisotropy-axial-ratio`: anisotropic kernels (earmarked)
+  - `--baseline-order`, `--correlated-resid`: baseline marginalization & correlated residuals (earmarked)
+
+Diagnostics:
+- Residual ACF panel now includes PPC envelope (median and 5–95%).
+- Δν_d diagnostic reported from τ via 2π τ Δν_d ≈ 1.16 (report only).

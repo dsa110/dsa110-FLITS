@@ -15,7 +15,7 @@ analysis:
     - 1261
     manual_noise_window:
     - 0
-    - 624
+    - 1236
   acf:
     num_subbands: 4
     max_lag_mhz: 200.0
@@ -84,22 +84,22 @@ analysis:
         - -10.01
         - 9.99
       Lorentzian:
-        reference_frequency_mhz: 1356.6828097021
+        reference_frequency_mhz: 1331.9748087253786
         best_fit_params:
           l_1_gamma:
-            value: 0.1259365020458354
-            stderr: 0.020673340258460453
+            value: 0.36102078965230233
+            stderr: 0.04955647380905442
           l_1_m:
-            value: 0.16903446121749055
-            stderr: 0.009804063201197206
+            value: 0.1830091039038595
+            stderr: 0.008961999656878734
           c_c:
-            value: 0.01705349643387347
-            stderr: 0.0005190335695021524
-        redchi: 0.5750188380370569
-        bic: -60.36837596756461
+            value: -0.0009733264670187456
+            stderr: 0.000261112842706614
+        redchi: 1.166876695676025
+        bic: 437.3942121764188
         fit_range_mhz:
-        - -1.96
-        - 2.04
+        - -52.77348201204621
+        - 52.77348201204621
       Lorentzian+Power-Law:
         reference_frequency_mhz: 1339.6512290411852
         best_fit_params:
@@ -174,22 +174,22 @@ analysis:
         - 25.00419990232784
     subband_1:
       Lorentzian:
-        reference_frequency_mhz: 1450.4480709750935
+        reference_frequency_mhz: 1377.5144473384337
         best_fit_params:
           l_1_gamma:
-            value: 0.21824636653311025
-            stderr: 0.03872463063709432
+            value: 0.9947027282968122
+            stderr: 0.20523440878278404
           l_1_m:
-            value: 0.17233296268891585
-            stderr: 0.01017000496460049
+            value: 0.11734671726995405
+            stderr: 0.00812416286513577
           c_c:
-            value: 0.028220448474711616
-            stderr: 0.0007933288707040189
-        redchi: 0.6262833921413189
-        bic: -49.26635390684519
+            value: -0.0012314290422154287
+            stderr: 0.00025919841629779873
+        redchi: 1.1464184050269108
+        bic: 464.7961975641823
         fit_range_mhz:
-        - -1.96
-        - 2.04
+        - -52.77348201204621
+        - 52.77348201204621
       Lorentzian+Lorentzian:
         reference_frequency_mhz: 1377.560231157415
         best_fit_params:

@@ -19,3 +19,9 @@ from .pipeline import ScintillationAnalysis
 
 # Key plotting functions from plotting.py
 from .plotting import plot_analysis_overview, plot_noise_distribution
+
+# Interactive widgets for manual analysis (requires ipywidgets)
+try:
+    from . import widgets
+except ImportError:
+    widgets = None  # widgets module unavailable without ipywidgets

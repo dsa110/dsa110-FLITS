@@ -4,6 +4,8 @@
 import numpy as np
 import logging
 
+log = logging.getLogger(__name__)
+
 try:
     import numba as nb
     _NUMBA = True
@@ -20,8 +22,6 @@ from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
 from scipy.odr import RealData, ODR, Model as ModelODR
 from typing import Dict, Callable, Optional, Tuple
-
-log = logging.getLogger(__name__)
 
 # -------------------------
 # --- Model Definitions ---
@@ -991,3 +991,141 @@ def analyze_intra_pulse_scintillation(masked_spectrum, burst_lims, config, noise
     log.info(f"Intra-pulse analysis complete. Found results for {len(results)} time slices.")
     return results
 
+
+
+# ==============================================================================
+# Fit Loading and Reconstruction (Added from notebook refactoring)
+# ==============================================================================
+
+def load_saved_fit(config_path, subband_index, model_name, lags, model_config=None):
+    """
+    Load a saved fit from YAML config and reconstruct the model curves.
+    
+    This function reads fit results stored in the YAML configuration,
+    rebuilds the lmfit composite model, and evaluates it to regenerate
+    the best-fit curve and component curves for plotting.
+    
+    Parameters
+    ----------
+    config_path : str or Path
+        Path to the YAML configuration file containing stored fits
+    subband_index : int
+        Index of the sub-band (0-indexed)
+    model_name : str
+        Name of the model fit to load, e.g. "Lorentzian+Gaussian"
+        This should match the key under stored_fits.subband_{i}
+    lags : np.ndarray
+        Lag array (MHz) on which to evaluate the model
+    model_config : dict, optional
+        Model configuration dictionary. If None, uses the default from widgets module.
+        Format: {name: {'func': callable, 'prefix': str, 'param_names': list}}
+    
+    Returns
+    -------
+    dict or None
+        Dictionary containing:
+        - 'best_fit_curve': np.ndarray - composite model evaluated on lags
+        - 'component_curves': dict - individual component curves
+        - 'redchi': float - reduced chi-squared
+        - 'bic': float - Bayesian Information Criterion  
+        - 'params': dict - parameter values and errors
+        - 'fit_range_mhz': list - lag range used for fitting
+        
+        Returns None if the fit cannot be found or loaded.
+    
+    Examples
+    --------
+    >>> from scint_analysis import analysis, plotting
+    >>> lags = acf_obj.lags
+    >>> fit_data = analysis.load_saved_fit(
+    ...     "configs/bursts/freya_dsa.yaml",
+    ...     subband_index=0,
+    ...     model_name="Lorentzian+Gaussian",
+    ...     lags=lags
+    ... )
+    >>> if fit_data:
+    ...     plotting.plot_publication_acf(acf_obj, **fit_data)
+    """
+    import yaml
+    from pathlib import Path
+    from lmfit import Model
+    from lmfit.models import ConstantModel
+    
+    # Use default model config if not provided
+    if model_config is None:
+        try:
+            from .widgets import DEFAULT_MODEL_CONFIG
+            model_config = DEFAULT_MODEL_CONFIG
+        except ImportError:
+            # Fallback: define minimal config
+            model_config = {
+                "Lorentzian": dict(func=lorentzian_component, prefix="l_", param_names=["gamma", "m"]),
+                "Gaussian": dict(func=gaussian_component, prefix="g_", param_names=["sigma", "m"]),
+                "Gen-Lorentz": dict(func=lorentzian_generalised, prefix="lg_", param_names=["gamma", "alpha", "m"]),
+                "Power-Law": dict(func=power_law_model, prefix="p_", param_names=["c", "n"]),
+            }
+    
+    config_path = Path(config_path)
+    
+    # Load YAML config
+    try:
+        with open(config_path, 'r') as f:
+            config_data = yaml.safe_load(f)
+    except Exception as e:
+        logging.error(f"Failed to load config from {config_path}: {e}")
+        return None
+    
+    # Extract fit data
+    try:
+        fit_data = config_data['analysis']['stored_fits'][f'subband_{subband_index}'][model_name]
+        saved_params = fit_data['best_fit_params']
+        redchi = fit_data.get('redchi', np.nan)
+        bic = fit_data.get('bic', np.nan)
+        fit_range = fit_data.get('fit_range_mhz', [lags.min(), lags.max()])
+    except KeyError as e:
+        logging.error(f"Could not find saved fit for sub-band {subband_index} with model '{model_name}': {e}")
+        return None
+    
+    # Rebuild the lmfit composite model
+    component_keys = model_name.split('+')
+    signal_model = None
+    
+    for i, key in enumerate(component_keys, start=1):
+        if key not in model_config:
+            logging.warning(f"Unknown model component '{key}', skipping")
+            continue
+        
+        cfg = model_config[key]
+        m = Model(cfg["func"], prefix=f"{cfg['prefix']}{i}_")
+        
+        if signal_model is None:
+            signal_model = m
+        else:
+            signal_model += m
+    
+    if signal_model is None:
+        logging.error(f"No valid signal models found in '{model_name}'")
+        return None
+    
+    # Add constant offset
+    const_model = ConstantModel(prefix='c_')
+    composite_model = signal_model + const_model
+    params = composite_model.make_params()
+    
+    # Set parameter values from saved dictionary
+    for param_name, param_info in saved_params.items():
+        if param_name in params:
+            params[param_name].set(value=param_info['value'])
+    
+    # Evaluate curves
+    best_fit_curve = composite_model.eval(params=params, x=lags)
+    component_curves = composite_model.eval_components(params=params, x=lags)
+    
+    return {
+        "best_fit_curve": best_fit_curve,
+        "component_curves": component_curves,
+        "redchi": redchi,
+        "bic": bic,
+        "params": saved_params,
+        "fit_range_mhz": fit_range,
+    }

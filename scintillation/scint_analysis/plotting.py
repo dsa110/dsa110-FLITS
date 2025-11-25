@@ -734,3 +734,225 @@ def plot_baseline_fit(
     
     plt.show()
     plt.close(fig)
+
+# ==============================================================================
+# Publication-Quality ACF Plotting (Added from notebook refactoring)
+# ==============================================================================
+
+def format_error(value, error):
+    """
+    Format a value and its error using compact notation X(err).
+    
+    Examples: 17.3 ± 1.5 → "17.3(15)"
+              0.3346 ± 0.0429 → "0.335(43)"
+    
+    Parameters
+    ----------
+    value : float
+        The central value
+    error : float or None
+        The uncertainty
+    
+    Returns
+    -------
+    str
+        Formatted string with compact error notation
+    """
+    if error is None or not np.isfinite(error) or error <= 0:
+        return f"{value:.3f}"
+    
+    # Determine number of decimal places based on error magnitude
+    decimals = -int(np.floor(np.log10(error))) + 1
+    decimals = max(0, decimals)
+    
+    value_str = f"{value:.{decimals}f}"
+    error_int = int(round(error * (10**decimals)))
+    
+    return f"{value_str}({error_int})"
+
+
+def plot_publication_acf(
+    acf_obj,
+    best_fit_curve,
+    component_curves,
+    params,
+    fit_range_mhz,
+    redchi=None,
+    zoom_lag_range_mhz=(-20, 20),
+    center_freq_ghz=1.4,
+    save_path=None
+):
+    """
+    Generate a publication-quality 3-panel ACF plot.
+    
+    Creates a comprehensive visualization with:
+    - Panel a: Full ACF range with fit and zoom indicator
+    - Panel b: Zoomed view showing component breakdown and parameters
+    - Panel c: Fit residuals with chi-squared statistic
+    
+    Parameters
+    ----------
+    acf_obj : ACF
+        ACF object containing lags, acf, and optionally err arrays
+    best_fit_curve : np.ndarray
+        Best-fit composite model evaluated on acf_obj.lags
+    component_curves : dict
+        Dictionary of component curves, e.g. {'l_1_': array, 'g_2_': array, 'c_': array}
+    params : dict
+        Best-fit parameters, format: {name: {'value': float, 'stderr': float}}
+    fit_range_mhz : list or tuple
+        [min_lag, max_lag] range used for fitting
+    redchi : float, optional
+        Reduced chi-squared of the fit
+    zoom_lag_range_mhz : tuple, optional
+        Lag range for zoomed panel b. Default is (-20, 20) MHz
+    center_freq_ghz : float, optional
+        Center frequency for plot title. Default is 1.4 GHz
+    save_path : str or Path, optional
+        If provided, save the figure to this path
+    """
+    plot_mask = (acf_obj.lags != 0)
+    
+    # Convert to modulation index space (m^2 → m)
+    m_data = np.sqrt(np.maximum(0, acf_obj.acf))
+    m_fit_curve = np.sqrt(np.maximum(0, best_fit_curve))
+    m_component_curves = {
+        key: np.sqrt(np.maximum(0, curve))
+        for key, curve in component_curves.items()
+    }
+    
+    # Propagate errors: σ_m = σ_{m^2} / (2*m)
+    m_err = None
+    if acf_obj.err is not None:
+        m_err = np.divide(acf_obj.err, 2 * m_data, out=np.zeros_like(m_data), where=(m_data != 0))
+    
+    residuals = m_data - m_fit_curve
+    full_lag_range_mhz = (acf_obj.lags.min(), acf_obj.lags.max())
+    
+    # Generate legend label
+    shape_component_keys = sorted([k for k in component_curves if 'c_' not in k])
+    label_parts = []
+    model_map = {'l_': 'L', 'g_': 'G', 'lg_': 'L_{\\mathrm{gen}}', 'p_': 'P'}
+    
+    for prefix in shape_component_keys:
+        base_prefix = prefix.split('_')[0] + '_'
+        index = prefix.split('_')[1]
+        symbol = model_map.get(base_prefix, '?')
+        label_parts.append(f"$\\mathcal{{{symbol}}}_{{{index}}}$")
+    
+    if 'c_' in component_curves:
+        label_parts.append("$c$")
+    
+    composite_label = "Fit: " + " + ".join(label_parts)
+    
+    # Create figure
+    fig, (ax_a, ax_b, ax_c) = plt.subplots(
+        3, 1, figsize=(10, 8), sharex=False,
+        gridspec_kw={'height_ratios': [2, 3, 1.5]},
+        constrained_layout=True
+    )
+    
+    colors = plt.get_cmap('plasma')(np.linspace(0.25, 0.75, 6))
+    
+    # Panel a: Wide View
+    if acf_obj.err is not None:
+        ax_a.errorbar(acf_obj.lags[plot_mask], acf_obj.acf[plot_mask],
+                     yerr=acf_obj.err[plot_mask], fmt='none', capsize=2,
+                     ecolor='lightgrey', alpha=1)
+    ax_a.plot(acf_obj.lags[plot_mask], acf_obj.acf[plot_mask],
+             color=colors[0], alpha=0.6, lw=1)
+    ax_a.plot(acf_obj.lags, best_fit_curve, 'k-', lw=1.5, label=composite_label)
+    ax_a.axvspan(zoom_lag_range_mhz[0], zoom_lag_range_mhz[1],
+                color=colors[1], alpha=0.3, hatch='//', zorder=-1,
+                label='Zoom In ($\\mathbf{b}$)')
+    
+    ax_a.set_xlim(acf_obj.lags.min(), acf_obj.lags.max())
+    ax_a.set_ylabel("ACF$~$ ($m^{2}$)")
+    ax_a.legend(loc='upper right', frameon=True, fancybox=True, framealpha=0.8,
+               facecolor='white', edgecolor='black', borderpad=0.3, fontsize='small')
+    ax_a.text(0.02, 0.9, "a", transform=ax_a.transAxes, fontsize=20,
+             fontweight='bold', va='top')
+    
+    mask_a_zoom = (acf_obj.lags >= full_lag_range_mhz[0]) & (acf_obj.lags <= full_lag_range_mhz[1])
+    if np.any(mask_a_zoom):
+        min_val_a = np.min(acf_obj.acf[mask_a_zoom]) / 2
+        max_val_a = np.max(acf_obj.acf[mask_a_zoom]) / 2
+        padding_a = (max_val_a - min_val_a) * 0.1
+        ax_a.set_ylim(min_val_a - padding_a, max_val_a + padding_a)
+    
+    # Panel b: Zoomed View
+    if acf_obj.err is not None:
+        ax_b.errorbar(acf_obj.lags[plot_mask], acf_obj.acf[plot_mask],
+                     yerr=acf_obj.err[plot_mask], fmt='none', capsize=2,
+                     ecolor='lightgrey', alpha=1)
+    ax_b.plot(acf_obj.lags[plot_mask], acf_obj.acf[plot_mask],
+             color=colors[2], alpha=0.6, lw=1)
+    ax_b.plot(acf_obj.lags, best_fit_curve, 'k-', lw=2, label=composite_label)
+    
+    log.info("--- Fitted Decorrelation Bandwidths ---")
+    for i, prefix in enumerate(shape_component_keys):
+        color = colors[i]
+        width_param_name = None
+        for pname in params:
+            if pname.startswith(prefix) and ('gamma' in pname or 'sigma' in pname):
+                width_param_name = pname
+                break
+        
+        if width_param_name and width_param_name in params:
+            param_info = params[width_param_name]
+            gamma_val = param_info['value']
+            gamma_err = param_info['stderr']
+            
+            gamma_val_khz = gamma_val * 1000
+            gamma_err_khz = gamma_err * 1000 if gamma_err is not None else 0.0
+            label_text = f"$\\gamma_{i+1}$ = {format_error(gamma_val_khz, gamma_err_khz)} kHz"
+            
+            ax_b.plot(acf_obj.lags, m_component_curves[prefix],
+                     color=color, lw=2.0, linestyle='--', label=label_text)
+            log.info(f"  {label_text}")
+    
+    ax_b.axvspan(fit_range_mhz[0], fit_range_mhz[1], color=colors[3],
+                alpha=0.3, hatch='//', zorder=-1, label='$\\chi^2_r$ Fit Range')
+    ax_b.set_xlim(fit_range_mhz[0]-5, fit_range_mhz[1]+5)
+    ax_b.set_ylabel("ACF$~$ ($m^{2}$)")
+    ax_b.legend(loc='upper right', frameon=True, fancybox=True, framealpha=0.8,
+               facecolor='white', edgecolor='black', borderpad=0.3, fontsize='small')
+    ax_b.text(0.02, 0.95, "b", transform=ax_b.transAxes, fontsize=20,
+             fontweight='bold', va='top')
+    
+    mask_b_zoom = (acf_obj.lags >= zoom_lag_range_mhz[0]) & (acf_obj.lags <= zoom_lag_range_mhz[1])
+    if np.any(mask_b_zoom):
+        min_val = np.min(acf_obj.acf[mask_b_zoom & plot_mask])
+        max_val = np.max(acf_obj.acf[mask_b_zoom & plot_mask])
+        padding = (max_val - min_val) * 0.1
+        ax_b.set_ylim(min_val - padding, max_val + padding)
+    
+    # Panel c: Residuals
+    ax_c.plot(acf_obj.lags[plot_mask], residuals[plot_mask],
+             color=colors[4], alpha=0.8, lw=1)
+    ax_c.axhline(0, color='k', linestyle='--', lw=1)
+    ax_c.set_xlim(zoom_lag_range_mhz)
+    
+    mask_c_zoom = (acf_obj.lags >= zoom_lag_range_mhz[0]) & (acf_obj.lags <= zoom_lag_range_mhz[1])
+    if np.any(mask_c_zoom):
+        max_abs_resid = np.max(np.abs(residuals[mask_c_zoom & plot_mask]))
+        ax_c.set_ylim(-max_abs_resid * 1.2, max_abs_resid * 1.2)
+    
+    if redchi is not None:
+        ax_c.text(0.825, 0.9, f"$\\chi_r^2$= {redchi:.2f}",
+                 transform=ax_c.transAxes, ha='left', va='top',
+                 bbox=dict(facecolor='white', alpha=0.8, boxstyle='round,pad=0.3'))
+    
+    ax_c.set_xlabel("Frequency lag (MHz)")
+    ax_c.set_ylabel("Residuals")
+    ax_c.text(0.02, 0.95, "c", transform=ax_c.transAxes, fontsize=20,
+             fontweight='bold', va='top')
+    
+    plt.suptitle(f"$\\nu_{{c}}$ = {center_freq_ghz:.2f} GHz",
+                fontsize=20, y=1.05, x=0.55)
+    
+    if save_path:
+        plt.savefig(save_path, bbox_inches='tight', dpi=300)
+        log.info(f"Publication ACF plot saved to: {save_path}")
+    
+    plt.show()

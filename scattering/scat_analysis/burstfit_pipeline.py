@@ -33,6 +33,7 @@ from .burstfit import (
     plot_dynamic,
     goodness_of_fit,
     downsample,
+    gelman_rubin,
 )
 from .burstfit_modelselect import fit_models_bic
 from .burstfit_robust import (
@@ -597,7 +598,7 @@ class BurstPipeline:
                 best_key = "M3_multi"
 
             log.info("Processing MCMC chains...")
-            burn, thin = auto_burn_thin(sampler)
+            burn, thin, convergence_info = auto_burn_thin(sampler)
             flat_chain = sampler.get_chain(discard=burn, thin=thin, flat=True)
             if flat_chain.shape[0] == 0:
                 raise RuntimeError("MCMC chain is empty after burn-in and thinning. Check sampler settings or increase n_steps.")
@@ -615,7 +616,7 @@ class BurstPipeline:
                     "best_key": best_key, "sampler": sampler,
                     "flat_chain": flat_chain, "param_names": param_names,
                     "dm_init": self.dm_init, "model_instance": self.dataset.model,
-                    "chain_stats": {"burn_in": burn, "thin": thin},
+                    "chain_stats": {"burn_in": burn, "thin": thin, "convergence": convergence_info},
                     "is_multi": True, "K": K, "theta_best": theta_best,
                 }
             else:
@@ -623,7 +624,7 @@ class BurstPipeline:
                     "best_key": best_key, "best_params": best_params, "sampler": sampler, 
                     "flat_chain": flat_chain, "param_names": FRBFitter._ORDER[best_key], 
                     "dm_init": self.dm_init, "model_instance": self.dataset.model, 
-                    "chain_stats": {"burn_in": burn, "thin": thin}
+                    "chain_stats": {"burn_in": burn, "thin": thin, "convergence": convergence_info}
                 }
 
             if diagnostics:
@@ -727,15 +728,42 @@ class BurstPipeline:
         return model_sum
 
 def auto_burn_thin(sampler, safety_factor_burn=3.0, safety_factor_thin=0.5):
+    """Automatically determine burn-in and thinning based on autocorrelation time.
+    
+    Also computes Gelman-Rubin R̂ for convergence diagnostics.
+    
+    Returns
+    -------
+    tuple
+        (burn, thin, convergence_info) where convergence_info is a dict with R̂ values.
+    """
+    burn = sampler.iteration // 4  # default fallback
+    thin = 1
+    convergence_info = {}
+    
     try:
         tau = sampler.get_autocorr_time(tol=0.01)
-        burn = int(safety_factor_burn * np.nanmax(tau)); thin = max(1, int(safety_factor_thin * np.nanmin(tau)))
+        burn = int(safety_factor_burn * np.nanmax(tau))
+        thin = max(1, int(safety_factor_thin * np.nanmin(tau)))
         burn = min(burn, sampler.iteration // 2)
         log.info(f"Auto-determined burn-in: {burn}, thinning: {thin}")
-        return burn, thin
+        convergence_info['autocorr_time'] = tau.tolist()
     except Exception as e:
         warnings.warn(f"Could not estimate autocorr time: {e}. Using defaults.")
-        return sampler.iteration // 4, 1
+    
+    # Compute Gelman-Rubin R̂
+    try:
+        rhat_results = gelman_rubin(sampler, discard=burn)
+        convergence_info.update(rhat_results)
+        if rhat_results['converged']:
+            log.info(f"Gelman-Rubin R̂ max = {rhat_results['max_rhat']:.4f} (CONVERGED)")
+        else:
+            log.warning(f"Gelman-Rubin R̂ max = {rhat_results['max_rhat']:.4f} (NOT CONVERGED - consider more steps)")
+    except Exception as e:
+        warnings.warn(f"Could not compute Gelman-Rubin: {e}")
+        convergence_info['gelman_rubin_error'] = str(e)
+    
+    return burn, thin, convergence_info
 
 ###############################################################################
 # 4. CLI WRAPPER

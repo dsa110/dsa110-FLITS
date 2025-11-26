@@ -10,10 +10,64 @@ Utility for reading telescope-specific raw-data parameters from
 from __future__ import annotations
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Union
+import os
 
 import functools
 import yaml
+
+
+def resolve_path(path: Union[str, Path], base_dir: Optional[Path] = None) -> Path:
+    """Resolve a path, supporting relative paths and environment variables.
+    
+    Parameters
+    ----------
+    path : str or Path
+        The path to resolve. Can be:
+        - Absolute path: returned as-is
+        - Relative path: resolved relative to base_dir or CWD
+        - Contains $VAR or ${VAR}: environment variables are expanded
+        - Starts with ~: user home directory is expanded
+    base_dir : Path, optional
+        Base directory for resolving relative paths. If None, uses current
+        working directory.
+        
+    Returns
+    -------
+    Path
+        The resolved, absolute path.
+        
+    Examples
+    --------
+    >>> resolve_path("data/burst.npy", base_dir=Path("/project/configs"))
+    PosixPath('/project/data/burst.npy')
+    >>> resolve_path("$HOME/data/burst.npy")
+    PosixPath('/home/user/data/burst.npy')
+    """
+    # Convert to string for expansion
+    path_str = str(path)
+    
+    # Expand environment variables (handles both $VAR and ${VAR})
+    path_str = os.path.expandvars(path_str)
+    
+    # Expand user home directory (~)
+    path_str = os.path.expanduser(path_str)
+    
+    # Convert to Path
+    resolved = Path(path_str)
+    
+    # If already absolute, return as-is
+    if resolved.is_absolute():
+        return resolved
+    
+    # Resolve relative to base_dir or CWD
+    if base_dir is not None:
+        resolved = base_dir / resolved
+    else:
+        resolved = Path.cwd() / resolved
+    
+    # Normalize the path (resolve .. and . components)
+    return resolved.resolve()
 
 __all__ = [
     "TelescopeConfig",
@@ -25,6 +79,7 @@ __all__ = [
     "load_sampler_choice",
     "load_config",
     "clear_config_cache",
+    "resolve_path",
 ]
 
 
@@ -145,7 +200,7 @@ def load_sampler_choice(path: str | Path = "sampler.yaml") -> str:
     return load_sampler_block(path).name
 
 
-def load_config(path: str | Path) -> Config:
+def load_config(path: str | Path, workspace_root: Optional[Path] = None) -> Config:
     """Load the full analysis configuration from ``path``.
 
     The file specified by *path* is expected to contain run-specific options
@@ -153,15 +208,48 @@ def load_config(path: str | Path) -> Config:
     corresponding ``telescopes.yaml`` and ``sampler.yaml`` files are assumed to
     live in the same directory unless explicit ``telcfg_path`` or
     ``sampcfg_path`` entries are provided.
+    
+    Parameters
+    ----------
+    path : str or Path
+        Path to the run configuration YAML file.
+    workspace_root : Path, optional
+        Root directory of the workspace/project. Used for resolving relative
+        data paths. If None, defaults to the parent of the config file's directory.
+        
+    Notes
+    -----
+    Relative paths in the config are resolved in the following order:
+    1. Relative to config file directory (for telcfg_path, sampcfg_path)
+    2. Relative to workspace_root (for data paths)
+    
+    Environment variables ($VAR) and home directory (~) are expanded in all paths.
     """
 
-    run_path = Path(path).expanduser()
+    run_path = Path(path).expanduser().resolve()
     with run_path.open("r", encoding="utf-8") as fh:
         cfg = yaml.safe_load(fh) or {}
 
-    base_dir = run_path.parent
-    telcfg_path = cfg.get("telcfg_path", base_dir / "telescopes.yaml")
-    sampcfg_path = cfg.get("sampcfg_path", base_dir / "sampler.yaml")
+    config_dir = run_path.parent
+    
+    # Workspace root defaults to grandparent of config (e.g., configs/bursts/x.yaml -> workspace)
+    if workspace_root is None:
+        # Try to find workspace root by looking for common markers
+        workspace_root = config_dir
+        for _ in range(5):  # Look up to 5 levels
+            if (workspace_root / "pyproject.toml").exists() or \
+               (workspace_root / "setup.py").exists() or \
+               (workspace_root / ".git").exists():
+                break
+            if workspace_root.parent == workspace_root:
+                break
+            workspace_root = workspace_root.parent
+    
+    # Resolve telescope and sampler config paths relative to config directory
+    telcfg_raw = cfg.get("telcfg_path", "telescopes.yaml")
+    sampcfg_raw = cfg.get("sampcfg_path", "sampler.yaml")
+    telcfg_path = resolve_path(telcfg_raw, base_dir=config_dir)
+    sampcfg_path = resolve_path(sampcfg_raw, base_dir=config_dir)
 
     if "telescope" not in cfg:
         raise ValueError("Run config is missing required field 'telescope'")
@@ -169,9 +257,12 @@ def load_config(path: str | Path) -> Config:
     telescope = load_telescope_block(telcfg_path, cfg["telescope"])
     sampler = load_sampler_block(sampcfg_path, cfg.get("sampler"))
 
-    data_path = cfg.get("path")
-    if data_path is None:
+    data_path_raw = cfg.get("path")
+    if data_path_raw is None:
         raise ValueError("Run config must specify 'path' to the data file")
+    
+    # Resolve data path relative to workspace root
+    data_path = resolve_path(data_path_raw, base_dir=workspace_root)
 
     dm_init = float(cfg.get("dm_init", 0.0))
 
@@ -189,7 +280,7 @@ def load_config(path: str | Path) -> Config:
     )
 
     return Config(
-        path=Path(data_path),
+        path=data_path,
         dm_init=dm_init,
         telescope=telescope,
         sampler=sampler,

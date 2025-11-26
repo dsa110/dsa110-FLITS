@@ -4,29 +4,97 @@
 import yaml
 import os
 import logging
+from pathlib import Path
+from typing import Union, Optional
 
 log = logging.getLogger(__name__)
 
-def load_config(burst_config_path):
+
+def resolve_path(path: Union[str, Path], base_dir: Optional[Path] = None) -> Path:
+    """Resolve a path, supporting relative paths and environment variables.
+    
+    Parameters
+    ----------
+    path : str or Path
+        The path to resolve. Can be:
+        - Absolute path: returned as-is
+        - Relative path: resolved relative to base_dir or CWD
+        - Contains $VAR or ${VAR}: environment variables are expanded
+        - Starts with ~: user home directory is expanded
+    base_dir : Path, optional
+        Base directory for resolving relative paths.
+        
+    Returns
+    -------
+    Path
+        The resolved, absolute path.
+    """
+    path_str = str(path)
+    path_str = os.path.expandvars(path_str)
+    path_str = os.path.expanduser(path_str)
+    resolved = Path(path_str)
+    
+    if resolved.is_absolute():
+        return resolved
+    
+    if base_dir is not None:
+        resolved = base_dir / resolved
+    else:
+        resolved = Path.cwd() / resolved
+    
+    return resolved.resolve()
+
+def load_config(burst_config_path, workspace_root: Optional[Union[str, Path]] = None):
     """
     Loads and merges telescope and burst-specific configuration files.
 
     Args:
         burst_config_path (str): The full path to the burst's YAML config file.
+        workspace_root (str or Path, optional): Root directory for resolving 
+            relative paths. If None, auto-detected from config location.
 
     Returns:
         dict: A single dictionary containing the merged configuration.
+        
+    Notes
+    -----
+    Relative paths in the config are resolved using `resolve_path`, which
+    supports environment variables ($VAR) and home directory (~) expansion.
     """
     log.info(f"Loading burst configuration from: {burst_config_path}")
+    
+    config_path = Path(burst_config_path).expanduser().resolve()
+    config_dir = config_path.parent
+    
+    # Auto-detect workspace root if not provided
+    if workspace_root is None:
+        workspace_root = config_dir
+        for _ in range(5):
+            if (workspace_root / "pyproject.toml").exists() or \
+               (workspace_root / "setup.py").exists() or \
+               (workspace_root / ".git").exists():
+                break
+            if workspace_root.parent == workspace_root:
+                break
+            workspace_root = workspace_root.parent
+    else:
+        workspace_root = Path(workspace_root).resolve()
+    
     try:
-        with open(burst_config_path, 'r') as f:
+        with open(config_path, 'r') as f:
             burst_config = yaml.safe_load(f)
     except FileNotFoundError:
-        log.error(f"Burst config file not found: {burst_config_path}")
+        log.error(f"Burst config file not found: {config_path}")
         raise
     except yaml.YAMLError as e:
         log.error(f"Error parsing burst YAML file: {e}")
         raise
+
+    # Resolve input_data_path relative to workspace root
+    if 'input_data_path' in burst_config:
+        raw_data_path = burst_config['input_data_path']
+        burst_config['input_data_path'] = str(resolve_path(raw_data_path, base_dir=workspace_root))
+        log.info(f"Resolved data path: {burst_config['input_data_path']}")
 
     # Determine the path to the telescope config file
     telescope_name = burst_config.get('telescope')
@@ -34,23 +102,39 @@ def load_config(burst_config_path):
         log.error("Burst config must contain a 'telescope' key.")
         raise ValueError("Missing 'telescope' key in burst config.")
     
-    # Assume telescope configs are in a subdir relative to the burst config dir
-    base_dir = os.path.dirname(burst_config_path)
-    telescope_config_path = os.path.join(base_dir, '..', 'telescopes', f"{telescope_name}.yaml")
+    # Try multiple possible locations for telescope config
+    telescope_config_path = None
+    possible_paths = [
+        config_dir / '..' / 'telescopes' / f"{telescope_name}.yaml",
+        config_dir / 'telescopes' / f"{telescope_name}.yaml",
+        workspace_root / 'scintillation' / 'configs' / 'telescopes' / f"{telescope_name}.yaml",
+    ]
+    
+    for path in possible_paths:
+        resolved = path.resolve()
+        if resolved.exists():
+            telescope_config_path = resolved
+            break
+    
+    if telescope_config_path is None:
+        log.error(f"Telescope config file not found. Searched: {[str(p.resolve()) for p in possible_paths]}")
+        raise FileNotFoundError(f"Could not find telescope config for '{telescope_name}'")
     
     log.info(f"Loading telescope configuration from: {telescope_config_path}")
     try:
         with open(telescope_config_path, 'r') as f:
             telescope_config = yaml.safe_load(f)
-    except FileNotFoundError:
-        log.error(f"Telescope config file not found: {telescope_config_path}")
-        raise
     except yaml.YAMLError as e:
         log.error(f"Error parsing telescope YAML file: {e}")
         raise
 
     # Merge the configurations, with burst-specific values overriding telescope defaults
     merged_config = {**telescope_config, **burst_config}
+    
+    # Store workspace root for downstream use
+    merged_config['_workspace_root'] = str(workspace_root)
+    merged_config['_config_dir'] = str(config_dir)
+    
     log.info("Configurations successfully loaded and merged.")
     
     return merged_config

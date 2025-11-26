@@ -36,6 +36,7 @@ __all__ = [
     "downsample",
     "plot_dynamic",
     "goodness_of_fit",
+    "gelman_rubin",
 ]
 
 from flits.common.constants import DM_DELAY_MS
@@ -378,6 +379,18 @@ class FRBFitter:
         self.custom_order: dict[str, tuple[str, ...]] = {}
         self.walker_width_frac = max(1e-4, float(walker_width_frac))
 
+    def _is_log_param(self, name: str) -> bool:
+        """Check if a parameter should be sampled in log-space.
+        
+        Handles both base parameters ('c0', 'zeta', 'tau_1ghz') and 
+        multi-component variants ('c0_1', 'zeta_2', etc.) consistently.
+        """
+        if not self.sample_log_params:
+            return False
+        # For multi-component params like 'c0_1', check if root matches
+        root = name.split('_')[0]
+        return root in self._log_param_names or name in self._log_param_names
+    
     def _init_walkers(self, p0, key: str, nwalk: int):
         names = self._ORDER[key] if key in self._ORDER else self.custom_order[key]
         lower, upper = zip(*(self.priors[n] for n in names))
@@ -394,7 +407,9 @@ class FRBFitter:
                 val = p0.get(n, (lower[i] + upper[i]) / 2.0)
             else:
                 val = (lower[i] + upper[i]) / 2.0
-            if n in self._log_param_names:
+            
+            # Use consistent log-param checking
+            if self._is_log_param(n):
                 lo = max(lower[i], 1e-30)
                 hi = max(upper[i], lo * (1.0 + 1e-6))
                 centre.append(np.log(max(val, 1e-30)))
@@ -408,9 +423,9 @@ class FRBFitter:
 
         walkers = np.random.normal(centre, widths, size=(nwalk, len(names)))
 
-        # Clip in appropriate domain
+        # Clip in appropriate domain using consistent log-param checking
         for j, n in enumerate(names):
-            if n in self._log_param_names:
+            if self._is_log_param(n):
                 walkers[:, j] = np.clip(walkers[:, j], np.log(max(lower[j], 1e-30)), np.log(max(upper[j], 1e-30)))
             else:
                 walkers[:, j] = np.clip(walkers[:, j], lower[j], upper[j])
@@ -425,20 +440,14 @@ class FRBFitter:
 
         p_walkers = self._init_walkers(p0, model_key, nwalk)
 
-        # log-params by full name
-        log_param_fullnames = set()
-        if self.sample_log_params:
-            base = self._log_param_names
-            for n in names:
-                root = n.split('_')[0]
-                if root in base:
-                    log_param_fullnames.add(n)
+        # Build list of log-space params using consistent checking
+        log_param_fullnames = [n for n in names if self._is_log_param(n)]
 
         sampler = emcee.EnsembleSampler(
             nwalkers=nwalk,
             ndim=ndim,
             log_prob_fn=_log_prob_wrapper,
-            args=(self.model, self.priors, (self.custom_order if model_key in self.custom_order else self._ORDER), model_key, self.log_weight_pos, list(log_param_fullnames), self.alpha_prior, self.likelihood_kind, self.student_nu, "multi" if model_key=="M3_multi" else "single", len(names) if model_key=="M3_multi" else 1),
+            args=(self.model, self.priors, (self.custom_order if model_key in self.custom_order else self._ORDER), model_key, self.log_weight_pos, log_param_fullnames, self.alpha_prior, self.likelihood_kind, self.student_nu, "multi" if model_key=="M3_multi" else "single", len(names) if model_key=="M3_multi" else 1),
             pool=self.pool,
         )
         sampler.run_mcmc(p_walkers, self.n_steps, progress=True)
@@ -454,6 +463,74 @@ class FRBFitter:
 # ----------------------------------------------------------------------
 # Helpers
 # ----------------------------------------------------------------------
+def gelman_rubin(sampler, discard: int = 0) -> dict[str, float]:
+    """Compute Gelman-Rubin R̂ statistic for MCMC convergence diagnostics.
+    
+    R̂ < 1.1 is typically considered evidence of convergence.
+    R̂ < 1.01 is considered excellent convergence.
+    
+    Parameters
+    ----------
+    sampler : emcee.EnsembleSampler
+        The sampler object after running MCMC.
+    discard : int
+        Number of steps to discard as burn-in.
+        
+    Returns
+    -------
+    dict
+        Dictionary mapping parameter index to R̂ value.
+        Also includes 'max_rhat' and 'converged' keys.
+    """
+    # Get chains: shape (n_steps, n_walkers, n_params)
+    chain = sampler.get_chain(discard=discard)
+    n_steps, n_walkers, n_params = chain.shape
+    
+    if n_steps < 10:
+        return {"max_rhat": np.inf, "converged": False, "warning": "Too few steps"}
+    
+    results = {}
+    rhats = []
+    
+    for i in range(n_params):
+        # For each parameter, compute R̂
+        # Treat each walker as a separate chain
+        chains = chain[:, :, i].T  # shape: (n_walkers, n_steps)
+        
+        n = chains.shape[1]  # number of samples per chain
+        m = chains.shape[0]  # number of chains (walkers)
+        
+        # Chain means
+        chain_means = np.mean(chains, axis=1)
+        # Overall mean
+        overall_mean = np.mean(chain_means)
+        
+        # Between-chain variance
+        B = n / (m - 1) * np.sum((chain_means - overall_mean) ** 2)
+        
+        # Within-chain variance
+        chain_vars = np.var(chains, axis=1, ddof=1)
+        W = np.mean(chain_vars)
+        
+        # Pooled variance estimate
+        if W < 1e-30:
+            # Chains haven't moved - not converged
+            rhat = np.inf
+        else:
+            var_hat = (1 - 1/n) * W + (1/n) * B
+            rhat = np.sqrt(var_hat / W)
+        
+        results[f"param_{i}"] = float(rhat)
+        rhats.append(rhat)
+    
+    max_rhat = float(np.max(rhats))
+    results["max_rhat"] = max_rhat
+    results["converged"] = max_rhat < 1.1
+    results["well_converged"] = max_rhat < 1.01
+    
+    return results
+
+
 def build_priors(
     init: "FRBParams",
     *,

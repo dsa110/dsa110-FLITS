@@ -318,7 +318,43 @@ def _estimate_sigma_self(ds, burst_lims):
     sigma_self_hz = 1.0 / (2.0 * np.pi * sigma_t)
     return sigma_self_hz / 1e6  # MHz
 
-_noise_acf_cache: Dict[Tuple[int, int, float, int], np.ndarray] = {}
+_noise_acf_cache: Dict[Tuple, np.ndarray] = {}
+_noise_acf_cache_max_size: int = 100  # Limit cache size to prevent memory issues
+
+
+def _noise_descriptor_hash(noise_desc) -> int:
+    """Generate a stable hash for a NoiseDescriptor based on its content.
+    
+    This replaces the fragile id()-based caching with a content-based hash
+    that remains valid even if the same descriptor object is modified.
+    """
+    if noise_desc is None:
+        return 0
+    # Hash based on the key statistical properties
+    hash_components = (
+        noise_desc.kind,
+        noise_desc.nt,
+        noise_desc.nchan,
+        round(noise_desc.mu, 8),
+        round(noise_desc.sigma, 8),
+        round(noise_desc.gamma_k, 8),
+        round(noise_desc.gamma_theta, 8),
+        round(noise_desc.phi_t, 8),
+        round(noise_desc.phi_f, 8),
+    )
+    return hash(hash_components)
+
+
+def clear_noise_acf_cache():
+    """Clear the noise ACF template cache.
+    
+    Call this between pipeline runs or when noise characteristics change.
+    """
+    global _noise_acf_cache
+    _noise_acf_cache.clear()
+    log.info("Noise ACF template cache cleared.")
+
+
 def _mean_noise_acf(
         noise_desc,
         n_rep,
@@ -334,16 +370,31 @@ def _mean_noise_acf(
     noise_desc : NoiseDescriptor
         Object capable of `.sample()` → (time, freq) array(s); statistics match data.
     n_rep : int
-        Number of synthetic rows to average. ≥100 is recommended for smoothness.
+        Number of synthetic rows to average. ≥100 is recommended for smoothness.
     spec_len : int
         Number of frequency bins (≥ 1 + 2·max_lag_bins) for which the ACF will be
         evaluated so that shapes match the real ACF from `calculate_acf`.
     channel_width_mhz : float
-        Frequency bin width in MHz for unit conversion.
+        Frequency bin width in MHz for unit conversion.
+    mask_hash : int
+        Hash of the mask array for cache keying.
     """
-    key = (id(noise_desc), spec_len, channel_width_mhz, mask_hash)
+    global _noise_acf_cache
+    
+    # Use content-based hash instead of id()
+    desc_hash = _noise_descriptor_hash(noise_desc)
+    key = (desc_hash, spec_len, round(channel_width_mhz, 6), mask_hash)
+    
     if key in _noise_acf_cache:
+        log.debug(f"Using cached noise ACF template (key hash: {hash(key)})")
         return _noise_acf_cache[key]
+    
+    # Limit cache size to prevent memory issues
+    if len(_noise_acf_cache) >= _noise_acf_cache_max_size:
+        # Remove oldest entry (FIFO-like behavior)
+        oldest_key = next(iter(_noise_acf_cache))
+        del _noise_acf_cache[oldest_key]
+        log.debug("Evicted oldest entry from noise ACF cache")
 
     acfs = []
     for _ in range(n_rep):
@@ -640,6 +691,53 @@ def _fit_acf_models(acf_object,
 
     return fit_results
 
+def _interpret_scaling_index(alpha: float, alpha_err: float) -> str:
+    """Interpret the frequency scaling index based on physical expectations.
+    
+    Based on theoretical predictions:
+    - α ≈ 4.0-4.4: Kolmogorov turbulence (diffractive scintillation)
+    - α ≈ 2.0: Refractive scintillation
+    - α ≈ 0: No frequency dependence (intrinsic structure or instrumental)
+    - α < 0 or α > 6: Likely unphysical, suggests fit issues
+    
+    Parameters
+    ----------
+    alpha : float
+        The fitted scaling index (δν_DC ∝ ν^α)
+    alpha_err : float
+        The 1-σ uncertainty on alpha
+        
+    Returns
+    -------
+    str
+        Human-readable interpretation of the scaling
+    """
+    # Handle NaN or invalid values
+    if not np.isfinite(alpha) or not np.isfinite(alpha_err):
+        return "Unable to determine (fit failed or invalid)"
+    
+    # Define physical regimes with 2-σ tolerance
+    tol = 2.0 * alpha_err if alpha_err > 0 else 0.5
+    
+    if alpha < -1.0:
+        return "Unphysical (negative scaling suggests fit issues or systematic errors)"
+    elif abs(alpha - 0.0) < tol:
+        return "No significant frequency scaling (intrinsic structure or instrumental)"
+    elif abs(alpha - 2.0) < tol:
+        return "Refractive scintillation regime (α ≈ 2)"
+    elif 3.5 <= alpha <= 5.0:
+        if abs(alpha - 4.0) < tol:
+            return "Kolmogorov diffractive scintillation (α ≈ 4.0)"
+        elif abs(alpha - 4.4) < tol:
+            return "Kolmogorov-like with inner scale effects (α ≈ 4.4)"
+        else:
+            return f"Diffractive scintillation regime (α = {alpha:.2f} ± {alpha_err:.2f})"
+    elif alpha > 5.0:
+        return f"Steep scaling (α = {alpha:.2f}) - may indicate scattering-dominated regime"
+    else:
+        return f"Intermediate regime (α = {alpha:.2f} ± {alpha_err:.2f})"
+
+
 def _select_overall_best_model(all_subband_fits):
     """
     Determines the best overall model by summing the BIC across all sub-bands
@@ -831,6 +929,9 @@ def analyze_scintillation_from_acfs(acf_results, config):
         # Use the fitted alpha and its error to suggest a 
         # physical scenario based on the findings from Pradeep et al. (2025)
         # and Nimmo et al. (2025).
+        
+        # Interpret the scaling index based on physical expectations
+        interpretation = _interpret_scaling_index(alpha_fit, alpha_err)
 
         subband_measurements = []
         for j, p_dict in enumerate(measurements):

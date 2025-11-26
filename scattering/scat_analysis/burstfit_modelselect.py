@@ -56,7 +56,7 @@ _PARAM_KEYS = {
     "M0": ("c0", "t0", "gamma"),
     "M1": ("c0", "t0", "gamma", "zeta"),
     "M2": ("c0", "t0", "gamma", "tau_1ghz"),
-    "M3": ("c0", "t0", "gamma", "zeta", "tau_1ghz"),
+    "M3": ("c0", "t0", "gamma", "zeta", "tau_1ghz", "alpha", "delta_dm"),
 }
 
 # ---------------------------------------------------------------------

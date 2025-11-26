@@ -1,13 +1,17 @@
-chunk_size: 2000
-diagnostics: true
+# Casey CHIME Configuration
+burst_name: casey
+path: data/chime/casey_chime_I_491_2085_32000b_cntr_bpc.npy
+telcfg_path: ../../telescopes.yaml
+sampcfg_path: ../../sampler.yaml
 dm_init: 0.0
-extend_chain: true
+telescope: chime
+steps: 10000
 f_factor: 64
+t_factor: 24
+nproc: 16
+extend_chain: true
+chunk_size: 2000
 max_chunks: 5
 model_scan: true
-nproc: 16
-path: /arc/home/jfaber/baseband_morphologies/chime_dsa_codetections/data/DSA_bursts/casey_chime_I_491_2085_32000b_cntr_bpc.npy
+diagnostics: true
 plot: true
-steps: 10000
-t_factor: 24
-telescope: chime

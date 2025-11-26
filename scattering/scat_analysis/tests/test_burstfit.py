@@ -172,19 +172,26 @@ class TestFRBModel:
         p = FRBParams(c0=1.0, t0=0.0, gamma=0.0, zeta=0.1, tau_1ghz=5.0, alpha=4.0, delta_dm=0.0)
         output = model(p, "M3")
         
-        # Check that low-frequency profile is broader (has more signal at late times)
-        high_freq_profile = output[0, :]   # Highest frequency channel (0.8 GHz)
-        low_freq_profile = output[-1, :]   # Lowest frequency channel (0.4 GHz)
+        # Note: simple_freq goes from 0.4 to 0.8 GHz, so:
+        # output[0] = lowest freq (0.4 GHz) - MORE scattering
+        # output[-1] = highest freq (0.8 GHz) - LESS scattering
+        low_freq_profile = output[0, :]    # Lowest frequency channel (0.4 GHz)
+        high_freq_profile = output[-1, :]  # Highest frequency channel (0.8 GHz)
         
-        # Compute "center of mass" time for each profile (better than peak for scattered signals)
-        time_weights_high = simple_time * high_freq_profile
-        time_weights_low = simple_time * low_freq_profile
+        # Compute second moment (variance) to measure broadening
+        # Broader profiles have larger variance
+        def profile_variance(prof, time_axis):
+            if np.sum(prof) <= 0:
+                return 0
+            mean_t = np.sum(time_axis * prof) / np.sum(prof)
+            var = np.sum((time_axis - mean_t)**2 * prof) / np.sum(prof)
+            return var
         
-        com_high = np.sum(time_weights_high) / np.sum(high_freq_profile) if np.sum(high_freq_profile) > 0 else 0
-        com_low = np.sum(time_weights_low) / np.sum(low_freq_profile) if np.sum(low_freq_profile) > 0 else 0
+        var_low = profile_variance(low_freq_profile, simple_time)
+        var_high = profile_variance(high_freq_profile, simple_time)
         
-        # Low frequency center-of-mass should be later (more delayed)
-        assert com_low >= com_high - 0.1  # Allow small tolerance
+        # Low frequency should be broader (larger variance due to more scattering)
+        assert var_low > var_high * 0.9  # Allow some tolerance
 
     def test_spectral_index(self, simple_time, simple_freq):
         """Test that spectral index affects amplitude correctly."""

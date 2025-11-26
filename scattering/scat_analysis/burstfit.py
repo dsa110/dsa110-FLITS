@@ -300,7 +300,13 @@ class FRBModel:
             safe_kernel_sum = np.clip(kernel_sum, 1e-30, None)
             kernel_norm = kernel / safe_kernel_sum
 
-            return fftconvolve(profile, kernel_norm, mode="same", axes=1)
+            # --- FIX: Use causal convolution (mode='full' truncated) instead of mode='same'
+            # mode='same' centers the output, which incorrectly shifts the peak earlier.
+            # For a causal exponential scattering kernel, we want the first N samples
+            # of the full convolution, which preserves the peak position and only delays it.
+            n_time = profile.shape[1]
+            result_full = fftconvolve(profile, kernel_norm, mode="full", axes=1)
+            return result_full[:, :n_time]
 
         if model_key not in {"M0", "M1", "M2", "M3"}:
             raise ValueError(f"unknown model '{model_key}'")

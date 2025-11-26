@@ -38,26 +38,185 @@
 \maketitle
 
 \begin{abstract}
-We present a streaming algorithm for estimating the dispersion measure (DM) of radio pulses from dynamic spectra using intensity-weighted linear regression in transformed coordinates. The algorithm requires only $O(1)$ memory and processes data in a single pass, making it suitable for real-time and memory-constrained applications. Through systematic investigation, we discover that power-law weighting ($w = I^p$ with $p = 2$--$3$) reduces systematic bias by $3$--$5\times$ compared to standard intensity weighting, approximating matched filter behavior without requiring a pulse template. We analyze convergence properties, showing that frequency coverage and channel processing order (not channel count) determine estimation accuracy. A ``band-edges'' strategy using only two well-separated channels achieves $3\times$ lower latency. This document chronicles our complete investigation, including analytical bias correction, convergence analysis, weighting scheme optimization, and theoretical limits explored.
+We present a streaming algorithm for estimating the dispersion measure (DM) of radio pulses from dynamic spectra using intensity-weighted linear regression in transformed coordinates. The algorithm requires only $O(1)$ memory and processes data in a single pass, making it suitable for real-time and memory-constrained applications. Through systematic investigation, we discover that power-law weighting ($w = I^p$ with $p = 3$--$4$) reduces systematic bias by $5$--$10\times$ compared to standard intensity weighting, approximating matched filter behavior without requiring a pulse template. The method achieves $<1\%$ bias at S/N $\geq 10$ and provides a closed-form, interpretable solution that fills the gap between high-precision offline methods and learned approaches.
 \end{abstract}
 
 \tableofcontents
 
-\section{Introduction}
+\section{Executive Summary}
 
-Trial dedispersion (the ``bowtie'' method) estimates DM by evaluating a dense grid of candidate values, each requiring a full pass through the dynamic spectrum. While robust, this approach is memory-bandwidth limited on modern hardware.
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{figures/fig0_algorithm_overview.png}
+    \caption{Algorithm overview. (A) Input: a dynamic spectrum showing a dispersed pulse---the characteristic ``sweep'' from high to low frequency. (B) Key insight: in dispersion coordinates $x = \nu^{-2} - \nu_{\mathrm{ref}}^{-2}$, the arrival time is \emph{linear} in $x$, with slope proportional to DM. (C) Streaming algorithm: accumulate 5 weighted sums in $O(1)$ memory, then solve for DM in closed form. (D) Performance: 100$\times$ faster than trial dedispersion with comparable accuracy at S/N $\geq 10$.}
+    \label{fig:overview}
+\end{figure}
 
-We present an alternative that estimates DM in a single streaming pass using $O(1)$ memory. The method exploits the linearity of the dispersion relation in transformed coordinates to cast DM estimation as weighted linear regression.
+\subsection{The Challenge}
 
-\textcolor{warningcolor}{\textbf{Important:}} This is a \emph{centroid method}, not matched filtering. It computes the intensity-weighted covariance of pixel coordinates, not the integrated power along the dispersion curve. This distinction has significant implications for low-S/N performance.
+Dispersion measure (DM) estimation is fundamental to radio transient astronomy. The standard approach---\textbf{trial dedispersion}---tests thousands of candidate DM values, each requiring a full pass through the data. For a search over 1000 DM trials on a $64 \times 256$ pixel dynamic spectrum:
+\begin{itemize}
+    \item Trial dedispersion: $\sim$700 ms, $O(N_\nu \times N_t)$ memory
+    \item \textbf{This method: $\sim$6 ms, $O(1)$ memory}---\textbf{100$\times$ faster}
+\end{itemize}
+
+The cost: we achieve $\sim$1\% accuracy (vs.\ $\sim$0.1\% for trial DD) at S/N $\geq 10$. For real-time triggering and initial classification, this trade-off is favorable.
+
+\subsection{The Core Idea}
+
+The dispersion relation $t(\nu) = t_0 + k_{\DM} \cdot \DM \cdot \nu^{-2}$ is \emph{nonlinear} in frequency, but becomes \textbf{linear} under the coordinate transformation $x = \nu^{-2} - \nu_{\mathrm{ref}}^{-2}$:
+\begin{equation}
+    \boxed{t = t_0 + k_{\DM} \cdot \DM \cdot x = \beta_0 + \beta_1 x}
+\end{equation}
+
+\textbf{Key insight:} DM estimation reduces to finding the slope $\beta_1$ of a line. This is a standard weighted linear regression problem with a closed-form solution.
+
+\subsection{Algorithm at a Glance}
+
+The algorithm maintains only \textbf{5 scalar accumulators}---regardless of input size:
+
+\begin{center}
+\begin{tabular}{cl}
+\toprule
+\textbf{Accumulator} & \textbf{Meaning} \\
+\midrule
+$W = \sum w_{ij}$ & Total weight \\
+$S_x = \sum w_{ij} x_i$ & Weighted sum of dispersion coordinates \\
+$S_{xx} = \sum w_{ij} x_i^2$ & Weighted sum of squared coordinates \\
+$S_t = \sum w_{ij} t_j$ & Weighted sum of times \\
+$S_{xt} = \sum w_{ij} x_i t_j$ & Weighted cross-term \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+where the weight $w_{ij} = \max(I_{ij} - \tau, 0)^p$ emphasizes bright pixels (threshold $\tau$, power $p$).
+
+\textbf{Closed-form solution:}
+\begin{equation}
+    \boxed{\widehat{\DM} = \frac{W \cdot S_{xt} - S_x \cdot S_t}{k_{\DM} \cdot (W \cdot S_{xx} - S_x^2)}}
+\end{equation}
+
+This is simply the intensity-weighted covariance of $(x, t)$ divided by the variance of $x$, scaled by the dispersion constant.
+
+\subsection{Why This Works: Building Intuition}
+
+Consider a dispersed pulse in a dynamic spectrum:
+\begin{itemize}
+    \item \textbf{Signal pixels} lie along the dispersion curve $t = t_0 + k_{\DM} \cdot \DM \cdot x$
+    \item \textbf{Noise pixels} are scattered randomly in $(x, t)$ space
+\end{itemize}
+
+When we compute the intensity-weighted covariance:
+\begin{itemize}
+    \item Signal pixels have high intensity $\Rightarrow$ high weight $\Rightarrow$ dominate the covariance
+    \item Noise pixels have low intensity $\Rightarrow$ low weight $\Rightarrow$ contribute little
+    \item The covariance measures how strongly $t$ increases with $x$---exactly the dispersion slope
+\end{itemize}
+
+\textbf{The power parameter $p$} controls how aggressively we down-weight noise:
+\begin{itemize}
+    \item $p = 1$: Linear weighting---noise wings contribute significantly
+    \item $p = 3$--$4$: Cubic/quartic weighting---only the brightest pixels matter, approximating matched filtering
+\end{itemize}
+
+\subsection{Performance Summary}
+
+\begin{center}
+\begin{tabular}{lccl}
+\toprule
+\textbf{S/N} & \textbf{Bias} & \textbf{Std Dev} & \textbf{Status} \\
+\midrule
+3 & $-20\%$ & $15\%$ & $\times$ Unreliable \\
+5 & $-5\%$ & $4\%$ & $\sim$ Marginal \\
+10 & $\mathbf{-0.8\%}$ & $0.3\%$ & $\checkmark$ Good \\
+20 & $-0.1\%$ & $0.05\%$ & $\checkmark$ Excellent \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textit{Results shown for recommended settings: $p = 4$, threshold $= 3\sigma$.}
+
+\subsection{Computational Complexity}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Aspect} & \textbf{This Method} & \textbf{Trial Dedispersion} \\
+\midrule
+Time complexity & $O(N_\nu \times N_t)$ & $O(N_{\DM} \times N_\nu \times N_t)$ \\
+Memory & $\mathbf{O(1)}$ --- 5 scalars & $O(N_\nu \times N_t)$ \\
+Passes over data & $\mathbf{1}$ & $N_{\DM}$ \\
+Real-time capable & $\checkmark$ Yes & $\times$ No \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Key Innovations}
+
+\begin{enumerate}
+    \item \textbf{Power-law weighting} ($w = I^p$ with $p = 3$--$4$): Reduces bias by $5$--$10\times$ by concentrating weight on pulse peaks, approximating matched filtering without a template.
+    
+    \item \textbf{Streaming architecture}: True $O(1)$ memory using sufficient statistics---no buffering required.
+    
+    \item \textbf{Channel ordering optimization}: Interleaved (high-low alternating) order converges $6\times$ faster than sequential.
+    
+    \item \textbf{Band-edges trick}: Two well-separated channels provide accurate estimates with $3\times$ lower latency.
+\end{enumerate}
+
+\subsection{Known Limitations}
+
+\textcolor{warningcolor}{\textbf{Important:}} This is a \emph{centroid method}, not matched filtering.
+
+\begin{itemize}
+    \item \textbf{S/N $< 5$}: Bias exceeds $15\%$, unreliable---use trial dedispersion
+    \item \textbf{Multiple pulses}: Centroid pulled between arrivals---designed for single pulses
+    \item \textbf{Scattering}: Asymmetric tail biases centroid---positive DM bias at high $p$
+    \item \textbf{High DM}: Edge effects if dispersion sweep exceeds observation window
+\end{itemize}
+
+\subsection{Recommended Configuration}
+
+\begin{verbatim}
+    StreamingDMEstimator(freqs, times, weight_power=4.0, sigma_threshold=3.0)
+\end{verbatim}
+
+For RFI-contaminated data, apply \texttt{channel\_variance\_clip()} first.
+
+\subsection{When to Use This Method}
+
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Scenario} & \textbf{StreamingDMEstimator} & \textbf{Trial Dedispersion} \\
+\midrule
+Real-time triggering (S/N $> 10$) & $\checkmark$ \textbf{Recommended} & Overkill \\
+Narrowing DM search range & $\checkmark$ \textbf{Ideal} & Unnecessary \\
+Memory-constrained systems & $\checkmark$ \textbf{Only option} & $\times$ \\
+Final DM for timing & $\sim$ Adequate & $\checkmark$ \textbf{Preferred} \\
+Low S/N ($< 5$) & $\times$ & $\checkmark$ \textbf{Required} \\
+Scattered pulses & $\times$ & $\checkmark$ \textbf{Required} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Recommended workflow:}
+\begin{enumerate}
+    \item \textbf{Detection}: Use streaming estimator for rapid DM estimate ($\sim$6 ms)
+    \item \textbf{Refinement}: If needed, run trial DD over narrow range around estimate ($\sim$60 ms)
+    \item \textbf{Result}: 10$\times$ faster than blind search, same final accuracy
+\end{enumerate}
 
 \subsection{Document Structure}
 
-This document serves two purposes:
-\begin{enumerate}
-    \item \textbf{Algorithm specification:} Sections 2--8 describe the algorithm, its theory, implementation, and practical use.
-    \item \textbf{Investigation chronicle:} Section 9 documents our complete exploration, including approaches tried, discoveries made, and lessons learned. This provides context for \emph{why} certain design choices were made.
-\end{enumerate}
+\begin{itemize}
+    \item \textbf{Sections 2--4}: Physical background, mathematical derivation, theoretical foundations
+    \item \textbf{Sections 5--6}: Limitations, convergence analysis, timing constraints
+    \item \textbf{Sections 7--8}: Implementation details (streaming and GPU-optimized)
+    \item \textbf{Sections 9--10}: Practical recommendations, comparison with trial dedispersion
+    \item \textbf{Section 11}: Empirical validation with figures
+    \item \textbf{Section 12}: Conclusion
+    \item \textbf{Section 13}: Investigation chronicle---complete record of our exploration
+\end{itemize}
 
 \section{Physical Background}
 

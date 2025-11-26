@@ -106,7 +106,7 @@ def diagnose_sampler_convergence(sampler, param_names):
     print("\nGelman-Rubin R-hat (should be < 1.1):")
     for i, name in enumerate(param_names):
         r_hat = gelman_rubin(chain[:, :, i])
-        status = "✓" if r_hat < 1.1 else "✗"
+        status = "[OK]" if r_hat < 1.1 else "[FAIL]"
         print(f"  {name}: {r_hat:.3f} {status}")
     
     return chain, log_prob
@@ -407,9 +407,9 @@ def quick_chain_check(sampler):
     print(f"  Parameter drift: {np.mean(relative_drift):.2f} (want < 0.1)")
     
     if log_prob_spread > 1.0 or np.mean(relative_drift) > 0.1:
-        print("  ⚠️  Chains may need more steps!")
+        print("  [WARNING] Chains may need more steps!")
         print("  Consider running: sampler.run_mcmc(None, 1000, progress=True)")
     else:
-        print("  ✓ Chains look converged")
+        print("  [OK] Chains look converged")
     
     return log_prob_spread < 1.0 and np.mean(relative_drift) < 0.1

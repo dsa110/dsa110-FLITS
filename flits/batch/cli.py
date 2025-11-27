@@ -74,21 +74,15 @@ def cmd_joint_analysis(args):
     db = ResultsDatabase(args.db_path)
     joint = JointAnalysis(db)
     
-    # Run analyses
-    print("Running τ-Δν consistency check...")
-    consistency = joint.check_tau_deltanu_consistency()
+    # The new `run_analysis` method orchestrates all steps
+    joint.run_analysis(
+        output_dir=args.output,
+        show_plots=not args.no_show,
+    )
     
-    print("Running frequency scaling analysis...")
-    scaling = joint.analyze_frequency_scaling()
-    
-    # Generate report
-    report = joint.generate_report(args.output / "joint_analysis_report.txt" if args.output else None)
-    print(report)
-    
-    # Generate plots
+    print(f"\n✅ Joint analysis complete.")
     if args.output:
-        joint.generate_summary_plots(args.output, show=not args.no_show)
-        print(f"\n📊 Joint analysis plots saved to {args.output}")
+        print(f"📊 Results saved to {args.output}")
 
 
 def cmd_summary(args):

@@ -20,6 +20,14 @@ from .pipeline import ScintillationAnalysis
 # Key plotting functions from plotting.py
 from .plotting import plot_analysis_overview, plot_noise_distribution
 
+# Interpretation functions based on Bhat et al. (2004) and Nimmo et al. (2025)
+from .analysis import (
+    interpret_modulation_index,
+    estimate_emission_region_size,
+    two_screen_coherence_constraint,
+    scattering_scintillation_consistency,
+)
+
 # Interactive widgets for manual analysis (requires ipywidgets)
 try:
     from . import widgets

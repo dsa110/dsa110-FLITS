@@ -694,9 +694,12 @@ def _fit_acf_models(acf_object,
 def _interpret_scaling_index(alpha: float, alpha_err: float) -> str:
     """Interpret the frequency scaling index based on physical expectations.
     
-    Based on theoretical predictions:
+    Based on theoretical predictions from Bhat et al. (2004) and Nimmo et al. (2025):
     - α ≈ 4.0-4.4: Kolmogorov turbulence (diffractive scintillation)
+    - α ≈ 3.9: Global average with inner scale effects (Bhat et al. 2004)
+    - α ≈ 3.0: Emission region partially resolved by screen (Nimmo et al. 2025)
     - α ≈ 2.0: Refractive scintillation
+    - α ≈ 1.0: Two screens resolving each other (Nimmo et al. 2025)
     - α ≈ 0: No frequency dependence (intrinsic structure or instrumental)
     - α < 0 or α > 6: Likely unphysical, suggests fit issues
     
@@ -711,6 +714,11 @@ def _interpret_scaling_index(alpha: float, alpha_err: float) -> str:
     -------
     str
         Human-readable interpretation of the scaling
+    
+    References
+    ----------
+    Bhat et al. 2004, ApJ, 605, 759 (multifrequency pulse broadening)
+    Nimmo et al. 2025 (FRB 20221022A scintillation constraints)
     """
     # Handle NaN or invalid values
     if not np.isfinite(alpha) or not np.isfinite(alpha_err):
@@ -723,19 +731,466 @@ def _interpret_scaling_index(alpha: float, alpha_err: float) -> str:
         return "Unphysical (negative scaling suggests fit issues or systematic errors)"
     elif abs(alpha - 0.0) < tol:
         return "No significant frequency scaling (intrinsic structure or instrumental)"
+    elif 0.5 < alpha < 1.5:
+        return (
+            f"Very shallow scaling (α = {alpha:.2f} ± {alpha_err:.2f}) - "
+            "may indicate two screens resolving each other (Nimmo et al. 2025 Eq. 27)"
+        )
     elif abs(alpha - 2.0) < tol:
         return "Refractive scintillation regime (α ≈ 2)"
-    elif 3.5 <= alpha <= 5.0:
-        if abs(alpha - 4.0) < tol:
+    elif 2.5 < alpha < 3.5:
+        return (
+            f"Intermediate scaling (α = {alpha:.2f} ± {alpha_err:.2f}) - "
+            "emission region may be partially resolved by scattering screen "
+            "(Nimmo et al. 2025 Eq. 26)"
+        )
+    elif 3.5 <= alpha <= 4.2:
+        if abs(alpha - 3.9) < tol:
+            return (
+                f"Kolmogorov with inner scale effects (α = {alpha:.2f} ± {alpha_err:.2f}) - "
+                "consistent with Bhat et al. 2004 global fit (α ≈ 3.9), "
+                "suggests inner scale l_i ~ 300-800 km"
+            )
+        elif abs(alpha - 4.0) < tol:
             return "Kolmogorov diffractive scintillation (α ≈ 4.0)"
-        elif abs(alpha - 4.4) < tol:
-            return "Kolmogorov-like with inner scale effects (α ≈ 4.4)"
+        else:
+            return f"Diffractive scintillation regime (α = {alpha:.2f} ± {alpha_err:.2f})"
+    elif 4.2 < alpha <= 5.0:
+        if abs(alpha - 4.4) < tol:
+            return "Classic Kolmogorov (α ≈ 4.4) - no significant inner scale effect"
         else:
             return f"Diffractive scintillation regime (α = {alpha:.2f} ± {alpha_err:.2f})"
     elif alpha > 5.0:
         return f"Steep scaling (α = {alpha:.2f}) - may indicate scattering-dominated regime"
     else:
         return f"Intermediate regime (α = {alpha:.2f} ± {alpha_err:.2f})"
+
+
+# =============================================================================
+# Modulation Index & Emission Region Diagnostics (Nimmo et al. 2025)
+# =============================================================================
+
+def interpret_modulation_index(m: float, m_err: float = 0.0) -> Dict:
+    """Interpret modulation index based on Nimmo et al. (2025) framework.
+    
+    The modulation index m is defined as σ_I / <I>, where σ_I is the standard
+    deviation of the intensity and <I> is the mean. For the ACF, the peak
+    amplitude equals m².
+    
+    Physical interpretation:
+    - m ≈ 1: Point source (unresolved emission region)
+    - m < 1: Emission region partially resolved by scattering screen
+    - m << 1 (0.1-0.3): Weak scintillation regime
+    
+    Parameters
+    ----------
+    m : float
+        Measured modulation index from ACF fit
+    m_err : float, optional
+        Uncertainty on m
+        
+    Returns
+    -------
+    dict
+        Dictionary containing:
+        - 'm': measured value
+        - 'm_err': uncertainty
+        - 'interpretation': human-readable interpretation
+        - 'emission_resolved': bool, whether emission appears resolved
+        - 'resolution_regime': categorical label
+        
+    References
+    ----------
+    Nimmo et al. 2025, FRB 20221022A scintillation analysis
+    Rickett 1990, ARA&A, 28, 561 (scintillation theory)
+    
+    Examples
+    --------
+    >>> result = interpret_modulation_index(0.78, 0.07)
+    >>> print(result['interpretation'])
+    "Marginally resolved emission region (m = 0.78 ± 0.07)..."
+    """
+    result = {
+        'm': m,
+        'm_err': m_err,
+        'interpretation': '',
+        'emission_resolved': False,
+        'resolution_regime': 'unknown',
+    }
+    
+    if not np.isfinite(m):
+        result['interpretation'] = "Invalid modulation index measurement"
+        return result
+    
+    # Use error to define tolerance for "consistent with 1"
+    tol = max(2.0 * m_err, 0.05) if m_err > 0 else 0.05
+    
+    if m > 1.0 + tol:
+        result['interpretation'] = (
+            f"Super-unity modulation (m = {m:.2f} ± {m_err:.2f}) - "
+            "may indicate calibration issues, RFI contamination, or "
+            "intrinsic intensity variations beyond scintillation"
+        )
+        result['resolution_regime'] = 'anomalous'
+    elif abs(m - 1.0) <= tol or m > 0.95:
+        result['interpretation'] = (
+            f"Point source / unresolved emission (m = {m:.2f} ± {m_err:.2f}) - "
+            "emission region is smaller than the diffractive scale of the "
+            "scattering screen (Nimmo et al. 2025)"
+        )
+        result['resolution_regime'] = 'unresolved'
+        result['emission_resolved'] = False
+    elif 0.7 < m <= 0.95:
+        result['interpretation'] = (
+            f"Marginally resolved emission region (m = {m:.2f} ± {m_err:.2f}) - "
+            "emission region is comparable to or slightly larger than the "
+            "diffractive scale; consistent with magnetospheric emission "
+            "(Nimmo et al. 2025 Fig. 3)"
+        )
+        result['resolution_regime'] = 'marginally_resolved'
+        result['emission_resolved'] = True
+    elif 0.3 < m <= 0.7:
+        result['interpretation'] = (
+            f"Partially resolved emission (m = {m:.2f} ± {m_err:.2f}) - "
+            "emission region significantly resolved by scattering screen; "
+            "may constrain emission mechanism and/or screen distance"
+        )
+        result['resolution_regime'] = 'partially_resolved'
+        result['emission_resolved'] = True
+    else:  # m <= 0.3
+        result['interpretation'] = (
+            f"Heavily suppressed modulation (m = {m:.2f} ± {m_err:.2f}) - "
+            "either weak scintillation regime or very extended emission region; "
+            "check if observation is in strong scintillation regime"
+        )
+        result['resolution_regime'] = 'weak_or_resolved'
+        result['emission_resolved'] = True
+    
+    return result
+
+
+def estimate_emission_region_size(
+    m: float,
+    delta_nu_dc_mhz: float,
+    d_source_screen_pc: float,
+    freq_mhz: float,
+    m_err: float = 0.0,
+    delta_nu_err_mhz: float = 0.0,
+) -> Dict:
+    """Estimate lateral emission region size from modulation index.
+    
+    Uses the relationship between modulation index and source resolution
+    from Nimmo et al. (2025) Eq. 22-23:
+    
+        m = 1 / sqrt(1 + 4(R_★obs/χ)²)
+        
+        χ = (1/ν) * sqrt(c * d_s2★ * Δν_DC / 2π)  [screen resolution]
+        
+    Solving for R_★obs:
+        R_★obs = sqrt((c * d_s2★ * Δν_DC) / (8π ν²) * (1/m² - 1))
+    
+    Parameters
+    ----------
+    m : float
+        Measured modulation index (0 < m ≤ 1 for resolved sources)
+    delta_nu_dc_mhz : float
+        Decorrelation bandwidth in MHz
+    d_source_screen_pc : float
+        Distance from source to scattering screen in parsecs
+    freq_mhz : float
+        Observing frequency in MHz
+    m_err : float, optional
+        Uncertainty on modulation index
+    delta_nu_err_mhz : float, optional
+        Uncertainty on decorrelation bandwidth
+        
+    Returns
+    -------
+    dict
+        Dictionary containing:
+        - 'R_obs_km': estimated emission region size in km
+        - 'R_obs_err_km': uncertainty in km (if errors provided)
+        - 'chi_km': diffractive scale of screen in km
+        - 'is_upper_limit': bool, True if m ≈ 1 (gives upper limit)
+        - 'physical_context': comparison to known scales
+        
+    References
+    ----------
+    Nimmo et al. 2025, Eq. 21-23
+    Kumar et al. 2024, MNRAS, 527, 457 (FRB scintillation constraints)
+    
+    Examples
+    --------
+    >>> # FRB 20221022A parameters from Nimmo et al.
+    >>> result = estimate_emission_region_size(
+    ...     m=0.78, delta_nu_dc_mhz=0.124, d_source_screen_pc=11000,
+    ...     freq_mhz=600, m_err=0.07
+    ... )
+    >>> print(f"R_obs < {result['R_obs_km']:.0f} km")
+    """
+    c_m_s = 2.998e8  # speed of light in m/s
+    pc_to_m = 3.086e16  # parsec to meters
+    
+    # Convert units
+    delta_nu_hz = delta_nu_dc_mhz * 1e6
+    freq_hz = freq_mhz * 1e6
+    d_m = d_source_screen_pc * pc_to_m
+    
+    result = {
+        'R_obs_km': np.nan,
+        'R_obs_err_km': np.nan,
+        'chi_km': np.nan,
+        'is_upper_limit': False,
+        'physical_context': '',
+    }
+    
+    # Calculate screen diffractive scale χ (Nimmo Eq. 21)
+    # χ = (1/ν) * sqrt(c * d * Δν / 2π)
+    chi_m = (1.0 / freq_hz) * np.sqrt(c_m_s * d_m * delta_nu_hz / (2 * np.pi))
+    chi_km = chi_m / 1e3
+    result['chi_km'] = chi_km
+    
+    # Handle edge cases
+    if m >= 1.0:
+        # Unresolved: R_obs < χ (upper limit)
+        result['R_obs_km'] = chi_km
+        result['is_upper_limit'] = True
+        result['physical_context'] = (
+            f"Unresolved (m ≥ 1): R_obs < χ = {chi_km:.1f} km (upper limit)"
+        )
+        return result
+    
+    if m <= 0.0:
+        result['physical_context'] = "Invalid modulation index (m ≤ 0)"
+        return result
+    
+    # Calculate R_★obs from Nimmo Eq. 23:
+    # R_★obs = sqrt((c * d * Δν) / (8π ν²) * (1/m² - 1))
+    factor = (c_m_s * d_m * delta_nu_hz) / (8 * np.pi * freq_hz**2)
+    m_factor = (1.0 / m**2) - 1.0
+    
+    if m_factor <= 0:
+        result['R_obs_km'] = 0.0
+        result['physical_context'] = "Point source (m_factor ≤ 0)"
+        return result
+    
+    R_obs_m = np.sqrt(factor * m_factor)
+    R_obs_km = R_obs_m / 1e3
+    result['R_obs_km'] = R_obs_km
+    
+    # Error propagation (simplified, assumes dominant error from m)
+    if m_err > 0:
+        # ∂R/∂m ∝ -m⁻³ * (1/m² - 1)^(-1/2) * sqrt(factor)
+        dm_factor = np.sqrt(factor) * (m**(-3)) / np.sqrt(m_factor)
+        R_obs_err_km = abs(dm_factor * m_err) / 1e3
+        result['R_obs_err_km'] = R_obs_err_km
+    
+    # Physical context
+    context_parts = [f"Estimated R_obs = {R_obs_km:.1f} km"]
+    
+    # Compare to known scales
+    if R_obs_km < 100:
+        context_parts.append("consistent with pulsar emission (~10-100 km)")
+    elif R_obs_km < 1000:
+        context_parts.append("consistent with pulsar/magnetar magnetosphere (~100-1000 km)")
+    elif R_obs_km < 1e4:
+        context_parts.append("consistent with neutron star light cylinder (~1000-10,000 km)")
+    elif R_obs_km < 1e5:
+        context_parts.append("larger than typical magnetosphere; may indicate shock emission")
+    else:
+        context_parts.append("very large; likely non-magnetospheric origin")
+    
+    result['physical_context'] = "; ".join(context_parts)
+    
+    return result
+
+
+def two_screen_coherence_constraint(
+    delta_nu_1_mhz: float,
+    delta_nu_2_mhz: float,
+    freq_mhz: float,
+    d_source_mpc: float,
+    C1: float = 1.0,
+    C2: float = 1.0,
+) -> Dict:
+    """Calculate two-screen coherence constraint from Nimmo et al. (2025).
+    
+    When two scintillation scales are observed (e.g., one Galactic, one 
+    extragalactic), mutual coherence requires:
+    
+        Δν_s1 * Δν_s2 >= C₁ * C₂ * ν² * (d_s1★ * d_s2★ * d_⊕s1) / (d_⊕★² * d_⊕s2)
+    
+    For an extragalactic source with one Galactic screen (s1) and one 
+    host-galaxy screen (s2), this simplifies to (Nimmo Eq. 10):
+    
+        d_⊕s1 * d_s2★ <= Δν_s1 * Δν_s2 * d_⊕★² / (C₁ * C₂ * ν²)
+    
+    Parameters
+    ----------
+    delta_nu_1_mhz : float
+        Decorrelation bandwidth of screen 1 (closest to observer) in MHz
+    delta_nu_2_mhz : float
+        Decorrelation bandwidth of screen 2 (closest to source) in MHz
+    freq_mhz : float
+        Observing frequency in MHz
+    d_source_mpc : float
+        Distance to source in Mpc
+    C1, C2 : float, optional
+        Geometry constants (typically 1-2), default 1.0
+        
+    Returns
+    -------
+    dict
+        Dictionary containing:
+        - 'd_product_kpc2': upper limit on d_⊕s1 * d_s2★ in kpc²
+        - 'example_constraints': dict with example screen distance scenarios
+        
+    References
+    ----------
+    Nimmo et al. 2025, Eq. 7-11
+    
+    Examples
+    --------
+    >>> # FRB 20221022A: 6 kHz and 124 kHz scales at 600 MHz, d = 65 Mpc
+    >>> result = two_screen_coherence_constraint(
+    ...     delta_nu_1_mhz=0.006, delta_nu_2_mhz=0.124,
+    ...     freq_mhz=600, d_source_mpc=65.189
+    ... )
+    >>> print(f"d_⊕s1 * d_s2★ <= {result['d_product_kpc2']:.1f} kpc²")
+    """
+    # Convert to Hz
+    delta_nu_1_hz = delta_nu_1_mhz * 1e6
+    delta_nu_2_hz = delta_nu_2_mhz * 1e6
+    freq_hz = freq_mhz * 1e6
+    
+    # Convert distance to meters then to kpc for result
+    d_source_m = d_source_mpc * 3.086e22  # Mpc to m
+    d_source_kpc = d_source_mpc * 1e3  # Mpc to kpc
+    
+    # Constraint: d_⊕s1 * d_s2★ <= Δν₁ * Δν₂ * d_⊕★² / (C₁ * C₂ * ν²)
+    # Result in kpc² (after unit conversion)
+    numerator = delta_nu_1_hz * delta_nu_2_hz * d_source_kpc**2
+    denominator = C1 * C2 * freq_hz**2
+    
+    d_product_kpc2 = numerator / denominator
+    
+    result = {
+        'd_product_kpc2': d_product_kpc2,
+        'example_constraints': {},
+    }
+    
+    # Example scenarios
+    galactic_distances = [0.1, 0.3, 0.64, 1.0, 3.0]  # kpc
+    for d_gal in galactic_distances:
+        d_host_max = d_product_kpc2 / d_gal
+        result['example_constraints'][f'd_gal_{d_gal}kpc'] = {
+            'd_galactic_kpc': d_gal,
+            'd_host_max_kpc': d_host_max,
+            'd_host_max_pc': d_host_max * 1e3,
+        }
+    
+    return result
+
+
+def scattering_scintillation_consistency(
+    tau_d_ms: float,
+    delta_nu_dc_mhz: float,
+    C: float = 1.0,
+    tau_d_err_ms: float = 0.0,
+    delta_nu_err_mhz: float = 0.0,
+) -> Dict:
+    """Check consistency between scattering timescale and decorrelation bandwidth.
+    
+    The fundamental relationship is (Bhat et al. 2004, Nimmo et al. 2025):
+    
+        τ_s = C / (2π Δν_DC)
+    
+    where C is a geometry-dependent constant typically in range 1-2.
+    
+    Parameters
+    ----------
+    tau_d_ms : float
+        Measured scattering timescale in milliseconds
+    delta_nu_dc_mhz : float
+        Measured decorrelation bandwidth in MHz
+    C : float, optional
+        Geometry constant (default 1.0)
+    tau_d_err_ms : float, optional
+        Uncertainty on scattering timescale
+    delta_nu_err_mhz : float, optional
+        Uncertainty on decorrelation bandwidth
+        
+    Returns
+    -------
+    dict
+        Dictionary containing:
+        - 'tau_from_scint_ms': τ predicted from scintillation measurement
+        - 'nu_from_scat_mhz': Δν predicted from scattering measurement
+        - 'C_implied': implied geometry constant
+        - 'consistent': bool, whether measurements are consistent
+        - 'interpretation': string describing consistency
+        
+    References
+    ----------
+    Bhat et al. 2004, ApJ, 605, 759
+    Cordes & Rickett 1998, ApJ, 507, 846
+    
+    Examples
+    --------
+    >>> result = scattering_scintillation_consistency(
+    ...     tau_d_ms=0.1, delta_nu_dc_mhz=0.05
+    ... )
+    >>> print(f"Implied C = {result['C_implied']:.2f}")
+    """
+    # Convert units
+    tau_d_s = tau_d_ms * 1e-3
+    delta_nu_hz = delta_nu_dc_mhz * 1e6
+    
+    result = {
+        'tau_from_scint_ms': np.nan,
+        'nu_from_scat_mhz': np.nan,
+        'C_implied': np.nan,
+        'consistent': False,
+        'interpretation': '',
+    }
+    
+    # τ predicted from scintillation: τ = C / (2π Δν)
+    tau_from_scint_s = C / (2 * np.pi * delta_nu_hz)
+    tau_from_scint_ms = tau_from_scint_s * 1e3
+    result['tau_from_scint_ms'] = tau_from_scint_ms
+    
+    # Δν predicted from scattering: Δν = C / (2π τ)
+    nu_from_scat_hz = C / (2 * np.pi * tau_d_s)
+    nu_from_scat_mhz = nu_from_scat_hz / 1e6
+    result['nu_from_scat_mhz'] = nu_from_scat_mhz
+    
+    # Implied C from measurements: C = 2π τ Δν
+    C_implied = 2 * np.pi * tau_d_s * delta_nu_hz
+    result['C_implied'] = C_implied
+    
+    # Check consistency (C should be in range ~0.5-2.5)
+    if 0.3 < C_implied < 3.0:
+        result['consistent'] = True
+        result['interpretation'] = (
+            f"Consistent: implied C = {C_implied:.2f} is within expected range (0.5-2). "
+            f"τ_scint = {tau_from_scint_ms:.3f} ms, Δν_scat = {nu_from_scat_mhz:.4f} MHz"
+        )
+    elif C_implied < 0.3:
+        result['consistent'] = False
+        result['interpretation'] = (
+            f"Inconsistent: C = {C_implied:.2f} << 1. "
+            "Scattering may be from different screen than scintillation, "
+            "or one measurement may be affected by systematics."
+        )
+    else:  # C > 3
+        result['consistent'] = False
+        result['interpretation'] = (
+            f"Inconsistent: C = {C_implied:.2f} >> 1. "
+            "May indicate multiple scattering screens, anisotropic scattering, "
+            "or measurement systematics."
+        )
+    
+    return result
 
 
 def _select_overall_best_model(all_subband_fits):

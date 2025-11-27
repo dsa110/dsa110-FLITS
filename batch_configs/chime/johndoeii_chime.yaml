@@ -1,0 +1,16 @@
+burst_name: johndoeii
+path: ../../../data/chime/johndoeII_chime_I_696_5184_32000b_cntr_bpc.npy
+telcfg_path: ../../telescopes.yaml
+sampcfg_path: ../../sampler.yaml
+dm_init: 0.0
+telescope: chime
+steps: 10000
+f_factor: 64
+t_factor: 24
+nproc: 8
+extend_chain: true
+chunk_size: 2000
+max_chunks: 5
+model_scan: true
+diagnostics: true
+plot: true

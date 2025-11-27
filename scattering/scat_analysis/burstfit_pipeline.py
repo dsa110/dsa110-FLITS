@@ -6,6 +6,7 @@ Object-oriented orchestrator for the BurstFit pipeline. This module connects
 the data loading, preprocessing, fitting, diagnostics, and plotting modules
 into a coherent, runnable sequence.
 """
+
 from __future__ import annotations
 
 import os
@@ -56,53 +57,58 @@ logging.basicConfig(level=logging.INFO, format="[%(levelname)s | %(name)s] %(mes
 # 0. PLOTTING FUNCTIONS
 ###############################################################################
 
+
 def create_four_panel_plot(
     dataset: "BurstDataset",
     results: Dict[str, Any],
     *,
     save: bool = True,
-    show: bool = True
+    show: bool = True,
 ):
     """Creates a four-panel diagnostic plot comparing data, model, and residuals."""
     log.info("Generating four-panel diagnostic plot...")
-    
+
     best_p, best_key = results["best_params"], results["best_key"]
     model_instance = results["model_instance"]
-    
+
     data, time, freq = dataset.data, dataset.time, dataset.freq
     time_centered = time - (time[0] + (time[-1] - time[0]) / 2)
     extent = [time_centered[0], time_centered[-1], freq[0], freq[-1]]
 
     clean_model = model_instance(best_p, best_key)
-    synthetic_noise = np.random.normal(0.0, model_instance.noise_std[:, None], size=data.shape)
+    synthetic_noise = np.random.normal(
+        0.0, model_instance.noise_std[:, None], size=data.shape
+    )
     synthetic_data = clean_model + synthetic_noise
     residual = data - synthetic_data
 
     def _normalize_panel_data(arr_2d, off_pulse_data):
         mean_off, std_off = np.nanmean(off_pulse_data), np.nanstd(off_pulse_data)
-        if std_off < 1e-9: return arr_2d
+        if std_off < 1e-9:
+            return arr_2d
         arr_norm = (arr_2d - mean_off) / std_off
         peak = np.nanmax(arr_norm)
         return arr_norm / peak if peak > 0 else arr_norm
 
     q = data.shape[1] // 4
     data_off_pulse = data[:, np.r_[0:q, -q:0]]
-    
+
     data_norm = _normalize_panel_data(data, data_off_pulse)
     model_norm = _normalize_panel_data(clean_model, data_off_pulse)
     synthetic_norm = _normalize_panel_data(synthetic_data, data_off_pulse)
 
     fig, axes = plt.subplots(
-        nrows=2, ncols=8,
-        gridspec_kw={'height_ratios': [1, 2.5], 'width_ratios': [2, 0.5] * 4},
-        figsize=(24, 8)
+        nrows=2,
+        ncols=8,
+        gridspec_kw={"height_ratios": [1, 2.5], "width_ratios": [2, 0.5] * 4},
+        figsize=(24, 8),
     )
-    
+
     panel_data = [
-        (data_norm, 'Data', r'I$_{\mathrm{data}}$'),
-        (model_norm, 'Model', r'I$_{\mathrm{model}}$'),
-        (synthetic_norm, 'Synth.', r'I$_{\mathrm{model+noise}}$'),
-        (residual, 'Residual', r'I$_{\mathrm{residual}}$'),
+        (data_norm, "Data", r"I$_{\mathrm{data}}$"),
+        (model_norm, "Model", r"I$_{\mathrm{model}}$"),
+        (synthetic_norm, "Synth.", r"I$_{\mathrm{model+noise}}$"),
+        (residual, "Residual", r"I$_{\mathrm{residual}}$"),
     ]
 
     for i, (panel_ds, title, label) in enumerate(panel_data):
@@ -112,137 +118,259 @@ def create_four_panel_plot(
         ts = np.nansum(panel_ds, axis=0)
         sp = np.nansum(panel_ds, axis=1)
 
-        ax_ts.step(time_centered, ts, where='mid', c='k', lw=1.5, label=label)
-        ax_ts.legend(loc='upper right', fontsize=14, frameon=False)
-        
-        cmap = 'coolwarm' if title == 'Residual' else 'plasma'
-        vmax = np.nanpercentile(np.abs(panel_ds), 99.5) if title != 'Residual' else np.nanstd(panel_ds) * 3
-        vmin = 0 if title != 'Residual' else -vmax
-        ax_wf.imshow(panel_ds, extent=extent, vmin=vmin, vmax=vmax, cmap=cmap, aspect='auto', origin='lower')
+        ax_ts.step(time_centered, ts, where="mid", c="k", lw=1.5, label=label)
+        ax_ts.legend(loc="upper right", fontsize=14, frameon=False)
 
-        ax_sp.step(sp, freq, where='mid', c='k', lw=1.5)
-        
-        ax_ts.set_yticks([]); ax_ts.tick_params(axis='x', labelbottom=False); ax_ts.set_xlim(extent[0], extent[1])
-        ax_sp.set_xticks([]); ax_sp.tick_params(axis='y', labelleft=False); ax_sp.set_ylim(extent[2], extent[3])
-        ax_wf.set_xlabel('Time [ms]')
-        if i == 0: ax_wf.set_ylabel('Frequency [GHz]')
-        else: ax_wf.tick_params(axis='y', labelleft=False)
-        axes[0, col_idx + 1].axis('off')
+        cmap = "coolwarm" if title == "Residual" else "plasma"
+        vmax = (
+            np.nanpercentile(np.abs(panel_ds), 99.5)
+            if title != "Residual"
+            else np.nanstd(panel_ds) * 3
+        )
+        vmin = 0 if title != "Residual" else -vmax
+        ax_wf.imshow(
+            panel_ds,
+            extent=extent,
+            vmin=vmin,
+            vmax=vmax,
+            cmap=cmap,
+            aspect="auto",
+            origin="lower",
+        )
+
+        ax_sp.step(sp, freq, where="mid", c="k", lw=1.5)
+
+        ax_ts.set_yticks([])
+        ax_ts.tick_params(axis="x", labelbottom=False)
+        ax_ts.set_xlim(extent[0], extent[1])
+        ax_sp.set_xticks([])
+        ax_sp.tick_params(axis="y", labelleft=False)
+        ax_sp.set_ylim(extent[2], extent[3])
+        ax_wf.set_xlabel("Time [ms]")
+        if i == 0:
+            ax_wf.set_ylabel("Frequency [GHz]")
+        else:
+            ax_wf.tick_params(axis="y", labelleft=False)
+        axes[0, col_idx + 1].axis("off")
 
     plt.subplots_adjust(hspace=0.05, wspace=0.05)
-    fig.suptitle("Four-Panel Fit Summary", fontsize=20, weight='bold')
+    fig.suptitle("Four-Panel Fit Summary", fontsize=20, weight="bold")
 
     if save:
         output_path = os.path.join(dataset.outpath, f"{dataset.name}_four_panel.pdf")
         log.info(f"Saving 4-panel plot to {output_path}")
-        fig.savefig(output_path) #, bbox_inches='tight', dpi=150)
-    if show: plt.show()
-    else: plt.close(fig)
+        fig.savefig(output_path)  # , bbox_inches='tight', dpi=150)
+    if show:
+        plt.show()
+    else:
+        plt.close(fig)
     return fig
+
 
 def create_sixteen_panel_plot(
     dataset: "BurstDataset",
     results: Dict[str, Any],
     *,
     save: bool = True,
-    show: bool = True
+    show: bool = True,
 ):
     """Creates a comprehensive 16-panel diagnostic plot summarizing the fit."""
     log.info("Generating 16-panel comprehensive diagnostics plot...")
-    
+
     best_key, best_p = results["best_key"], results["best_params"]
     sampler, gof = results["sampler"], results.get("goodness_of_fit")
     chain_stats, flat_chain = results.get("chain_stats", {}), results["flat_chain"]
     param_names, diag_results = results["param_names"], results.get("diagnostics", {})
     model_instance = results["model_instance"]
-    
+
     model_dyn = model_instance(best_p, best_key)
     residual = dataset.data - model_dyn
 
     fig, axes = plt.subplots(4, 4, figsize=(20, 20), constrained_layout=True)
     ax = axes.ravel()
-    
+
     # Panels 0-2: Data, Model, Residual
     vmin, vmax = np.percentile(dataset.data, [1, 99])
-    plot_dynamic(ax[0], dataset.data, dataset.time, dataset.freq, vmin=vmin, vmax=vmax, cmap='plasma'); ax[0].set_title("Data")
-    plot_dynamic(ax[1], model_dyn, dataset.time, dataset.freq, vmin=vmin, vmax=vmax, cmap='plasma'); ax[1].set_title(f"Model ({best_key})")
-    res_std = np.std(residual); plot_dynamic(ax[2], residual, dataset.time, dataset.freq, vmin=-3*res_std, vmax=3*res_std, cmap='coolwarm'); ax[2].set_title("Residual")
+    plot_dynamic(
+        ax[0],
+        dataset.data,
+        dataset.time,
+        dataset.freq,
+        vmin=vmin,
+        vmax=vmax,
+        cmap="plasma",
+    )
+    ax[0].set_title("Data")
+    plot_dynamic(
+        ax[1],
+        model_dyn,
+        dataset.time,
+        dataset.freq,
+        vmin=vmin,
+        vmax=vmax,
+        cmap="plasma",
+    )
+    ax[1].set_title(f"Model ({best_key})")
+    res_std = np.std(residual)
+    plot_dynamic(
+        ax[2],
+        residual,
+        dataset.time,
+        dataset.freq,
+        vmin=-3 * res_std,
+        vmax=3 * res_std,
+        cmap="coolwarm",
+    )
+    ax[2].set_title("Residual")
 
     # Panel 3: Residual Histogram
     res_norm = residual / model_instance.noise_std[:, None]
-    ax[3].hist(res_norm.flatten(), bins=100, density=True, color='gray', label='Residuals')
-    x_pdf = np.linspace(-4, 4, 100); ax[3].plot(x_pdf, sp.stats.norm.pdf(x_pdf), 'm-', lw=2, label='N(0,1)'); ax[3].set_title('Residual Distribution'); ax[3].legend()
+    ax[3].hist(
+        res_norm.flatten(), bins=100, density=True, color="gray", label="Residuals"
+    )
+    x_pdf = np.linspace(-4, 4, 100)
+    ax[3].plot(x_pdf, sp.stats.norm.pdf(x_pdf), "m-", lw=2, label="N(0,1)")
+    ax[3].set_title("Residual Distribution")
+    ax[3].legend()
 
     # Panel 4-5: Time Profile and Spectrum
-    ax[4].plot(dataset.time, np.sum(dataset.data, axis=0), 'k-', label='Data'); ax[4].plot(dataset.time, np.sum(model_dyn, axis=0), 'm--', lw=2, label='Model'); ax[4].set_title('Time Profile'); ax[4].legend(); ax[4].set_xlabel('Time [ms]')
-    ax[5].plot(dataset.freq, np.sum(dataset.data, axis=1), 'k-', label='Data'); ax[5].plot(dataset.freq, np.sum(model_dyn, axis=1), 'm--', lw=2, label='Model'); ax[5].set_title('Frequency Spectrum'); ax[5].legend(); ax[5].set_xlabel('Frequency [GHz]')
+    ax[4].plot(dataset.time, np.sum(dataset.data, axis=0), "k-", label="Data")
+    ax[4].plot(dataset.time, np.sum(model_dyn, axis=0), "m--", lw=2, label="Model")
+    ax[4].set_title("Time Profile")
+    ax[4].legend()
+    ax[4].set_xlabel("Time [ms]")
+    ax[5].plot(dataset.freq, np.sum(dataset.data, axis=1), "k-", label="Data")
+    ax[5].plot(dataset.freq, np.sum(model_dyn, axis=1), "m--", lw=2, label="Model")
+    ax[5].set_title("Frequency Spectrum")
+    ax[5].legend()
+    ax[5].set_xlabel("Frequency [GHz]")
 
     # Panel 6-8: Diagnostics
-    if diag_results.get("influence") is not None: plot_influence(ax[6], diag_results["influence"], dataset.freq)
-    else: ax[6].text(0.5, 0.5, 'Influence\nNot Run', ha='center', va='center'); ax[6].set_axis_off()
+    if diag_results.get("influence") is not None:
+        plot_influence(ax[6], diag_results["influence"], dataset.freq)
+    else:
+        ax[6].text(0.5, 0.5, "Influence\nNot Run", ha="center", va="center")
+        ax[6].set_axis_off()
 
     if diag_results.get("subband_2d") is not None:
         p_name, s_res, _ = diag_results["subband_2d"]
         if p_name:
-            valid = [(i,v,e) for i, (v,e) in enumerate(s_res) if np.isfinite(v) and e > 0]
+            valid = [
+                (i, v, e) for i, (v, e) in enumerate(s_res) if np.isfinite(v) and e > 0
+            ]
             if valid:
                 idx, vals, errs = zip(*valid)
                 edges = np.linspace(0, dataset.freq.size, len(s_res) + 1, dtype=int)
-                band_centers = np.array([dataset.freq[edges[i]:edges[i+1]].mean() for i in range(len(s_res))])[list(idx)]
-                ax[7].errorbar(band_centers, vals, yerr=errs, fmt="o", c='k', capsize=3, label=f"Sub-band {p_name}")
-                global_val = getattr(best_p, p_name); ax[7].axhline(global_val, color="m", ls="--", label="Global Fit")
-                ax[7].legend(); ax[7].set_ylabel(p_name)
-    else: ax[7].text(0.5, 0.5, '2D Sub-band\nNot Run', ha='center', va='center'); ax[7].set_axis_off()
-    
-    if diag_results.get("profile1d") is not None: plot_subband_profiles(ax[8], *diag_results["profile1d"], best_p, fontsize=10)
-    else: ax[8].text(0.5, 0.5, '1D Profile\nNot Run', ha='center', va='center'); ax[8].set_axis_off()
+                band_centers = np.array(
+                    [
+                        dataset.freq[edges[i] : edges[i + 1]].mean()
+                        for i in range(len(s_res))
+                    ]
+                )[list(idx)]
+                ax[7].errorbar(
+                    band_centers,
+                    vals,
+                    yerr=errs,
+                    fmt="o",
+                    c="k",
+                    capsize=3,
+                    label=f"Sub-band {p_name}",
+                )
+                global_val = getattr(best_p, p_name)
+                ax[7].axhline(global_val, color="m", ls="--", label="Global Fit")
+                ax[7].legend()
+                ax[7].set_ylabel(p_name)
+    else:
+        ax[7].text(0.5, 0.5, "2D Sub-band\nNot Run", ha="center", va="center")
+        ax[7].set_axis_off()
+
+    if diag_results.get("profile1d") is not None:
+        plot_subband_profiles(ax[8], *diag_results["profile1d"], best_p, fontsize=10)
+    else:
+        ax[8].text(0.5, 0.5, "1D Profile\nNot Run", ha="center", va="center")
+        ax[8].set_axis_off()
 
     # Panel 9-10: MCMC chains
-    chain = sampler.get_chain(); burn = chain_stats.get("burn_in", 0)
-    ax[9].plot(chain[:, ::10, 0], 'k', alpha=0.3); ax[9].axvline(burn, color='m', ls='--'); ax[9].set_title(f'Trace: {param_names[0]}'); ax[9].set_xlabel('Step')
+    chain = sampler.get_chain()
+    burn = chain_stats.get("burn_in", 0)
+    ax[9].plot(chain[:, ::10, 0], "k", alpha=0.3)
+    ax[9].axvline(burn, color="m", ls="--")
+    ax[9].set_title(f"Trace: {param_names[0]}")
+    ax[9].set_xlabel("Step")
     if len(param_names) > 1:
-        corr = np.corrcoef(flat_chain.T); np.fill_diagonal(corr, 0); i, j = np.unravel_index(np.abs(corr).argmax(), corr.shape)
-        ax[10].scatter(flat_chain[:,i], flat_chain[:,j], s=1, alpha=0.1, c='k'); ax[10].set_xlabel(param_names[i]); ax[10].set_ylabel(param_names[j]); ax[10].set_title(f'Highest Correlation (ρ={corr[i,j]:.2f})')
-    
+        corr = np.corrcoef(flat_chain.T)
+        np.fill_diagonal(corr, 0)
+        i, j = np.unravel_index(np.abs(corr).argmax(), corr.shape)
+        ax[10].scatter(flat_chain[:, i], flat_chain[:, j], s=1, alpha=0.1, c="k")
+        ax[10].set_xlabel(param_names[i])
+        ax[10].set_ylabel(param_names[j])
+        ax[10].set_title(f"Highest Correlation (ρ={corr[i,j]:.2f})")
+
     # Panel 11-12: ACF and DM Check
     if gof:
-        lags_ms = (np.arange(len(gof['residual_autocorr'])) - len(gof['residual_autocorr'])//2) * dataset.dt_ms
-        ax[11].plot(lags_ms, gof['residual_autocorr'], 'k-', label='Data')
+        lags_ms = (
+            np.arange(len(gof["residual_autocorr"]))
+            - len(gof["residual_autocorr"]) // 2
+        ) * dataset.dt_ms
+        ax[11].plot(lags_ms, gof["residual_autocorr"], "k-", label="Data")
         # Posterior predictive residual ACF envelope (fast PPC via noise-only)
         try:
             n_ppc = 50
             noise_std = model_instance.noise_std
             acfs = []
             for _ in range(n_ppc):
-                noise = np.random.normal(0.0, noise_std[:, None], size=dataset.data.shape)
+                noise = np.random.normal(
+                    0.0, noise_std[:, None], size=dataset.data.shape
+                )
                 resid_ppc = np.sum(noise, axis=0)
                 resid_ppc -= np.mean(resid_ppc)
-                acf_ppc = np.correlate(resid_ppc, resid_ppc, mode='same')
-                center_val = acf_ppc[len(acf_ppc)//2]
-                if center_val > 0: acf_ppc = acf_ppc / center_val
+                acf_ppc = np.correlate(resid_ppc, resid_ppc, mode="same")
+                center_val = acf_ppc[len(acf_ppc) // 2]
+                if center_val > 0:
+                    acf_ppc = acf_ppc / center_val
                 acfs.append(acf_ppc)
             acfs = np.asarray(acfs)
             ppc_med = np.median(acfs, axis=0)
             ppc_lo = np.percentile(acfs, 5, axis=0)
             ppc_hi = np.percentile(acfs, 95, axis=0)
-            ax[11].plot(lags_ms, ppc_med, color='m', lw=1.5, label='PPC median')
-            ax[11].fill_between(lags_ms, ppc_lo, ppc_hi, color='m', alpha=0.15, label='PPC 5–95%')
+            ax[11].plot(lags_ms, ppc_med, color="m", lw=1.5, label="PPC median")
+            ax[11].fill_between(
+                lags_ms, ppc_lo, ppc_hi, color="m", alpha=0.15, label="PPC 5–95%"
+            )
         except Exception as e:
             log.warning(f"PPC ACF generation failed: {e}")
-        ax[11].set_title('Residual ACF')
-        ax[11].set_xlabel('Lag [ms]')
-        ax[11].legend(loc='upper right', fontsize=9)
-    if diag_results.get("dm_check") is not None: dms, snrs = diag_results['dm_check']; ax[12].plot(dms, snrs, 'o-k'); ax[12].set_title('DM Optimization'); ax[12].set_xlabel(r'ΔDM (pc cm$^{-3}$)')
+        ax[11].set_title("Residual ACF")
+        ax[11].set_xlabel("Lag [ms]")
+        ax[11].legend(loc="upper right", fontsize=9)
+    if diag_results.get("dm_check") is not None:
+        dms, snrs = diag_results["dm_check"]
+        ax[12].plot(dms, snrs, "o-k")
+        ax[12].set_title("DM Optimization")
+        ax[12].set_xlabel(r"ΔDM (pc cm$^{-3}$)")
 
     # Panels 13-15: Text Summaries
-    for i in [13, 14, 15]: ax[i].set_axis_off()
-    if gof: ax[13].text(0.05, 0.95, f"GoF:\nχ²/dof = {gof['chi2_reduced']:.2f}", va='top', fontfamily='monospace', fontsize=12)
-    p_summary = "Best Fit (Median & 1σ):\n" + "\n".join([f"{n}: {np.median(flat_chain[:,i]):.3f} ± {np.std(flat_chain[:,i]):.3f}" for i, n in enumerate(param_names)])
-    ax[14].text(0.05, 0.95, p_summary, va='top', fontfamily='monospace', fontsize=12)
+    for i in [13, 14, 15]:
+        ax[i].set_axis_off()
+    if gof:
+        ax[13].text(
+            0.05,
+            0.95,
+            f"GoF:\nχ²/dof = {gof['chi2_reduced']:.2f}",
+            va="top",
+            fontfamily="monospace",
+            fontsize=12,
+        )
+    p_summary = "Best Fit (Median & 1σ):\n" + "\n".join(
+        [
+            f"{n}: {np.median(flat_chain[:,i]):.3f} ± {np.std(flat_chain[:,i]):.3f}"
+            for i, n in enumerate(param_names)
+        ]
+    )
+    ax[14].text(0.05, 0.95, p_summary, va="top", fontfamily="monospace", fontsize=12)
     # Δν_d diagnostic from τ (report only)
     try:
-        alpha = getattr(best_p, 'alpha', 4.4)
-        tau1 = getattr(best_p, 'tau_1ghz', 0.0)
+        alpha = getattr(best_p, "alpha", 4.4)
+        tau1 = getattr(best_p, "tau_1ghz", 0.0)
         if tau1 > 0:
             f = dataset.freq
             tau_ms = tau1 * (f / 1.0) ** (-alpha)
@@ -261,23 +389,38 @@ def create_sixteen_panel_plot(
             diag_text = "Δν_d (implied): n/a"
     except Exception as e:
         diag_text = f"Δν_d diagnostic failed: {e}"
-    ax[15].text(0.05, 0.95, f"File:\n{dataset.inpath.name}\n\n{diag_text}", va='top', fontfamily='monospace', fontsize=12)
-    
-    fig.suptitle(f"Comprehensive Fit Diagnostics: {dataset.inpath.name}", fontsize=24, weight='bold')
-    if save: 
-        comp_diag_path = os.path.join(dataset.outpath, f"{dataset.name}_comp_diagnostics.pdf")
+    ax[15].text(
+        0.05,
+        0.95,
+        f"File:\n{dataset.inpath.name}\n\n{diag_text}",
+        va="top",
+        fontfamily="monospace",
+        fontsize=12,
+    )
+
+    fig.suptitle(
+        f"Comprehensive Fit Diagnostics: {dataset.inpath.name}",
+        fontsize=24,
+        weight="bold",
+    )
+    if save:
+        comp_diag_path = os.path.join(
+            dataset.outpath, f"{dataset.name}_comp_diagnostics.pdf"
+        )
         fig.savefig(comp_diag_path)
-    if show: 
+    if show:
         plt.show()
-    else: 
+    else:
         plt.close(fig)
     return fig
+
 
 ###############################################################################
 # 1. DATASET LOADER
 ###############################################################################
 class BurstDataset:
     """Loads and preprocesses a burst from a .npy file."""
+
     def __init__(
         self,
         inpath: str | Path,
@@ -309,33 +452,43 @@ class BurstDataset:
             self.load()
 
     def load(self):
-        if self.data is not None: return
+        if self.data is not None:
+            return
         raw = self._load_raw()
-        if self.flip_freq: raw = np.flipud(raw)
-        
+        if self.flip_freq:
+            raw = np.flipud(raw)
+
         # Build axes for the raw data to use in preprocessing
         raw_freq, raw_time, _, _ = self._build_axes(raw.shape, f_factor=1, t_factor=1)
         ds = self._bandpass_correct(raw, raw_time)
         ds = self._trim_buffer(ds)
         self.data = self._downsample_and_renormalize(ds)
-        
-        # Re-build axes for final downsampled data shape
-        self.freq, self.time, self.df_MHz, self.dt_ms = self._build_axes(self.data.shape)
 
-        if self.center_burst: self._centre_burst()
-        
-        self.model = FRBModel(time=self.time, freq=self.freq, data=self.data, df_MHz=self.df_MHz)
+        # Re-build axes for final downsampled data shape
+        self.freq, self.time, self.df_MHz, self.dt_ms = self._build_axes(
+            self.data.shape
+        )
+
+        if self.center_burst:
+            self._centre_burst()
+
+        self.model = FRBModel(
+            time=self.time, freq=self.freq, data=self.data, df_MHz=self.df_MHz
+        )
 
     def _load_raw(self):
-        if not self.inpath.exists(): raise FileNotFoundError(f"Data not found: {self.inpath}")
+        if not self.inpath.exists():
+            raise FileNotFoundError(f"Data not found: {self.inpath}")
         try:
-            data = np.load(self.inpath); return np.nan_to_num(data.astype(np.float64))
-        except Exception as e: raise IOError(f"Failed to load {self.inpath}: {e}")
+            data = np.load(self.inpath)
+            return np.nan_to_num(data.astype(np.float64))
+        except Exception as e:
+            raise IOError(f"Failed to load {self.inpath}: {e}")
 
     def _build_axes(self, shape, f_factor=None, t_factor=None):
         f_factor = f_factor if f_factor is not None else self.f_factor
         t_factor = t_factor if t_factor is not None else self.t_factor
-        
+
         # Get raw shape from config, not from current array shape
         p = self.telescope
         n_ch_raw = p.n_ch_raw if p.n_ch_raw is not None else shape[0] * f_factor
@@ -351,7 +504,8 @@ class BurstDataset:
         return freq, time, df_MHz, dt_ms
 
     def _bandpass_correct(self, arr, time_axis):
-        q = time_axis.size // 4; off_pulse_idx = np.r_[0:q, -q:0]
+        q = time_axis.size // 4
+        off_pulse_idx = np.r_[0:q, -q:0]
         mu = np.nanmean(arr[:, off_pulse_idx], axis=1, keepdims=True)
         sig = np.nanstd(arr[:, off_pulse_idx], axis=1, keepdims=True)
         sig[sig < 1e-9] = np.nan
@@ -374,11 +528,13 @@ class BurstDataset:
         shift = self.data.shape[1] // 2 - np.argmax(prof)
         self.data = np.roll(self.data, shift, axis=1)
 
+
 ###############################################################################
 # 2. DIAGNOSTICS WRAPPER
 ###############################################################################
 class BurstDiagnostics:
     """A container for running and storing all post-fit diagnostic checks."""
+
     def __init__(self, dataset: "BurstDataset", results: Dict[str, Any]):
         self.dataset = dataset
         self.results_in = results
@@ -392,22 +548,45 @@ class BurstDiagnostics:
         model_instance = self.results_in["model_instance"]
         model_dyn = model_instance(best_p, best_key)
 
-        self.diag_results['influence'] = leave_one_out_influence(self.dataset.data, model_dyn)
-        self.diag_results['dm_check'] = dm_optimization_check(self.dataset.data, self.dataset.freq, self.dataset.time, dm_init)
-        self.diag_results['subband_2d'] = subband_consistency(
-            self.dataset.data, self.dataset.freq, self.dataset.time, dm_init, 
-            self.dataset.df_MHz, best_p, model_key=best_key, n_steps=sb_steps, pool=pool
+        self.diag_results["influence"] = leave_one_out_influence(
+            self.dataset.data, model_dyn
         )
-        self.diag_results['profile1d'] = fit_subband_profiles(self.dataset, best_p, dm_init)
+        self.diag_results["dm_check"] = dm_optimization_check(
+            self.dataset.data, self.dataset.freq, self.dataset.time, dm_init
+        )
+        self.diag_results["subband_2d"] = subband_consistency(
+            self.dataset.data,
+            self.dataset.freq,
+            self.dataset.time,
+            dm_init,
+            self.dataset.df_MHz,
+            best_p,
+            model_key=best_key,
+            n_steps=sb_steps,
+            pool=pool,
+        )
+        self.diag_results["profile1d"] = fit_subband_profiles(
+            self.dataset, best_p, dm_init
+        )
         log.info("Diagnostics complete.")
         return self.diag_results
+
 
 ###############################################################################
 # 3. PIPELINE FAÇADE
 ###############################################################################
 class BurstPipeline:
     """Main orchestrator for the fitting pipeline."""
-    def __init__(self, inpath: str | Path, outpath: str | Path, name: str, *, dm_init: float = 0.0, **kwargs):
+
+    def __init__(
+        self,
+        inpath: str | Path,
+        outpath: str | Path,
+        name: str,
+        *,
+        dm_init: float = 0.0,
+        **kwargs,
+    ):
         """
         Initializes the pipeline.
 
@@ -431,25 +610,34 @@ class BurstPipeline:
         dataset_arg_names = list(dataset_params.keys())
 
         # Create a dictionary with only the kwargs that BurstDataset accepts
-        self.dataset_kwargs = {k: v for k, v in kwargs.items() if k in dataset_arg_names}
+        self.dataset_kwargs = {
+            k: v for k, v in kwargs.items() if k in dataset_arg_names
+        }
 
         # Store the remaining kwargs for the pipeline itself (e.g., 'steps')
-        self.pipeline_kwargs = {k: v for k, v in kwargs.items() if k not in dataset_arg_names}
+        self.pipeline_kwargs = {
+            k: v for k, v in kwargs.items() if k not in dataset_arg_names
+        }
 
         # Create the multiprocessing pool
         self.pool = build_pool(
-            self.pipeline_kwargs.get("nproc"), 
-            auto_ok=self.pipeline_kwargs.get("yes", False)
+            self.pipeline_kwargs.get("nproc"),
+            auto_ok=self.pipeline_kwargs.get("yes", False),
         )
 
         # Optional seed init-guess
         self.seed_single: FRBParams | None = None
         self.seed_multi: dict[str, float] | None = None
-        init_guess_path = self.pipeline_kwargs.get("init_guess") or self.pipeline_kwargs.get("init_guess_path")
+        init_guess_path = self.pipeline_kwargs.get(
+            "init_guess"
+        ) or self.pipeline_kwargs.get("init_guess_path")
         if init_guess_path:
             try:
                 import json
-                with Path(init_guess_path).expanduser().open('r', encoding='utf-8') as fh:
+
+                with (
+                    Path(init_guess_path).expanduser().open("r", encoding="utf-8") as fh
+                ):
                     seed = json.load(fh)
                 mk = seed.get("model_key", "M3")
                 if mk == "M3":
@@ -476,18 +664,29 @@ class BurstPipeline:
                         d[f"zeta_{i}"] = float(c.get("zeta", 0.1))
                     self.seed_multi = d
                     # ensure ncomp matches seed
-                    self.pipeline_kwargs['ncomp'] = max(1, len(comp))
+                    self.pipeline_kwargs["ncomp"] = max(1, len(comp))
             except Exception as e:
                 warnings.warn(f"Failed to read init-guess '{init_guess_path}': {e}")
 
-    def run_full(self, model_scan=True, diagnostics=True, plot=True, save=True, show=True, model_keys=("M0","M1","M2","M3"), **kwargs):
+    def run_full(
+        self,
+        model_scan=True,
+        diagnostics=True,
+        plot=True,
+        save=True,
+        show=True,
+        model_keys=("M0", "M1", "M2", "M3"),
+        **kwargs,
+    ):
         """Main pipeline execution flow."""
         with self.pool or contextlib.nullcontext(self.pool) as pool:
             # --- FIX: Use the filtered kwargs to instantiate BurstDataset ---
-            self.dataset = BurstDataset(self.inpath, self.outpath, **self.dataset_kwargs)
+            self.dataset = BurstDataset(
+                self.inpath, self.outpath, **self.dataset_kwargs
+            )
             self.dataset.model.dm_init = self.dm_init
 
-            n_steps = self.pipeline_kwargs.get('steps', 2000)
+            n_steps = self.pipeline_kwargs.get("steps", 2000)
 
             # Seed initial guess from file if provided
             if self.seed_single is not None:
@@ -496,41 +695,54 @@ class BurstPipeline:
                 init_guess = self._get_initial_guess(self.dataset.model)
 
             # Configure priors/likelihood controls
-            alpha_fixed = self.pipeline_kwargs.get('alpha_fixed')
-            alpha_mu = self.pipeline_kwargs.get('alpha_mu', 4.4)
-            alpha_sigma = self.pipeline_kwargs.get('alpha_sigma', 0.6)
-            delta_dm_sigma = self.pipeline_kwargs.get('delta_dm_sigma', 0.1)
-            likelihood_kind = self.pipeline_kwargs.get('likelihood', 'gaussian')
-            studentt_nu = float(self.pipeline_kwargs.get('studentt_nu', 5.0))
-            sample_log_params = bool(self.pipeline_kwargs.get('sample_log_params', True))
+            alpha_fixed = self.pipeline_kwargs.get("alpha_fixed")
+            alpha_mu = self.pipeline_kwargs.get("alpha_mu", 4.4)
+            alpha_sigma = self.pipeline_kwargs.get("alpha_sigma", 0.6)
+            delta_dm_sigma = self.pipeline_kwargs.get("delta_dm_sigma", 0.1)
+            likelihood_kind = self.pipeline_kwargs.get("likelihood", "gaussian")
+            studentt_nu = float(self.pipeline_kwargs.get("studentt_nu", 5.0))
+            sample_log_params = bool(
+                self.pipeline_kwargs.get("sample_log_params", True)
+            )
 
             # Components
-            ncomp = int(self.pipeline_kwargs.get('ncomp', 1))
-            auto_components = bool(self.pipeline_kwargs.get('auto_components', False))
+            ncomp = int(self.pipeline_kwargs.get("ncomp", 1))
+            auto_components = bool(self.pipeline_kwargs.get("auto_components", False))
 
             if model_scan and ncomp == 1:
                 log.info("Starting model selection scan (BIC)...")
                 best_key, all_res = fit_models_bic(
-                    model=self.dataset.model, init=init_guess, n_steps=n_steps//2, pool=pool, model_keys = model_keys,
+                    model=self.dataset.model,
+                    init=init_guess,
+                    n_steps=n_steps // 2,
+                    pool=pool,
+                    model_keys=model_keys,
                     sample_log_params=sample_log_params,
-                    alpha_prior=(alpha_mu, alpha_sigma) if alpha_fixed is None else (alpha_fixed, None),
+                    alpha_prior=(
+                        (alpha_mu, alpha_sigma)
+                        if alpha_fixed is None
+                        else (alpha_fixed, None)
+                    ),
                     likelihood_kind=likelihood_kind,
                     student_nu=studentt_nu,
-                    walker_width_frac=self.pipeline_kwargs.get('walker_width_frac', 0.01),
+                    walker_width_frac=self.pipeline_kwargs.get(
+                        "walker_width_frac", 0.01
+                    ),
                 )
                 sampler = all_res[best_key][0]
             elif ncomp == 1:
-                best_key = "M3"; log.info(f"Fitting model {best_key} directly...")
+                best_key = "M3"
+                log.info(f"Fitting model {best_key} directly...")
                 # right before sampling
                 priors, use_logw = build_priors(
                     init_guess,
                     scale=6.0,
                     abs_max={"tau_1ghz": 5e4, "zeta": 5e4},
                     log_weight_pos=True,
-                )   # Jeffreys weighting in prior weight
+                )  # Jeffreys weighting in prior weight
                 # give generous bounds to the two broadening params
-                priors["tau_1ghz"] = (1e-6, 5e4)   # ms
-                priors["zeta"]     = (1e-6, 5e4)   # ms
+                priors["tau_1ghz"] = (1e-6, 5e4)  # ms
+                priors["zeta"] = (1e-6, 5e4)  # ms
                 # alpha prior bounds
                 if alpha_fixed is not None:
                     priors["alpha"] = (float(alpha_fixed), float(alpha_fixed))
@@ -544,13 +756,20 @@ class BurstPipeline:
                 dm_w = float(delta_dm_sigma)
                 priors["delta_dm"] = (-3.0 * dm_w, 3.0 * dm_w)
 
-                fitter = FRBFitter(self.dataset.model, priors, n_steps=n_steps, pool=pool,
-                                   log_weight_pos=use_logw,
-                                   sample_log_params=sample_log_params,
-                                   alpha_prior=alpha_prior,
-                                   likelihood_kind=likelihood_kind,
-                                   student_nu=studentt_nu,
-                                   walker_width_frac=self.pipeline_kwargs.get('walker_width_frac', 0.01))
+                fitter = FRBFitter(
+                    self.dataset.model,
+                    priors,
+                    n_steps=n_steps,
+                    pool=pool,
+                    log_weight_pos=use_logw,
+                    sample_log_params=sample_log_params,
+                    alpha_prior=alpha_prior,
+                    likelihood_kind=likelihood_kind,
+                    student_nu=studentt_nu,
+                    walker_width_frac=self.pipeline_kwargs.get(
+                        "walker_width_frac", 0.01
+                    ),
+                )
                 sampler = fitter.sample(init_guess, model_key=best_key)
             else:
                 # Multi-component with shared PBF
@@ -560,13 +779,25 @@ class BurstPipeline:
                 if self.seed_multi is not None:
                     init_multi = self.seed_multi
                 else:
-                    init_multi = self._get_initial_guess_multi(self.dataset.model, K, base=init_guess)
+                    init_multi = self._get_initial_guess_multi(
+                        self.dataset.model, K, base=init_guess
+                    )
                 # Build priors for shared + component params
                 priors = {}
                 # shared from build_priors around base guess
-                shared_priors, use_logw = build_priors(init_guess, scale=6.0,
-                                abs_max={"tau_1ghz": 5e4, "zeta": 5e4}, log_weight_pos=True)
-                priors.update({k: v for k, v in shared_priors.items() if k in ("gamma","tau_1ghz")})
+                shared_priors, use_logw = build_priors(
+                    init_guess,
+                    scale=6.0,
+                    abs_max={"tau_1ghz": 5e4, "zeta": 5e4},
+                    log_weight_pos=True,
+                )
+                priors.update(
+                    {
+                        k: v
+                        for k, v in shared_priors.items()
+                        if k in ("gamma", "tau_1ghz")
+                    }
+                )
                 # alpha, delta_dm
                 if alpha_fixed is not None:
                     priors["alpha"] = (float(alpha_fixed), float(alpha_fixed))
@@ -580,19 +811,28 @@ class BurstPipeline:
                 priors["delta_dm"] = (-3.0 * dm_w, 3.0 * dm_w)
 
                 # per-component bounds
-                tmin, tmax = float(self.dataset.time.min()), float(self.dataset.time.max())
-                for i in range(1, K+1):
+                tmin, tmax = float(self.dataset.time.min()), float(
+                    self.dataset.time.max()
+                )
+                for i in range(1, K + 1):
                     priors[f"c0_{i}"] = (1e-6, 1e9)
                     priors[f"t0_{i}"] = (tmin, tmax)
                     priors[f"zeta_{i}"] = (1e-6, 5e4)
 
-                fitter = FRBFitter(self.dataset.model, priors, n_steps=n_steps, pool=pool,
-                                   log_weight_pos=use_logw,
-                                   sample_log_params=sample_log_params,
-                                   alpha_prior=alpha_prior,
-                                   likelihood_kind=likelihood_kind,
-                                   student_nu=studentt_nu,
-                                   walker_width_frac=self.pipeline_kwargs.get('walker_width_frac', 0.01))
+                fitter = FRBFitter(
+                    self.dataset.model,
+                    priors,
+                    n_steps=n_steps,
+                    pool=pool,
+                    log_weight_pos=use_logw,
+                    sample_log_params=sample_log_params,
+                    alpha_prior=alpha_prior,
+                    likelihood_kind=likelihood_kind,
+                    student_nu=studentt_nu,
+                    walker_width_frac=self.pipeline_kwargs.get(
+                        "walker_width_frac", 0.01
+                    ),
+                )
                 names = fitter.build_multicomp_order(K)
                 sampler = fitter.sample(init_multi, model_key="M3_multi")
                 best_key = "M3_multi"
@@ -601,48 +841,99 @@ class BurstPipeline:
             burn, thin, convergence_info = auto_burn_thin(sampler)
             flat_chain = sampler.get_chain(discard=burn, thin=thin, flat=True)
             if flat_chain.shape[0] == 0:
-                raise RuntimeError("MCMC chain is empty after burn-in and thinning. Check sampler settings or increase n_steps.")
+                raise RuntimeError(
+                    "MCMC chain is empty after burn-in and thinning. Check sampler settings or increase n_steps."
+                )
 
             if best_key == "M3_multi":
                 # keep theta_best and names for downstream
-                idx_best = int(np.argmax(sampler.get_log_prob(discard=burn, thin=thin, flat=True)))
+                idx_best = int(
+                    np.argmax(sampler.get_log_prob(discard=burn, thin=thin, flat=True))
+                )
                 theta_best = flat_chain[idx_best]
             else:
-                best_params = FRBParams.from_sequence(flat_chain[np.argmax(sampler.get_log_prob(discard=burn, thin=thin, flat=True))], best_key)
+                best_params = FRBParams.from_sequence(
+                    flat_chain[
+                        np.argmax(
+                            sampler.get_log_prob(discard=burn, thin=thin, flat=True)
+                        )
+                    ],
+                    best_key,
+                )
 
             if best_key == "M3_multi":
                 param_names = list(fitter.custom_order["M3_multi"])  # type: ignore[attr-defined]
                 results = {
-                    "best_key": best_key, "sampler": sampler,
-                    "flat_chain": flat_chain, "param_names": param_names,
-                    "dm_init": self.dm_init, "model_instance": self.dataset.model,
-                    "chain_stats": {"burn_in": burn, "thin": thin, "convergence": convergence_info},
-                    "is_multi": True, "K": K, "theta_best": theta_best,
+                    "best_key": best_key,
+                    "sampler": sampler,
+                    "flat_chain": flat_chain,
+                    "param_names": param_names,
+                    "dm_init": self.dm_init,
+                    "model_instance": self.dataset.model,
+                    "chain_stats": {
+                        "burn_in": burn,
+                        "thin": thin,
+                        "convergence": convergence_info,
+                    },
+                    "is_multi": True,
+                    "K": K,
+                    "theta_best": theta_best,
                 }
             else:
                 results = {
-                    "best_key": best_key, "best_params": best_params, "sampler": sampler, 
-                    "flat_chain": flat_chain, "param_names": FRBFitter._ORDER[best_key], 
-                    "dm_init": self.dm_init, "model_instance": self.dataset.model, 
-                    "chain_stats": {"burn_in": burn, "thin": thin, "convergence": convergence_info}
+                    "best_key": best_key,
+                    "best_params": best_params,
+                    "sampler": sampler,
+                    "flat_chain": flat_chain,
+                    "param_names": FRBFitter._ORDER[best_key],
+                    "dm_init": self.dm_init,
+                    "model_instance": self.dataset.model,
+                    "chain_stats": {
+                        "burn_in": burn,
+                        "thin": thin,
+                        "convergence": convergence_info,
+                    },
                 }
 
             if diagnostics:
-                diag_runner = BurstDiagnostics(self.dataset, results)
-                results['diagnostics'] = diag_runner.run_all(sb_steps=n_steps//4, pool=pool)
+                # Skip diagnostics if chain is badly non-converged (R̂ > 5)
+                max_rhat = convergence_info.get("max_rhat", 1.0)
+                if max_rhat > 5.0:
+                    log.warning(
+                        f"Skipping diagnostics: chain not converged (R̂ = {max_rhat:.2f} > 5)"
+                    )
+                    results["diagnostics"] = {
+                        "skipped": True,
+                        "reason": f"R̂ = {max_rhat:.2f} too high",
+                    }
+                else:
+                    try:
+                        diag_runner = BurstDiagnostics(self.dataset, results)
+                        results["diagnostics"] = diag_runner.run_all(
+                            sb_steps=n_steps // 4, pool=pool
+                        )
+                    except Exception as e:
+                        log.warning(f"Diagnostics failed: {e}")
+                        results["diagnostics"] = {"skipped": True, "reason": str(e)}
 
             if best_key == "M3_multi":
                 model_dyn = self._build_multi_model(results)
-                results['goodness_of_fit'] = goodness_of_fit(
-                    self.dataset.data, model_dyn,
-                    self.dataset.model.noise_std, len(results['param_names'])
+                results["goodness_of_fit"] = goodness_of_fit(
+                    self.dataset.data,
+                    model_dyn,
+                    self.dataset.model.noise_std,
+                    len(results["param_names"]),
                 )
             else:
-                results['goodness_of_fit'] = goodness_of_fit(
-                    self.dataset.data, self.dataset.model(best_params, best_key), 
-                    self.dataset.model.noise_std, len(results['param_names'])
+                results["goodness_of_fit"] = goodness_of_fit(
+                    self.dataset.data,
+                    self.dataset.model(best_params, best_key),
+                    self.dataset.model.noise_std,
+                    len(results["param_names"]),
                 )
-            log.info(f"Best model: {best_key} | χ²/dof = {results['goodness_of_fit']['chi2_reduced']:.2f}")
+            log.info(
+                f"Best model: {best_key} | χ²/dof = {results['goodness_of_fit']['chi2_reduced']:.2f}"
+            )
 
             if plot:
                 p_path_sixt = os.path.join(self.outpath, f"{self.name}_diagnostics.pdf")
@@ -654,8 +945,8 @@ class BurstPipeline:
 
     def _get_initial_guess(self, model: "FRBModel") -> "FRBParams":
         log.info("Finding initial guess for MCMC...")
-        f_ds = 1 #getattr(self, "f_factor", self.f_factor)
-        t_ds = 1 #getattr(self, "init_t_factor", self.t_factor)
+        f_ds = 1  # getattr(self, "f_factor", self.f_factor)
+        t_ds = 1  # getattr(self, "init_t_factor", self.t_factor)
 
         # 2) build down-sampled arrays
         data_ds = model.data[::f_ds, ::t_ds]
@@ -668,27 +959,50 @@ class BurstPipeline:
             time=time_ds,
             freq=freq_ds,
             dm_init=self.dm_init,
-            df_MHz=model.df_MHz
+            df_MHz=model.df_MHz,
         )
 
         prof = np.nansum(model_ds.data, axis=0)
-        if np.all(prof == 0): return FRBParams(c0=0, t0=model_ds.time.mean(), gamma=0, zeta=0, tau_1ghz=0)
-        rough_guess = FRBParams(c0=np.sum(prof), t0=model_ds.time[np.argmax(prof)], gamma=-1.6, zeta=0.1, tau_1ghz=0.1)
-        priors, use_logw = build_priors(rough_guess,
-                                    scale=1.5,
-                                    abs_max={"tau_1ghz": 5e4, "zeta": 5e4},
-                                    log_weight_pos=True)   # Jeffreys weightin
+        if np.all(prof == 0):
+            return FRBParams(c0=0, t0=model_ds.time.mean(), gamma=0, zeta=0, tau_1ghz=0)
+        rough_guess = FRBParams(
+            c0=np.sum(prof),
+            t0=model_ds.time[np.argmax(prof)],
+            gamma=-1.6,
+            zeta=0.1,
+            tau_1ghz=0.1,
+        )
+        priors, use_logw = build_priors(
+            rough_guess,
+            scale=1.5,
+            abs_max={"tau_1ghz": 5e4, "zeta": 5e4},
+            log_weight_pos=True,
+        )  # Jeffreys weightin
         model_key = "M3"
-        x0 = rough_guess.to_sequence(model_key); bounds = [priors[n] for n in FRBFitter._ORDER[model_key]]
+        x0 = rough_guess.to_sequence(model_key)
+        bounds = [priors[n] for n in FRBFitter._ORDER[model_key]]
+
         def nll(theta):
-            p = FRBParams.from_sequence(theta, model_key); ll = model_ds.log_likelihood(p, model_key)
+            p = FRBParams.from_sequence(theta, model_key)
+            ll = model_ds.log_likelihood(p, model_key)
             return -ll if np.isfinite(ll) else np.inf
-        res = minimize(nll, x0, method='L-BFGS-B', bounds=bounds, options={'maxiter': 200, 'ftol': 1e-7})
-        if not res.success: warnings.warn("Initial guess optimization failed. Using rough guess."); return rough_guess
+
+        res = minimize(
+            nll,
+            x0,
+            method="L-BFGS-B",
+            bounds=bounds,
+            options={"maxiter": 200, "ftol": 1e-7},
+        )
+        if not res.success:
+            warnings.warn("Initial guess optimization failed. Using rough guess.")
+            return rough_guess
         log.info("Refined initial guess found via optimization.")
         return FRBParams.from_sequence(res.x, model_key)
 
-    def _get_initial_guess_multi(self, model: "FRBModel", K: int, base: "FRBParams") -> dict[str, float]:
+    def _get_initial_guess_multi(
+        self, model: "FRBModel", K: int, base: "FRBParams"
+    ) -> dict[str, float]:
         # Smooth profile and find K peaks
         prof = np.nansum(model.data, axis=0)
         if model.dt > 0:
@@ -702,36 +1016,52 @@ class BurstPipeline:
         init: dict[str, float] = {
             "gamma": base.gamma,
             "tau_1ghz": max(base.tau_1ghz, 1e-3),
-            "alpha": getattr(base, 'alpha', 4.4),
+            "alpha": getattr(base, "alpha", 4.4),
             "delta_dm": 0.0,
         }
         for j, ix in enumerate(idxs, start=1):
             init[f"t0_{j}"] = model.time[ix]
             init[f"c0_{j}"] = max(total / K, 1e-3)
-            init[f"zeta_{j}"] = max(getattr(base, 'zeta', 0.05), 1e-3)
+            init[f"zeta_{j}"] = max(getattr(base, "zeta", 0.05), 1e-3)
         return init
 
     def _build_multi_model(self, results: Dict[str, Any]):
         names = results["param_names"]
         theta = results["theta_best"]
-        K = int(results["K"]) 
+        K = int(results["K"])
         model = results["model_instance"]
+
         # helper
         def get(name):
             return theta[names.index(name)] if name in names else None
-        gamma = get("gamma"); tau1 = get("tau_1ghz"); alpha = get("alpha"); delta_dm = get("delta_dm")
+
+        gamma = get("gamma")
+        tau1 = get("tau_1ghz")
+        alpha = get("alpha")
+        delta_dm = get("delta_dm")
         model_sum = np.zeros_like(model.data)
-        for i in range(1, K+1):
-            c0 = get(f"c0_{i}"); t0 = get(f"t0_{i}"); zeta = get(f"zeta_{i}")
-            p = FRBParams(c0=c0, t0=t0, gamma=gamma, zeta=zeta, tau_1ghz=tau1, alpha=alpha, delta_dm=delta_dm)
+        for i in range(1, K + 1):
+            c0 = get(f"c0_{i}")
+            t0 = get(f"t0_{i}")
+            zeta = get(f"zeta_{i}")
+            p = FRBParams(
+                c0=c0,
+                t0=t0,
+                gamma=gamma,
+                zeta=zeta,
+                tau_1ghz=tau1,
+                alpha=alpha,
+                delta_dm=delta_dm,
+            )
             model_sum = model_sum + model(p, "M3")
         return model_sum
 
+
 def auto_burn_thin(sampler, safety_factor_burn=3.0, safety_factor_thin=0.5):
     """Automatically determine burn-in and thinning based on autocorrelation time.
-    
+
     Also computes Gelman-Rubin R̂ for convergence diagnostics.
-    
+
     Returns
     -------
     tuple
@@ -740,30 +1070,33 @@ def auto_burn_thin(sampler, safety_factor_burn=3.0, safety_factor_thin=0.5):
     burn = sampler.iteration // 4  # default fallback
     thin = 1
     convergence_info = {}
-    
+
     try:
         tau = sampler.get_autocorr_time(tol=0.01)
         burn = int(safety_factor_burn * np.nanmax(tau))
         thin = max(1, int(safety_factor_thin * np.nanmin(tau)))
         burn = min(burn, sampler.iteration // 2)
         log.info(f"Auto-determined burn-in: {burn}, thinning: {thin}")
-        convergence_info['autocorr_time'] = tau.tolist()
+        convergence_info["autocorr_time"] = tau.tolist()
     except Exception as e:
         warnings.warn(f"Could not estimate autocorr time: {e}. Using defaults.")
-    
+
     # Compute Gelman-Rubin R̂
     try:
         rhat_results = gelman_rubin(sampler, discard=burn)
         convergence_info.update(rhat_results)
-        if rhat_results['converged']:
+        if rhat_results["converged"]:
             log.info(f"Gelman-Rubin R̂ max = {rhat_results['max_rhat']:.4f} (CONVERGED)")
         else:
-            log.warning(f"Gelman-Rubin R̂ max = {rhat_results['max_rhat']:.4f} (NOT CONVERGED - consider more steps)")
+            log.warning(
+                f"Gelman-Rubin R̂ max = {rhat_results['max_rhat']:.4f} (NOT CONVERGED - consider more steps)"
+            )
     except Exception as e:
         warnings.warn(f"Could not compute Gelman-Rubin: {e}")
-        convergence_info['gelman_rubin_error'] = str(e)
-    
+        convergence_info["gelman_rubin_error"] = str(e)
+
     return burn, thin, convergence_info
+
 
 ###############################################################################
 # 4. CLI WRAPPER
@@ -783,67 +1116,147 @@ def _main():
     p.add_argument("--steps", type=int, default=2000)
     p.add_argument("--f_factor", type=int, default=1)
     p.add_argument("--t_factor", type=int, default=1)
-    p.add_argument("--outer-trim", dest='outer_trim', type=float, help="Fraction to trim from each time edge (0-0.49)")
-    p.add_argument("--flip-freq", dest='flip_freq', action='store_true', help="Flip frequency axis (high at top)")
-    p.add_argument("--no-flip-freq", dest='flip_freq', action='store_false', help="Do not flip frequency axis")
+    p.add_argument(
+        "--outer-trim",
+        dest="outer_trim",
+        type=float,
+        help="Fraction to trim from each time edge (0-0.49)",
+    )
+    p.add_argument(
+        "--flip-freq",
+        dest="flip_freq",
+        action="store_true",
+        help="Flip frequency axis (high at top)",
+    )
+    p.add_argument(
+        "--no-flip-freq",
+        dest="flip_freq",
+        action="store_false",
+        help="Do not flip frequency axis",
+    )
     # New modeling controls
-    p.add_argument("--alpha-fixed", type=float, default=None, help="Fix alpha frequency scaling exponent")
-    p.add_argument("--alpha-mu", type=float, default=4.4, help="Gaussian prior mean for alpha")
-    p.add_argument("--alpha-sigma", type=float, default=0.6, help="Gaussian prior sigma for alpha")
-    p.add_argument("--delta-dm-sigma", type=float, default=0.1, help="Top-hat prior sigma for delta DM (pc cm^-3)")
-    p.add_argument("--likelihood", type=str, choices=["gaussian","studentt"], default="gaussian")
-    p.add_argument("--studentt-nu", type=float, default=5.0, help="Student-t degrees of freedom")
-    p.add_argument("--no-logspace", dest='sample_log_params', action='store_false', help="Disable log-space sampling for positive params")
+    p.add_argument(
+        "--alpha-fixed",
+        type=float,
+        default=None,
+        help="Fix alpha frequency scaling exponent",
+    )
+    p.add_argument(
+        "--alpha-mu", type=float, default=4.4, help="Gaussian prior mean for alpha"
+    )
+    p.add_argument(
+        "--alpha-sigma", type=float, default=0.6, help="Gaussian prior sigma for alpha"
+    )
+    p.add_argument(
+        "--delta-dm-sigma",
+        type=float,
+        default=0.1,
+        help="Top-hat prior sigma for delta DM (pc cm^-3)",
+    )
+    p.add_argument(
+        "--likelihood", type=str, choices=["gaussian", "studentt"], default="gaussian"
+    )
+    p.add_argument(
+        "--studentt-nu", type=float, default=5.0, help="Student-t degrees of freedom"
+    )
+    p.add_argument(
+        "--no-logspace",
+        dest="sample_log_params",
+        action="store_false",
+        help="Disable log-space sampling for positive params",
+    )
     # Seeding / walkers
-    p.add_argument("--init-guess", type=Path, default=None, help="Path to JSON seed for initial guess (single or multi)")
-    p.add_argument("--walker-width-frac", type=float, default=0.01, help="Initial walker cloud width as fraction of prior span")
+    p.add_argument(
+        "--init-guess",
+        type=Path,
+        default=None,
+        help="Path to JSON seed for initial guess (single or multi)",
+    )
+    p.add_argument(
+        "--walker-width-frac",
+        type=float,
+        default=0.01,
+        help="Initial walker cloud width as fraction of prior span",
+    )
     # Multi-component controls
-    p.add_argument("--ncomp", type=int, default=1, help="Number of Gaussian components (shared PBF)")
-    p.add_argument("--auto-components", action='store_true', help="Greedy BIC-based component selection (placeholder)")
+    p.add_argument(
+        "--ncomp",
+        type=int,
+        default=1,
+        help="Number of Gaussian components (shared PBF)",
+    )
+    p.add_argument(
+        "--auto-components",
+        action="store_true",
+        help="Greedy BIC-based component selection (placeholder)",
+    )
     # Earmarks / placeholders
-    p.add_argument("--anisotropy-enabled", action='store_true', help="Earmark: enable anisotropy option (not implemented)")
-    p.add_argument("--anisotropy-axial-ratio", type=float, default=1.0, help="Earmark: anisotropy axial ratio (not implemented)")
-    p.add_argument("--baseline-order", type=int, default=0, help="Earmark: polynomial baseline order to marginalize (not implemented)")
-    p.add_argument("--correlated-resid", action='store_true', help="Earmark: AR(1)/GP residual model (not implemented)")
-    p.add_argument("--sampler", type=str, choices=["emcee","nested"], default="emcee", help="Sampler choice (nested is a placeholder)")
+    p.add_argument(
+        "--anisotropy-enabled",
+        action="store_true",
+        help="Earmark: enable anisotropy option (not implemented)",
+    )
+    p.add_argument(
+        "--anisotropy-axial-ratio",
+        type=float,
+        default=1.0,
+        help="Earmark: anisotropy axial ratio (not implemented)",
+    )
+    p.add_argument(
+        "--baseline-order",
+        type=int,
+        default=0,
+        help="Earmark: polynomial baseline order to marginalize (not implemented)",
+    )
+    p.add_argument(
+        "--correlated-resid",
+        action="store_true",
+        help="Earmark: AR(1)/GP residual model (not implemented)",
+    )
+    p.add_argument(
+        "--sampler",
+        type=str,
+        choices=["emcee", "nested"],
+        default="emcee",
+        help="Sampler choice (nested is a placeholder)",
+    )
     # Add flags for boolean pipeline controls
-    p.add_argument("--no-scan", dest='model_scan', action='store_false')
-    p.add_argument("--no-diag", dest='diagnostics', action='store_false')
-    p.add_argument("--no-plot", dest='plot', action='store_false')
+    p.add_argument("--no-scan", dest="model_scan", action="store_false")
+    p.add_argument("--no-diag", dest="diagnostics", action="store_false")
+    p.add_argument("--no-plot", dest="plot", action="store_false")
     p.set_defaults(model_scan=True, diagnostics=True, plot=True, flip_freq=True)
     args = p.parse_args()
-    
+
     # --- FIX: Pass all arguments as a dict to the pipeline constructor ---
     # The new __init__ will sort them out automatically.
     pipeline_kwargs = vars(args)
-    
+
     # Extract required args and provide sensible defaults
-    inpath = pipeline_kwargs.pop('inpath')
-    outpath = pipeline_kwargs.pop('outpath') or inpath.parent
-    name = pipeline_kwargs.pop('frb') or inpath.stem
-    dm_init = pipeline_kwargs.pop('dm_init')
+    inpath = pipeline_kwargs.pop("inpath")
+    outpath = pipeline_kwargs.pop("outpath") or inpath.parent
+    name = pipeline_kwargs.pop("frb") or inpath.stem
+    dm_init = pipeline_kwargs.pop("dm_init")
 
     # Harmonize config key names for dataset constructor
-    telcfg_cli = pipeline_kwargs.pop('telcfg', None)
+    telcfg_cli = pipeline_kwargs.pop("telcfg", None)
     if telcfg_cli is not None:
-        pipeline_kwargs['telcfg_path'] = telcfg_cli
-    sampcfg_cli = pipeline_kwargs.pop('sampcfg', None)
+        pipeline_kwargs["telcfg_path"] = telcfg_cli
+    sampcfg_cli = pipeline_kwargs.pop("sampcfg", None)
     if sampcfg_cli is not None:
-        pipeline_kwargs['sampcfg_path'] = sampcfg_cli
+        pipeline_kwargs["sampcfg_path"] = sampcfg_cli
 
     pipe = BurstPipeline(
         name=name,
-        inpath=inpath, # positional arg extracted above
+        inpath=inpath,  # positional arg extracted above
         outpath=outpath,
         dm_init=dm_init,
-        **pipeline_kwargs
+        **pipeline_kwargs,
     )
-    
+
     pipe.run_full(
-        model_scan=args.model_scan, 
-        diagnostics=args.diagnostics, 
-        plot=args.plot
+        model_scan=args.model_scan, diagnostics=args.diagnostics, plot=args.plot
     )
+
 
 if __name__ == "__main__":
     _main()

@@ -351,64 +351,91 @@ class InitialGuessWidget:
         dt_ms = self.dataset.time[1] - self.dataset.time[0]
         c_max = np.max(self.dataset.data) * self.dataset.data.shape[0]  # Scale by n_freq
         
-        # Create sliders
+        # Create sliders with refined step sizes and bounds
+        # Step sizes are chosen to be ~1/200 of the range for fine control
         style = {'description_width': '120px'}
         layout = widgets.Layout(width='500px')
+        
+        # Amplitude: max at 2× initial or 1.5× data max, fine steps
+        c0_max = max(c_max * 1.5, self.params.c0 * 2)
+        c0_step = max(c0_max / 2000, 0.0001)  # ~2000 steps across range
+        
+        # Scattering: max at 2× initial or 20% of time range, very fine steps
+        tau_max = max(t_range * 0.2, self.params.tau_1ghz * 2, 0.5)
+        tau_step = max(tau_max / 2000, dt_ms / 20, 0.0001)
+        
+        # Time bounds
+        t_min, t_max = self.dataset.time[0], self.dataset.time[-1]
+        t0_step = dt_ms / 20  # 20× finer than time resolution
+        
+        # Gamma and zeta bounds
+        gamma_min, gamma_max = -3.0, 2.0
+        zeta_min, zeta_max = 0.001, 2.0
+        alpha_min, alpha_max = 2.0, 6.0
+        
+        # Style for range labels
+        range_style = {'font-size': '10px', 'color': '#666', 'margin-left': '5px'}
         
         sliders = {
             'c0': widgets.FloatSlider(
                 value=self.params.c0,
                 min=0.0,
-                max=max(c_max * 3, self.params.c0 * 3),
-                step=max(c_max / 100, 0.01),
-                description='c0 (amplitude):',
+                max=c0_max,
+                step=c0_step,
+                description=f'c0 [0, {c0_max:.1f}]:',
                 style=style,
-                layout=layout
+                layout=layout,
+                readout_format='.4f'
             ),
             't0': widgets.FloatSlider(
                 value=self.params.t0,
-                min=self.dataset.time[0],
-                max=self.dataset.time[-1],
-                step=dt_ms,
-                description='t0 (arrival):',
+                min=t_min,
+                max=t_max,
+                step=t0_step,
+                description=f't0 [{t_min:.2f}, {t_max:.2f}]:',
                 style=style,
-                layout=layout
+                layout=layout,
+                readout_format='.5f'
             ),
             'gamma': widgets.FloatSlider(
                 value=self.params.gamma,
-                min=-4.0,
-                max=4.0,
-                step=0.1,
-                description='gamma (width):',
+                min=gamma_min,
+                max=gamma_max,
+                step=0.001,  # Very fine step for spectral index
+                description=f'γ [{gamma_min}, {gamma_max}]:',
                 style=style,
-                layout=layout
+                layout=layout,
+                readout_format='.4f'
             ),
             'zeta': widgets.FloatSlider(
                 value=self.params.zeta,
-                min=0.01,
-                max=5.0,
-                step=0.05,
-                description='zeta (spec width):',
+                min=zeta_min,
+                max=zeta_max,
+                step=0.001,  # Very fine step for pulse width
+                description=f'ζ [{zeta_min}, {zeta_max}]:',
                 style=style,
-                layout=layout
+                layout=layout,
+                readout_format='.4f'
             ),
             'tau_1ghz': widgets.FloatSlider(
                 value=self.params.tau_1ghz,
                 min=0.0,
-                max=max(t_range * 0.5, self.params.tau_1ghz * 5, 0.1),
-                step=max(dt_ms, 0.001),
-                description='tau_1ghz (scatter):',
+                max=tau_max,
+                step=tau_step,
+                description=f'τ₁GHz [0, {tau_max:.2f}]:',
                 style=style,
-                layout=layout
+                layout=layout,
+                readout_format='.5f'
             ),
             'alpha': widgets.FloatSlider(
                 value=getattr(self.params, 'alpha', 4.0),
-                min=2.0,
-                max=6.0,
-                step=0.1,
-                description='alpha (scat index):',
+                min=alpha_min,
+                max=alpha_max,
+                step=0.01,  # Finer step for scattering index
+                description=f'α [{alpha_min}, {alpha_max}]:',
                 style=style,
-                layout=layout
+                layout=layout,
+                readout_format='.3f'
             ),
         }
         

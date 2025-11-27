@@ -26,8 +26,19 @@ dependencies = [
 [project.scripts]
 flits-scat = "scattering.run_scat_analysis:main"
 flits-scint = "scintillation.scint_analysis.run_analysis:main"
+flits-batch = "flits.batch.cli:main"
+flits-configs = "flits.batch.config_generator:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
 namespaces = true
+
+[tool.pytest.ini_options]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+]
+testpaths = ["tests", "scattering/scripts", "scattering/scat_analysis/tests", "scintillation/scint_analysis/tests", "flits/batch/tests"]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+]
 

@@ -79,6 +79,9 @@ def load_config(burst_config_path, workspace_root: Optional[Union[str, Path]] = 
             workspace_root = workspace_root.parent
     else:
         workspace_root = Path(workspace_root).resolve()
+
+    # Ensure configs can use ${FLITS_ROOT} without requiring users to pre-set it.
+    os.environ.setdefault("FLITS_ROOT", str(workspace_root))
     
     try:
         with open(config_path, 'r') as f:

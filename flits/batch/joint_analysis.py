@@ -60,6 +60,36 @@ class JointAnalysis:
         self.comparison_df: Optional[pd.DataFrame] = None
         self.consistency_results: List[ConsistencyResult] = []
         self.scaling_results: List[FrequencyScalingResult] = []
+
+    def _ensure_comparison_table(self) -> pd.DataFrame:
+        """
+        Lazily load the comparison DataFrame from the database.
+        """
+        if self.comparison_df is None:
+            self.comparison_df = self.db.get_comparison_table()
+        return self.comparison_df
+
+    def check_tau_deltanu_consistency(self) -> List[ConsistencyResult]:
+        """
+        Public wrapper around :func:`analysis_logic.check_tau_deltanu_consistency`.
+        """
+        df = self._ensure_comparison_table()
+        if df.empty:
+            self.consistency_results = []
+            return self.consistency_results
+        self.consistency_results = check_tau_deltanu_consistency(df)
+        return self.consistency_results
+
+    def analyze_frequency_scaling(self) -> List[FrequencyScalingResult]:
+        """
+        Public wrapper around :func:`analysis_logic.analyze_frequency_scaling`.
+        """
+        df = self._ensure_comparison_table()
+        if df.empty:
+            self.scaling_results = []
+            return self.scaling_results
+        self.scaling_results = analyze_frequency_scaling(df)
+        return self.scaling_results
         
     def run_analysis(self, output_dir: Path, show_plots: bool = True):
         """
@@ -72,17 +102,17 @@ class JointAnalysis:
         log.info("Starting joint analysis...")
         
         # 1. Get unified data table
-        self.comparison_df = self.db.get_comparison_table()
-        if self.comparison_df.empty:
+        comparison_df = self._ensure_comparison_table()
+        if comparison_df.empty:
             log.warning("Comparison DataFrame is empty. No analysis to perform.")
             return
             
         # 2. Perform scientific analysis
         log.info("Checking τ-Δν consistency...")
-        self.consistency_results = check_tau_deltanu_consistency(self.comparison_df)
+        self.consistency_results = check_tau_deltanu_consistency(comparison_df)
         
         log.info("Analyzing frequency scaling for co-detected bursts...")
-        self.scaling_results = analyze_frequency_scaling(self.comparison_df)
+        self.scaling_results = analyze_frequency_scaling(comparison_df)
         
         # 3. Generate plots
         log.info(f"Generating summary plots in {output_dir}...")

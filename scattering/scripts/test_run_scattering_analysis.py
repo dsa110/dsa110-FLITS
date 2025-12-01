@@ -13,7 +13,6 @@ Run with:
 """
 
 import os
-import sys
 import tempfile
 from pathlib import Path
 from dataclasses import dataclass
@@ -21,14 +20,10 @@ from unittest.mock import Mock, patch, MagicMock
 import pytest
 import numpy as np
 
-# Setup path for imports
-SCRIPT_DIR = Path(__file__).resolve().parent
-FLITS_ROOT = SCRIPT_DIR.parent.parent
-sys.path.insert(0, str(FLITS_ROOT))
-sys.path.insert(0, str(FLITS_ROOT / "scattering"))
+FLITS_ROOT = Path(__file__).resolve().parents[2]
 
 # Import the module under test
-from scattering.scripts.run_scattering_analysis import (
+from flits.scattering.scripts.run_scattering_analysis import (
     FigureValidator,
     create_data_overview_figure,
     create_initial_guess_figure,
@@ -374,9 +369,9 @@ class TestMainFunction:
         captured = capsys.readouterr()
         assert "[ERROR]" in captured.out
 
-    @patch("scattering.scripts.run_scattering_analysis.load_config")
-    @patch("scattering.scripts.run_scattering_analysis.BurstPipeline")
-    @patch("scattering.scripts.run_scattering_analysis.BurstDataset")
+    @patch("flits.scattering.scripts.run_scattering_analysis.load_config")
+    @patch("flits.scattering.scripts.run_scattering_analysis.BurstPipeline")
+    @patch("flits.scattering.scripts.run_scattering_analysis.BurstDataset")
     def test_main_pipeline_creation_error(
         self, mock_dataset_cls, mock_pipeline_cls, mock_load_config, capsys, tmp_path
     ):
@@ -483,4 +478,3 @@ class TestIntegration:
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v", "--tb=short"])
-

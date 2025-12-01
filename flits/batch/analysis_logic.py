@@ -90,6 +90,8 @@ def check_tau_deltanu_consistency(
         result.delta_nu_mhz = row.get("delta_nu_dc")
         result.delta_nu_err = row.get("delta_nu_dc_err")
         alpha = row.get("alpha", 4.0)  # Default to Kolmogorov
+        if pd.isna(alpha):
+            alpha = 4.0
         
         if tel == "chime":
             result.scint_freq_ghz = FREQ_CHIME
@@ -97,7 +99,11 @@ def check_tau_deltanu_consistency(
             result.scint_freq_ghz = FREQ_DSA
         
         # Compute product if both measurements available
-        if pd.notna(result.tau_1ghz_ms) and pd.notna(result.delta_nu_mhz):
+        if (
+            pd.notna(result.tau_1ghz_ms)
+            and pd.notna(result.delta_nu_mhz)
+            and result.scint_freq_ghz is not None
+        ):
             freq_ratio = result.scint_freq_ghz / 1.0  # ν / 1 GHz
             result.tau_at_scint_freq_ms = result.tau_1ghz_ms * (freq_ratio ** (-alpha))
             

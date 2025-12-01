@@ -12,7 +12,7 @@ Mode is auto‑detected.
 from __future__ import annotations
 
 import json
-import warnings
+import logging
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Literal, Optional, Union
@@ -20,6 +20,8 @@ from typing import Literal, Optional, Union
 import numpy as np
 from numpy.typing import NDArray
 from scipy import signal, stats
+
+log = logging.getLogger(__name__)
 
 EPS = np.finfo(np.float32).tiny
 
@@ -142,7 +144,7 @@ class NoiseDescriptor:
 def _inpaint(I: NDArray[np.floating]) -> NDArray[np.floating]:
     if not np.isnan(I).any():
         return I
-    warnings.warn("NaNs detected – in‑painting with row/col medians.")
+    log.debug("NaNs detected in noise estimation array – inpainting with medians.")
     I = I.copy()
     row_med = np.nanmedian(I, axis=1)
     col_med = np.nanmedian(I, axis=0)
@@ -180,6 +182,7 @@ def estimate_noise_descriptor(I: NDArray[np.floating], nlags: int = 50) -> Noise
     if kind == "intensity":
         mu = float(I.mean())
         var = I.var(ddof=0)
+        var = max(float(var), EPS)
         gamma_k, gamma_theta = mu**2 / var, var / mu
         sigma = 0.0
         shift = 0.0
@@ -198,6 +201,7 @@ def estimate_noise_descriptor(I: NDArray[np.floating], nlags: int = 50) -> Noise
         mu = 0.0
         sigma = 0.0
         mean, var = gamma_data.mean(), gamma_data.var(ddof=0)
+        var = max(float(var), EPS)
         gamma_k, gamma_theta = mean**2 / var, var / mean
         g_t = np.clip(_robust_std(gamma_data, axis=1), EPS, None).astype(np.float32)
         b_f = np.clip(_robust_std(gamma_data, axis=0), EPS, None).astype(np.float32)

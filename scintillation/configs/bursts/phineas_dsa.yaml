@@ -1,5 +1,5 @@
 burst_id: phineas
-input_data_path: /Users/jakobfaber/Documents/research/caltech/ovro/dsa110/chime_dsa_codetections/FLITS/scintillation/data/phineas.npz
+input_data_path: ${FLITS_ROOT}/scintillation/data/phineas.npz
 telescope: dsa
 analysis:
   rfi_masking:
@@ -78,9 +78,9 @@ pipeline_options:
   log_level: INFO
   save_intermediate_steps: true
   force_recalc: true
-  output_plot_path: /Users/jakobfaber/Documents/research/caltech/ovro/dsa110/chime_dsa_codetections/FLITS/scintillation/plots/phineas/phineas_analysis_overview.png
-  cache_directory: /Users/jakobfaber/Documents/research/caltech/ovro/dsa110/chime_dsa_codetections/FLITS/scintillation/data/cache/phineas/
+  output_plot_path: ${FLITS_ROOT}/scintillation/plots/phineas/phineas_analysis_overview.png
+  cache_directory: ${FLITS_ROOT}/scintillation/data/cache/phineas/
   halt_after_acf: true
   diagnostic_plots:
     enable: true
-    directory: /Users/jakobfaber/Documents/research/caltech/ovro/dsa110/chime_dsa_codetections/FLITS/scintillation/plots/diagnostics
+    directory: ${FLITS_ROOT}/scintillation/plots/diagnostics

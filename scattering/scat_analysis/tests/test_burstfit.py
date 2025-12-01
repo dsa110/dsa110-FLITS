@@ -10,15 +10,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_allclose, assert_array_less
 
-import sys
-from pathlib import Path
-
-# Add the parent directories to path for imports
-_test_dir = Path(__file__).parent
-sys.path.insert(0, str(_test_dir.parent.parent.parent))  # FLITS root
-sys.path.insert(0, str(_test_dir.parent.parent))  # scattering dir
-
-from scat_analysis.burstfit import (
+from flits.scattering.scat_analysis.burstfit import (
     FRBParams,
     FRBModel,
     FRBFitter,
@@ -569,4 +561,3 @@ class TestEdgeCases:
         output = model(p, "M0")
         
         assert not np.any(np.isnan(output))
-

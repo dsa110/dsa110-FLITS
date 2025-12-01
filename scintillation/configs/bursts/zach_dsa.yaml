@@ -1,5 +1,5 @@
 burst_id: zach
-input_data_path: /Users/jakobfaber/Documents/research/caltech/ovro/dsa110/chime_dsa_codetections/FLITS/scintillation/data/zach.npz
+input_data_path: ${FLITS_ROOT}/scintillation/data/zach.npz
 telescope: dsa
 analysis:
   rfi_masking:
@@ -480,9 +480,9 @@ pipeline_options:
   log_level: INFO
   save_intermediate_steps: true
   force_recalc: true
-  output_plot_path: /Users/jakobfaber/Documents/research/caltech/ovro/dsa110/chime_dsa_codetections/FLITS/scintillation/plots/zach/zach_analysis_overview.png
-  cache_directory: /Users/jakobfaber/Documents/research/caltech/ovro/dsa110/chime_dsa_codetections/FLITS/scintillation/data/cache/zach/
+  output_plot_path: ${FLITS_ROOT}/scintillation/plots/zach/zach_analysis_overview.png
+  cache_directory: ${FLITS_ROOT}/scintillation/data/cache/zach/
   halt_after_acf: true
   diagnostic_plots:
     enable: true
-    directory: /Users/jakobfaber/Documents/research/caltech/ovro/dsa110/chime_dsa_codetections/FLITS/scintillation/plots/diagnostics
+    directory: ${FLITS_ROOT}/scintillation/plots/diagnostics

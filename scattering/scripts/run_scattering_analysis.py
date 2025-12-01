@@ -18,8 +18,6 @@ Usage:
     python run_scattering_analysis.py scattering/configs/bursts/dsa/casey_dsa.yaml
 """
 
-import os
-import sys
 import warnings
 from pathlib import Path
 from dataclasses import asdict
@@ -33,31 +31,13 @@ matplotlib.use("Agg")  # Non-interactive backend for saving figures
 import matplotlib.pyplot as plt
 
 # =============================================================================
-# SETUP PATHS
-# =============================================================================
-
-# Find FLITS root (this script is in scattering/scripts/)
-SCRIPT_DIR = Path(__file__).resolve().parent
-FLITS_ROOT = SCRIPT_DIR.parent.parent
-
-# Add to path
-sys.path.insert(0, str(FLITS_ROOT))
-sys.path.insert(0, str(FLITS_ROOT / "scattering"))
-
-# Change to FLITS root for relative paths
-os.chdir(FLITS_ROOT)
-
-print(f"[SETUP] FLITS root: {FLITS_ROOT}")
-print(f"[SETUP] Working directory: {Path.cwd()}")
-
-# =============================================================================
 # IMPORTS
 # =============================================================================
 
-from scat_analysis.burstfit_pipeline import BurstPipeline, BurstDataset
-from scat_analysis.burstfit_interactive import InitialGuessWidget
-from scat_analysis.config_utils import load_config
-from scat_analysis.burstfit import FRBParams
+from flits.scattering.scat_analysis.burstfit_pipeline import BurstPipeline, BurstDataset
+from flits.scattering.scat_analysis.burstfit_interactive import InitialGuessWidget
+from flits.scattering.scat_analysis.config_utils import load_config
+from flits.scattering.scat_analysis.burstfit import FRBParams
 
 print("[OK] Imports successful")
 

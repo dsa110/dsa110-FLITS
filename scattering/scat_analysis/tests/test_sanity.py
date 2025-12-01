@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from FLITS.scattering.scat_analysis.burstfit import FRBParams, FRBModel
+from flits.scattering.scat_analysis.burstfit import FRBParams, FRBModel
 
 
 def test_frbparams_defaults():
@@ -19,4 +19,3 @@ def test_model_call_shapes():
     p = FRBParams(c0=1.0, t0=0.0, gamma=-1.6, zeta=0.1, tau_1ghz=0.2, alpha=4.4, delta_dm=0.0)
     out = m(p, "M3")
     assert out.shape == data.shape
-

@@ -121,7 +121,7 @@ class ScatteringResult:
         rhat_max = None
         if sampler is not None:
             try:
-                from scattering.scat_analysis.burstfit import gelman_rubin
+                from flits.scattering.scat_analysis.burstfit import gelman_rubin
                 chain = sampler.get_chain(flat=False)
                 rhat = gelman_rubin(chain)
                 rhat_max = float(np.max(rhat))
@@ -459,6 +459,11 @@ class ResultsDatabase:
         scat_df = self.to_dataframe("scattering")
         scint_df = self.to_dataframe("scintillation")
         
+        if scat_df.empty:
+            scat_df = pd.DataFrame(columns=ScatteringResult.__dataclass_fields__.keys())
+        if scint_df.empty:
+            scint_df = pd.DataFrame(columns=ScintillationResult.__dataclass_fields__.keys())
+        
         if scat_df.empty and scint_df.empty:
             return pd.DataFrame()
         
@@ -509,4 +514,3 @@ class ResultsDatabase:
             log.info(f"Exported LaTeX table to {output_path}")
             
         return latex
-

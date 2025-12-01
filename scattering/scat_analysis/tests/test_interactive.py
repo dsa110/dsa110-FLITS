@@ -9,16 +9,8 @@ from __future__ import annotations
 import numpy as np
 import pytest
 from unittest.mock import Mock, patch
-import sys
-from pathlib import Path
-
-# Add paths
-_test_dir = Path(__file__).parent
-sys.path.insert(0, str(_test_dir.parent.parent.parent))  # FLITS root
-sys.path.insert(0, str(_test_dir.parent.parent))  # scattering dir
-
-from scat_analysis.burstfit_interactive import InitialGuessWidget
-from scat_analysis.burstfit import FRBParams
+from flits.scattering.scat_analysis.burstfit_interactive import InitialGuessWidget
+from flits.scattering.scat_analysis.burstfit import FRBParams
 
 
 # ============================================================================
@@ -328,4 +320,3 @@ class TestEdgeCases:
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v", "--tb=short"])
-

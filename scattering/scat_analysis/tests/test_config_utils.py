@@ -12,15 +12,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-import sys
-from pathlib import Path
-
-# Add the parent directories to path for imports
-_test_dir = Path(__file__).parent
-sys.path.insert(0, str(_test_dir.parent.parent.parent))  # FLITS root
-sys.path.insert(0, str(_test_dir.parent.parent))  # scattering dir
-
-from scat_analysis.config_utils import (
+from flits.scattering.scat_analysis.config_utils import (
     resolve_path,
     TelescopeConfig,
     SamplerConfig,
@@ -349,4 +341,3 @@ class TestConfigCache:
         config2 = load_telescope_block(temp_config_dir / "telescopes.yaml")
         
         assert config1.name == config2.name
-

@@ -11,13 +11,13 @@ analysis:
     time_threshold_sigma: 7.0
     freq_threshold_sigma: 5.0
     manual_burst_window:
-    - 1275
-    - 1286
+    - 1249
+    - 1319
     manual_noise_window:
     - 0
-    - 1203
+    - 1166
   acf:
-    num_subbands: 2
+    num_subbands: 4
     max_lag_mhz: 200.0
     use_snr_subbanding: true
     enable_intra_pulse_analysis: true

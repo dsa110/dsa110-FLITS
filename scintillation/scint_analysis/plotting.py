@@ -956,3 +956,396 @@ def plot_publication_acf(
         log.info(f"Publication ACF plot saved to: {save_path}")
     
     plt.show()
+
+
+# ==============================================================================
+# 2D Scintillation Fitting Plots
+# ==============================================================================
+
+def plot_2d_fit_overview(
+    acf_results: dict,
+    fit_result,  # Scintillation2DResult from fitting_2d
+    fit_range_mhz: float = 25.0,
+    save_path: str = None,
+    figsize: tuple = (14, 10),
+):
+    """
+    Generate comprehensive 2D fit overview plot.
+    
+    Creates a multi-panel figure showing:
+    - Panel (a): All ACFs with global fit overlaid
+    - Panel (b): γ vs frequency with power-law fit
+    - Panel (c): Residuals by sub-band
+    - Panel (d): Corner plot of γ₀ and α (if MCMC available)
+    
+    Parameters
+    ----------
+    acf_results : dict
+        Dictionary from ScintillationAnalysis.acf_results
+    fit_result : Scintillation2DResult
+        Result from fit_2d_scintillation()
+    fit_range_mhz : float
+        Fit range used (for visual indicator)
+    save_path : str, optional
+        Path to save figure
+    figsize : tuple
+        Figure size
+        
+    Returns
+    -------
+    fig : matplotlib.figure.Figure
+        The figure object
+    """
+    from .fitting_2d import lorentzian_acf, gen_lorentzian_acf, gaussian_acf
+    
+    fig = plt.figure(figsize=figsize)
+    gs = fig.add_gridspec(2, 2, hspace=0.3, wspace=0.3)
+    
+    ax_acfs = fig.add_subplot(gs[0, 0])
+    ax_scaling = fig.add_subplot(gs[0, 1])
+    ax_resid = fig.add_subplot(gs[1, 0])
+    ax_corner = fig.add_subplot(gs[1, 1])
+    
+    # Extract data
+    lags_list = acf_results['subband_lags_mhz']
+    acfs_list = acf_results['subband_acfs']
+    errs_list = acf_results.get('subband_acfs_err', [None] * len(lags_list))
+    center_freqs = np.array(acf_results['subband_center_freqs_mhz'])
+    n_subbands = len(center_freqs)
+    
+    # Color map for sub-bands
+    cmap = plt.cm.viridis
+    colors = [cmap(i / (n_subbands - 1)) for i in range(n_subbands)]
+    
+    # Panel (a): ACFs with fits
+    for i, (lags, acf, nu_c, color) in enumerate(
+        zip(lags_list, acfs_list, center_freqs, colors)
+    ):
+        mask = np.abs(lags) <= fit_range_mhz * 2
+        
+        # Data
+        ax_acfs.plot(lags[mask], acf[mask], 'o', color=color, 
+                     alpha=0.5, ms=3, label=f'{nu_c:.0f} MHz')
+        
+        # Model
+        gamma = fit_result.gamma_0 * (nu_c / fit_result.nu_ref) ** fit_result.alpha
+        m = fit_result.m_0
+        
+        lags_fine = np.linspace(lags[mask].min(), lags[mask].max(), 200)
+        if fit_result.model_type == 'lorentzian':
+            model = lorentzian_acf(lags_fine, gamma, m)
+        elif fit_result.model_type == 'gen_lorentzian':
+            eta = fit_result.params.get('eta', 2.0)
+            if hasattr(eta, 'value'):
+                eta = eta.value
+            model = gen_lorentzian_acf(lags_fine, gamma, m, eta)
+        else:
+            model = gaussian_acf(lags_fine, gamma, m)
+        
+        ax_acfs.plot(lags_fine, model, '-', color=color, lw=2)
+    
+    ax_acfs.axvline(-fit_range_mhz, color='gray', ls='--', alpha=0.5)
+    ax_acfs.axvline(fit_range_mhz, color='gray', ls='--', alpha=0.5)
+    ax_acfs.set_xlabel('Frequency lag (MHz)')
+    ax_acfs.set_ylabel('ACF')
+    ax_acfs.set_title('(a) ACFs with global 2D fit')
+    ax_acfs.legend(fontsize=8, loc='upper right')
+    ax_acfs.set_xlim(-fit_range_mhz * 1.5, fit_range_mhz * 1.5)
+    
+    # Panel (b): γ vs frequency scaling
+    ax_scaling.errorbar(
+        center_freqs, fit_result.subband_gamma,
+        yerr=fit_result.subband_gamma_err,
+        fmt='o', color='C0', ms=8, capsize=3,
+        label='2D fit'
+    )
+    
+    # Power-law fit line
+    nu_fine = np.linspace(center_freqs.min() * 0.95, center_freqs.max() * 1.05, 100)
+    gamma_fit = fit_result.gamma_0 * (nu_fine / fit_result.nu_ref) ** fit_result.alpha
+    ax_scaling.plot(nu_fine, gamma_fit, 'C1-', lw=2,
+                    label=f'$\\gamma \\propto \\nu^{{{fit_result.alpha:.2f}}}$')
+    
+    # Add reference lines for known scalings
+    gamma_ref = fit_result.gamma_0
+    gamma_thin = gamma_ref * (nu_fine / fit_result.nu_ref) ** 4.0
+    gamma_kolm = gamma_ref * (nu_fine / fit_result.nu_ref) ** 4.4
+    ax_scaling.plot(nu_fine, gamma_thin, 'k--', alpha=0.3, label='Thin screen (α=4)')
+    ax_scaling.plot(nu_fine, gamma_kolm, 'k:', alpha=0.3, label='Kolmogorov (α=4.4)')
+    
+    ax_scaling.set_xlabel('Frequency (MHz)')
+    ax_scaling.set_ylabel('Scintillation bandwidth γ (MHz)')
+    ax_scaling.set_title('(b) Frequency scaling')
+    ax_scaling.legend(fontsize=8)
+    ax_scaling.set_xscale('log')
+    ax_scaling.set_yscale('log')
+    
+    # Panel (c): Residuals
+    all_residuals = []
+    all_freqs = []
+    for i, (lags, acf, err, nu_c) in enumerate(
+        zip(lags_list, acfs_list, errs_list, center_freqs)
+    ):
+        mask = np.abs(lags) <= fit_range_mhz
+        gamma = fit_result.gamma_0 * (nu_c / fit_result.nu_ref) ** fit_result.alpha
+        m = fit_result.m_0
+        
+        if fit_result.model_type == 'lorentzian':
+            model = lorentzian_acf(lags[mask], gamma, m)
+        elif fit_result.model_type == 'gen_lorentzian':
+            eta = fit_result.params.get('eta', 2.0)
+            if hasattr(eta, 'value'):
+                eta = eta.value
+            model = gen_lorentzian_acf(lags[mask], gamma, m, eta)
+        else:
+            model = gaussian_acf(lags[mask], gamma, m)
+        
+        if err is not None:
+            resid = (acf[mask] - model) / err[mask]
+        else:
+            resid = acf[mask] - model
+        
+        all_residuals.extend(resid)
+        all_freqs.extend([nu_c] * len(resid))
+    
+    ax_resid.scatter(all_freqs, all_residuals, alpha=0.3, s=10, c='C0')
+    ax_resid.axhline(0, color='k', ls='--')
+    ax_resid.axhline(2, color='r', ls=':', alpha=0.5)
+    ax_resid.axhline(-2, color='r', ls=':', alpha=0.5)
+    ax_resid.set_xlabel('Frequency (MHz)')
+    ax_resid.set_ylabel('Normalized residuals')
+    ax_resid.set_title(f'(c) Fit residuals (χ²_red = {fit_result.redchi:.2f})')
+    
+    # Panel (d): Parameter summary
+    ax_corner.axis('off')
+    
+    summary_text = (
+        f"2D Scintillation Fit Results\n"
+        f"{'─' * 35}\n"
+        f"Model: {fit_result.model_type.title()}\n"
+        f"Reference freq: {fit_result.nu_ref:.0f} MHz\n\n"
+        f"γ₀ = {fit_result.gamma_0:.3f} ± {fit_result.gamma_0_err:.3f} MHz\n"
+        f"α  = {fit_result.alpha:.3f} ± {fit_result.alpha_err:.3f}\n"
+        f"m₀ = {fit_result.m_0:.3f} ± {fit_result.m_0_err:.3f}\n\n"
+        f"χ²_red = {fit_result.redchi:.2f}\n"
+        f"N_free = {fit_result.nfree}\n\n"
+        f"{'─' * 35}\n"
+        f"Physical interpretation:\n"
+    )
+    
+    # Interpret alpha
+    if 3.5 <= fit_result.alpha <= 4.5:
+        summary_text += f"α ≈ 4 → Consistent with thin screen\n"
+    elif 4.0 <= fit_result.alpha <= 5.0:
+        summary_text += f"α ≈ 4.4 → Kolmogorov turbulence\n"
+    elif fit_result.alpha < 3.5:
+        summary_text += f"α < 3.5 → Extended scattering medium\n"
+    else:
+        summary_text += f"α > 5 → Steep spectrum (unusual)\n"
+    
+    ax_corner.text(0.1, 0.95, summary_text, transform=ax_corner.transAxes,
+                   fontsize=11, verticalalignment='top', fontfamily='monospace',
+                   bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
+    
+    plt.suptitle('2D Scintillation Analysis', fontsize=14, y=1.02)
+    
+    if save_path:
+        plt.savefig(save_path, bbox_inches='tight', dpi=300)
+        log.info(f"2D fit overview saved to: {save_path}")
+    
+    plt.tight_layout()
+    return fig
+
+
+def plot_gamma_scaling(
+    fit_result,  # Scintillation2DResult
+    gamma_1d: np.ndarray = None,
+    gamma_1d_err: np.ndarray = None,
+    save_path: str = None,
+    figsize: tuple = (8, 6),
+):
+    """
+    Publication-quality γ vs ν scaling plot.
+    
+    Parameters
+    ----------
+    fit_result : Scintillation2DResult
+        Result from 2D fit
+    gamma_1d : np.ndarray, optional
+        1D fit results for comparison
+    gamma_1d_err : np.ndarray, optional
+        Errors on 1D fits
+    save_path : str, optional
+        Path to save figure
+    figsize : tuple
+        Figure size
+        
+    Returns
+    -------
+    fig : matplotlib.figure.Figure
+    """
+    fig, ax = plt.subplots(figsize=figsize)
+    
+    center_freqs = fit_result.center_freqs
+    
+    # Plot 2D fit results
+    ax.errorbar(
+        center_freqs, fit_result.subband_gamma,
+        yerr=fit_result.subband_gamma_err,
+        fmt='s', color='C0', ms=10, capsize=4, capthick=2,
+        label='2D global fit', zorder=3
+    )
+    
+    # Plot 1D comparison if provided
+    if gamma_1d is not None:
+        if gamma_1d_err is not None:
+            ax.errorbar(
+                center_freqs, gamma_1d, yerr=gamma_1d_err,
+                fmt='o', color='C1', ms=8, capsize=3, alpha=0.7,
+                label='1D sub-band fits', zorder=2
+            )
+        else:
+            ax.plot(center_freqs, gamma_1d, 'o', color='C1', ms=8, 
+                    alpha=0.7, label='1D sub-band fits', zorder=2)
+    
+    # Power-law fit line
+    nu_fine = np.linspace(center_freqs.min() * 0.9, center_freqs.max() * 1.1, 100)
+    gamma_fit = fit_result.gamma_0 * (nu_fine / fit_result.nu_ref) ** fit_result.alpha
+    
+    # Uncertainty band
+    gamma_upper, gamma_lower = [], []
+    for nu in nu_fine:
+        g, g_err = fit_result.gamma_at_freq(nu)
+        gamma_upper.append(g + g_err)
+        gamma_lower.append(g - g_err)
+    
+    ax.fill_between(nu_fine, gamma_lower, gamma_upper, 
+                    color='C0', alpha=0.2, zorder=1)
+    ax.plot(nu_fine, gamma_fit, 'C0-', lw=2, zorder=2,
+            label=f'$\\gamma = \\gamma_0 (\\nu/\\nu_{{ref}})^\\alpha$')
+    
+    # Annotation
+    text = (
+        f"$\\gamma_0 = {fit_result.gamma_0:.2f} \\pm {fit_result.gamma_0_err:.2f}$ MHz\n"
+        f"$\\alpha = {fit_result.alpha:.2f} \\pm {fit_result.alpha_err:.2f}$\n"
+        f"$\\nu_{{ref}} = {fit_result.nu_ref:.0f}$ MHz"
+    )
+    ax.text(0.05, 0.95, text, transform=ax.transAxes, fontsize=12,
+            verticalalignment='top', 
+            bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
+    
+    ax.set_xlabel('Frequency (MHz)', fontsize=12)
+    ax.set_ylabel('Scintillation bandwidth $\\gamma$ (MHz)', fontsize=12)
+    ax.set_xscale('log')
+    ax.set_yscale('log')
+    ax.legend(loc='lower right', fontsize=10)
+    ax.grid(True, alpha=0.3)
+    
+    if save_path:
+        plt.savefig(save_path, bbox_inches='tight', dpi=300)
+        log.info(f"Gamma scaling plot saved to: {save_path}")
+    
+    plt.tight_layout()
+    return fig
+
+
+def plot_2d_acf_grid(
+    acf_results: dict,
+    fit_result,  # Scintillation2DResult
+    fit_range_mhz: float = 25.0,
+    ncols: int = 2,
+    save_path: str = None,
+    figsize_per_panel: tuple = (5, 4),
+):
+    """
+    Grid of ACF panels with 2D model overlay.
+    
+    Parameters
+    ----------
+    acf_results : dict
+        ACF results dictionary
+    fit_result : Scintillation2DResult
+        2D fit result
+    fit_range_mhz : float
+        Fit range for visual indicator
+    ncols : int
+        Number of columns in grid
+    save_path : str, optional
+        Path to save figure
+    figsize_per_panel : tuple
+        Size of each panel
+        
+    Returns
+    -------
+    fig : matplotlib.figure.Figure
+    """
+    from .fitting_2d import lorentzian_acf, gen_lorentzian_acf, gaussian_acf
+    
+    lags_list = acf_results['subband_lags_mhz']
+    acfs_list = acf_results['subband_acfs']
+    errs_list = acf_results.get('subband_acfs_err', [None] * len(lags_list))
+    center_freqs = np.array(acf_results['subband_center_freqs_mhz'])
+    n_subbands = len(center_freqs)
+    
+    nrows = int(np.ceil(n_subbands / ncols))
+    figsize = (figsize_per_panel[0] * ncols, figsize_per_panel[1] * nrows)
+    fig, axes = plt.subplots(nrows, ncols, figsize=figsize)
+    axes = np.atleast_2d(axes)
+    
+    for i, (lags, acf, err, nu_c) in enumerate(
+        zip(lags_list, acfs_list, errs_list, center_freqs)
+    ):
+        row, col = divmod(i, ncols)
+        ax = axes[row, col]
+        
+        # Data
+        mask = np.abs(lags) <= fit_range_mhz * 2
+        if err is not None:
+            ax.errorbar(lags[mask], acf[mask], yerr=err[mask],
+                       fmt='o', color='C0', ms=3, alpha=0.6, capsize=2)
+        else:
+            ax.plot(lags[mask], acf[mask], 'o', color='C0', ms=3, alpha=0.6)
+        
+        # Model
+        gamma = fit_result.gamma_0 * (nu_c / fit_result.nu_ref) ** fit_result.alpha
+        m = fit_result.m_0
+        
+        lags_fine = np.linspace(lags[mask].min(), lags[mask].max(), 200)
+        if fit_result.model_type == 'lorentzian':
+            model = lorentzian_acf(lags_fine, gamma, m)
+        elif fit_result.model_type == 'gen_lorentzian':
+            eta = fit_result.params.get('eta', 2.0)
+            if hasattr(eta, 'value'):
+                eta = eta.value
+            model = gen_lorentzian_acf(lags_fine, gamma, m, eta)
+        else:
+            model = gaussian_acf(lags_fine, gamma, m)
+        
+        ax.plot(lags_fine, model, 'C1-', lw=2)
+        
+        # Fit range indicator
+        ax.axvline(-fit_range_mhz, color='gray', ls='--', alpha=0.4)
+        ax.axvline(fit_range_mhz, color='gray', ls='--', alpha=0.4)
+        
+        ax.set_title(f'{nu_c:.0f} MHz\n$\\gamma$ = {gamma:.2f} MHz', fontsize=10)
+        ax.set_xlabel('Lag (MHz)', fontsize=9)
+        ax.set_ylabel('ACF', fontsize=9)
+        ax.tick_params(labelsize=8)
+    
+    # Hide empty subplots
+    for i in range(n_subbands, nrows * ncols):
+        row, col = divmod(i, ncols)
+        axes[row, col].axis('off')
+    
+    plt.suptitle(
+        f'2D Fit: $\\gamma_0$ = {fit_result.gamma_0:.2f} MHz, '
+        f'$\\alpha$ = {fit_result.alpha:.2f}',
+        fontsize=12, y=1.02
+    )
+    
+    if save_path:
+        plt.savefig(save_path, bbox_inches='tight', dpi=300)
+        log.info(f"ACF grid saved to: {save_path}")
+    
+    plt.tight_layout()
+    return fig

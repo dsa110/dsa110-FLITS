@@ -226,15 +226,19 @@ class DynamicSpectrum:
         power_ds = np.ma.mean(power_for_stats.reshape(self.num_channels, -1, ds_factor), axis=2)
 
         manual_window = rfi_config.get('manual_burst_window')
-        print(f"Manual window set to {manual_window}")
+        log.info(f"Manual burst window set to {manual_window}")
         if manual_window and len(manual_window) == 2:
             burst_lims = manual_window
             log.info(f"RFI MASKING: Using manually specified on-pulse window: {burst_lims}")
         else:
             burst_lims = self.find_burst_envelope(thres=rfi_config.get('find_burst_thres', 5))
         
-        # Symmetric noise window
-        if rfi_config.get('use_symmetric_noise_window', False):
+        # Determine noise window - manual takes priority
+        manual_noise_window = rfi_config.get('manual_noise_window')
+        if manual_noise_window and len(manual_noise_window) == 2:
+            off_burst_start, off_burst_end = manual_noise_window
+            log.info(f"Using manually specified noise window: {off_burst_start} to {off_burst_end}")
+        elif rfi_config.get('use_symmetric_noise_window', False):
             on_burst_duration = burst_lims[1] - burst_lims[0]
             off_burst_end = burst_lims[0]
             off_burst_start = off_burst_end - on_burst_duration

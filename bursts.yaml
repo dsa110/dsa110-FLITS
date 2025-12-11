@@ -18,6 +18,8 @@ bursts:
     dm_err: 0.1
     mjd: 60369.371
     utc: "2024-02-29T08:54:22"
+    ra_deg: 169.983542
+    dec_deg: 70.676222
     scattering:
       tau_1ghz_ms: 0.227
       alpha: 3.9
@@ -29,6 +31,8 @@ bursts:
     dm_err: 0.1
     mjd: 60343.832
     utc: "2024-02-03T19:57:56"
+    ra_deg: 312.619125
+    dec_deg: 73.9
     scattering: null
 
   freya:
@@ -37,6 +41,8 @@ bursts:
     dm_err: 0.1
     mjd: 60028.072
     utc: "2023-03-25T01:43:36"
+    ra_deg: 88.188
+    dec_deg: 74.200472
     scattering:
       tau_1ghz_ms: 3.515
       alpha: 4.2
@@ -48,6 +54,8 @@ bursts:
     dm_err: 0.1
     mjd: 60200.207
     utc: "2023-09-13T04:58:31"
+    ra_deg: 305.037167
+    dec_deg: 70.792767
     scattering: null
 
   isha:
@@ -56,6 +64,8 @@ bursts:
     dm_err: 0.1
     mjd: 59896.387
     utc: "2022-11-13T09:16:44"
+    ra_deg: 71.411
+    dec_deg: 70.307389
     scattering: null
 
   johndoeii:
@@ -64,6 +74,8 @@ bursts:
     dm_err: 0.1
     mjd: 60170.361
     utc: "2023-08-14T08:40:01"
+    ra_deg: 335.97475
+    dec_deg: 73.025906
     scattering: null
 
   mahi:
@@ -72,6 +84,8 @@ bursts:
     dm_err: 0.1
     mjd: 60331.104
     utc: "2024-01-22T02:30:33"
+    ra_deg: 39.7665
+    dec_deg: 71.017861
     scattering: null
 
   oran:
@@ -80,6 +94,8 @@ bursts:
     dm_err: 0.1
     mjd: 59705.597
     utc: "2022-05-06T14:19:52"
+    ra_deg: 318.044833
+    dec_deg: 72.827278
     scattering: null
 
   phineas:
@@ -88,6 +104,8 @@ bursts:
     dm_err: 0.1
     mjd: 60010.379
     utc: "2023-03-07T09:05:48"
+    ra_deg: 177.781333
+    dec_deg: 71.695639
     scattering: null
 
   whitney:
@@ -96,6 +114,8 @@ bursts:
     dm_err: 0.1
     mjd: 59648.242
     utc: "2022-03-10T05:48:16"
+    ra_deg: 134.7205
+    dec_deg: 73.490833
     scattering: null
 
   wilhelm:
@@ -104,6 +124,8 @@ bursts:
     dm_err: 0.1
     mjd: 59916.002
     utc: "2022-12-03T00:02:46"
+    ra_deg: 315.129542
+    dec_deg: 72.037561
     scattering:
       tau_1ghz_ms: 2.818
       alpha: 4.1
@@ -115,4 +137,6 @@ bursts:
     dm_err: 0.1
     mjd: 59617.809
     utc: "2022-02-07T19:24:21"
+    ra_deg: 310.199525
+    dec_deg: 72.882327
     scattering: null

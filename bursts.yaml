@@ -1,0 +1,149 @@
+# FLITS Burst Registry
+# ====================
+# Centralized metadata for all analyzed bursts.
+# This is the single source of truth for burst parameters.
+# DM values sourced from crossmatching/toa_crossmatch_results.json
+
+version: "1.0"
+
+# Telescope configurations reference
+telescopes:
+  chime:
+    df_MHz: 0.390625
+    dt_ms: 0.00256
+    f_range_GHz: [0.400, 0.800]
+  dsa:
+    df_MHz: 0.0305
+    dt_ms: 0.033
+    f_range_GHz: [1.311, 1.499]
+
+# Burst catalog
+bursts:
+  casey:
+    dm: 491.207
+    telescopes:
+      chime:
+        config: batch_configs/chime/casey_chime.yaml
+        f_factor: 64
+        t_factor: 24
+      dsa:
+        config: batch_configs/dsa/casey_dsa.yaml
+        f_factor: 8
+        t_factor: 2
+    best_fit:
+      tau_1ghz_ms: 0.227
+      alpha: 3.9
+      width_ms: 1.5
+
+  freya:
+    dm: 912.4
+    telescopes:
+      chime:
+        config: batch_configs/chime/freya_chime.yaml
+        f_factor: 64
+        t_factor: 24
+      dsa:
+        config: batch_configs/dsa/freya_dsa.yaml
+        f_factor: 8
+        t_factor: 2
+    best_fit:
+      tau_1ghz_ms: 3.515
+      alpha: 4.2
+      width_ms: 0.8
+
+  wilhelm:
+    dm: 602.346
+    telescopes:
+      chime:
+        config: batch_configs/chime/wilhelm_chime.yaml
+        f_factor: 64
+        t_factor: 24
+      dsa:
+        config: batch_configs/dsa/wilhelm_dsa.yaml
+        f_factor: 8
+        t_factor: 2
+    best_fit:
+      tau_1ghz_ms: 2.818
+      alpha: 4.1
+      width_ms: 1.2
+
+  chromatica:
+    dm: 272.664
+    telescopes:
+      chime:
+        config: batch_configs/chime/chromatica_chime.yaml
+      dsa:
+        config: batch_configs/dsa/chromatica_dsa.yaml
+    best_fit: null
+
+  hamilton:
+    dm: 518.799
+    telescopes:
+      chime:
+        config: batch_configs/chime/hamilton_chime.yaml
+      dsa:
+        config: batch_configs/dsa/hamilton_dsa.yaml
+    best_fit: null
+
+  isha:
+    dm: 411.568
+    telescopes:
+      chime:
+        config: batch_configs/chime/isha_chime.yaml
+      dsa:
+        config: batch_configs/dsa/isha_dsa.yaml
+    best_fit: null
+
+  johndoeii:
+    dm: 696.506
+    telescopes:
+      chime:
+        config: batch_configs/chime/johndoeii_chime.yaml
+      dsa:
+        config: batch_configs/dsa/johndoeii_dsa.yaml
+    best_fit: null
+
+  mahi:
+    dm: 960.128
+    telescopes:
+      chime:
+        config: batch_configs/chime/mahi_chime.yaml
+      dsa:
+        config: batch_configs/dsa/mahi_dsa.yaml
+    best_fit: null
+
+  oran:
+    dm: 396.882
+    telescopes:
+      chime:
+        config: batch_configs/chime/oran_chime.yaml
+      dsa:
+        config: batch_configs/dsa/oran_dsa.yaml
+    best_fit: null
+
+  phineas:
+    dm: 610.274
+    telescopes:
+      chime:
+        config: batch_configs/chime/phineas_chime.yaml
+      dsa:
+        config: batch_configs/dsa/phineas_dsa.yaml
+    best_fit: null
+
+  whitney:
+    dm: 462.174
+    telescopes:
+      chime:
+        config: batch_configs/chime/whitney_chime.yaml
+      dsa:
+        config: batch_configs/dsa/whitney_dsa.yaml
+    best_fit: null
+
+  zach:
+    dm: 262.368
+    telescopes:
+      chime:
+        config: batch_configs/chime/zach_chime.yaml
+      dsa:
+        config: batch_configs/dsa/zach_dsa.yaml
+    best_fit: null

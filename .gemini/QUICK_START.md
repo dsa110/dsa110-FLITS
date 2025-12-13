@@ -75,24 +75,17 @@ python scattering/run_scat_analysis.py \
 # 5. Plots saved to data/chime/
 ```
 
-### Step 3: If Hamilton Succeeds → Batch Process (24-48 hours)
+### Step 3: Validate Results (Crucial)
 
-```bash
-# Run all 9 remaining bursts
-flits-batch run data/ \
-    --output results/scattering_batch_$(date +%Y%m%d)/ \
-    --db flits_results.db \
-    --steps 10000 \
-    --nproc 8 \
-    --scattering-only \
-    --bursts chromatica,isha,johndoeii,mahi,oran,phineas,whitney,zach
+**Do NOT proceed to other bursts until this is verified.**
 
-# Monitor progress
-tail -f results/scattering_batch_*/batch_runner.log
+Use the protocol in `.gemini/VALIDATION_PROTOCOL.md` to inspect:
 
-# Check results database
-sqlite3 flits_results.db "SELECT burst_name, model, chi2_reduced FROM scattering_results;"
-```
+1.  **Refined DM:** Is the structure sharper?
+2.  **MCMC Convergence:** Is $\hat{R} < 1.1$?
+3.  **Residuals:** are they structureless (Gaussian noise)?
+
+Only _after_ this validation confirms the pipeline is scientifically robust should you consider analyzing the rest of the sample.
 
 ---
 

@@ -61,7 +61,7 @@ def generate_synthetic_data(
         amplitude=c0_true,
         t0=t0_true,
         width=zeta_true,
-        tau_ms=tau_1ghz_true,
+        tau_1ghz=tau_1ghz_true,
         tau_alpha=alpha_true,
     )
 
@@ -246,7 +246,7 @@ if __name__ == "__main__":
         snr=15.0,
     )
     print(f"  Data shape: {data.shape}")
-    print(f"  Ground truth tau_1ghz={truth.tau_ms:.3f} ms, alpha={truth.tau_alpha:.2f}")
+    print(f"  Ground truth tau_1ghz={truth.tau_1ghz:.3f} ms, alpha={truth.tau_alpha:.2f}")
     print(f"  Time range: {time.min():.1f} – {time.max():.1f} ms")
     print(f"  Freq range: {freq.min():.0f} – {freq.max():.0f} MHz")
 

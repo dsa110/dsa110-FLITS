@@ -7,6 +7,12 @@
 #   - batch_configs/          (flits-batch CLI)
 #   - scattering/configs/     (scattering pipeline)
 #   - scintillation/configs/  (scintillation pipeline)
+#
+# SCATTERING ANALYSIS STATUS (2025-12-13):
+# - Legacy results (Casey, Freya, Wilhelm) archived in .gemini/LEGACY_SCATTERING_RESULTS.md
+# - All 12 bursts will be re-analyzed congruently with integrated DM refinement pipeline
+# - Results will be stored in flits_results.db and compared with legacy for validation
+# - Scattering fields below are LEGACY values, will be updated after re-analysis
 
 version: "1.0"
 sample: "DSA-110 + CHIME co-detections"

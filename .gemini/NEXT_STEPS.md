@@ -141,40 +141,17 @@ python scattering/run_scat_analysis.py \
 - ✅ Diagnostic plots generated
 - ✅ Results reasonable (compare to catalog DM)
 
-### Step 4: Batch Process Remaining Bursts (24-48 hours)
+### Step 4: Scientific Validation (Crucial)
 
-**Once Hamilton test succeeds:**
+**Before running any other bursts, we must validate the Hamilton results.**
 
-```bash
-# Option A: Run all 9 pending bursts
-flits-batch run data/ \
-    --output results/scattering_complete/ \
-    --db flits_results.db \
-    --steps 10000 \
-    --nproc 8 \
-    --scattering-only \
-    --bursts chromatica,hamilton,isha,johndoeii,mahi,oran,phineas,whitney,zach
+Use the checklist in `.gemini/VALIDATION_PROTOCOL.md`:
 
-# Option B: Run in groups (safer)
-# Group 1: Test bursts (low/medium DM)
-flits-batch run data/ --bursts hamilton,chromatica,isha --output results/group1/
+1.  **Verify DM:** Did the refinement improve the pulse structure?
+2.  **Check Residuals:** Are there diagonal stripes? (Bad DM)
+3.  **Inspect Corner Plots:** Are the scattering parameters ($\tau, \alpha$) constrained?
 
-# Group 2: Medium DM bursts
-flits-batch run data/ --bursts johndoeii,oran,whitney,zach --output results/group2/
-
-# Group 3: High DM bursts
-flits-batch run data/ --bursts mahi,phineas --output results/group3/
-```
-
-**Monitor Progress:**
-
-```bash
-# Check database
-sqlite3 flits_results.db "SELECT burst_name, model, chi2_reduced, rhat_max FROM scattering_results ORDER BY analyzed_at DESC LIMIT 10;"
-
-# Watch logs
-tail -f results/scattering_complete/batch_runner.log
-```
+**Only if these checks pass do we consider processing the rest of the sample.**
 
 ---
 

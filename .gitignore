@@ -357,3 +357,7 @@ cython_debug/
 .cursorignore
 .cursorindexingignore
 *.pkl
+
+
+#Ignore vscode AI rules
+.github/instructions/codacy.instructions.md

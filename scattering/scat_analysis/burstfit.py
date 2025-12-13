@@ -16,6 +16,7 @@ Public API
 * :func:`downsample`
 * :func:`plot_dynamic`
 """
+
 from __future__ import annotations
 
 import logging
@@ -40,18 +41,24 @@ __all__ = [
 ]
 
 from flits.common.constants import DM_DELAY_MS
+from flits.scattering import (
+    scatter_broaden,
+    tau_per_freq,
+    log_normal_prior,
+    gaussian_prior,
+)
 
 # ----------------------------------------------------------------------
 # Module-level constants
 # ----------------------------------------------------------------------
-DM_SMEAR_MS = 8.3e-6     # intra-channel smearing, ms GHz⁻³ MHz⁻¹ -> this is a more common formulation
-                         # The previous value was likely a typo or for a specific setup.
-                         # This standard form is: 8.3 * 1e6 * DM * dnu_MHz / nu_GHz**3 / 1e3
-                         # We will apply dnu_MHz later, so this constant is 8.3e-6 ms GHz^3 MHz^-1
+DM_SMEAR_MS = 8.3e-6  # intra-channel smearing, ms GHz⁻³ MHz⁻¹ -> this is a more common formulation
+# The previous value was likely a typo or for a specific setup.
+# This standard form is: 8.3 * 1e6 * DM * dnu_MHz / nu_GHz**3 / 1e3
+# We will apply dnu_MHz later, so this constant is 8.3e-6 ms GHz^3 MHz^-1
 
 # ## FIX ##: Restored the set of physically non-negative parameters.
-_POSITIVE = {"c0", "zeta", "tau_1ghz"}        # keep in ONE place only
-_MIN_POS  = 1e-6   
+_POSITIVE = {"c0", "zeta", "tau_1ghz"}  # keep in ONE place only
+_MIN_POS = 1e-6
 
 
 log = logging.getLogger(__name__)
@@ -63,12 +70,33 @@ log.setLevel(logging.INFO)
 # Log-probability wrapper
 # ----------------------------------------------------------------------
 
+
 # ## REFACTOR ##: This is the correct, module-level wrapper for emcee + multiprocessing.
 # It takes the model object itself as an argument, making it stateless and pickleable.
-def _log_prob_wrapper(theta_raw, model, priors, order, key, log_weight_pos,
-                      log_params_names=None, alpha_gauss=None, likelihood_kind="gaussian", student_nu=5.0,
-                      param_mode="single", K: int = 1):
-    """Module-level function for multiprocessing compatibility."""
+def _log_prob_wrapper(
+    theta_raw,
+    model,
+    priors,
+    order,
+    key,
+    log_weight_pos,
+    log_params_names=None,
+    alpha_gauss=None,
+    likelihood_kind="gaussian",
+    student_nu=5.0,
+    param_mode="single",
+    K: int = 1,
+    tau_prior: tuple[float, float] | None = None,
+):
+    """Module-level function for multiprocessing compatibility.
+
+    Parameters
+    ----------
+    tau_prior : (mu, sigma) or None
+        Log-normal prior on tau_1ghz. Default None (no prior).
+    alpha_gauss : (mu, sigma) or None
+        Gaussian prior on alpha (will be converted to tuple for apply_physical_priors).
+    """
     # Map raw parameters (possibly in log-space) to linear domain
     names = order[key]
     log_params_names = set(log_params_names or [])
@@ -87,13 +115,16 @@ def _log_prob_wrapper(theta_raw, model, priors, order, key, log_weight_pos,
         if not (lo <= value <= hi):
             return -np.inf
 
-    # 2. Optional Gaussian prior on alpha
-    if alpha_gauss is not None and ("alpha" in names):
-        mu, sigma = alpha_gauss
-        if sigma is not None and sigma > 0:
-            idx = names.index("alpha")
-            a = theta[idx]
-            logp += -0.5 * ((a - mu) / sigma) ** 2 - np.log(sigma * np.sqrt(2 * np.pi))
+    # 2. Apply physical priors on scattering parameters
+    logp = apply_physical_priors(
+        logp,
+        theta,
+        names,
+        tau_prior=tau_prior,
+        alpha_prior=alpha_gauss,  # backward compat: alpha_gauss → alpha_prior
+    )
+    if logp == -np.inf:
+        return -np.inf
 
     # 3. Jeffreys 1/x weight for positive params (still sampling in linear units)
     if log_weight_pos:
@@ -107,7 +138,9 @@ def _log_prob_wrapper(theta_raw, model, priors, order, key, log_weight_pos,
         if likelihood_kind == "gaussian":
             return logp + model.log_likelihood(params, key)
         elif likelihood_kind == "studentt":
-            return logp + model.log_likelihood_student_t(params, key, nu=float(student_nu))
+            return logp + model.log_likelihood_student_t(
+                params, key, nu=float(student_nu)
+            )
         else:
             return logp + model.log_likelihood(params, key)
     else:
@@ -115,33 +148,45 @@ def _log_prob_wrapper(theta_raw, model, priors, order, key, log_weight_pos,
         # shared
         def get(name):
             return theta[names.index(name)] if name in names else None
+
         gamma = get("gamma") if "gamma" in names else -1.6
         tau1 = get("tau_1ghz") if "tau_1ghz" in names else 0.0
         alpha = get("alpha") if "alpha" in names else 4.4
         delta_dm = get("delta_dm") if "delta_dm" in names else 0.0
         # sum components
         model_sum = np.zeros_like(model.data)
-        for idx in range(1, int(K)+1):
+        for idx in range(1, int(K) + 1):
             c0 = get(f"c0_{idx}")
             t0 = get(f"t0_{idx}")
             zeta = get(f"zeta_{idx}")
             if c0 is None or t0 is None or zeta is None:
                 continue
-            p_i = FRBParams(c0=c0, t0=t0, gamma=gamma, zeta=zeta, tau_1ghz=tau1, alpha=alpha, delta_dm=delta_dm)
+            p_i = FRBParams(
+                c0=c0,
+                t0=t0,
+                gamma=gamma,
+                zeta=zeta,
+                tau_1ghz=tau1,
+                alpha=alpha,
+                delta_dm=delta_dm,
+            )
             model_sum = model_sum + model(p_i, "M3")
         # compute likelihood against summed model
         if likelihood_kind == "gaussian":
             noise_std_safe = np.clip(model.noise_std, 1e-9, None)
             resid = (model.data - model_sum) / noise_std_safe[:, None]
-            return logp + (-0.5 * np.sum(resid ** 2))
+            return logp + (-0.5 * np.sum(resid**2))
         else:
             # student-t
             noise_std_safe = np.clip(model.noise_std, 1e-9, None)
             resid = (model.data - model_sum) / noise_std_safe[:, None]
-            r2_over_nu = (resid ** 2) / float(student_nu)
+            r2_over_nu = (resid**2) / float(student_nu)
             term = -0.5 * (float(student_nu) + 1.0) * np.log1p(r2_over_nu)
-            const = -0.5 * model.data.size * np.log(float(student_nu) * np.pi) - np.sum(np.log(noise_std_safe))
+            const = -0.5 * model.data.size * np.log(float(student_nu) * np.pi) - np.sum(
+                np.log(noise_std_safe)
+            )
             return logp + const + float(np.sum(term))
+
 
 # ----------------------------------------------------------------------
 # Dataclass – model parameters
@@ -149,13 +194,14 @@ def _log_prob_wrapper(theta_raw, model, priors, order, key, log_weight_pos,
 @dataclass
 class FRBParams:
     """Parameter container for the scattering model."""
+
     c0: float
     t0: float
     gamma: float
     zeta: float = 0.0
     tau_1ghz: float = 0.0
-    alpha: float = 4.4       # frequency scaling exponent τ ∝ ν^{-alpha}
-    delta_dm: float = 0.0    # residual DM error around dm_init
+    alpha: float = 4.4  # frequency scaling exponent τ ∝ ν^{-alpha}
+    delta_dm: float = 0.0  # residual DM error around dm_init
 
     # ## FIX ##: Added the to_sequence method that was missing.
     def to_sequence(self, model_key: str = "M3") -> Sequence[float]:
@@ -171,9 +217,7 @@ class FRBParams:
 
     # ## FIX ##: Added the @classmethod decorator. This was a critical bug.
     @classmethod
-    def from_sequence(
-        cls, seq: Sequence[float], model_key: str = "M3"
-    ) -> "FRBParams":
+    def from_sequence(cls, seq: Sequence[float], model_key: str = "M3") -> "FRBParams":
         """Unpack a flat param vector according to *model_key*."""
         key_map = {
             "M0": ("c0", "t0", "gamma"),
@@ -187,6 +231,7 @@ class FRBParams:
         kwargs.setdefault("tau_1ghz", 0.0)
         return cls(**kwargs)
 
+
 # ----------------------------------------------------------------------
 # Forward model
 # ----------------------------------------------------------------------
@@ -194,6 +239,7 @@ class FRBModel:
     """
     Forward model + (Gaussian) log-likelihood for a dynamic spectrum.
     """
+
     def __init__(
         self,
         time: NDArray[np.floating],
@@ -201,7 +247,7 @@ class FRBModel:
         *,
         data: NDArray[np.floating] | None = None,
         dm_init: float = 0.0,
-        df_MHz: float = 0.390625, #0.03051757812, #Channel width is needed for smearing
+        df_MHz: float = 0.390625,  # 0.03051757812, #Channel width is needed for smearing
         beta: float = 2.0,
         noise_std: NDArray[np.floating] | None = None,
         off_pulse: slice | Sequence[int] | None = None,
@@ -234,33 +280,36 @@ class FRBModel:
     ) -> NDArray[np.floating]:
         if ref_freq is None:
             ref_freq = self.freq.max()
-        return DM_DELAY_MS * dm_err * (self.freq ** -self.beta - ref_freq ** -self.beta)
+        return DM_DELAY_MS * dm_err * (self.freq**-self.beta - ref_freq**-self.beta)
 
     # ## REFACTOR ##: Smearing calculation is now more explicit.
     def _smearing_sigma(self, dm: float, zeta: float) -> NDArray[np.floating]:
         """Calculates total Gaussian width from intrinsic pulse width (zeta)
         and intra-channel DM smearing."""
         # DM smearing time (ms) = 8.3e-6 * DM * df_MHz / nu_GHz^3
-        sig_dm = DM_SMEAR_MS * dm * self.df_MHz * (self.freq ** -3.0)
+        sig_dm = DM_SMEAR_MS * dm * self.df_MHz * (self.freq**-3.0)
         # Add in quadrature with intrinsic width
         return np.hypot(sig_dm, zeta)
 
     def _estimate_noise(self, off_pulse):
-        if self.data is None: return None
+        if self.data is None:
+            return None
         if off_pulse is None:
             q = self.time.size // 4
             idx = np.r_[0:q, -q:0]
         else:
             idx = np.asarray(off_pulse)
-        
+
         # Ensure indices are within bounds
         idx = idx[idx < self.data.shape[1]]
 
         mad = np.median(
-            np.abs(self.data[:, idx] - np.median(self.data[:, idx], axis=1, keepdims=True)),
+            np.abs(
+                self.data[:, idx] - np.median(self.data[:, idx], axis=1, keepdims=True)
+            ),
             axis=1,
         )
-        return 1.4826 * np.clip(mad, 1e-6, None) # Use a smaller floor
+        return 1.4826 * np.clip(mad, 1e-6, None)  # Use a smaller floor
 
     def __call__(self, p: FRBParams, model_key: str = "M3") -> NDArray[np.floating]:
         """Return model dynamic spectrum for parameters *p*."""
@@ -277,7 +326,9 @@ class FRBModel:
         # Guard against non-physical width
         sig = np.clip(sig, 1e-6, None)
 
-        gauss = (1 / (np.sqrt(2 * np.pi) * sig)) * np.exp(-0.5 * ((self.time - mu) / sig) ** 2)
+        gauss = (1 / (np.sqrt(2 * np.pi) * sig)) * np.exp(
+            -0.5 * ((self.time - mu) / sig) ** 2
+        )
 
         # --- FIX: Implement safe division to prevent NaN ---
         gauss_sum = np.sum(gauss, axis=1, keepdims=True)
@@ -317,30 +368,36 @@ class FRBModel:
     def log_likelihood(self, p: FRBParams, model: str = "M3") -> float:
         if self.data is None or self.noise_std is None:
             raise RuntimeError("need observed data + noise_std for likelihood")
-        
+
         # Protect against all-zero noise_std if a channel is dead
         noise_std_safe = np.clip(self.noise_std, 1e-9, None)
 
         resid = (self.data - self(p, model)) / noise_std_safe[:, None]
-        return -0.5 * np.sum(resid ** 2)
+        return -0.5 * np.sum(resid**2)
 
-    def log_likelihood_student_t(self, p: FRBParams, model: str = "M3", nu: float = 5.0) -> float:
+    def log_likelihood_student_t(
+        self, p: FRBParams, model: str = "M3", nu: float = 5.0
+    ) -> float:
         if self.data is None or self.noise_std is None:
             raise RuntimeError("need observed data + noise_std for likelihood")
         noise_std_safe = np.clip(self.noise_std, 1e-9, None)
         resid = (self.data - self(p, model)) / noise_std_safe[:, None]
         # Student-t log-pdf up to constant per element
         # logL = sum( - (nu+1)/2 * log(1 + r^2/nu) ) - N * 0.5*log(nu*pi) - sum(log(sigma))
-        r2_over_nu = (resid ** 2) / nu
+        r2_over_nu = (resid**2) / nu
         term = -0.5 * (nu + 1.0) * np.log1p(r2_over_nu)
-        const = -0.5 * self.data.size * np.log(nu * np.pi) - np.sum(np.log(noise_std_safe))
+        const = -0.5 * self.data.size * np.log(nu * np.pi) - np.sum(
+            np.log(noise_std_safe)
+        )
         return const + float(np.sum(term))
+
 
 # ----------------------------------------------------------------------
 # Sampler wrapper
 # ----------------------------------------------------------------------
 class FRBFitter:
     """Thin wrapper around *emcee*."""
+
     _ORDER = {
         "M0": ("c0", "t0", "gamma"),
         "M1": ("c0", "t0", "gamma", "zeta"),
@@ -363,7 +420,7 @@ class FRBFitter:
         likelihood_kind: str = "gaussian",
         student_nu: float = 5.0,
         walker_width_frac: float = 0.01,
-        **kwargs
+        **kwargs,
     ):
         self.model = model
         self.priors = priors
@@ -372,7 +429,9 @@ class FRBFitter:
         self.pool = pool
         self.log_weight_pos = log_weight_pos
         self.sample_log_params = sample_log_params
-        self._log_param_names = {"c0", "zeta", "tau_1ghz"} if sample_log_params else set()
+        self._log_param_names = (
+            {"c0", "zeta", "tau_1ghz"} if sample_log_params else set()
+        )
         self.alpha_prior = alpha_prior
         self.likelihood_kind = likelihood_kind
         self.student_nu = student_nu
@@ -381,16 +440,16 @@ class FRBFitter:
 
     def _is_log_param(self, name: str) -> bool:
         """Check if a parameter should be sampled in log-space.
-        
-        Handles both base parameters ('c0', 'zeta', 'tau_1ghz') and 
+
+        Handles both base parameters ('c0', 'zeta', 'tau_1ghz') and
         multi-component variants ('c0_1', 'zeta_2', etc.) consistently.
         """
         if not self.sample_log_params:
             return False
         # For multi-component params like 'c0_1', check if root matches
-        root = name.split('_')[0]
+        root = name.split("_")[0]
         return root in self._log_param_names or name in self._log_param_names
-    
+
     def _init_walkers(self, p0, key: str, nwalk: int):
         names = self._ORDER[key] if key in self._ORDER else self.custom_order[key]
         lower, upper = zip(*(self.priors[n] for n in names))
@@ -407,7 +466,7 @@ class FRBFitter:
                 val = p0.get(n, (lower[i] + upper[i]) / 2.0)
             else:
                 val = (lower[i] + upper[i]) / 2.0
-            
+
             # Use consistent log-param checking
             if self._is_log_param(n):
                 lo = max(lower[i], 1e-30)
@@ -426,7 +485,11 @@ class FRBFitter:
         # Clip in appropriate domain using consistent log-param checking
         for j, n in enumerate(names):
             if self._is_log_param(n):
-                walkers[:, j] = np.clip(walkers[:, j], np.log(max(lower[j], 1e-30)), np.log(max(upper[j], 1e-30)))
+                walkers[:, j] = np.clip(
+                    walkers[:, j],
+                    np.log(max(lower[j], 1e-30)),
+                    np.log(max(upper[j], 1e-30)),
+                )
             else:
                 walkers[:, j] = np.clip(walkers[:, j], lower[j], upper[j])
 
@@ -434,7 +497,11 @@ class FRBFitter:
 
     def sample(self, p0, model_key: str = "M3"):
         """Run the MCMC sampler."""
-        names = self._ORDER[model_key] if model_key in self._ORDER else self.custom_order[model_key]
+        names = (
+            self._ORDER[model_key]
+            if model_key in self._ORDER
+            else self.custom_order[model_key]
+        )
         ndim = len(names)
         nwalk = max(self.n_walkers_mult * ndim, 2 * ndim)
 
@@ -447,7 +514,19 @@ class FRBFitter:
             nwalkers=nwalk,
             ndim=ndim,
             log_prob_fn=_log_prob_wrapper,
-            args=(self.model, self.priors, (self.custom_order if model_key in self.custom_order else self._ORDER), model_key, self.log_weight_pos, log_param_fullnames, self.alpha_prior, self.likelihood_kind, self.student_nu, "multi" if model_key=="M3_multi" else "single", len(names) if model_key=="M3_multi" else 1),
+            args=(
+                self.model,
+                self.priors,
+                (self.custom_order if model_key in self.custom_order else self._ORDER),
+                model_key,
+                self.log_weight_pos,
+                log_param_fullnames,
+                self.alpha_prior,
+                self.likelihood_kind,
+                self.student_nu,
+                "multi" if model_key == "M3_multi" else "single",
+                len(names) if model_key == "M3_multi" else 1,
+            ),
             pool=self.pool,
         )
         sampler.run_mcmc(p_walkers, self.n_steps, progress=True)
@@ -455,27 +534,28 @@ class FRBFitter:
 
     def build_multicomp_order(self, K: int) -> tuple[str, ...]:
         order = ["gamma", "tau_1ghz", "alpha", "delta_dm"]
-        for i in range(1, K+1):
+        for i in range(1, K + 1):
             order.extend([f"c0_{i}", f"t0_{i}", f"zeta_{i}"])
         self.custom_order["M3_multi"] = tuple(order)
         return self.custom_order["M3_multi"]
+
 
 # ----------------------------------------------------------------------
 # Helpers
 # ----------------------------------------------------------------------
 def gelman_rubin(sampler, discard: int = 0) -> dict[str, float]:
     """Compute Gelman-Rubin R̂ statistic for MCMC convergence diagnostics.
-    
+
     R̂ < 1.1 is typically considered evidence of convergence.
     R̂ < 1.01 is considered excellent convergence.
-    
+
     Parameters
     ----------
     sampler : emcee.EnsembleSampler
         The sampler object after running MCMC.
     discard : int
         Number of steps to discard as burn-in.
-        
+
     Returns
     -------
     dict
@@ -485,57 +565,103 @@ def gelman_rubin(sampler, discard: int = 0) -> dict[str, float]:
     # Get chains: shape (n_steps, n_walkers, n_params)
     chain = sampler.get_chain(discard=discard)
     n_steps, n_walkers, n_params = chain.shape
-    
+
     if n_steps < 10:
         return {"max_rhat": np.inf, "converged": False, "warning": "Too few steps"}
-    
+
     results = {}
     rhats = []
-    
+
     for i in range(n_params):
         # For each parameter, compute R̂
         # Treat each walker as a separate chain
         chains = chain[:, :, i].T  # shape: (n_walkers, n_steps)
-        
+
         n = chains.shape[1]  # number of samples per chain
         m = chains.shape[0]  # number of chains (walkers)
-        
+
         # Chain means
         chain_means = np.mean(chains, axis=1)
         # Overall mean
         overall_mean = np.mean(chain_means)
-        
+
         # Between-chain variance
         B = n / (m - 1) * np.sum((chain_means - overall_mean) ** 2)
-        
+
         # Within-chain variance
         chain_vars = np.var(chains, axis=1, ddof=1)
         W = np.mean(chain_vars)
-        
+
         # Pooled variance estimate
         if W < 1e-30:
             # Chains haven't moved - not converged
             rhat = np.inf
         else:
-            var_hat = (1 - 1/n) * W + (1/n) * B
+            var_hat = (1 - 1 / n) * W + (1 / n) * B
             rhat = np.sqrt(var_hat / W)
-        
+
         results[f"param_{i}"] = float(rhat)
         rhats.append(rhat)
-    
+
     max_rhat = float(np.max(rhats))
     results["max_rhat"] = max_rhat
     results["converged"] = max_rhat < 1.1
     results["well_converged"] = max_rhat < 1.01
-    
+
     return results
+
+
+def apply_physical_priors(
+    log_prob: float,
+    theta: Sequence[float],
+    names: Sequence[str],
+    *,
+    tau_prior: tuple[float, float] | None = None,
+    alpha_prior: tuple[float, float] | None = None,
+) -> float:
+    """Apply optional physical priors on scattering parameters.
+
+    Parameters
+    ----------
+    log_prob : float
+        Current log-probability (before physical priors).
+    theta : sequence of float
+        Parameter values.
+    names : sequence of str
+        Parameter names corresponding to theta.
+    tau_prior : (mu, sigma) or None
+        Log-normal prior on tau_1ghz: log(τ) ~ N(mu, sigma^2).
+        If None, no prior applied.
+    alpha_prior : (mu, sigma) or None
+        Gaussian prior on alpha: α ~ N(mu, sigma^2).
+        Default Kolmogorov: α ≈ 4.4. If None, no prior applied.
+
+    Returns
+    -------
+    float
+        Updated log-probability with physical priors included.
+    """
+    for name, val in zip(names, theta):
+        # Log-normal prior on tau_1ghz (scattering timescale)
+        if name == "tau_1ghz" and tau_prior is not None:
+            mu, sigma = tau_prior
+            if val <= 0.0:
+                return -np.inf
+            log_prob += log_normal_prior(val, mu, sigma)
+
+        # Gaussian prior on alpha (frequency scaling exponent)
+        elif name == "alpha" and alpha_prior is not None:
+            mu, sigma = alpha_prior
+            log_prob += gaussian_prior(val, mu, sigma)
+
+    return log_prob
 
 
 def build_priors(
     init: "FRBParams",
     *,
-    scale: float = 6.0,            # half-width multiplier (wide!)
-    abs_min: float = _MIN_POS,     # floor for positive parameters
+    scale: float = 6.0,  # half-width multiplier (wide!)
+    abs_min: float = _MIN_POS,  # floor for positive parameters
     abs_max: dict[str, float] | None = None,  # optional hard ceilings
     log_weight_pos: bool = False,  # True → Jeffreys p(x)∝1/x   (still linear sampling)
 ) -> dict[str, tuple[float, float]]:
@@ -557,22 +683,25 @@ def build_priors(
         -log(x) to the log-prior for each positive parameter.
     """
     from dataclasses import asdict
+
     pri = {}
     ceiling = abs_max or {}
     for name, val in asdict(init).items():
-        w     = max(scale * max(abs(val), 1e-3), 0.5)     # ≥ 0.5 half-width
+        w = max(scale * max(abs(val), 1e-3), 0.5)  # ≥ 0.5 half-width
         lower = val - w
         upper = val + w
-        if name in _POSITIVE:               # enforce positivity
+        if name in _POSITIVE:  # enforce positivity
             lower = max(lower, abs_min)
-        if name in ceiling:                 # honour hard caps
+        if name in ceiling:  # honour hard caps
             upper = min(upper, ceiling[name])
         pri[name] = (lower, upper)
     return pri, log_weight_pos
 
+
 def compute_bic(logL_max: float, k: int, n: int) -> float:
     """Bayesian Information Criterion (lower = preferred)."""
     return -2.0 * logL_max + k * np.log(n)
+
 
 def downsample(data: NDArray[np.floating], f_factor=1, t_factor=1):
     """Block-average by integer factors along (freq, time)."""
@@ -587,33 +716,37 @@ def downsample(data: NDArray[np.floating], f_factor=1, t_factor=1):
     )
     return d.mean(axis=(1, 3))
 
-def goodness_of_fit(data: NDArray[np.floating],
-                   model: NDArray[np.floating],
-                   noise_std: NDArray[np.floating],
-                   n_params: int) -> Dict[str, Any]:
+
+def goodness_of_fit(
+    data: NDArray[np.floating],
+    model: NDArray[np.floating],
+    noise_std: NDArray[np.floating],
+    n_params: int,
+) -> Dict[str, Any]:
     """Compute goodness-of-fit metrics."""
     residual = data - model
     noise_std_safe = np.clip(noise_std, 1e-9, None)[:, np.newaxis]
-    
+
     chi2 = np.sum((residual / noise_std_safe) ** 2)
     ndof = data.size - n_params
     chi2_reduced = chi2 / ndof if ndof > 0 else np.inf
 
     residual_profile = np.sum(residual, axis=0)
     residual_profile -= np.mean(residual_profile)
-    
-    autocorr = np.correlate(residual_profile, residual_profile, mode='same')
-    center_val = autocorr[len(autocorr)//2]
+
+    autocorr = np.correlate(residual_profile, residual_profile, mode="same")
+    center_val = autocorr[len(autocorr) // 2]
     if center_val > 0:
         autocorr /= center_val
 
     return {
-        'chi2': float(chi2),
-        'chi2_reduced': float(chi2_reduced),
-        'ndof': int(ndof),
-        'residual_rms': float(np.std(residual)),
-        'residual_autocorr': autocorr
+        "chi2": float(chi2),
+        "chi2_reduced": float(chi2_reduced),
+        "ndof": int(ndof),
+        "residual_rms": float(np.std(residual)),
+        "residual_autocorr": autocorr,
     }
+
 
 def plot_dynamic(
     ax,

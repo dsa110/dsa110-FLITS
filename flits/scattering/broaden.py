@@ -5,6 +5,7 @@ This module provides:
 - Physical priors on scattering parameters.
 - Per-frequency scattering timescale (τ(ν)) with power-law frequency scaling.
 """
+
 from __future__ import annotations
 
 import numpy as np
@@ -96,9 +97,7 @@ def scatter_broaden(
             else:
                 kernel = np.exp(-t_kernel / tau)
                 kernel /= kernel.sum() if kernel.sum() > 0 else 1.0
-                result[i, :] = fftconvolve(
-                    signal[i, :], kernel, mode="same"
-                ) * dt
+                result[i, :] = fftconvolve(signal[i, :], kernel, mode="same") * dt
     else:
         if tau_ms <= 0.0:
             result = signal.copy()

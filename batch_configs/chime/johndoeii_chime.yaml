@@ -2,7 +2,7 @@ burst_name: johndoeii
 path: ../../../data/chime/johndoeII_chime_I_696_5184_32000b_cntr_bpc.npy
 telcfg_path: ../../telescopes.yaml
 sampcfg_path: ../../sampler.yaml
-dm_init: 0.0
+dm_init: 696.506
 telescope: chime
 steps: 10000
 f_factor: 64

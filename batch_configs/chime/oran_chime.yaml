@@ -2,7 +2,7 @@ burst_name: oran
 path: ../../../data/chime/oran_chime_I_397_0153_32000b_cntr_bpc.npy
 telcfg_path: ../../telescopes.yaml
 sampcfg_path: ../../sampler.yaml
-dm_init: 0.0
+dm_init: 396.882
 telescope: chime
 steps: 10000
 f_factor: 64

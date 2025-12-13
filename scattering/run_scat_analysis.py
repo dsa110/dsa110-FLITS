@@ -97,6 +97,30 @@ def main():
         action="store_true",
         help="Greedy BIC-based component selection",
     )
+    # DM Refinement (NEW)
+    parser.add_argument(
+        "--refine-dm",
+        action="store_true",
+        help="Run phase-coherence DM estimation before scattering analysis",
+    )
+    parser.add_argument(
+        "--dm-search-window",
+        type=float,
+        default=5.0,
+        help="Half-width of DM search range (pc/cm³) for refinement",
+    )
+    parser.add_argument(
+        "--dm-grid-resolution",
+        type=float,
+        default=0.01,
+        help="DM grid spacing (pc/cm³) for refinement",
+    )
+    parser.add_argument(
+        "--dm-n-bootstrap",
+        type=int,
+        default=200,
+        help="Number of bootstrap samples for DM uncertainty estimation",
+    )
     # Pipeline control flags
     parser.add_argument(
         "--no-scan",
@@ -180,6 +204,11 @@ def main():
         "auto_components": args.auto_components,
         "init_guess": args.init_guess,
         "walker_width_frac": args.walker_width_frac,
+        # DM refinement controls (NEW)
+        "refine_dm": args.refine_dm,
+        "dm_search_window": args.dm_search_window,
+        "dm_grid_resolution": args.dm_grid_resolution,
+        "dm_n_bootstrap": args.dm_n_bootstrap,
     }
 
     print(f"\n--- Starting analysis for: {data_path.name} ---")

@@ -2,7 +2,7 @@ burst_name: whitney
 path: ../../../data/dsa/whitney_dsa_I_462_174_2500b_cntr_bpc.npy
 telcfg_path: ../../telescopes.yaml
 sampcfg_path: ../../sampler.yaml
-dm_init: 0.0
+dm_init: 462.174
 telescope: dsa
 steps: 10000
 f_factor: 384

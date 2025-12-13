@@ -2,7 +2,7 @@ burst_name: johndoeii
 path: ../../../data/dsa/johndoeII_dsa_I_696_506_2500b_cntr_bpc.npy
 telcfg_path: ../../telescopes.yaml
 sampcfg_path: ../../sampler.yaml
-dm_init: 0.0
+dm_init: 696.506
 telescope: dsa
 steps: 10000
 f_factor: 384

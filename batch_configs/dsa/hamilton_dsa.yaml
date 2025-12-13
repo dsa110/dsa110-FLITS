@@ -2,7 +2,7 @@ burst_name: hamilton
 path: ../../../data/dsa/hamilton_dsa_I_518_799_2500b_cntr_bpc.npy
 telcfg_path: ../../telescopes.yaml
 sampcfg_path: ../../sampler.yaml
-dm_init: 0.0
+dm_init: 518.799
 telescope: dsa
 steps: 10000
 f_factor: 384

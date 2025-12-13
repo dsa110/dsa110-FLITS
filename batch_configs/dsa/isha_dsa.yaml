@@ -2,7 +2,7 @@ burst_name: isha
 path: ../../../data/dsa/isha_dsa_I_411_568_2500b_cntr_bpc.npy
 telcfg_path: ../../telescopes.yaml
 sampcfg_path: ../../sampler.yaml
-dm_init: 0.0
+dm_init: 411.568
 telescope: dsa
 steps: 10000
 f_factor: 384

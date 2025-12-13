@@ -2,7 +2,7 @@ burst_name: phineas
 path: ../../../data/dsa/phineas_dsa_I_610_274_2500b_cntr_bpc.npy
 telcfg_path: ../../telescopes.yaml
 sampcfg_path: ../../sampler.yaml
-dm_init: 0.0
+dm_init: 610.274
 telescope: dsa
 steps: 10000
 f_factor: 384

@@ -686,6 +686,29 @@ class BurstPipeline:
             )
             self.dataset.model.dm_init = self.dm_init
 
+            # Optional DM refinement via phase-coherence method
+            if self.pipeline_kwargs.get('refine_dm', False):
+                log.info("DM refinement enabled, running phase-coherence estimation...")
+                try:
+                    from .dm_preprocessing import refine_dm_init
+                    catalog_dm = self.dm_init  # Original value from config/bursts.yaml
+                    
+                    self.dm_init = refine_dm_init(
+                        dataset=self.dataset,
+                        catalog_dm=catalog_dm,
+                        enable_dm_estimation=True,
+                        dm_search_window=self.pipeline_kwargs.get('dm_search_window', 5.0),
+                        dm_grid_resolution=self.pipeline_kwargs.get('dm_grid_resolution', 0.01),
+                        n_bootstrap=self.pipeline_kwargs.get('dm_n_bootstrap', 200),
+                    )
+                    
+                    # Update model's dm_init
+                    self.dataset.model.dm_init = self.dm_init
+                    log.info(f"✓ DM refined: {catalog_dm:.3f} → {self.dm_init:.3f} pc/cm³")
+                except Exception as e:
+                    log.error(f"DM refinement failed: {e}")
+                    log.info(f"Continuing with catalog DM: {self.dm_init:.3f} pc/cm³")
+
             n_steps = self.pipeline_kwargs.get("steps", 2000)
 
             # Seed initial guess from file if provided

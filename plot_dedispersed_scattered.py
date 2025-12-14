@@ -30,7 +30,7 @@ def simulate_and_dedisperse(params, t, freqs):
     return dynspec_dedispersed
 
 
-def plot_results(t, freqs, time_series, dynspec_dedispersed, params):
+def plot_results(t, freqs, time_series, dynspec_dedispersed, params, fwhm):
     """Plot the dedispersed pulse and dynamic spectrum."""
     fig, (ax1, ax2) = plt.subplots(
         2, 1, figsize=(10, 8), sharex=True, gridspec_kw={"height_ratios": [1, 3]}
@@ -40,10 +40,21 @@ def plot_results(t, freqs, time_series, dynspec_dedispersed, params):
     ax1.plot(t, time_series, color="black", lw=1.5)
     ax1.set_ylabel("Intensity (arb)")
     ax1.set_title(
-        f"Dedispersed Scattered FRB\nDM={params.dm}, Width={params.width}ms, $\\tau_{{1GHz}}$={params.tau_1ghz}ms, α={params.tau_alpha}"
+        f"Dedispersed Scattered FRB\nDM={params.dm}, FWHM={fwhm}ms, $\\tau_{{1GHz}}$={params.tau_1ghz}ms, α={params.tau_alpha}"
     )
     ax1.grid(True, alpha=0.3)
     ax1.set_xlim(10, 60)  # Focus on pulse region
+
+    # Add t0 line to show alignment
+    ax1.axvline(
+        params.t0,
+        color="red",
+        linestyle="--",
+        alpha=0.5,
+        lw=1,
+        label="t0 (unscattered)",
+    )
+    ax1.legend(loc="upper right")
 
     # Bottom panel: Dedispersed Dynamic Spectrum
     extent = [t[0], t[-1], freqs[0], freqs[-1]]
@@ -60,6 +71,9 @@ def plot_results(t, freqs, time_series, dynspec_dedispersed, params):
     ax2.set_ylabel("Frequency (MHz)")
     ax2.set_xlim(10, 60)  # Focus on pulse region
 
+    # Add t0 line
+    ax2.axvline(params.t0, color="red", linestyle="--", alpha=0.5, lw=1)
+
     # Add colorbar
     cbar = fig.colorbar(im, ax=ax2, pad=0.02)
     cbar.set_label("Intensity")
@@ -72,9 +86,13 @@ def plot_results(t, freqs, time_series, dynspec_dedispersed, params):
 
 def main():
     # Parameters
+    fwhm = 2.0  # ms (desired FWHM)
+    # Convert FWHM to sigma: FWHM = 2.355 * sigma
+    sigma = fwhm / (2 * np.sqrt(2 * np.log(2)))
+
     params = FRBParams(
         dm=50.0,  # pc/cm^3
-        width=2.0,  # ms (intrinsic width)
+        width=sigma,  # sigma (derived from FWHM=2.0ms)
         amplitude=1.0,
         t0=20.0,  # ms (arrival time at infinite frequency)
         tau_1ghz=5.0,  # ms (scattering timescale at 1 GHz)
@@ -94,13 +112,14 @@ def main():
     # Calculate dedispersed time series
     time_series = dynspec_dedispersed.mean(axis=0)
 
-    plot_results(t, freqs, time_series, dynspec_dedispersed, params)
+    plot_results(t, freqs, time_series, dynspec_dedispersed, params, fwhm)
 
     # Print scattering timescales at edges
     tau_low = tau_per_freq(params.tau_1ghz, np.array([freqs[0]]), params.tau_alpha)[0]
     tau_high = tau_per_freq(params.tau_1ghz, np.array([freqs[-1]]), params.tau_alpha)[0]
     print(f"Scattering timescale at {freqs[0]:.0f} MHz: {tau_low:.2f} ms")
     print(f"Scattering timescale at {freqs[-1]:.0f} MHz: {tau_high:.2f} ms")
+    print(f"Intrinsic FWHM: {fwhm:.2f} ms (sigma: {sigma:.2f} ms)")
 
 
 if __name__ == "__main__":

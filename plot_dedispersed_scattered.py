@@ -1,8 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
+
 from flits.models import FRBModel, K_DM
 from flits.params import FRBParams
 from flits.scattering import tau_per_freq
+from flits.plotting import use_flits_style  # noqa: F401 (applies style on import)
 
 
 def simulate_and_dedisperse(params, t, freqs):

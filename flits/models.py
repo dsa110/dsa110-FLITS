@@ -29,6 +29,43 @@ class FRBModel:
     def __init__(self, params: FRBParams):
         self.params = params
 
+    def _generate_dispersed_pulse(
+        self, t: NDArray[np.floating], delays: NDArray[np.floating]
+    ) -> NDArray[np.floating]:
+        """Generate the dispersed Gaussian pulse profiles."""
+        result = []
+        for delay in delays:
+            shifted = t - (self.params.t0 + delay)
+            gauss = self.params.amplitude * np.exp(
+                -0.5 * (shifted / self.params.width) ** 2
+            )
+            result.append(gauss)
+        return np.vstack(result)
+
+    def _apply_scattering(
+        self,
+        dynspec: NDArray[np.floating],
+        t: NDArray[np.floating],
+        freqs: NDArray[np.floating],
+        tau_1ghz: float,
+        alpha: float,
+        ref_freq_mhz: float,
+    ) -> NDArray[np.floating]:
+        """Apply scattering broadening to the dynamic spectrum."""
+        if tau_1ghz <= 0.0:
+            return dynspec
+
+        if alpha > 0.0:
+            # Frequency-dependent: compute τ per frequency
+            tau_array: float | NDArray[np.floating] = tau_per_freq(
+                tau_1ghz, freqs, alpha, ref_freq_mhz
+            )
+        else:
+            # Frequency-independent: uniform τ
+            tau_array = tau_1ghz
+
+        return scatter_broaden(dynspec, t, tau_array, causal=True)
+
     def simulate(
         self,
         t: NDArray[np.floating],
@@ -75,28 +112,10 @@ class FRBModel:
         delays = K_DM * self.params.dm / freqs**2  # ms
 
         # Build dispersed Gaussian profile
-        result = []
-        for delay in delays:  # FIX: was incorrectly iterating over `freqs`
-            shifted = t - (self.params.t0 + delay)
-            gauss = self.params.amplitude * np.exp(
-                -0.5 * (shifted / self.params.width) ** 2
-            )
-            result.append(gauss)
-        dynspec = np.vstack(result)
+        dynspec = self._generate_dispersed_pulse(t, delays)
 
         # Apply scattering broadening if enabled
-        if tau_1ghz > 0.0:
-            if alpha > 0.0:
-                # Frequency-dependent: compute τ per frequency
-                tau_array: float | NDArray[np.floating] = tau_per_freq(
-                    tau_1ghz, freqs, alpha, ref_freq_mhz
-                )
-            else:
-                # Frequency-independent: uniform τ
-                tau_array = tau_1ghz
-            dynspec = scatter_broaden(dynspec, t, tau_array, causal=True)
-
-        return dynspec
+        return self._apply_scattering(dynspec, t, freqs, tau_1ghz, alpha, ref_freq_mhz)
 
 
 __all__ = ["FRBModel", "K_DM"]

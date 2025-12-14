@@ -246,7 +246,9 @@ if __name__ == "__main__":
         snr=15.0,
     )
     print(f"  Data shape: {data.shape}")
-    print(f"  Ground truth tau_1ghz={truth.tau_1ghz:.3f} ms, alpha={truth.tau_alpha:.2f}")
+    print(
+        f"  Ground truth tau_1ghz={truth.tau_1ghz:.3f} ms, alpha={truth.tau_alpha:.2f}"
+    )
     print(f"  Time range: {time.min():.1f} – {time.max():.1f} ms")
     print(f"  Freq range: {freq.min():.0f} – {freq.max():.0f} MHz")
 

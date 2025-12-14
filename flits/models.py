@@ -62,8 +62,14 @@ class FRBModel:
         freqs = np.asarray(freqs, dtype=np.float64)
 
         # Use override or fallback to params
-        tau_1ghz = tau_1ghz_override if tau_1ghz_override is not None else self.params.tau_1ghz
-        alpha = tau_alpha_override if tau_alpha_override is not None else self.params.tau_alpha
+        tau_1ghz = (
+            tau_1ghz_override if tau_1ghz_override is not None else self.params.tau_1ghz
+        )
+        alpha = (
+            tau_alpha_override
+            if tau_alpha_override is not None
+            else self.params.tau_alpha
+        )
 
         # Compute per-frequency dispersion delays
         delays = K_DM * self.params.dm / freqs**2  # ms

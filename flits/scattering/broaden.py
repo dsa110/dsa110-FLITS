@@ -84,7 +84,7 @@ def scatter_broaden(
         # But cap at signal length to avoid huge kernels
         kernel_len = min(int(np.ceil(10 * tau / dt)), ntime)
         kernel_len = max(kernel_len, 3)  # at least 3 samples
-        
+
         t_kernel = np.arange(kernel_len) * dt  # starts at 0
         if causal:
             kernel = np.exp(-t_kernel / tau)
@@ -92,9 +92,9 @@ def scatter_broaden(
             # Symmetric (not physically meaningful, but supported)
             t_sym = np.abs(t_kernel - t_kernel[kernel_len // 2])
             kernel = np.exp(-t_sym / tau)
-        
+
         # Normalize to unit integral (sum × dt = 1)
-        kernel /= (kernel.sum() * dt)
+        kernel /= kernel.sum() * dt
         return kernel
 
     # Apply convolution

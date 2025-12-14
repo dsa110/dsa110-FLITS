@@ -1,7 +1,7 @@
 burst_name: freya
 path: ../../../data/chime/freya_chime_I_912_4067_32000b_cntr_bpc.npy
-telcfg_path: ../../telescopes.yaml
-sampcfg_path: ../../sampler.yaml
+telcfg_path: ../../scattering/configs/telescopes.yaml
+sampcfg_path: ../../scattering/configs/sampler.yaml
 dm_init: 912.4
 telescope: chime
 steps: 10000

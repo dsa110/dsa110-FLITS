@@ -32,9 +32,15 @@ def simulate_and_dedisperse(params, t, freqs):
 
 def plot_results(t, freqs, time_series, dynspec_dedispersed, params, fwhm):
     """Plot the dedispersed pulse and dynamic spectrum."""
-    fig, (ax1, ax2) = plt.subplots(
-        2, 1, figsize=(10, 8), sharex=True, gridspec_kw={"height_ratios": [1, 3]}
+    # Use GridSpec to ensure ax1 and ax2 are perfectly aligned despite the colorbar
+    fig = plt.figure(figsize=(10, 8))
+    gs = fig.add_gridspec(
+        2, 2, width_ratios=[1, 0.02], height_ratios=[1, 3], wspace=0.02, hspace=0.1
     )
+
+    ax1 = fig.add_subplot(gs[0, 0])
+    ax2 = fig.add_subplot(gs[1, 0], sharex=ax1)
+    cax = fig.add_subplot(gs[1, 1])
 
     # Top panel: Dedispersed Time Series
     ax1.plot(t, time_series, color="black", lw=1.5)
@@ -44,6 +50,7 @@ def plot_results(t, freqs, time_series, dynspec_dedispersed, params, fwhm):
     )
     ax1.grid(True, alpha=0.3)
     ax1.set_xlim(10, 60)  # Focus on pulse region
+    plt.setp(ax1.get_xticklabels(), visible=False)
 
     # Add t0 line to show alignment
     ax1.axvline(
@@ -58,6 +65,10 @@ def plot_results(t, freqs, time_series, dynspec_dedispersed, params, fwhm):
 
     # Bottom panel: Dedispersed Dynamic Spectrum
     extent = [t[0], t[-1], freqs[0], freqs[-1]]
+
+    # Adjust color scale to make the scattering tail visible
+    vmax = np.max(dynspec_dedispersed) * 0.8
+
     im = ax2.imshow(
         dynspec_dedispersed,
         aspect="auto",
@@ -66,6 +77,7 @@ def plot_results(t, freqs, time_series, dynspec_dedispersed, params, fwhm):
         cmap="viridis",
         interpolation="nearest",
         vmin=0,
+        vmax=vmax,
     )
     ax2.set_xlabel("Time (ms)")
     ax2.set_ylabel("Frequency (MHz)")
@@ -74,13 +86,12 @@ def plot_results(t, freqs, time_series, dynspec_dedispersed, params, fwhm):
     # Add t0 line
     ax2.axvline(params.t0, color="red", linestyle="--", alpha=0.5, lw=1)
 
-    # Add colorbar
-    cbar = fig.colorbar(im, ax=ax2, pad=0.02)
+    # Add colorbar to the dedicated axis
+    cbar = fig.colorbar(im, cax=cax)
     cbar.set_label("Intensity")
 
-    plt.tight_layout()
     output_filename = "dedispersed_scattered_pulse.png"
-    plt.savefig(output_filename, dpi=150)
+    plt.savefig(output_filename, dpi=150, bbox_inches="tight")
     print(f"Dedispersed scattered pulse plot saved to {output_filename}")
 
 

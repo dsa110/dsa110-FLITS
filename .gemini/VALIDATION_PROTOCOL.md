@@ -1,4 +1,4 @@
-# Scientific Validation Protocol: Hamilton Test
+# Scientific Validation Protocol: Freya Test
 
 **Objective:** Validate the integrity of the FLITS scattering pipeline with integrated DM refinement.
 
@@ -6,14 +6,20 @@
 
 ## 🔬 Test Definition
 
-We will analyze the **Hamilton** burst (CHIME data) using the updated pipeline.
+We will analyze the **Freya** burst (CHIME data) using the updated pipeline.
+
+**Why Freya?**
+
+- Single-component burst (simpler than multi-component Hamilton)
+- Known ground truth: τ ≈ 3.5ms, α ≈ 4.2
+- High SNR for clear validation
 
 **Command:**
 
 ```bash
 python scattering/run_scat_analysis.py \
-    data/chime/hamilton_chime_I_518_8007_32000b_cntr_bpc.npy \
-    --config batch_configs/chime/hamilton_chime.yaml \
+    data/chime/freya_chime_I_912_4067_32000b_cntr_bpc.npy \
+    --config batch_configs/chime/freya_chime.yaml \
     --refine-dm \
     --model-scan \
     --plot \
@@ -27,7 +33,7 @@ python scattering/run_scat_analysis.py \
 ### 1. DM Refinement Validity
 
 - [ ] **Check Logs:** What was the refined DM?
-  - Catalog: `518.799`
+  - Catalog: `912.400`
   - Refined: `_______`
   - Difference: `_______` (Is this < 1.0 pc/cm³?)
 - [ ] **Physical Plausibility:** Does the refined DM maximize structure?
@@ -35,7 +41,7 @@ python scattering/run_scat_analysis.py \
 
 ### 2. Fit Quality (Residuals)
 
-- [ ] **Open:** `data/chime/hamilton_..._four_panel.pdf`
+- [ ] **Open:** `data/chime/freya_chime_..._four_panel.pdf`
 - [ ] **Residual Panel:** Is it Gaussian noise?
   - ❌ Diagonal stripes = DM error (refinement failed)
   - ❌ Vertical stripes = RFI
@@ -50,12 +56,13 @@ python scattering/run_scat_analysis.py \
   - ❌ Stuck at edge = Prior bound issue
 - [ ] **Correlation:** plausible correlations (e.g., $\tau$ vs $\alpha$)?
 
-### 4. Comparison to Expectations
+### 4. Comparison to Legacy Results
 
-Hamilton is a "medium DM" burst. We expect:
+Freya has previously been fitted. We expect to **reproduce** the legacy results:
 
-- **Scattering:** Likely measurable (nonzero $\tau$)
-- **Model Selection:** M2 (scattering) or M3 (scattering + structure) should have lowest BIC.
+- **Scattering timescale:** τ ≈ 3.5ms (legacy: 3.515ms)
+- **Frequency exponent:** α ≈ 4.2 (legacy: 4.2)
+- **Model Selection:** M2 (scattering) or M3 should have lowest BIC.
 
 ### 5. Advanced Visual Analysis (Fallback)
 

@@ -23,8 +23,8 @@ def scatter_broaden(
     """Apply scattering (exponential) broadening via convolution.
 
     Convolves the input signal with a causal exponential kernel:
-        kernel(t) = (1/τ) * exp(-t/τ) * H(t)
-    where H(t) is the Heaviside step function.
+        kernel(t') = (1/τ) × exp(-t'/τ) for t' ≥ 0
+    This is the standard pulse-broadening function for thin-screen scattering.
 
     Parameters
     ----------
@@ -38,7 +38,7 @@ def scatter_broaden(
         - If scalar: applied uniformly.
         - If ndarray of length nfreq: per-frequency timescale (requires signal.ndim==2).
     causal : bool
-        If True (default), kernel is causal (t >= 0). If False, symmetric.
+        If True (default), kernel is causal (t ≥ 0). If False, symmetric (not physical).
 
     Returns
     -------
@@ -47,64 +47,75 @@ def scatter_broaden(
 
     Notes
     -----
-    The kernel is normalized by integrating to preserve total flux. Convolution
-    is scaled by dt to maintain physical units.
+    The kernel is normalized to unit integral to preserve total flux.
     """
     if len(t) < 2:
         raise ValueError("Time axis must have at least 2 samples.")
 
     dt = float(t[1] - t[0])
+    ntime = len(t)
     signal = np.asarray(signal, dtype=np.float64)
-    tau_ms = np.atleast_1d(np.asarray(tau_ms, dtype=np.float64))
+    tau_arr = np.atleast_1d(np.asarray(tau_ms, dtype=np.float64))
 
-    # Validate dimensions
+    # Validate dimensions and extract scalar tau if 1D
+    tau_scalar: float = 0.0  # default, will be set if 1D
     if signal.ndim == 1:
-        if tau_ms.size > 1:
+        if tau_arr.size > 1:
             raise ValueError(
-                "Per-frequency tau requires 2D signal; got 1D with tau.size={}.".format(
-                    tau_ms.size
-                )
+                f"Per-frequency tau requires 2D signal; got 1D with tau.size={tau_arr.size}."
             )
-        tau_ms = tau_ms[0]
+        tau_scalar = float(tau_arr[0])
         is_2d = False
     elif signal.ndim == 2:
-        nfreq, ntime = signal.shape
-        if tau_ms.size == 1:
-            tau_ms = np.full(nfreq, tau_ms[0])
-        elif tau_ms.size != nfreq:
+        nfreq, _ = signal.shape
+        if tau_arr.size == 1:
+            tau_arr = np.full(nfreq, tau_arr[0])
+        elif tau_arr.size != nfreq:
             raise ValueError(
-                "tau_ms size {} must match signal.shape[0]={}".format(
-                    tau_ms.size, nfreq
-                )
+                f"tau_ms size {tau_arr.size} must match signal.shape[0]={nfreq}"
             )
         is_2d = True
     else:
-        raise ValueError("signal must be 1D or 2D, got shape {}.".format(signal.shape))
+        raise ValueError(f"signal must be 1D or 2D, got shape {signal.shape}.")
 
-    # Build kernel(s)
-    if causal:
-        t_kernel = np.maximum(t - t.min(), 0.0)
-    else:
-        t_center = (t.min() + t.max()) / 2.0
-        t_kernel = np.abs(t - t_center)
+    def _build_kernel(tau: float) -> NDArray[np.floating]:
+        """Build a properly-sized causal exponential kernel."""
+        # Kernel length: ~10τ is sufficient to capture 99.995% of the exponential
+        # But cap at signal length to avoid huge kernels
+        kernel_len = min(int(np.ceil(10 * tau / dt)), ntime)
+        kernel_len = max(kernel_len, 3)  # at least 3 samples
+        
+        t_kernel = np.arange(kernel_len) * dt  # starts at 0
+        if causal:
+            kernel = np.exp(-t_kernel / tau)
+        else:
+            # Symmetric (not physically meaningful, but supported)
+            t_sym = np.abs(t_kernel - t_kernel[kernel_len // 2])
+            kernel = np.exp(-t_sym / tau)
+        
+        # Normalize to unit integral (sum × dt = 1)
+        kernel /= (kernel.sum() * dt)
+        return kernel
 
     # Apply convolution
     if is_2d:
         result = np.zeros_like(signal)
-        for i, tau in enumerate(tau_ms):
+        for i, tau in enumerate(tau_arr):
             if tau <= 0.0:
                 result[i, :] = signal[i, :]
             else:
-                kernel = np.exp(-t_kernel / tau)
-                kernel /= kernel.sum() if kernel.sum() > 0 else 1.0
-                result[i, :] = fftconvolve(signal[i, :], kernel, mode="same") * dt
+                kernel = _build_kernel(tau)
+                # mode="full" then trim to preserve causality and timing
+                conv = fftconvolve(signal[i, :], kernel, mode="full")
+                # For causal kernel, output is shifted; take first ntime samples
+                result[i, :] = conv[:ntime] * dt
     else:
-        if tau_ms <= 0.0:
+        if tau_scalar <= 0.0:
             result = signal.copy()
         else:
-            kernel = np.exp(-t_kernel / tau_ms)
-            kernel /= kernel.sum() if kernel.sum() > 0 else 1.0
-            result = fftconvolve(signal, kernel, mode="same") * dt
+            kernel = _build_kernel(tau_scalar)
+            conv = fftconvolve(signal, kernel, mode="full")
+            result = conv[:ntime] * dt
 
     return result
 

@@ -397,6 +397,9 @@ def plot_four_panel_summary(dataset, results, save_path=None, show=True):
         # 4. Hide unused top-right corner
         axes[0, col_idx+1].axis('off')
         
+        # Debug print
+        print(f"DEBUG Panel '{title}': Mean={np.mean(data_2d):.5f}, Std={np.std(data_2d):.5f}")
+        
         return im
 
     # Determine global vmin/vmax for consistent scaling (based on Data)

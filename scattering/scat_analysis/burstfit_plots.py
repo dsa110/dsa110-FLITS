@@ -293,3 +293,135 @@ def plot_mcmc_diagnostics(results, save_path=None, show=True):
         plt.close()
     
     return fig
+
+
+def plot_four_panel_summary(dataset, results, save_path=None, show=True):
+    """
+    Replicate the legacy 'four-panel' diagnostic plot from scat_casey_dsa.ipynb.
+    
+    Panels (2x8 grid layout under the hood):
+    1. Data (Real)
+    2. Model (Noise-free)
+    3. Model + Synthetic Noise
+    4. Residuals (Data - Model)
+    
+    Each panel has:
+    - Main Waterfall (Frequency vs Time)
+    - Top: Time Series (collapsed freq)
+    - Right: Spectrum (collapsed time)
+    
+    Units are S/N (off-pulse subtracted, divided by off-pulse std).
+    """
+    best_key = results["best_key"]
+    best_p = results["best_params"]
+    model_instance = results["model_instance"]
+    
+    # Generate Model
+    model_dyn = model_instance(best_p, best_key)
+    
+    # Estimate Noise characteristics from Data
+    # Use the model's internal noise estimate or re-calculate
+    if hasattr(model_instance, 'noise_std'):
+        noise_map = model_instance.noise_std[:, None]
+        # Representative scalar noise for synthetic generation (median of per-channel noise)
+        noise_scalar = np.median(model_instance.noise_std)
+    else:
+        # Fallback
+        noise_scalar = np.std(dataset.data[:10,:]) # crude
+        noise_map = noise_scalar
+        
+    # Generate Synthetic Noise for Panel 3
+    # We want visual parity, so we add Gaussian noise matching the data's noise level
+    synthetic_noise = np.random.normal(0, noise_scalar, size=model_dyn.shape)
+    model_plus_noise = model_dyn + synthetic_noise
+    
+    # Calculate Residuals
+    residual = dataset.data - model_dyn
+    
+    # --- NORMALIZATION (S/N units) ---
+    # Legacy workflow normalizes everything by off-pulse statistics.
+    # Here we assume the data is already baseline-subtracted (mean~0 in off-pulse).
+    # We divide by the noise level to get S/N.
+    
+    norm_data = dataset.data / noise_map
+    norm_model = model_dyn / noise_map
+    norm_model_noisy = model_plus_noise / noise_map
+    norm_resid = residual / noise_map
+    
+    # Prepare Plotting
+    fig, axes = plt.subplots(
+        nrows=2, ncols=8, sharex=False, sharey=False,
+        gridspec_kw={'height_ratios': [1, 3],
+                     'width_ratios': [3, 1, 3, 1, 3, 1, 3, 1]},
+        figsize=(24, 8)
+    )
+    
+    # Common Extent [t_min, t_max, f_min, f_max]
+    extent = [dataset.time[0], dataset.time[-1], dataset.freq[0], dataset.freq[-1]]
+    
+    # Helper to plot a single panel set
+    # col_idx: index of the waterfall column (0, 2, 4, 6)
+    def plot_panel(col_idx, data_2d, title, cmap='plasma', vmin=None, vmax=None):
+        # 1. Top: Time Series
+        ax_ts = axes[0, col_idx]
+        ts = np.mean(data_2d, axis=0) # Mean S/N profile
+        ax_ts.step(dataset.time, ts, where='mid', c='k', lw=1)
+        ax_ts.set_xlim(dataset.time[0], dataset.time[-1])
+        ax_ts.set_title(title, fontsize=14, fontweight='bold')
+        ax_ts.tick_params(labelbottom=False)
+        ax_ts.grid(alpha=0.3)
+        
+        # 2. Main: Waterfall
+        ax_wf = axes[1, col_idx]
+        im = ax_wf.imshow(data_2d, aspect='auto', origin='lower', extent=extent, 
+                          cmap=cmap, vmin=vmin, vmax=vmax)
+        ax_wf.set_xlabel("Time [ms]")
+        if col_idx == 0:
+            ax_wf.set_ylabel("Frequency [GHz]")
+        else:
+            ax_wf.tick_params(labelleft=False)
+            
+        # 3. Right: Spectrum
+        ax_sp = axes[1, col_idx+1]
+        sp = np.mean(data_2d, axis=1) # Mean S/N spectrum
+        ax_sp.step(sp, dataset.freq, where='mid', c='k', lw=1)
+        ax_sp.set_ylim(dataset.freq[0], dataset.freq[-1])
+        ax_sp.tick_params(labelleft=False)
+        ax_sp.grid(alpha=0.3)
+        ax_sp.set_xlabel("Mean S/N")
+        
+        # 4. Hide unused top-right corner
+        axes[0, col_idx+1].axis('off')
+        
+        return im
+
+    # Determine global vmin/vmax for consistent scaling (based on Data)
+    g_vmin, g_vmax = np.percentile(norm_data, [1, 99.5])
+    
+    # Panel 1: Data
+    plot_panel(0, norm_data, "Data", vmin=g_vmin, vmax=g_vmax)
+    
+    # Panel 2: Model (Clean)
+    plot_panel(2, norm_model, "Model (No Noise)", vmin=g_vmin, vmax=g_vmax)
+    
+    # Panel 3: Model + Noise
+    plot_panel(4, norm_model_noisy, "Model + Noise", vmin=g_vmin, vmax=g_vmax)
+    
+    # Panel 4: Residuals
+    # Residuals should be centered on 0, symmetric
+    r_std = np.std(norm_resid)
+    plot_panel(6, norm_resid, "Residuals", cmap='RdBu_r', vmin=-5*r_std, vmax=5*r_std)
+    
+    plt.tight_layout()
+    plt.subplots_adjust(wspace=0.1, hspace=0.05)
+    
+    if save_path:
+        plt.savefig(save_path, dpi=150, bbox_inches='tight')
+        print(f"Saved four-panel summary to: {save_path}")
+    
+    if show:
+        plt.show()
+    else:
+        plt.close()
+    
+    return fig

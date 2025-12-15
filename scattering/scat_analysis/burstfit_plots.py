@@ -347,10 +347,10 @@ def plot_four_panel_summary(dataset, results, save_path=None, show=True):
     # Here we assume the data is already baseline-subtracted (mean~0 in off-pulse).
     # We divide by the noise level to get S/N.
     
-    norm_data = dataset.data / noise_map
-    norm_model = model_dyn / noise_map
-    norm_model_noisy = model_plus_noise / noise_map
-    norm_resid = residual / noise_map
+    norm_data = dataset.data / noise_scalar
+    norm_model = model_dyn / noise_scalar
+    norm_model_noisy = model_plus_noise / noise_scalar
+    norm_resid = residual / noise_scalar
     
     # Prepare Plotting
     fig, axes = plt.subplots(

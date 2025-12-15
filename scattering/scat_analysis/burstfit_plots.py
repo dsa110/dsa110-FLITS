@@ -119,7 +119,11 @@ def plot_residual_diagnostics(dataset, results, save_path=None, show=True):
     fig, axes = plt.subplots(2, 2, figsize=(12, 10))
     
     # Normalized residual histogram
-    res_norm = residual / model_instance.noise_std[:, None]
+    if hasattr(model_instance, 'noise_std') and model_instance.noise_std is not None:
+        res_norm = residual / model_instance.noise_std[:, None]
+    else:
+        # Fallback: use overall residual std
+        res_norm = residual / np.std(residual)
     axes[0,0].hist(res_norm.flatten(), bins=100, density=True, 
                    color='gray', alpha=0.7, label='Residuals')
     x_pdf = np.linspace(-4, 4, 200)

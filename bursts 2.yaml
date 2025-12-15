@@ -1,0 +1,148 @@
+# FLITS Burst Catalog
+# ====================
+# Scientific metadata for all analyzed FRBs in the DSA-110 + CHIME co-detection sample.
+# This file is the single source of truth for burst properties.
+#
+# NOTE: Pipeline-specific configs (paths, downsampling, sampler settings) are in:
+#   - batch_configs/          (flits-batch CLI)
+#   - scattering/configs/     (scattering pipeline)
+#   - scintillation/configs/  (scintillation pipeline)
+#
+# SCATTERING ANALYSIS STATUS (2025-12-13):
+# - Legacy results (Casey, Freya, Wilhelm) archived in .gemini/LEGACY_SCATTERING_RESULTS.md
+# - All 12 bursts will be re-analyzed congruently with integrated DM refinement pipeline
+# - Results will be stored in flits_results.db and compared with legacy for validation
+# - Scattering fields below are LEGACY values, will be updated after re-analysis
+
+version: "1.0"
+sample: "DSA-110 + CHIME co-detections"
+
+bursts:
+  casey:
+    chime_id: "362593221"
+    dm: 491.207
+    dm_err: 0.1
+    mjd: 60369.371
+    utc: "2024-02-29T08:54:22"
+    ra_deg: 169.983542
+    dec_deg: 70.676222
+    scattering:
+      tau_1ghz_ms: 0.227
+      alpha: 3.9
+      width_ms: 1.5
+
+  chromatica:
+    chime_id: "356959136"
+    dm: 272.664
+    dm_err: 0.1
+    mjd: 60343.832
+    utc: "2024-02-03T19:57:56"
+    ra_deg: 312.619125
+    dec_deg: 73.9
+    scattering: null
+
+  freya:
+    chime_id: "278720455"
+    dm: 912.4
+    dm_err: 0.1
+    mjd: 60028.072
+    utc: "2023-03-25T01:43:36"
+    ra_deg: 88.188
+    dec_deg: 74.200472
+    scattering:
+      tau_1ghz_ms: 3.515
+      alpha: 4.2
+      width_ms: 0.8
+
+  hamilton:
+    chime_id: "318353610"
+    dm: 518.799
+    dm_err: 0.1
+    mjd: 60200.207
+    utc: "2023-09-13T04:58:31"
+    ra_deg: 305.037167
+    dec_deg: 70.792767
+    scattering: null
+
+  isha:
+    chime_id: "252069198"
+    dm: 411.568
+    dm_err: 0.1
+    mjd: 59896.387
+    utc: "2022-11-13T09:16:44"
+    ra_deg: 71.411
+    dec_deg: 70.307389
+    scattering: null
+
+  johndoeii:
+    chime_id: "311723353"
+    dm: 696.506
+    dm_err: 0.1
+    mjd: 60170.361
+    utc: "2023-08-14T08:40:01"
+    ra_deg: 335.97475
+    dec_deg: 73.025906
+    scattering: null
+
+  mahi:
+    chime_id: "354049284"
+    dm: 960.128
+    dm_err: 0.1
+    mjd: 60331.104
+    utc: "2024-01-22T02:30:33"
+    ra_deg: 39.7665
+    dec_deg: 71.017861
+    scattering: null
+
+  oran:
+    chime_id: "224263996"
+    dm: 396.882
+    dm_err: 0.1
+    mjd: 59705.597
+    utc: "2022-05-06T14:19:52"
+    ra_deg: 318.044833
+    dec_deg: 72.827278
+    scattering: null
+
+  phineas:
+    chime_id: "274819243"
+    dm: 610.274
+    dm_err: 0.1
+    mjd: 60010.379
+    utc: "2023-03-07T09:05:48"
+    ra_deg: 177.781333
+    dec_deg: 71.695639
+    scattering: null
+
+  whitney:
+    chime_id: "215063905"
+    dm: 462.174
+    dm_err: 0.1
+    mjd: 59648.242
+    utc: "2022-03-10T05:48:16"
+    ra_deg: 134.7205
+    dec_deg: 73.490833
+    scattering: null
+
+  wilhelm:
+    chime_id: "253635173"
+    dm: 602.346
+    dm_err: 0.1
+    mjd: 59916.002
+    utc: "2022-12-03T00:02:46"
+    ra_deg: 315.129542
+    dec_deg: 72.037561
+    scattering:
+      tau_1ghz_ms: 2.818
+      alpha: 4.1
+      width_ms: 1.2
+
+  zach:
+    chime_id: "210456524"
+    dm: 262.368
+    dm_err: 0.1
+    mjd: 59617.809
+    utc: "2022-02-07T19:24:21"
+    ra_deg: 310.199525
+    dec_deg: 72.882327
+    scattering: null

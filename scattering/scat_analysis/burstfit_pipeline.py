@@ -575,6 +575,80 @@ class BurstDiagnostics:
 ###############################################################################
 # 3. PIPELINE FAÇADE
 ###############################################################################
+
+def refine_initial_guess_mle(model: FRBModel, init_guess: FRBParams) -> FRBParams:
+    """
+    Use MLE (Nelder-Mead) to refine the initial guess before MCMC.
+
+    Optimizes primarily for tau_1ghz, alpha, t0, and c0.
+    Keeps nuisance parameters (gamma, delta_dm) fixed or tightly constrained.
+    """
+    log.info("Refining initial guess via MLE (Nelder-Mead)...")
+
+    # Parameters to float: [tau, alpha, t0, c0]
+    # We work in log-space for positive params to ensure positivity
+    x0 = [
+        np.log(max(init_guess.tau_1ghz, 1e-4)),  # log tau
+        init_guess.alpha,                        # alpha (linear)
+        init_guess.t0,                           # t0 (linear)
+        np.log(max(init_guess.c0, 1e-4))         # log c0
+    ]
+
+    def obj_func(theta):
+        ln_tau, alpha, t0, ln_c0 = theta
+        
+        # Constraints
+        if not (0.1 < alpha < 8.0): return 1e20 # Reasonable alpha bounds
+        
+        tau_val = np.exp(ln_tau)
+        c0_val = np.exp(ln_c0)
+        
+        # Build params
+        p = FRBParams(
+            c0=c0_val,
+            t0=t0,
+            gamma=init_guess.gamma, # Fixed
+            zeta=init_guess.zeta,   # Fixed
+            tau_1ghz=tau_val,
+            alpha=alpha,
+            delta_dm=init_guess.delta_dm # Fixed
+        )
+        
+        # Negative Log Likelihood
+        # Add simple priors to prevent runaway
+        nll = -model.log_likelihood(p, "M3")
+        return nll
+
+    try:
+        res = minimize(obj_func, x0, method='Nelder-Mead', options={'maxiter': 200, 'xatol': 1e-2})
+        
+        if res.success or res.message:
+            log.info(f"MLE Refinement finished: {res.message}")
+            
+            ln_tau, alpha, t0, ln_c0 = res.x
+            refined_params = FRBParams(
+                c0=np.exp(ln_c0),
+                t0=t0,
+                gamma=init_guess.gamma,
+                zeta=init_guess.zeta,
+                tau_1ghz=np.exp(ln_tau),
+                alpha=alpha,
+                delta_dm=init_guess.delta_dm
+            )
+            
+            log.info(f"  tau:   {init_guess.tau_1ghz:.3f} -> {refined_params.tau_1ghz:.3f} ms")
+            log.info(f"  alpha: {init_guess.alpha:.3f} -> {refined_params.alpha:.3f}")
+            log.info(f"  t0:    {init_guess.t0:.3f} -> {refined_params.t0:.3f} ms")
+            return refined_params
+        else:
+            log.warning("MLE refinement did not converge, using original guess.")
+            return init_guess
+            
+    except Exception as e:
+        log.warning(f"MLE refinement failed with error: {e}. using original guess.")
+        return init_guess
+
+
 class BurstPipeline:
     """Main orchestrator for the fitting pipeline."""
 
@@ -716,6 +790,10 @@ class BurstPipeline:
                 init_guess = self.seed_single
             else:
                 init_guess = self._get_initial_guess(self.dataset.model)
+
+            # Automated MLE Refinement of Initial Guess
+            if self.pipeline_kwargs.get("auto_guess", True):
+                init_guess = refine_initial_guess_mle(self.dataset.model, init_guess)
 
             # Configure priors/likelihood controls
             alpha_fixed = self.pipeline_kwargs.get("alpha_fixed")
@@ -965,6 +1043,8 @@ class BurstPipeline:
                 create_four_panel_plot(self.dataset, results, save=save, show=show)
 
             return results
+
+
 
     def _get_initial_guess(self, model: "FRBModel") -> "FRBParams":
         log.info("Finding initial guess for MCMC...")

@@ -1053,6 +1053,35 @@ class BurstPipeline:
                 p_path_four = os.path.join(self.outpath, f"{self.name}_fullmodel.pdf")
                 create_four_panel_plot(self.dataset, results, save=save, show=show)
 
+            if save:
+                import json
+                
+                # Helper to convert numpy types
+                class NumpyEncoder(json.JSONEncoder):
+                    def default(self, obj):
+                        if isinstance(obj, np.integer):
+                            return int(obj)
+                        if isinstance(obj, np.floating):
+                            return float(obj)
+                        if isinstance(obj, np.ndarray):
+                            return obj.tolist()
+                        return super().default(obj)
+
+                # Prepare safe dict
+                safe_results = {
+                    "best_model": results.get("best_key"),
+                    "best_params": results.get("best_params"),
+                    "param_names": results.get("param_names"),
+                    "goodness_of_fit": results.get("goodness_of_fit"),
+                    "dm_init": results.get("dm_init"),
+                    "convergence": results.get("loop_stats")
+                }
+                
+                json_path = os.path.join(self.outpath, f"{self.name}_fit_results.json")
+                with open(json_path, "w") as f:
+                    json.dump(safe_results, f, indent=4, cls=NumpyEncoder)
+                log.info(f"Saved fit results to {json_path}")
+
             return results
 
 

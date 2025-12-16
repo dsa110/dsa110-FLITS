@@ -258,13 +258,21 @@ def plot_mcmc_diagnostics(results, save_path=None, show=True):
     - Trace plots for key parameters
     - Parameter correlations
     """
-    sampler = results["sampler"]
+    sampler = results.get("sampler")
+    if sampler is None:
+        print("MCMC diagnostics skipped (not an emcee sampler).")
+        return None
+
     param_names = results["param_names"]
-    flat_chain = results["flat_chain"]
     chain_stats = results.get("chain_stats", {})
     burn_in = chain_stats.get("burn_in", 0)
     
-    chain = sampler.get_chain()
+    try:
+        chain = sampler.get_chain()
+    except AttributeError:
+        print("MCMC diagnostics skipped (sampler has no get_chain method).")
+        return None
+        
     n_params = len(param_names)
     
     # Create figure with trace plots

@@ -453,7 +453,13 @@ def fit_models_evidence(
         for (k1, k2) in [("M3", "M2"), ("M3", "M1"), ("M2", "M1")]:
             if k1 in model_keys and k2 in model_keys:
                 bf_key = f"ln_BF_{k1}_vs_{k2}"
-                ln_bf = bayes_factors[bf_key]
+                if bf_key in bayes_factors:
+                    ln_bf = bayes_factors[bf_key]
+                elif f"ln_BF_{k2}_vs_{k1}" in bayes_factors:
+                    ln_bf = -bayes_factors[f"ln_BF_{k2}_vs_{k1}"]
+                else:
+                    ln_bf = results[k1].log_evidence - results[k2].log_evidence # Fallback calc
+
                 interp = interpret_bayes_factor(ln_bf)
                 print(f"  {k1} vs {k2}: {interp}")
     

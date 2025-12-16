@@ -827,7 +827,8 @@ class BurstPipeline:
             auto_components = bool(self.pipeline_kwargs.get("auto_components", False))
 
             if model_scan and ncomp == 1:
-                sampler_name = self.pipeline_kwargs.get("sampler", "emcee")
+                sampler_name = self.pipeline_kwargs.get("fitting_method", "emcee")
+                log.info(f"DEBUG: fitting_method='{sampler_name}'")
                 
                 if sampler_name == "nested":
                     log.info("Starting model selection using Nested Sampling (dynesty)...")
@@ -1008,76 +1009,109 @@ class BurstPipeline:
                 sampler = fitter.sample(init_multi, model_key="M3_multi")
                 best_key = "M3_multi"
 
-            log.info("Processing MCMC chains...")
-            burn, thin, convergence_info = auto_burn_thin(sampler)
-            flat_chain = sampler.get_chain(discard=burn, thin=thin, flat=True)
-            if flat_chain.shape[0] == 0:
-                raise RuntimeError(
-                    "MCMC chain is empty after burn-in and thinning. Check sampler settings or increase n_steps."
-                )
+            if sampler is not None:
+                log.info("Processing MCMC chains...")
+                burn, thin, convergence_info = auto_burn_thin(sampler)
+                flat_chain = sampler.get_chain(discard=burn, thin=thin, flat=True)
+                if flat_chain.shape[0] == 0:
+                    raise RuntimeError(
+                        "MCMC chain is empty after burn-in and thinning. Check sampler settings or increase n_steps."
+                    )
 
-            if best_key == "M3_multi":
-                # keep theta_best and names for downstream
-                idx_best = int(
-                    np.argmax(sampler.get_log_prob(discard=burn, thin=thin, flat=True))
-                )
-                theta_best = flat_chain[idx_best]
-            else:
-                best_params = FRBParams.from_sequence(
-                    flat_chain[
-                        np.argmax(
-                            sampler.get_log_prob(discard=burn, thin=thin, flat=True)
-                        )
-                    ],
-                    best_key,
-                )
-
-            if best_key == "M3_multi":
-                param_names = list(fitter.custom_order["M3_multi"])  # type: ignore[attr-defined]
-                results = {
-                    "best_key": best_key,
-                    "sampler": sampler,
-                    "flat_chain": flat_chain,
-                    "param_names": param_names,
-                    "dm_init": self.dm_init,
-                    "model_instance": self.dataset.model,
-                    "chain_stats": {
+                if best_key == "M3_multi":
+                    # keep theta_best and names for downstream
+                    idx_best = int(
+                        np.argmax(sampler.get_log_prob(discard=burn, thin=thin, flat=True))
+                    )
+                    theta_best = flat_chain[idx_best]
+                    
+                    param_names = list(fitter.custom_order["M3_multi"])  # type: ignore[attr-defined]
+                    results = {
+                        "best_key": best_key,
+                        "sampler": sampler,
+                        "flat_chain": flat_chain,
+                        "param_names": param_names,
+                        "dm_init": self.dm_init,
+                        "model_instance": self.dataset.model,
+                        "chain_stats": {
+                            "burn_in": burn,
+                            "thin": thin,
+                            "convergence": convergence_info,
+                        },
+                        "is_multi": True,
+                        "K": K,
+                        "theta_best": theta_best,
+                    }
+                else:
+                    best_params = FRBParams.from_sequence(
+                        flat_chain[
+                            np.argmax(
+                                sampler.get_log_prob(discard=burn, thin=thin, flat=True)
+                            )
+                        ],
+                        best_key,
+                    )
+                    
+                    param_names = (
+                        FRBFitter._ORDER[best_key]
+                        if best_key in FRBFitter._ORDER
+                        else [] # Should not happen for standard BIC scan
+                    )
+                    
+                    # Calculate goodness of fit
+                    # Fix: pass correct arguments matching definition
+                    gof = goodness_of_fit(
+                        self.dataset.data,
+                        self.dataset.model(best_params, best_key),
+                        self.dataset.model.noise_std,
+                        len(param_names)
+                    )
+                    loop_stats = {
                         "burn_in": burn,
                         "thin": thin,
                         "convergence": convergence_info,
-                    },
-                    "is_multi": True,
-                    "K": K,
-                    "theta_best": theta_best,
-                }
-            else:
-                results = {
-                    "best_key": best_key,
-                    "best_params": best_params,
-                    "sampler": sampler,
-                    "flat_chain": flat_chain,
-                    "param_names": FRBFitter._ORDER[best_key],
-                    "dm_init": self.dm_init,
-                    "model_instance": self.dataset.model,
-                    "chain_stats": {
-                        "burn_in": burn,
-                        "thin": thin,
-                        "convergence": convergence_info,
-                    },
-                }
+                    }
+                    
+                    results = {
+                        "best_key": best_key,
+                        "best_params": best_params,
+                        "param_names": param_names,
+                        "goodness_of_fit": gof,
+                        "dm_init": self.dm_init,
+                        "loop_stats": loop_stats,
+                        "flat_chain": flat_chain,
+                        "sampler": sampler,
+                        "model_instance": self.dataset.model,
+                        "is_multi": False,
+                    }
+
+            # Diagnostics and plotting should happen after results is definitely populated
+            if results is None:
+                raise RuntimeError("Results dictionary was not populated by any fitting path.")
 
             if diagnostics:
                 # Skip diagnostics if chain is badly non-converged (R̂ > 5)
-                max_rhat = convergence_info.get("max_rhat", 1.0)
-                if max_rhat > 5.0:
-                    log.warning(
-                        f"Skipping diagnostics: chain not converged (R̂ = {max_rhat:.2f} > 5)"
-                    )
-                    results["diagnostics"] = {
-                        "skipped": True,
-                        "reason": f"R̂ = {max_rhat:.2f} too high",
-                    }
-                else:
+                # Only applicable if sampler is not None (i.e., emcee)
+                if sampler is not None:
+                    max_rhat = results["chain_stats"].get("convergence", {}).get("max_rhat", 1.0)
+                    if max_rhat > 5.0:
+                        log.warning(
+                            f"Skipping diagnostics: chain not converged (R̂ = {max_rhat:.2f} > 5)"
+                        )
+                        results["diagnostics"] = {
+                            "skipped": True,
+                            "reason": f"R̂ = {max_rhat:.2f} too high",
+                        }
+                    else:
+                        try:
+                            diag_runner = BurstDiagnostics(self.dataset, results)
+                            results["diagnostics"] = diag_runner.run_all(
+                                sb_steps=n_steps // 4, pool=pool
+                            )
+                        except Exception as e:
+                            log.warning(f"Diagnostics failed: {e}")
+                            results["diagnostics"] = {"skipped": True, "reason": str(e)}
+                else: # Nested sampling path, no Rhat
                     try:
                         diag_runner = BurstDiagnostics(self.dataset, results)
                         results["diagnostics"] = diag_runner.run_all(
@@ -1491,11 +1525,12 @@ def _main():
         help="Earmark: AR(1)/GP residual model (not implemented)",
     )
     p.add_argument(
-        "--sampler",
+        "--fitting-method",
+        dest="fitting_method",
         type=str,
         choices=["emcee", "nested"],
         default="emcee",
-        help="Sampler choice (nested is a placeholder)",
+        help="Sampler choice (emcee or nested)",
     )
     # Add flags for boolean pipeline controls
     p.add_argument("--no-scan", dest="model_scan", action="store_false")

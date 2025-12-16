@@ -375,10 +375,20 @@ class FRBModel:
         if self.data is None or self.noise_std is None:
             raise RuntimeError("need observed data + noise_std for likelihood")
 
-        # Protect against all-zero noise_std if a channel is dead
-        noise_std_safe = np.clip(self.noise_std, 1e-9, None)
+        # Ignore channels with ~0 noise (dead/masked)
+        valid = self.noise_std > 1e-9
+        if not np.any(valid):
+            return -np.inf
 
-        resid = (self.data - self(p, model)) / noise_std_safe[:, None]
+        noise_valid = self.noise_std[valid]
+        data_valid = self.data[valid]
+        
+        # Calculate model only for valid channels is hard due to optimized call structure, 
+        # so calculate full model and slice
+        model_out = self(p, model)
+        model_valid = model_out[valid]
+        
+        resid = (data_valid - model_valid) / noise_valid[:, None]
         return -0.5 * np.sum(resid**2)
 
     def log_likelihood_student_t(
@@ -386,15 +396,26 @@ class FRBModel:
     ) -> float:
         if self.data is None or self.noise_std is None:
             raise RuntimeError("need observed data + noise_std for likelihood")
-        noise_std_safe = np.clip(self.noise_std, 1e-9, None)
-        resid = (self.data - self(p, model)) / noise_std_safe[:, None]
+        # Ignore channels with ~0 noise
+        valid = self.noise_std > 1e-9
+        if not np.any(valid):
+             return -np.inf
+             
+        noise_valid = self.noise_std[valid]
+        data_valid = self.data[valid]
+        model_valid = self(p, model)[valid]
+        
+        resid = (data_valid - model_valid) / noise_valid[:, None]
+        
         # Student-t log-pdf up to constant per element
         # logL = sum( - (nu+1)/2 * log(1 + r^2/nu) ) - N * 0.5*log(nu*pi) - sum(log(sigma))
         r2_over_nu = (resid**2) / nu
         term = -0.5 * (nu + 1.0) * np.log1p(r2_over_nu)
-        const = -0.5 * self.data.size * np.log(nu * np.pi) - np.sum(
-            np.log(noise_std_safe)
-        )
+        
+        # Constant term accounts for valid pixels only
+        n_pix = data_valid.size
+        const = -0.5 * n_pix * np.log(nu * np.pi) - np.sum(np.log(noise_valid)) * data_valid.shape[1]
+        
         return const + float(np.sum(term))
 
 

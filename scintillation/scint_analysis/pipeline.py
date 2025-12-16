@@ -259,4 +259,67 @@ class ScintillationAnalysis:
             self.acf_results, self.config
         )
         
+        # --- 2D GLOBAL SCINTILLATION FIT ---
+        self.fit_2d_result = None
+        fit_2d_config = self.config.get('analysis', {}).get('fit_2d', {})
+        if fit_2d_config.get('enable', True):  # Enabled by default
+            log.info("Running 2D global scintillation fit across all sub-bands...")
+            self.fit_2d_result = self._run_2d_scintillation_fit(fit_2d_config)
+        
         log.info("--- Pipeline execution finished. ---")
+    
+    def _run_2d_scintillation_fit(self, fit_2d_config):
+        """
+        Run 2D global scintillation fit across all sub-bands.
+        
+        This enforces physical frequency scaling: γ(ν) = γ₀ × (ν/ν_ref)^α
+        and provides direct measurement of the scaling index α.
+        """
+        try:
+            from .fitting_2d import fit_2d_scintillation, Scintillation2DResult
+        except ImportError as e:
+            log.warning(f"Could not import fitting_2d module: {e}. Skipping 2D fit.")
+            return None
+        
+        if self.acf_results is None or not self.acf_results.get('subband_acfs'):
+            log.warning("No ACF results available for 2D fitting.")
+            return None
+        
+        try:
+            result = fit_2d_scintillation(
+                self.acf_results,
+                model_type=fit_2d_config.get('model_type', 'lorentzian'),
+                fit_range_mhz=fit_2d_config.get('fit_range_mhz', 25.0),
+                nu_ref=fit_2d_config.get('nu_ref', None),
+                gamma_0_init=fit_2d_config.get('gamma_0_init', 1.0),
+                alpha_init=fit_2d_config.get('alpha_init', 4.0),
+                m_0_init=fit_2d_config.get('m_0_init', 0.5),
+                vary_alpha=fit_2d_config.get('vary_alpha', True),
+                include_self_noise=fit_2d_config.get('include_self_noise', False),
+            )
+            
+            log.info(
+                f"2D fit complete: γ₀ = {result.gamma_0:.3f} ± {result.gamma_0_err:.3f} MHz, "
+                f"α = {result.alpha:.2f} ± {result.alpha_err:.2f}, "
+                f"χ²_red = {result.redchi:.2f}"
+            )
+            
+            # Store in final_results for convenience
+            if self.final_results is not None:
+                self.final_results['fit_2d'] = {
+                    'gamma_0': result.gamma_0,
+                    'gamma_0_err': result.gamma_0_err,
+                    'alpha': result.alpha,
+                    'alpha_err': result.alpha_err,
+                    'm_0': result.m_0,
+                    'm_0_err': result.m_0_err,
+                    'nu_ref': result.nu_ref,
+                    'redchi': result.redchi,
+                    'success': result.success,
+                }
+            
+            return result
+            
+        except Exception as e:
+            log.error(f"2D scintillation fit failed: {e}")
+            return None

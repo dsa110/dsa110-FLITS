@@ -19,9 +19,11 @@
 
 - `scattering_dsa.ipynb` - DSA-110 scattering analysis
 - `scattering_chime.ipynb` - CHIME scattering analysis
+- `scintillation_manual.ipynb` - Manual scintillation analysis
 
 ## Notes
 
 - Significant scattering (τ = 2.818 ms)
 - Co-detected by both CHIME and DSA-110
 - Legacy results archived in `.gemini/LEGACY_SCATTERING_RESULTS.md`
+- Has manual scintillation analysis for debugging purposes

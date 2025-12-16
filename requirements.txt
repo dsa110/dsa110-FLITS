@@ -39,3 +39,9 @@ scikit-image>=0.18.0  # or scipy.ndimage is included in scipy
 
 # Statistical analysis
 uncertainties>=3.1.4  # For error propagation if needed
+
+# Nested sampling for Bayesian evidence computation
+dynesty>=2.1.0  # Optional, for evidence-based model selection
+
+# Galactic electron density models for physical priors
+mwprop>=0.1.0  # Optional, for NE2001 scattering predictions

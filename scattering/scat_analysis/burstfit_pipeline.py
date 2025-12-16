@@ -45,7 +45,7 @@ from .burstfit_robust import (
     plot_subband_profiles,
     dm_optimization_check,
 )
-from .config_utils import SamplerConfig, TelescopeConfig
+from .config_utils import SamplerConfig, TelescopeConfig, load_telescope_block
 from .pool_utils import build_pool
 
 # --- Setup Logging ---
@@ -445,7 +445,8 @@ class BurstDataset:
         self.telescope = telescope
         self.sampler = sampler
         self.f_factor, self.t_factor = f_factor, t_factor
-        self.outer_trim, self.smooth_ms = outer_trim, smooth_ms
+        self.outer_trim = outer_trim if outer_trim is not None else 0.45
+        self.smooth_ms = smooth_ms
         self.center_burst, self.flip_freq = center_burst, flip_freq
         self.data = self.freq = self.time = self.df_MHz = self.dt_ms = self.model = None
         if not lazy:
@@ -673,7 +674,8 @@ class BurstPipeline:
                       intelligently split between BurstDataset and the pipeline.
         """
         self.inpath = inpath
-        self.outpath = outpath
+        self.outpath = Path(outpath)
+        self.outpath.mkdir(parents=True, exist_ok=True)
         self.name = name
         self.dm_init = dm_init
 
@@ -741,6 +743,15 @@ class BurstPipeline:
                     self.pipeline_kwargs["ncomp"] = max(1, len(comp))
             except Exception as e:
                 warnings.warn(f"Failed to read init-guess '{init_guess_path}': {e}")
+                
+        # Resolve telescope config if it's a string
+        if "telescope" in self.dataset_kwargs and isinstance(self.dataset_kwargs["telescope"], str):
+            tel_name = self.dataset_kwargs["telescope"]
+            telcfg_path = self.dataset_kwargs.get("telcfg_path", "scattering/configs/telescopes.yaml")
+            try:
+                self.dataset_kwargs["telescope"] = load_telescope_block(telcfg_path, tel_name)
+            except Exception as e:
+                raise ValueError(f"Failed to load telescope config for '{tel_name}' from '{telcfg_path}': {e}")
 
     def run_full(
         self,

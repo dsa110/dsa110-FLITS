@@ -126,6 +126,12 @@ def _log_prob_wrapper(
     if logp == -np.inf:
         return -np.inf
 
+    # Extract tau_1ghz if it's a parameter in the current model
+    tau_1ghz = 0.0
+    if "tau_1ghz" in names:
+        tau_1ghz = theta[names.index("tau_1ghz")]
+    if not (0.001 < tau_1ghz < 15): return -np.inf
+
     # 3. Jeffreys 1/x weight for positive params (still sampling in linear units)
     if log_weight_pos:
         for name, v in zip(names, theta):

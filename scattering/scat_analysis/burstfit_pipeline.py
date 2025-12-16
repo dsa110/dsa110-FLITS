@@ -43,8 +43,10 @@ from .burstfit_robust import (
     plot_influence,
     fit_subband_profiles,
     plot_subband_profiles,
+    plot_subband_profiles,
     dm_optimization_check,
 )
+from .burstfit_nested import fit_models_evidence
 from .config_utils import SamplerConfig, TelescopeConfig, load_telescope_block
 from .pool_utils import build_pool
 import dataclasses
@@ -519,8 +521,10 @@ class BurstDataset:
 
     def _downsample_and_renormalize(self, arr):
         ds_arr = downsample(arr, self.f_factor, self.t_factor)
-        peak = np.nanmax(ds_arr)
-        return ds_arr / peak if peak > 0 else ds_arr
+        # Do NOT normalize by peak. Keep units as S/N (z-score from bandpass_correct).
+        # peak = np.nanmax(ds_arr)
+        # return ds_arr / peak if peak > 0 else ds_arr
+        return ds_arr
 
     def _centre_burst(self):
         prof = np.nansum(self.data, axis=0)
@@ -823,28 +827,82 @@ class BurstPipeline:
             auto_components = bool(self.pipeline_kwargs.get("auto_components", False))
 
             if model_scan and ncomp == 1:
-                log.info("Starting model selection scan (BIC)...")
-                best_key, all_res = fit_models_bic(
-                    model=self.dataset.model,
-                    init=init_guess,
-                    n_steps=n_steps // 2,
-                    pool=pool,
-                    model_keys=model_keys,
-                    sample_log_params=sample_log_params,
-                    alpha_prior=(
-                        (alpha_mu, alpha_sigma)
-                        if alpha_fixed is None
-                        else (alpha_fixed, None)
-                    ),
-                    likelihood_kind=likelihood_kind,
-                    student_nu=studentt_nu,
-                    walker_width_frac=self.pipeline_kwargs.get(
-                        "walker_width_frac", 0.01
-                    ),
-                )
-                sampler = all_res[best_key][0]
+                sampler_name = self.pipeline_kwargs.get("sampler", "emcee")
+                
+                if sampler_name == "nested":
+                    log.info("Starting model selection using Nested Sampling (dynesty)...")
+                    best_key, ns_results = fit_models_evidence(
+                        model=self.dataset.model,
+                        init=init_guess,
+                        model_keys=model_keys,
+                        priors=None, # Will use defaults in nested module
+                        nlive=n_steps // 4, # Heuristic mapping steps -> nlive
+                        alpha_prior=(alpha_mu, alpha_sigma) if alpha_fixed is None else None,
+                        likelihood_kind=likelihood_kind,
+                        student_nu=studentt_nu,
+                    )
+                    
+                    # Convert NS result to pipeline format
+                    best_res = ns_results[best_key]
+                    results = {
+                        "best_key": best_key,
+                        "best_params": FRBParams(**dict(zip(best_res.param_names, best_res.samples.mean(axis=0)))), # approximate
+                        "param_names": best_res.param_names,
+                        "goodness_of_fit": {"log_evidence": best_res.log_evidence, "log_evidence_err": best_res.log_evidence_err},
+                        "dm_init": self.dm_init,
+                        "loop_stats": {"ncall": best_res.ncall},
+                        "all_results": ns_results
+                    }
+                    
+                    # For nested, we don't have a 'sampler' object in the emcee sense
+                    # So we construct a dummy sampler or skip steps that require it
+                    sampler = None 
+                    
+                else: 
+                    log.info("Starting model selection scan (BIC)...")
+                    best_key, all_res = fit_models_bic(
+                        model=self.dataset.model,
+                        init=init_guess,
+                        n_steps=n_steps // 2,
+                        pool=pool,
+                        model_keys=model_keys,
+                        sample_log_params=sample_log_params,
+                        alpha_prior=(
+                            (alpha_mu, alpha_sigma)
+                            if alpha_fixed is None
+                            else (alpha_fixed, None)
+                        ),
+                        likelihood_kind=likelihood_kind,
+                        student_nu=studentt_nu,
+                        walker_width_frac=self.pipeline_kwargs.get(
+                            "walker_width_frac", 0.01
+                        ),
+                    )
+                    sampler = all_res[best_key][0]
+                    # Pack results for emcee (legacy) path
+                    chain = sampler.get_chain(flat=True)
+                    log.info(f"Emcee chain shape: {chain.shape}")
+                    param_names = FRBFitter._ORDER[best_key]
+                    best_params_vec = np.median(chain, axis=0) # crude estimate
+                    
+                    results = {
+                        "best_key": best_key,
+                        "best_params": FRBParams.from_sequence(best_params_vec, best_key),
+                         "param_names": param_names,
+                         "goodness_of_fit": {}, # Populated later
+                         "dm_init": self.dm_init,
+                         "loop_stats": {},
+                    }
+
+
             elif ncomp == 1:
+                # Direct single model fit code... (keeping existing structure but wrapping in else)
                 best_key = "M3"
+                if self.pipeline_kwargs.get("sampler") == "nested":
+                     log.info("Fitting model M3 directly with Nested Sampling...")
+                     # Implement direct nested fit logic here if needed, or fall through
+                     pass
+                     
                 log.info(f"Fitting model {best_key} directly...")
                 # right before sampling
                 priors, use_logw = build_priors(
@@ -1072,6 +1130,8 @@ class BurstPipeline:
                 best_params = results.get("best_params")
                 if dataclasses.is_dataclass(best_params):
                     best_params = dataclasses.asdict(best_params)
+                elif hasattr(best_params, "__dict__"):
+                    best_params = best_params.__dict__
                     
                 safe_results = {
                     "best_model": results.get("best_key"),

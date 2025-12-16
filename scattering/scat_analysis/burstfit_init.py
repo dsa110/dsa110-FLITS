@@ -543,11 +543,18 @@ def data_driven_initial_guess(
         diagnostics['auto_burst_lims'] = burst_lims
     
     # 1. Amplitude (c0)
+    # 1. Amplitude (c0)
+    # FRBModel treats c0 as per-channel fluence (approx).
+    # nansum(data) is total flux. We must divide by n_freq.
+    n_freq = data.shape[0]
     if burst_lims:
-        c0 = np.nansum(data[:, burst_lims[0]:burst_lims[1]])
+        c0_total = np.nansum(data[:, burst_lims[0]:burst_lims[1]])
     else:
-        c0 = np.nansum(data)
-    diagnostics['c0_method'] = 'integrated_flux'
+        c0_total = np.nansum(data)
+        
+    c0 = c0_total / max(n_freq, 1)
+    
+    diagnostics['c0_method'] = 'integrated_flux_per_channel'
     
     # 2. Peak time and width
     t0, width, width_err = estimate_pulse_width(data, time, burst_lims)

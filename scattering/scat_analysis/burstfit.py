@@ -315,7 +315,7 @@ class FRBModel:
             ),
             axis=1,
         )
-        return 1.4826 * np.clip(mad, 1e-6, None)  # Use a smaller floor
+        return 1.4826 * mad  # Do not clip to 1e-6, allow 0 for dead channels
 
     def __call__(self, p: FRBParams, model_key: str = "M3") -> NDArray[np.floating]:
         """Return model dynamic spectrum for parameters *p*."""

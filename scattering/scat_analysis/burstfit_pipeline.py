@@ -47,6 +47,7 @@ from .burstfit_robust import (
 )
 from .config_utils import SamplerConfig, TelescopeConfig, load_telescope_block
 from .pool_utils import build_pool
+import dataclasses
 
 # --- Setup Logging ---
 log = logging.getLogger("burstfit.pipeline")
@@ -1068,9 +1069,13 @@ class BurstPipeline:
                         return super().default(obj)
 
                 # Prepare safe dict
+                best_params = results.get("best_params")
+                if dataclasses.is_dataclass(best_params):
+                    best_params = dataclasses.asdict(best_params)
+                    
                 safe_results = {
                     "best_model": results.get("best_key"),
-                    "best_params": results.get("best_params"),
+                    "best_params": best_params,
                     "param_names": results.get("param_names"),
                     "goodness_of_fit": results.get("goodness_of_fit"),
                     "dm_init": results.get("dm_init"),

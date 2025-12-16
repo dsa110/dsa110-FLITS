@@ -1132,7 +1132,7 @@ class BurstPipeline:
             else:
                 results["goodness_of_fit"] = goodness_of_fit(
                     self.dataset.data,
-                    self.dataset.model(best_params, best_key),
+                    self.dataset.model(results["best_params"], best_key),
                     self.dataset.model.noise_std,
                     len(results["param_names"]),
                 )

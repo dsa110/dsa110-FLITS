@@ -42,3 +42,13 @@ from .burstfit_robust import (
     dm_optimization_check,
     fit_subband_profiles,
 )
+
+# Data-driven initial guess estimation
+from .burstfit_init import (
+    data_driven_initial_guess,
+    quick_initial_guess,
+    estimate_spectral_index,
+    estimate_pulse_width,
+    estimate_scattering_from_tail,
+    InitialGuessResult,
+)

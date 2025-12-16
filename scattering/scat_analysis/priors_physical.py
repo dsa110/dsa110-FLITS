@@ -58,7 +58,9 @@ __all__ = [
     "get_ne2001_scattering",
     "build_physical_priors",
     "PhysicalPriors",
+    "get_burst_priors_from_catalog",
     "TURBULENCE_INDICES",
+    "log_prob_lognormal",
 ]
 
 # Theoretical spectral indices for different turbulence spectra

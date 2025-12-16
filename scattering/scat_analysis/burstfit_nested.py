@@ -53,6 +53,8 @@ log = logging.getLogger(__name__)
 
 __all__ = [
     "fit_models_evidence",
+    "fit_single_model_nested",
+    "quick_evidence_comparison",
     "NestedSamplingResult",
     "interpret_bayes_factor",
 ]
@@ -125,8 +127,18 @@ class NestedSamplingResult:
         )
 
 
-def interpret_bayes_factor(ln_bf: float) -> str:
-    """Interpret log Bayes factor on Jeffreys' scale."""
+def interpret_bayes_factor(ln_bf: float, model1: str = "first model", model2: str = "second model") -> str:
+    """Interpret log Bayes factor on Jeffreys' scale.
+    
+    Parameters
+    ----------
+    ln_bf : float
+        Natural log of Bayes factor = ln(Z_1/Z_2)
+    model1 : str
+        Name of first model (positive BF favors this)
+    model2 : str
+        Name of second model (negative BF favors this)
+    """
     abs_bf = abs(ln_bf)
     if abs_bf < 1:
         strength = "Inconclusive"
@@ -137,7 +149,7 @@ def interpret_bayes_factor(ln_bf: float) -> str:
     else:
         strength = "Strong"
     
-    direction = "favors M1" if ln_bf > 0 else "favors M2"
+    direction = f"favors {model1}" if ln_bf > 0 else f"favors {model2}"
     return f"{strength} evidence {direction} (ln(BF) = {ln_bf:.2f})"
 
 
@@ -172,12 +184,21 @@ def _build_log_likelihood(
     model_key: str,
     param_names: Tuple[str, ...],
     alpha_prior: Optional[Tuple[float, float]] = None,
+    tau_prior: Optional[Tuple[float, float]] = None,
     likelihood_kind: str = "gaussian",
     student_nu: float = 5.0,
 ):
     """Build log-likelihood function for dynesty.
     
-    Optionally includes Gaussian prior on alpha.
+    Optionally includes priors on alpha and tau (as part of log-likelihood
+    to avoid issues with nested sampling prior volume calculation).
+    
+    Parameters
+    ----------
+    alpha_prior : tuple, optional
+        (mu, sigma) for Gaussian prior on α
+    tau_prior : tuple, optional
+        (mu, sigma) for log-normal prior on τ (in log10 space)
     """
     def log_likelihood(theta: NDArray[np.floating]) -> float:
         # Build params from theta
@@ -189,12 +210,25 @@ def _build_log_likelihood(
         else:
             ll = model.log_likelihood_student_t(params, model_key, nu=student_nu)
         
-        # Add Gaussian prior on alpha if specified (within likelihood to avoid
-        # issues with nested sampling prior volume)
+        # Guard against NaN/Inf likelihoods
+        if not np.isfinite(ll):
+            return -1e100  # Very negative but finite
+        
+        # Add Gaussian prior on alpha if specified
         if alpha_prior is not None and "alpha" in param_names:
             mu, sigma = alpha_prior
             alpha = params.alpha
             ll += -0.5 * ((alpha - mu) / sigma) ** 2
+        
+        # Add log-normal prior on tau if specified (in log10 space)
+        if tau_prior is not None and "tau_1ghz" in param_names:
+            mu_log10, sigma_log10 = tau_prior
+            tau = params.tau_1ghz
+            if tau > 0:
+                log10_tau = np.log10(tau)
+                ll += -0.5 * ((log10_tau - mu_log10) / sigma_log10) ** 2
+            else:
+                ll = -1e100
         
         return ll
     
@@ -210,6 +244,7 @@ def fit_single_model_nested(
     nlive: int = 500,
     dlogz: float = 0.1,
     alpha_prior: Optional[Tuple[float, float]] = None,
+    tau_prior: Optional[Tuple[float, float]] = None,
     likelihood_kind: str = "gaussian",
     student_nu: float = 5.0,
     sample: str = "rwalk",
@@ -249,6 +284,12 @@ def fit_single_model_nested(
     -------
     NestedSamplingResult
         Evidence and posterior samples
+    
+    Notes
+    -----
+    alpha_prior and tau_prior are included as part of the log-likelihood
+    (rather than the prior transform) to avoid issues with evidence
+    calculation when using informative priors.
     """
     try:
         from dynesty import NestedSampler
@@ -269,7 +310,7 @@ def fit_single_model_nested(
     # Build callable functions
     prior_transform = _build_prior_transform(priors, param_names)
     log_likelihood = _build_log_likelihood(
-        model, model_key, param_names, alpha_prior, likelihood_kind, student_nu
+        model, model_key, param_names, alpha_prior, tau_prior, likelihood_kind, student_nu
     )
     
     # Run nested sampling
@@ -312,6 +353,7 @@ def fit_models_evidence(
     nlive: int = 500,
     dlogz: float = 0.1,
     alpha_prior: Optional[Tuple[float, float]] = None,
+    tau_prior: Optional[Tuple[float, float]] = None,
     likelihood_kind: str = "gaussian",
     verbose: bool = True,
     **dynesty_kwargs,
@@ -372,6 +414,7 @@ def fit_models_evidence(
             nlive=nlive,
             dlogz=dlogz,
             alpha_prior=alpha_prior,
+            tau_prior=tau_prior,
             likelihood_kind=likelihood_kind,
             verbose=verbose,
             **dynesty_kwargs,

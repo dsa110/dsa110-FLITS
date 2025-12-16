@@ -1047,16 +1047,51 @@ class BurstPipeline:
 
 
     def _get_initial_guess(self, model: "FRBModel") -> "FRBParams":
-        log.info("Finding initial guess for MCMC...")
-        f_ds = 1  # getattr(self, "f_factor", self.f_factor)
-        t_ds = 1  # getattr(self, "init_t_factor", self.t_factor)
+        """Generate data-driven initial guess for MCMC.
+        
+        Uses the burstfit_init module to extract parameter estimates
+        directly from the data instead of hardcoded values.
+        """
+        log.info("Finding data-driven initial guess for MCMC...")
+        
+        # Try data-driven estimation first
+        try:
+            from .burstfit_init import data_driven_initial_guess
+            
+            result = data_driven_initial_guess(
+                data=model.data,
+                freq=model.freq,
+                time=model.time,
+                dm=self.dm_init,
+                verbose=True,
+            )
+            
+            init_guess = result.params
+            log.info(f"Data-driven initial guess:")
+            log.info(f"  c0      = {init_guess.c0:.2f}")
+            log.info(f"  t0      = {init_guess.t0:.3f} ms")
+            log.info(f"  gamma   = {init_guess.gamma:.2f}")
+            log.info(f"  zeta    = {init_guess.zeta:.3f} ms")
+            log.info(f"  tau_1ghz= {init_guess.tau_1ghz:.3f} ms")
+            log.info(f"  alpha   = {init_guess.alpha:.2f}")
+            
+            # Store diagnostics for later inspection
+            self._init_guess_diagnostics = result.diagnostics
+            
+            return init_guess
+            
+        except Exception as e:
+            log.warning(f"Data-driven guess failed: {e}. Falling back to optimization.")
+        
+        # Fallback: quick optimization-based guess
+        f_ds = 1
+        t_ds = 1
 
-        # 2) build down-sampled arrays
+        # Build down-sampled arrays
         data_ds = model.data[::f_ds, ::t_ds]
         time_ds = model.time[::t_ds]
         freq_ds = model.freq[::f_ds]
 
-        # 3) wrap into a temporary FRBModel (same API as your real one)
         model_ds = FRBModel(
             data=data_ds,
             time=time_ds,
@@ -1068,19 +1103,53 @@ class BurstPipeline:
         prof = np.nansum(model_ds.data, axis=0)
         if np.all(prof == 0):
             return FRBParams(c0=0, t0=model_ds.time.mean(), gamma=0, zeta=0, tau_1ghz=0)
+        
+        # Data-derived rough guess (better than pure hardcodes)
+        t0_idx = np.argmax(prof)
+        t0 = model_ds.time[t0_idx]
+        c0 = np.sum(prof)
+        
+        # Estimate spectral index from data
+        spectrum = np.nansum(model_ds.data, axis=1)
+        with np.errstate(invalid='ignore', divide='ignore'):
+            log_freq = np.log(freq_ds)
+            log_flux = np.log(np.maximum(spectrum, 1e-10))
+            mask = np.isfinite(log_flux) & np.isfinite(log_freq)
+        if mask.sum() > 3:
+            try:
+                gamma = np.polyfit(log_freq[mask], log_flux[mask], 1)[0]
+                gamma = np.clip(gamma, -5, 2)
+            except Exception:
+                gamma = -1.6
+        else:
+            gamma = -1.6
+        
+        # Estimate width from profile variance
+        weights = np.maximum(prof - np.percentile(prof, 10), 0)
+        weights /= np.sum(weights) + 1e-30
+        t_var = np.sum((model_ds.time - t0) ** 2 * weights)
+        width = 2.355 * np.sqrt(max(t_var, 1e-6))
+        
+        # Initial zeta and tau: split observed width
+        zeta = max(0.1, width * 0.4)
+        tau_1ghz = max(0.1, width * 0.4)
+        
         rough_guess = FRBParams(
-            c0=np.sum(prof),
-            t0=model_ds.time[np.argmax(prof)],
-            gamma=-1.6,
-            zeta=0.1,
-            tau_1ghz=0.1,
+            c0=c0,
+            t0=t0,
+            gamma=gamma,
+            zeta=zeta,
+            tau_1ghz=tau_1ghz,
+            alpha=4.0,  # Thin screen default
         )
+        
+        # Refine with L-BFGS-B
         priors, use_logw = build_priors(
             rough_guess,
             scale=1.5,
             abs_max={"tau_1ghz": 5e4, "zeta": 5e4},
             log_weight_pos=True,
-        )  # Jeffreys weightin
+        )
         model_key = "M3"
         x0 = rough_guess.to_sequence(model_key)
         bounds = [priors[n] for n in FRBFitter._ORDER[model_key]]

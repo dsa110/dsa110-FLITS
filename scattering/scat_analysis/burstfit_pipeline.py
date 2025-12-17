@@ -360,13 +360,38 @@ def create_sixteen_panel_plot(
     for i in [13, 14, 15]:
         ax[i].set_axis_off()
     if gof:
+        # Format validation summary
+        quality = gof.get('quality_flag', 'UNKNOWN')
+        chi2 = gof.get('chi2_reduced', 0.0)
+        r2 = gof.get('r_squared', 0.0)
+        p_norm = gof.get('normality_pvalue', 0.0)
+        bias = gof.get('bias_nsigma', 0.0)
+        dw = gof.get('durbin_watson', 0.0)
+        
+        gof_text = (
+            f"V&V STATUS: {quality}\n"
+            f"-----------------\n"
+            f"χ²/dof = {chi2:.2f}\n"
+            f"R²     = {r2:.3f}\n"
+            f"Normality p = {p_norm:.1e}\n"
+            f"Bias σ      = {bias:.1f}\n"
+            f"Durbin-Watson = {dw:.2f}"
+        )
+        # Determine color based on quality
+        color = "black"
+        if quality == "FAIL": color = "red"
+        elif quality == "MARGINAL": color = "orange"
+        elif quality == "PASS": color = "green"
+
         ax[13].text(
             0.05,
             0.95,
-            f"GoF:\nχ²/dof = {gof['chi2_reduced']:.2f}",
+            gof_text,
             va="top",
             fontfamily="monospace",
-            fontsize=12,
+            fontsize=11,
+            color=color,
+            weight="bold" if quality != "UNKNOWN" else "normal"
         )
     p_summary = "Best Fit (Median & 1σ):\n" + "\n".join(
         [

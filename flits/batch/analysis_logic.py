@@ -116,6 +116,27 @@ def check_tau_deltanu_consistency(
                 rel_err_nu = result.delta_nu_err / result.delta_nu_mhz
                 result.tau_delta_nu_product_err = product * np.sqrt(rel_err_tau**2 + rel_err_nu**2)
             
+            # --- START PATCH 4: Validate Measurements ---
+            # Define helper if not exists (inline here or assume global)
+            # Just implement logic directly for simplicity
+            rel_err_tau = result.tau_1ghz_err / result.tau_1ghz_ms if result.tau_1ghz_err else 0
+            rel_err_nu = result.delta_nu_err / result.delta_nu_mhz if result.delta_nu_err else 0
+            
+            tau_bad = rel_err_tau > 0.5
+            nu_bad = rel_err_nu > 0.5
+            
+            if tau_bad or nu_bad:
+                result.is_consistent = False
+                result.quality_flag = "poor_input_quality"
+                reasons = []
+                if tau_bad: reasons.append(f"τ error > 50% ({rel_err_tau:.2f})")
+                if nu_bad: reasons.append(f"Δν error > 50% ({rel_err_nu:.2f})")
+                result.interpretation = "Measurements too uncertain: " + ", ".join(reasons)
+                results.append(result)
+                continue
+            # --- END PATCH 4 ---
+
+            
             # Assess consistency
             if C_RANGE[0] <= product <= C_RANGE[1]:
                 result.is_consistent = True

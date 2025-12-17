@@ -1,0 +1,56 @@
+"""Validation thresholds for FLITS fitting."""
+
+# MCMC / Nested Sampling Convergence
+MCMC_AUTOCORR_NSTEPS_FACTOR = 50
+MCMC_BURN_IN_FACTOR = 5.0
+MCMC_ACC_FRAC_MIN = 0.2
+MCMC_ACC_FRAC_MAX = 0.9
+MCMC_MIN_EFFECTIVE_SAMPLES = 100
+
+# Physical Parameter Bounds
+DM_MIN = 1e-3
+DM_MAX = 3000.0
+AMP_MIN = 0.01
+AMP_MAX = 10000.0  # Increased for bright bursts
+WIDTH_MIN = 1e-4
+WIDTH_MAX = 1000.0
+
+# Likelihood Thresholds
+RED_CHI_SQ_CATASTROPHIC = 100.0
+
+# Residual Validation
+RESIDUAL_NORMALITY_PVALUE = 0.05
+RESIDUAL_BIAS_SIGMA_THRESHOLD = 3.0
+RESIDUAL_AUTOCORR_DW_MIN = 1.0
+RESIDUAL_AUTOCORR_DW_MAX = 3.0
+
+# Chi-Squared Thresholds
+CHI_SQ_RED_EXCELLENT_MIN = 0.8
+CHI_SQ_RED_GOOD_MAX = 1.5
+CHI_SQ_RED_MARGINAL_MAX = 3.0
+# CHI_SQ_RED_SUSPICIOUSLY_LOW = 0.3  # Commented out as robust fitting often yields low standard chi2 if errors over-estimated? 
+# Actually, consistent with Guide.
+CHI_SQ_RED_SUSPICIOUSLY_LOW = 0.3
+
+# R-Squared Thresholds
+R_SQ_EXCELLENT_MIN = 0.95
+R_SQ_GOOD_MIN = 0.85
+R_SQ_MARGINAL_MIN = 0.70
+R_SQ_POOR_MIN = 0.50
+
+# Parameter Uncertainty Thresholds
+PARAM_UNCERTAINTY_GOOD_MAX = 0.3
+PARAM_UNCERTAINTY_ACCEPTABLE_MAX = 0.5
+PARAM_UNCERTAINTY_MARGINAL_MAX = 1.0
+
+# Physics Constraints
+TAU_DELTANU_MIN = 0.1
+TAU_DELTANU_MAX = 2.0
+TAU_DELTANU_THIN_SCREEN = 0.159
+TAU_DELTANU_EXTENDED = 1.0
+
+ALPHA_KOLMOGOROV = 4.0
+ALPHA_GOOD_MIN = 3.0
+ALPHA_GOOD_MAX = 5.0
+ALPHA_MARGINAL_MIN = 2.0
+ALPHA_MARGINAL_MAX = 6.0

@@ -710,18 +710,47 @@ def build_priors(
         -log(x) to the log-prior for each positive parameter.
     """
     from dataclasses import asdict
+    from .validation_thresholds import (
+        DM_MIN, DM_MAX,
+        AMP_MIN, AMP_MAX,
+        WIDTH_MIN, WIDTH_MAX,
+        ALPHA_GOOD_MIN, ALPHA_MARGINAL_MAX
+    )
 
     pri = {}
+    
+    # Map parameters to their specific bounds
+    # If not in this map, use defaults
+    param_bounds = {
+        "c0": (AMP_MIN, AMP_MAX),
+        "tau_1ghz": (WIDTH_MIN, WIDTH_MAX),
+        "zeta": (WIDTH_MIN, WIDTH_MAX),
+        "delta_dm": (-DM_MAX, DM_MAX), # Delta DM can be negative but bounded
+        "gamma": (-5.0, 5.0), # Spectral index bounds
+        "t0": (init.t0 - 2*max(init.tau_1ghz, 10.0), init.t0 + 2*max(init.tau_1ghz, 10.0)), # Dynamic t0 window
+        "alpha": (ALPHA_GOOD_MIN, ALPHA_MARGINAL_MAX) # Scattering index
+    }
+    
     ceiling = abs_max or {}
+    
     for name, val in asdict(init).items():
-        w = max(scale * max(abs(val), 1e-3), 0.5)  # ≥ 0.5 half-width
-        lower = val - w
-        upper = val + w
-        if name in _POSITIVE:  # enforce positivity
-            lower = max(lower, abs_min)
-        if name in ceiling:  # honour hard caps
+        # Determine specific bounds for this parameter
+        if name in param_bounds:
+            hard_min, hard_max = param_bounds[name]
+        else:
+             hard_min, hard_max = abs_min, 1e6
+
+        # Calculate dynamic window around init, but clamp to hard bounds
+        w = max(scale * max(abs(val), 1e-3), 0.5)
+        lower = max(val - w, hard_min)
+        upper = min(val + w, hard_max)
+        
+        # Override with explicit ceiling if provided
+        if name in ceiling:
             upper = min(upper, ceiling[name])
+            
         pri[name] = (lower, upper)
+
     return pri, log_weight_pos
 
 
@@ -766,12 +795,119 @@ def goodness_of_fit(
     if center_val > 0:
         autocorr /= center_val
 
+
+from scipy import stats
+from .validation_thresholds import (
+    CHI_SQ_RED_MARGINAL_MAX,
+    CHI_SQ_RED_SUSPICIOUSLY_LOW,
+    R_SQ_POOR_MIN,
+    R_SQ_MARGINAL_MIN,
+    RESIDUAL_NORMALITY_PVALUE,
+    RESIDUAL_AUTOCORR_DW_MIN,
+    RESIDUAL_AUTOCORR_DW_MAX,
+)
+
+def goodness_of_fit(
+    data: NDArray[np.floating],
+    model: NDArray[np.floating],
+    noise_std: NDArray[np.floating],
+    n_params: int,
+) -> Dict[str, Any]:
+    """Compute comprehensive goodness-of-fit metrics and validation flags."""
+    residual = data - model
+    # Ensure noise broadcast correctly
+    noise_std_safe = np.clip(np.atleast_1d(noise_std), 1e-9, None)
+    if noise_std_safe.ndim == 1 and data.ndim == 2:
+         noise_std_safe = noise_std_safe[:, np.newaxis]
+
+    # 1. Chi-squared
+    chi2 = np.sum((residual / noise_std_safe) ** 2)
+    ndof = data.size - n_params
+    chi2_reduced = chi2 / ndof if ndof > 0 else np.inf
+
+    # 2. R-squared
+    ss_res = np.sum((residual / noise_std_safe) ** 2)
+    # Total sum of squares weighted by noise? Or standard definition?
+    # Standard definition: 1 - SS_res / SS_tot
+    # Weighted version to match chi2 scaling:
+    weights = 1.0 / noise_std_safe**2
+    # Fix: Broadcast weights to match data shape explicitly for flatten() behavior
+    weights_full = np.broadcast_to(weights, data.shape)
+    mean_data = np.average(data, weights=weights_full)
+    ss_tot = np.sum(((data - mean_data) / noise_std_safe) ** 2)
+    r_squared = 1 - (ss_res / ss_tot) if ss_tot > 0 else -np.inf
+
+    # 3. Normality Test (Shapiro-Wilk)
+    # Downsample for speed if needed
+    data_flat = residual.flatten()
+    test_resids = data_flat[::max(1, len(data_flat)//5000)]
+    try:
+        _, normality_pvalue = stats.shapiro(test_resids)
+        normality_pass = normality_pvalue > RESIDUAL_NORMALITY_PVALUE
+    except Exception:
+        normality_pvalue = 0.0
+        normality_pass = True # Fail open if test breaks? Or False? False is safer.
+        normality_pass = False
+
+    # 4. Bias Test
+    bias_mean = np.mean(residual)
+    bias_std = np.std(residual)
+    bias_sem = bias_std / np.sqrt(residual.size)
+    bias_nsigma = abs(bias_mean) / bias_sem if bias_sem > 0 else 0.0
+    bias_pass = bias_nsigma < 3.0
+
+    # 5. Durbin-Watson (Autocorrelation)
+    # Flatten residuals or profile? Guide uses differencing.
+    # Usually DW is for 1D time series. We have 2D.
+    # We can compute it on the flattened array (pixel-to-pixel correlation)
+    diffs = np.diff(data_flat)
+    dw_stat = np.sum(diffs ** 2) / np.sum(data_flat ** 2)
+    autocorr_pass = RESIDUAL_AUTOCORR_DW_MIN <= dw_stat <= RESIDUAL_AUTOCORR_DW_MAX
+    
+    # 6. Quality Flag
+    quality = "PASS"
+    notes = []
+    
+    if chi2_reduced > 10.0:
+        quality = "FAIL"
+        notes.append(f"Catastrophic chi2_red ({chi2_reduced:.1f})")
+    elif chi2_reduced > CHI_SQ_RED_MARGINAL_MAX:
+        quality = "FAIL" # Strict failure per guide
+        notes.append(f"High chi2_red ({chi2_reduced:.2f})")
+    elif chi2_reduced < CHI_SQ_RED_SUSPICIOUSLY_LOW:
+        quality = "MARGINAL"
+        notes.append(f"Low chi2_red ({chi2_reduced:.2f})")
+        
+    if r_squared < R_SQ_POOR_MIN:
+        quality = "FAIL"
+        notes.append(f"Poor R2 ({r_squared:.3f})")
+    elif r_squared < R_SQ_MARGINAL_MIN:
+        if quality == "PASS": quality = "MARGINAL"
+        notes.append(f"Marginal R2 ({r_squared:.3f})")
+        
+    if not normality_pass:
+        if quality == "PASS": quality = "MARGINAL"
+        notes.append(f"Non-normal residuals (p={normality_pvalue:.1e})")
+
+    # Autocorrelation of profile
+    residual_profile = np.sum(residual, axis=0)
+    residual_profile -= np.mean(residual_profile)
+    start_autocorr = np.correlate(residual_profile, residual_profile, mode="same")
+    center_val = start_autocorr[len(start_autocorr) // 2]
+    norm_autocorr = start_autocorr / center_val if center_val > 0 else start_autocorr
+
     return {
         "chi2": float(chi2),
         "chi2_reduced": float(chi2_reduced),
+        "r_squared": float(r_squared),
         "ndof": int(ndof),
         "residual_rms": float(np.std(residual)),
-        "residual_autocorr": autocorr,
+        "residual_autocorr": norm_autocorr, # Keep array for plotting
+        "normality_pvalue": float(normality_pvalue),
+        "bias_nsigma": float(bias_nsigma),
+        "durbin_watson": float(dw_stat),
+        "quality_flag": quality,
+        "validation_notes": notes
     }
 
 

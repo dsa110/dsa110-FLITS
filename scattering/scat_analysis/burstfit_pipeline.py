@@ -44,8 +44,12 @@ from .burstfit_robust import (
     fit_subband_profiles,
     plot_subband_profiles,
     plot_subband_profiles,
+    plot_subband_profiles,
+    plot_subband_profiles,
     dm_optimization_check,
 )
+from flits.fitting.diagnostics import analyze_residuals, ResidualDiagnostics
+from flits.sampler import MCMCDiagnostics
 from .burstfit_nested import fit_models_evidence
 from .config_utils import SamplerConfig, TelescopeConfig, load_telescope_block
 from .pool_utils import build_pool
@@ -753,6 +757,17 @@ class BurstDiagnostics:
         self.diag_results["profile1d"] = fit_subband_profiles(
             self.dataset, best_p, dm_init
         )
+
+        # --- NEW: Rigorous Residual Analysis ---
+        log.info("Running rigorous residual analysis...")
+        res_diag = analyze_residuals(
+            data=self.dataset.data,
+            model_pred=model_dyn,
+            noise_std=model_instance.noise_std,
+            output_path=str(self.dataset.outpath / f"{self.dataset.name}_residuals_detailed.png")
+        )
+        self.diag_results["residual_analysis"] = res_diag
+        
         log.info("Diagnostics complete.")
         return self.diag_results
 
@@ -1127,7 +1142,9 @@ class BurstPipeline:
                         "walker_width_frac", 0.01
                     ),
                 )
-                sampler = fitter.sample(init_guess, model_key=best_key)
+                
+                # UPDATED: Unpack tuple return (sampler, diagnostics)
+                sampler, mcmc_diag = fitter.sample(init_guess, model_key=best_key)
             else:
                 # Multi-component with shared PBF
                 K = ncomp
@@ -1191,7 +1208,9 @@ class BurstPipeline:
                     ),
                 )
                 names = fitter.build_multicomp_order(K)
-                sampler = fitter.sample(init_multi, model_key="M3_multi")
+                
+                # UPDATED: Unpack tuple return (sampler, diagnostics)
+                sampler, mcmc_diag = fitter.sample(init_multi, model_key="M3_multi")
                 best_key = "M3_multi"
 
             if sampler is not None:
@@ -1226,6 +1245,7 @@ class BurstPipeline:
                         "is_multi": True,
                         "K": K,
                         "theta_best": theta_best,
+                        "mcmc_diagnostics": mcmc_diag,  # Add MCMC diagnostics
                     }
                 else:
                     best_params = FRBParams.from_sequence(
@@ -1268,6 +1288,7 @@ class BurstPipeline:
                         "sampler": sampler,
                         "model_instance": self.dataset.model,
                         "is_multi": False,
+                        "mcmc_diagnostics": mcmc_diag,  # Add MCMC diagnostics
                     }
 
             # Diagnostics and plotting should happen after results is definitely populated

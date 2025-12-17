@@ -73,6 +73,8 @@ def create_four_panel_plot(
 
     best_p, best_key = results["best_params"], results["best_key"]
     model_instance = results["model_instance"]
+    param_names = results.get("param_names", [])
+    flat_chain = results.get("flat_chain")
 
     data, time, freq = dataset.data, dataset.time, dataset.freq
     time_centered = time - (time[0] + (time[-1] - time[0]) / 2)
@@ -95,11 +97,50 @@ def create_four_panel_plot(
 
     q = data.shape[1] // 4
     data_off_pulse = data[:, np.r_[0:q, -q:0]]
+    
+    # Calculate global normalization stats from Data
+    mean_off = np.nanmean(data_off_pulse)
+    std_off = np.nanstd(data_off_pulse)
+    if std_off < 1e-9: std_off = 1.0 # Prevent div/0
+    
+    # Pre-normalize data to get peak S/N
+    data_snr = (data - mean_off) / std_off
+    peak_snr = np.nanmax(data_snr)
+    if peak_snr <= 0: peak_snr = 1.0
+    
+    def _apply_norm(arr, subtract_mean=True):
+        if subtract_mean:
+            return (arr - mean_off) / std_off / peak_snr
+        else:
+            return arr / std_off / peak_snr
 
-    data_norm = _normalize_panel_data(data, data_off_pulse)
-    model_norm = _normalize_panel_data(clean_model, data_off_pulse)
-    synthetic_norm = _normalize_panel_data(synthetic_data, data_off_pulse)
+    data_norm = _apply_norm(data, subtract_mean=True)
+    model_norm = _apply_norm(clean_model, subtract_mean=True)
+    synthetic_norm = _apply_norm(synthetic_data, subtract_mean=True)
+    residual_norm = _apply_norm(residual, subtract_mean=False) # Residuals already centered
 
+    # Calculate global Y-limits for Time Series (Top Panels)
+    # We want valid limits covering min/max of everything
+    all_ts = [np.nansum(p, axis=0) for p in [data_norm, model_norm, synthetic_norm, residual_norm]]
+    ts_min = min(np.min(t) for t in all_ts if t.size > 0)
+    ts_max = max(np.max(t) for t in all_ts if t.size > 0)
+    y_range = ts_max - ts_min
+    ts_ylim = (ts_min - 0.05 * y_range, ts_max + 0.05 * y_range)
+
+    # Calculate global X-limits for Spectrum (Side Panels)
+    # These plot Flux (x) vs Freq (y), so we need shared X-limits
+    all_sp = [np.nansum(p, axis=1) for p in [data_norm, model_norm, synthetic_norm, residual_norm]]
+    sp_min = min(np.min(s) for s in all_sp if s.size > 0)
+    sp_max = max(np.max(s) for s in all_sp if s.size > 0)
+    x_range = sp_max - sp_min
+    sp_xlim = (sp_min - 0.05 * x_range, sp_max + 0.05 * x_range)
+
+    # Create 2 rows, 10 columns: Data, Model, Synth, Resid, FLOW logic
+    # Logical Structure: 5 panels. Each panel uses 2 grid columns (Left for Time/WF, Right for Spec/Empty).
+    # Total Columns = 5 * 2 = 10.
+    # Create 2 rows, 8 columns: Data, Model, Synth, Resid
+    # For waterfall + spectrum, we use GridSpec or nested:
+    # 4 pairs of columns = 8 columns
     fig, axes = plt.subplots(
         nrows=2,
         ncols=8,
@@ -108,10 +149,10 @@ def create_four_panel_plot(
     )
 
     panel_data = [
-        (data_norm, "Data", r"I$_{\mathrm{data}}$"),
-        (model_norm, "Model", r"I$_{\mathrm{model}}$"),
-        (synthetic_norm, "Synth.", r"I$_{\mathrm{model+noise}}$"),
-        (residual, "Residual", r"I$_{\mathrm{residual}}$"),
+        (data_norm, "Data", r"$\mathbf{I}_{\rm data}$"),
+        (model_norm, "Model", r"$\mathbf{I}_{\rm model}$"),
+        (synthetic_norm, "Model + Noise", r"$\mathbf{I}_{\rm model} + \mathbf{N}$"),
+        (residual_norm, "Residual", r"$\mathbf{I}_{\rm residual}$"),
     ]
 
     for i, (panel_ds, title, label) in enumerate(panel_data):
@@ -123,14 +164,16 @@ def create_four_panel_plot(
 
         ax_ts.step(time_centered, ts, where="mid", c="k", lw=1.5, label=label)
         ax_ts.legend(loc="upper right", fontsize=14, frameon=False)
+        ax_ts.set_ylim(ts_ylim) # Enforce shared Y-limits
 
         cmap = "coolwarm" if title == "Residual" else "plasma"
-        vmax = (
-            np.nanpercentile(np.abs(panel_ds), 99.5)
-            if title != "Residual"
-            else np.nanstd(panel_ds) * 3
-        )
-        vmin = 0 if title != "Residual" else -vmax
+        if title == "Residual":
+            vmax = np.nanmax(np.abs(panel_ds)) # Symmetric around 0
+            vmin = -vmax
+        else:
+             vmin = np.nanpercentile(panel_ds, 1)
+             vmax = np.nanpercentile(panel_ds, 99.5)
+             
         ax_wf.imshow(
             panel_ds,
             extent=extent,
@@ -142,8 +185,9 @@ def create_four_panel_plot(
         )
 
         ax_sp.step(sp, freq, where="mid", c="k", lw=1.5)
+        ax_sp.set_xlim(sp_xlim) # Enforce shared X-limits
 
-        ax_ts.set_yticks([])
+        ax_ts.set_yticks([]) 
         ax_ts.tick_params(axis="x", labelbottom=False)
         ax_ts.set_xlim(extent[0], extent[1])
         ax_sp.set_xticks([])
@@ -156,8 +200,104 @@ def create_four_panel_plot(
             ax_wf.tick_params(axis="y", labelleft=False)
         axes[0, col_idx + 1].axis("off")
 
-    plt.subplots_adjust(hspace=0.05, wspace=0.05)
-    fig.suptitle("Four-Panel Fit Summary", fontsize=20, weight="bold")
+    # Adjust top to make room for header without cutoff
+    # Tighten wspace to align with hspace (user requested equivalent margins)
+    plt.subplots_adjust(hspace=0.05, wspace=0.05, top=0.83, bottom=0.15, left=0.05, right=0.98)
+    
+    # --- Detailed Header Table Implementation (Clean/Scientific) ---
+    # Aligned with panels, no boxes, clean text.
+    
+    # 1. Metadata
+    fname = dataset.inpath.name
+    tns_name = "FRB 20190425A" if "casey" in dataset.name.lower() else "FRB (Unknown)"
+    person_name = dataset.name.split('_')[0].upper() # e.g. CASEY
+    observatory = "CHIME/FRB" if "chime" in fname.lower() else "DSA-110"
+    
+    meta_text = (
+        f"{tns_name} / {person_name}\n"
+        f"Observatory: {observatory}"
+    )
+    
+    # 2. Model Selection
+    model_text = "Model Selection:\n"
+    if "all_results" in results:
+        res_all = results["all_results"]
+        keys = list(res_all.keys())
+        keys.sort(reverse=True) # M3, M2, M1
+        best_z = max(float(res_all[k].log_evidence) for k in keys) if keys else 0
+        
+        for k in keys:
+            z = float(res_all[k].log_evidence)
+            dz = z - best_z
+            # Clean format: M3: logZ = -562 (d=0)
+            mark = r"$\mathbf{\ast}$" if k == best_key else " "
+            # Use LaTeX for cleaner look if possible, or just text
+            model_text += f"{mark} {k}: $\ln{{Z}}={z:.0f}$ ($\Delta={dz:.0f}$)\n"
+    else:
+        model_text += f"{best_key} (Selected)\n(Comparison N/A)"
+
+    # 3. Goodness of Fit
+    gof = results.get("goodness_of_fit", {})
+    chi2 = gof.get("chi2_reduced", np.nan)
+    r2 = gof.get("r_squared", np.nan)
+    quality = gof.get("quality_flag", "UNKNOWN")
+    
+    # Use color only for the status word
+    gof_header = "Goodness of Fit:"
+    gof_body = (
+        f"$\chi^2_\\nu = {chi2:.2f}$\n"
+        f"$R^2   = {r2:.3f}$"
+    )
+    
+    # 4. Parameters
+    param_header = "Best Fit Parameters:"
+    param_lines = []
+    for i, name in enumerate(param_names):
+        # Handle nan chain
+        vals = flat_chain[:, i]
+        if np.all(np.isnan(vals)):
+            val, err = getattr(best_p, name, np.nan), 0.0
+        else:
+            val = np.median(vals)
+            err = np.std(vals)
+        
+        # Smart Formatting
+        if abs(val) < 0.001 and val != 0:
+            s_val = f"{val:.1e}"
+        else:
+            s_val = f"{val:.4g}"
+            
+        param_lines.append(f"{name} = ${s_val} \pm {err:.1g}$")
+    param_text = "\n".join(param_lines)
+
+    # --- Rendering Text Blocks ---
+    # Y position for all blocks (moved down slightly to ensure safe margin)
+    header_y = 0.94 
+    body_y = 0.91
+    fontsize_head = 12
+    fontsize_body = 10
+    
+    # Block 1 (Left): Meta (Larger, bold)
+    fig.text(0.05, header_y, meta_text, fontsize=14, weight='bold', va='top', fontfamily='sans-serif')
+    
+    # Block 2: Model
+    fig.text(0.28, header_y, "Model Selection", fontsize=fontsize_head, weight='bold', va='top')
+    fig.text(0.28, body_y, model_text.replace("Model Selection:\n", ""), fontsize=fontsize_body, va='top')
+    
+    # Block 3: GoF
+    fig.text(0.52, header_y, gof_header, fontsize=fontsize_head, weight='bold', va='top')
+    fig.text(0.52, body_y, gof_body, fontsize=fontsize_body, va='top')
+    # Status below params or specifically colored
+    q_color = "green" if quality == "PASS" else ("red" if quality == "FAIL" else "orange")
+    fig.text(0.52, body_y - 0.04, f"Status: {quality}", fontsize=fontsize_body, weight='bold', color=q_color, va='top')
+             
+    # Block 4: Params
+    fig.text(0.75, header_y, param_header, fontsize=fontsize_head, weight='bold', va='top')
+    fig.text(0.75, body_y, param_text, fontsize=fontsize_body, va='top', fontfamily='monospace')
+             
+    # No separator line requested.
+
+
 
     if save:
         output_path = os.path.join(dataset.outpath, f"{dataset.name}_four_panel.pdf")

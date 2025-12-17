@@ -21,6 +21,8 @@ from typing import List, Optional
 import numpy as np
 import pandas as pd
 
+from ..fitting import VALIDATION_THRESHOLDS as VT
+
 # Physical constants and reference frequencies
 C_THIN_SCREEN = 1 / (2 * np.pi)  # ≈ 0.159
 C_EXTENDED = 1.0
@@ -70,6 +72,28 @@ class FrequencyScalingResult:
     interpretation: str = ""
 
 
+def _validate_measurement(value, error, param_name="parameter", rel_err_threshold=0.5):
+    """Validate a single measurement.
+
+    Returns
+    -------
+    is_good : bool
+    reason : str
+    """
+    if value is None or error is None:
+        return False, f"{param_name} not measured"
+
+    if value <= 0:
+        return False, f"{param_name} <= 0 (unphysical)"
+
+    rel_err = error / value if value != 0 else float('inf')
+    if rel_err > 1.0:
+        return False, f"{param_name} unconstrained (σ/value={rel_err:.2f})"
+    elif rel_err > rel_err_threshold:
+        return False, f"{param_name} poorly constrained (σ/value={rel_err:.2f})"
+    else:
+        return True, f"{param_name} well-constrained (σ/value={rel_err:.2f})"
+
 def check_tau_deltanu_consistency(
     comparison_df: pd.DataFrame,
 ) -> List[ConsistencyResult]:
@@ -116,25 +140,27 @@ def check_tau_deltanu_consistency(
                 rel_err_nu = result.delta_nu_err / result.delta_nu_mhz
                 result.tau_delta_nu_product_err = product * np.sqrt(rel_err_tau**2 + rel_err_nu**2)
             
-            # --- START PATCH 4: Validate Measurements ---
-            # Define helper if not exists (inline here or assume global)
-            # Just implement logic directly for simplicity
-            rel_err_tau = result.tau_1ghz_err / result.tau_1ghz_ms if result.tau_1ghz_err else 0
-            rel_err_nu = result.delta_nu_err / result.delta_nu_mhz if result.delta_nu_err else 0
-            
-            tau_bad = rel_err_tau > 0.5
-            nu_bad = rel_err_nu > 0.5
-            
-            if tau_bad or nu_bad:
+            # Validate input measurements
+            tau_valid, tau_msg = _validate_measurement(
+                result.tau_1ghz_ms, result.tau_1ghz_err, "τ", 
+                rel_err_threshold=VT.PARAM_UNCERTAINTY_ACCEPTABLE_MAX
+            )
+            nu_valid, nu_msg = _validate_measurement(
+                result.delta_nu_mhz, result.delta_nu_err, "Δν", 
+                rel_err_threshold=VT.PARAM_UNCERTAINTY_ACCEPTABLE_MAX
+            )
+
+            if not tau_valid or not nu_valid:
                 result.is_consistent = False
                 result.quality_flag = "poor_input_quality"
                 reasons = []
-                if tau_bad: reasons.append(f"τ error > 50% ({rel_err_tau:.2f})")
-                if nu_bad: reasons.append(f"Δν error > 50% ({rel_err_nu:.2f})")
+                if not tau_valid:
+                    reasons.append(tau_msg)
+                if not nu_valid:
+                    reasons.append(nu_msg)
                 result.interpretation = "Measurements too uncertain: " + ", ".join(reasons)
                 results.append(result)
                 continue
-            # --- END PATCH 4 ---
 
             
             # Assess consistency

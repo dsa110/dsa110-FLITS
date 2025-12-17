@@ -138,72 +138,38 @@ M3: log(Z) =  8406.30 ± 0.44  ← BEST
 
 After the fit completes, generate plots using the saved parameters:
 
-```python
-import json
-import numpy as np
-import matplotlib.pyplot as plt
-import yaml
-from scattering.scat_analysis.burstfit import FRBModel, FRBParams, downsample
-from scipy.ndimage import gaussian_filter1d
+After the fit completes, generate publication-quality diagnostic plots using the generalized visualization tool:
 
-# Load results
-with open("scattering/scat_process/freya_..._fit_results.json") as f:
-    results = json.load(f)
-bp = results["best_params"]
+```bash
+# General syntax
+python3 -m scattering.scat_analysis.visualization \
+    <results_json_path> \
+    <data_npy_path> \
+    <telescope_name> \
+    [options]
 
-# Load config
-with open("scattering/configs/telescopes.yaml") as f:
-    config = yaml.safe_load(f)["chime"]
-
-# Load and preprocess data (match pipeline settings)
-raw = np.load("data/chime/freya_chime_I_912_4067_32000b_cntr_bpc.npy")
-raw = np.nan_to_num(raw.astype(np.float64))
-
-# Bandpass correct
-n_t_raw = raw.shape[1]
-q = n_t_raw // 4
-off_pulse_idx = np.r_[0:q, -q:0]
-mu = np.nanmean(raw[:, off_pulse_idx], axis=1, keepdims=True)
-sig = np.nanstd(raw[:, off_pulse_idx], axis=1, keepdims=True)
-sig[sig < 1e-9] = np.nan
-raw_corr = np.nan_to_num((raw - mu) / sig, nan=0.0)
-
-# Downsample (match pipeline t_factor, f_factor)
-t_factor, f_factor = 4, 32
-data = downsample(raw_corr, f_factor, t_factor)
-
-# Apply same trim as pipeline (outer_trim=0.45)
-outer_trim = 0.45
-n_trim = int(outer_trim * data.shape[1])
-data = data[:, n_trim:-n_trim] if n_trim > 0 else data
-
-# Build axes
-n_ch, n_t = data.shape
-dt_ms = config["dt_ms_raw"] * t_factor
-freq = np.linspace(config["f_min_GHz"], config["f_max_GHz"], n_ch)
-time = np.arange(n_t) * dt_ms
-
-# Center burst
-prof = np.sum(data, axis=0)
-sigma_samps = (0.1 / 2.355) / dt_ms
-burst_idx = np.argmax(gaussian_filter1d(prof, sigma=sigma_samps))
-shift = n_t // 2 - burst_idx
-data = np.roll(data, shift, axis=1)
-
-# Generate model
-model = FRBModel(time=time, freq=freq, data=data, df_MHz=config["df_MHz_raw"] * f_factor)
-p = FRBParams(**bp)
-model_dyn = model(p, results["best_model"])
-
-# Scale for visualization
-scale = np.max(np.sum(data, axis=0)) / np.max(np.sum(model_dyn, axis=0))
-model_scaled = model_dyn * scale
-
-# Plot
-fig, axes = plt.subplots(2, 2, figsize=(12, 10))
-# ... (add plotting code as needed)
-plt.savefig("diagnostic_plot.png", dpi=150)
+# Example for Freya burst
+python3 -m scattering.scat_analysis.visualization \
+    scattering/scat_process/freya_chime_I_912_4067_32000b_cntr_bpc_fit_results.json \
+    data/chime/freya_chime_I_912_4067_32000b_cntr_bpc.npy \
+    chime \
+    --t-factor 4 \
+    --f-factor 32 \
+    --output freya_diagnostic.png
 ```
+
+This will produce a 4-panel plot showing:
+
+1.  **Data**: Preprocessed dynamic spectrum.
+2.  **Model**: Best-fit model dynamic spectrum.
+3.  **Residuals**: Data minus Model.
+4.  **Time Profile**: Collapsed pulse profile with data, model, and residuals.
+
+The plot automatically handles:
+
+- Correct frequency orientation (high freq at top).
+- Publication-quality styling (inward ticks, readable fonts).
+- Preprocessing consistency (matching the pipeline's downsampling and trimming).
 
 ---
 

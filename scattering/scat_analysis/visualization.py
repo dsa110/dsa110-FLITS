@@ -1,307 +1,421 @@
 #!/usr/bin/env python3
 """
-Generalized diagnostic visualization for FRB scattering fits.
+Generate diagnostic plots from scattering fit results.
 
-This module provides a reusable function to create comprehensive diagnostic plots
-for scattering analysis results, including data, model, residuals, and fit parameters.
+This script replicates the exact preprocessing pipeline used during fitting
+to create accurate diagnostic visualizations showing data, model, and residuals.
+
+Usage:
+    python -m scattering.scat_analysis.visualization <results.json> <data.npy> <telescope> [options]
+
+Example:
+    python -m scattering.scat_analysis.visualization \\
+        freya_chime_I_912_4067_32000b_cntr_bpc_fit_results.json \\
+        data/chime/freya_chime_I_912_4067_32000b_cntr_bpc.npy \\
+        chime \\
+        --t-factor 4 \\
+        --f-factor 32 \\
+        --output freya_diagnostic.png
 """
+
+import argparse
+import json
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.gridspec import GridSpec
+import yaml
 from pathlib import Path
-from typing import Optional, Dict, Any, Tuple
+from scipy.ndimage import gaussian_filter1d
 
-from scattering.scat_analysis.burstfit import FRBParams
+from scattering.scat_analysis.burstfit import FRBModel, FRBParams, downsample
+
+
+def load_telescope_config(telescope_name: str, config_path: Path = None) -> dict:
+    """Load telescope configuration from YAML."""
+    if config_path is None:
+        # Default location
+        config_path = Path(__file__).parent.parent / "configs" / "telescopes.yaml"
+    
+    with open(config_path) as f:
+        configs = yaml.safe_load(f)
+    
+    if telescope_name not in configs:
+        raise ValueError(f"Telescope '{telescope_name}' not found in {config_path}")
+    
+    return configs[telescope_name]
+
+
+def preprocess_data(
+    raw_data: np.ndarray,
+    config: dict,
+    t_factor: int = 4,
+    f_factor: int = 32,
+    outer_trim: float = 0.45,
+    smooth_ms: float = 0.1,
+    center_burst: bool = True
+):
+    """
+    Preprocess data exactly as the pipeline does.
+    
+    Parameters
+    ----------
+    raw_data : ndarray
+        Raw dynamic spectrum (freq × time)
+    config : dict
+        Telescope configuration
+    t_factor : int
+        Time downsampling factor
+    f_factor : int
+        Frequency downsampling factor
+    outer_trim : float
+        Fraction to trim from each end (0.45 = keep central 10%)
+    smooth_ms : float
+        Smoothing width in ms for burst detection
+    center_burst : bool
+        Whether to center the burst in the array
+    
+    Returns
+    -------
+    data : ndarray
+        Preprocessed data
+    freq : ndarray
+        Frequency axis in GHz
+    time : ndarray
+        Time axis in ms
+    dt_ms : float
+        Time resolution in ms
+    df_MHz : float
+        Frequency resolution in MHz
+    """
+    # Bandpass correction
+    raw_data = np.nan_to_num(raw_data.astype(np.float64))
+    n_t_raw = raw_data.shape[1]
+    q = n_t_raw // 4
+    off_pulse_idx = np.r_[0:q, -q:0]
+    
+    mu = np.nanmean(raw_data[:, off_pulse_idx], axis=1, keepdims=True)
+    sig = np.nanstd(raw_data[:, off_pulse_idx], axis=1, keepdims=True)
+    sig[sig < 1e-9] = np.nan
+    raw_corr = np.nan_to_num((raw_data - mu) / sig, nan=0.0)
+    
+    # Downsample
+    data = downsample(raw_corr, f_factor, t_factor)
+    
+    # Apply outer trim
+    n_trim = int(outer_trim * data.shape[1])
+    if n_trim > 0:
+        data = data[:, n_trim:-n_trim]
+    
+    # Build axes
+    n_ch, n_t = data.shape
+    dt_ms = config["dt_ms_raw"] * t_factor
+    df_MHz = config["df_MHz_raw"] * f_factor
+    
+    # Handle frequency ordering
+    freq_desc = config.get("freq_descending", False)
+    if freq_desc:
+        freq = np.linspace(config["f_max_GHz"], config["f_min_GHz"], n_ch)
+    else:
+        freq = np.linspace(config["f_min_GHz"], config["f_max_GHz"], n_ch)
+    
+    time = np.arange(n_t) * dt_ms
+    
+    # Center burst if requested
+    if center_burst:
+        prof = np.sum(data, axis=0)
+        sigma_samps = (smooth_ms / 2.355) / dt_ms
+        prof_smooth = gaussian_filter1d(prof, sigma=sigma_samps)
+        burst_idx = np.argmax(prof_smooth)
+        shift = n_t // 2 - burst_idx
+        data = np.roll(data, shift, axis=1)
+    
+    return data, freq, time, dt_ms, df_MHz
 
 
 def plot_scattering_diagnostic(
     data: np.ndarray,
     model: np.ndarray,
-    time: np.ndarray,
     freq: np.ndarray,
+    time: np.ndarray,
     params: FRBParams,
-    model_key: str,
-    goodness_of_fit: Optional[Dict[str, float]] = None,
-    processing_info: Optional[Dict[str, Any]] = None,
-    burst_name: str = "FRB",
-    output_path: Optional[Path] = None,
-    figsize: Tuple[float, float] = (14, 10),
-    dpi: int = 150,
-    scale_model: bool = True,
-    show: bool = False
-) -> plt.Figure:
+    results: dict,
+    output_path: Path,
+    burst_name: str = "FRB"
+):
     """
-    Create a comprehensive four-panel diagnostic plot for scattering analysis.
-    
-    This function generates a standardized visualization showing:
-    1. Data dynamic spectrum
-    2. Model dynamic spectrum
-    3. Residual (Data - Model)
-    4. Frequency-averaged time profiles
-    5. Fit parameters and quality metrics (text summary)
+    Create 4-panel diagnostic plot.
     
     Parameters
     ----------
-    data : np.ndarray
-        Data dynamic spectrum, shape (n_freq, n_time)
-    model : np.ndarray
-        Model dynamic spectrum, shape (n_freq, n_time)
-    time : np.ndarray
-        Time axis in milliseconds, shape (n_time,)
-    freq : np.ndarray
-        Frequency axis in GHz, shape (n_freq,)
+    data : ndarray
+        Preprocessed data (freq × time)
+    model : ndarray
+        Model dynamic spectrum
+    freq : ndarray
+        Frequency axis in GHz
+    time : ndarray
+        Time axis in ms
     params : FRBParams
-        Best-fit model parameters
-    model_key : str
-        Model identifier (e.g., "M0", "M1", "M2", "M3")
-    goodness_of_fit : dict, optional
-        Dictionary with fit quality metrics:
-        - 'chi2_reduced': Reduced chi-squared
-        - 'r_squared': R-squared coefficient
-        - 'quality_flag': Quality assessment string
-    processing_info : dict, optional
-        Dictionary with processing details:
-        - 't_factor': Time downsampling factor
-        - 'f_factor': Frequency downsampling factor
-        - 'likelihood': Likelihood function used
-        - 'fitting_method': Fitting method (e.g., "Nested sampling")
-    burst_name : str, default "FRB"
-        Name of the burst for plot title
-    output_path : Path, optional
-        Path to save the figure. If None, figure is not saved.
-    figsize : tuple, default (14, 10)
-        Figure size in inches (width, height)
-    dpi : int, default 150
-        Resolution for saved figure
-    scale_model : bool, default True
-        If True, scale model to match data peak intensity for visualization
-    show : bool, default False
-        If True, call plt.show() to display figure
-    
-    Returns
-    -------
-    fig : matplotlib.figure.Figure
-        The generated figure object
-    
-    Examples
-    --------
-    Basic usage with fit results:
-    
-    >>> from scattering.scat_analysis.burstfit import FRBModel, FRBParams
-    >>> from scattering.scat_analysis.visualization import plot_scattering_diagnostic
-    >>> 
-    >>> # After running fit...
-    >>> fig = plot_scattering_diagnostic(
-    ...     data=dataset.data,
-    ...     model=model_spectrum,
-    ...     time=dataset.time,
-    ...     freq=dataset.freq,
-    ...     params=best_params,
-    ...     model_key="M3",
-    ...     goodness_of_fit={"chi2_reduced": 1.23, "r_squared": 0.95},
-    ...     burst_name="FRB20191108A",
-    ...     output_path=Path("output/diagnostics.png")
-    ... )
-    
-    With full metadata:
-    
-    >>> fig = plot_scattering_diagnostic(
-    ...     data=data,
-    ...     model=model,
-    ...     time=time,
-    ...     freq=freq,
-    ...     params=params,
-    ...     model_key="M3",
-    ...     goodness_of_fit={
-    ...         "chi2_reduced": 1.15,
-    ...         "r_squared": 0.97,
-    ...         "quality_flag": "Excellent"
-    ...     },
-    ...     processing_info={
-    ...         "t_factor": 4,
-    ...         "f_factor": 32,
-    ...         "likelihood": "Student-t",
-    ...         "fitting_method": "Nested sampling (dynesty)"
-    ...     },
-    ...     burst_name="Freya",
-    ...     output_path=Path("diagnostics/freya_fit.png"),
-    ...     dpi=200
-    ... )
-    
-    Notes
-    -----
-    - The function automatically handles intensity scaling and colormap ranges
-    - Residuals use a diverging colormap (RdBu_r) centered at zero
-    - Time profiles are overlaid with legend for easy comparison
-    - All panels use consistent time/frequency axes for alignment
+        Best-fit parameters
+    results : dict
+        Full results dictionary
+    output_path : Path
+        Output file path
+    burst_name : str
+        Name of the burst for title
     """
-    # Scale model if requested
-    if scale_model:
-        data_peak = np.max(np.sum(data, axis=0))
-        model_peak = np.max(np.sum(model, axis=0))
-        if model_peak > 0:
-            scale_factor = data_peak / model_peak
-            model_scaled = model * scale_factor
-        else:
-            model_scaled = model
-            scale_factor = 1.0
-    else:
-        model_scaled = model
-        scale_factor = 1.0
+    # Set generic plotting style to match reference
+    plt.rcParams.update({
+        'font.size': 14,
+        'axes.labelsize': 16,
+        'axes.titlesize': 16,
+        'xtick.labelsize': 14,
+        'ytick.labelsize': 14,
+        'xtick.direction': 'in',
+        'ytick.direction': 'in',
+        'xtick.top': True,
+        'ytick.right': True,
+        'xtick.major.size': 6,
+        'ytick.major.size': 6,
+        'xtick.minor.visible': True,
+        'ytick.minor.visible': True,
+        'lines.linewidth': 1.5
+    })
+
+    # Scale model to match data for visualization
+    data_peak = np.max(np.sum(data, axis=0))
+    model_peak = np.max(np.sum(model, axis=0))
+    scale = data_peak / max(model_peak, 1e-10)
+    model_scaled = model * scale
     
     # Calculate residuals
     residual = data - model_scaled
     
-    # Generate time profiles
-    data_prof = np.sum(data, axis=0)
-    model_prof = np.sum(model_scaled, axis=0)
-    residual_prof = data_prof - model_prof
+    # Create figure
+    fig, axes = plt.subplots(2, 2, figsize=(14, 11))
     
-    # Create figure with gridspec
-    fig = plt.figure(figsize=figsize)
-    gs = GridSpec(3, 2, figure=fig, hspace=0.3, wspace=0.3)
+    # Extent for imshow: [left, right, bottom, top]
+    extent = [time[0], time[-1], freq[0], freq[-1]]
     
-    # Determine intensity ranges
-    vmin_data = np.percentile(data, 0.5)
-    vmax_data = np.percentile(data, 99.5)
-    res_vmax = np.percentile(np.abs(residual), 99)
+    # Colormap limits
+    vmax = np.percentile(data, 99.5)
     
-    # Panel 1: Data dynamic spectrum
-    ax1 = fig.add_subplot(gs[0, 0])
-    im1 = ax1.imshow(
-        data, 
-        aspect='auto', 
-        origin='lower',
-        extent=[time[0], time[-1], freq[0], freq[-1]],
-        vmin=vmin_data, 
-        vmax=vmax_data, 
-        cmap='viridis',
-        interpolation='nearest'
+    # Helper to clean up axes
+    def format_ax(ax, title, ylabel=True, cbar_im=None, cbar_label="S/N"):
+        ax.set_title(title, pad=10)
+        ax.set_xlabel("Time (ms)")
+        if ylabel:
+            ax.set_ylabel("Freq (GHz)")
+        
+        # Inward ticks, minor ticks on all sides
+        ax.tick_params(which='both', direction='in', top=True, right=True,
+                       left=True, bottom=True, width=1.5)
+        ax.tick_params(which='major', length=6)
+        ax.tick_params(which='minor', length=3)
+        ax.minorticks_on()
+        
+        if cbar_im:
+            cbar = plt.colorbar(cbar_im, ax=ax, fraction=0.046, pad=0.04)
+            cbar.set_label(cbar_label)
+            cbar.ax.tick_params(direction='in', length=4, width=1.5)
+            cbar.ax.minorticks_on()
+
+    # Panel 1: Data
+    im0 = axes[0, 0].imshow(
+        data, aspect='auto', origin='lower', extent=extent,
+        cmap='viridis', vmin=0, vmax=vmax
     )
-    ax1.set_xlabel('Time (ms)', fontsize=11)
-    ax1.set_ylabel('Frequency (GHz)', fontsize=11)
-    ax1.set_title('Data', fontsize=12, fontweight='bold')
-    plt.colorbar(im1, ax=ax1, label='Intensity')
+    format_ax(axes[0, 0], "Data", cbar_im=im0)
     
-    # Panel 2: Model dynamic spectrum
-    ax2 = fig.add_subplot(gs[0, 1])
-    im2 = ax2.imshow(
-        model_scaled,
-        aspect='auto',
-        origin='lower',
-        extent=[time[0], time[-1], freq[0], freq[-1]],
-        vmin=vmin_data,
-        vmax=vmax_data,
-        cmap='viridis',
-        interpolation='nearest'
+    # Panel 2: Model
+    im1 = axes[0, 1].imshow(
+        model_scaled, aspect='auto', origin='lower', extent=extent,
+        cmap='viridis', vmin=0, vmax=vmax
     )
-    ax2.set_xlabel('Time (ms)', fontsize=11)
-    ax2.set_ylabel('Frequency (GHz)', fontsize=11)
-    ax2.set_title(f'Model ({model_key})', fontsize=12, fontweight='bold')
-    plt.colorbar(im2, ax=ax2, label='Intensity')
+    format_ax(axes[0, 1], f"Model ({results['best_model']})", cbar_im=im1)
     
-    # Panel 3: Residual dynamic spectrum
-    ax3 = fig.add_subplot(gs[1, 0])
-    im3 = ax3.imshow(
-        residual,
-        aspect='auto',
-        origin='lower',
-        extent=[time[0], time[-1], freq[0], freq[-1]],
-        vmin=-res_vmax,
-        vmax=res_vmax,
-        cmap='RdBu_r',
-        interpolation='nearest'
+    # Panel 3: Residuals
+    vmax_res = np.percentile(np.abs(residual), 99)
+    im2 = axes[1, 0].imshow(
+        residual, aspect='auto', origin='lower', extent=extent,
+        cmap='RdBu_r', vmin=-vmax_res, vmax=vmax_res
     )
-    ax3.set_xlabel('Time (ms)', fontsize=11)
-    ax3.set_ylabel('Frequency (GHz)', fontsize=11)
-    ax3.set_title('Residual (Data - Model)', fontsize=12, fontweight='bold')
-    plt.colorbar(im3, ax=ax3, label='Intensity')
+    format_ax(axes[1, 0], "Residuals", cbar_im=im2)
     
     # Panel 4: Time profiles
-    ax4 = fig.add_subplot(gs[1, 1])
-    ax4.plot(time, data_prof, 'k-', linewidth=1.5, label='Data', alpha=0.7)
-    ax4.plot(time, model_prof, 'r-', linewidth=2, label='Model', alpha=0.8)
-    ax4.plot(time, residual_prof, 'b-', linewidth=1, label='Residual', alpha=0.6)
-    ax4.axhline(0, color='gray', linestyle='--', linewidth=0.5, alpha=0.5)
-    ax4.set_xlabel('Time (ms)', fontsize=11)
-    ax4.set_ylabel('Intensity', fontsize=11)
-    ax4.set_title('Frequency-Averaged Profiles', fontsize=12, fontweight='bold')
-    ax4.legend(loc='upper right', fontsize=10)
-    ax4.grid(True, alpha=0.3)
+    data_prof = np.sum(data, axis=0)
+    model_prof = np.sum(model_scaled, axis=0)
     
-    # Panel 5: Parameters and fit quality
-    ax5 = fig.add_subplot(gs[2, :])
-    ax5.axis('off')
+    axes[1, 1].plot(time, data_prof, 'b-', label='Data', alpha=0.7, lw=1.5)
+    axes[1, 1].plot(time, model_prof, 'r-', label='Model', lw=2.5)
+    axes[1, 1].axvline(params.t0, color='g', ls='--', alpha=0.8, lw=2.0,
+                       label=f't₀={params.t0:.2f}ms')
     
-    # Build parameter text
-    param_text = f"""Best Model: {model_key}
+    axes[1, 1].set_xlabel("Time (ms)")
+    axes[1, 1].set_ylabel("Flux")
+    axes[1, 1].set_title("Time Profile", pad=10)
+    axes[1, 1].legend(frameon=True, fontsize=14, loc='upper right')
+    
+    from matplotlib.ticker import MaxNLocator, AutoMinorLocator
 
-Best-Fit Parameters:
-  • Amplitude (c₀):          {params.c0:.2f}
-  • Peak time (t₀):          {params.t0:.4f} ms
-  • Intrinsic width (γ):     {params.gamma:.4f} ms
-  • Width parameter (ζ):     {params.zeta:.6f} ms
-  • Scattering τ(1 GHz):     {params.tau_1ghz:.4f} ms
-  • Scattering index (α):    {params.alpha:.2f}
-  • DM refinement (ΔDM):     {params.delta_dm:.6f} pc/cm³
-"""
+    # Specific style matching: inward ticks on all sides, no grid
+    # Force ticks on all sides
+    axes[1, 1].tick_params(which='both', direction='in', top=True, right=True, 
+                           left=True, bottom=True, width=1.5)
+    axes[1, 1].tick_params(which='major', length=6)
+    axes[1, 1].tick_params(which='minor', length=3)
     
-    # Add goodness of fit if provided
-    if goodness_of_fit:
-        param_text += f"""
-Goodness of Fit:
-  • χ²/dof:     {goodness_of_fit.get('chi2_reduced', 'N/A')}
-  • R²:         {goodness_of_fit.get('r_squared', 'N/A')}
-  • Quality:    {goodness_of_fit.get('quality_flag', 'N/A')}
-"""
+    # Force consistent tick density
+    # X-axis: ~8-10 major ticks (e.g. every 1ms for 8ms range)
+    axes[1, 1].xaxis.set_major_locator(MaxNLocator(nbins=10))
+    axes[1, 1].xaxis.set_minor_locator(AutoMinorLocator())
     
-    # Add processing info if provided
-    if processing_info:
-        t_factor = processing_info.get('t_factor', 'N/A')
-        f_factor = processing_info.get('f_factor', 'N/A')
-        likelihood = processing_info.get('likelihood', 'N/A')
-        method = processing_info.get('fitting_method', 'N/A')
-        
-        param_text += f"""
-Processing:
-  • Downsampling: {t_factor}× (time), {f_factor}× (freq)
-  • Likelihood: {likelihood}
-  • Fitting method: {method}
-"""
+    # Y-axis: ~6-8 major ticks
+    axes[1, 1].yaxis.set_major_locator(MaxNLocator(nbins=8))
+    axes[1, 1].yaxis.set_minor_locator(AutoMinorLocator())
     
-    if scale_model and scale_factor != 1.0:
-        param_text += f"""
-Visualization:
-  • Model scaled by {scale_factor:.3f}× for display
-"""
+    # Ensure x-limit matches the imshow plots exactly
+    axes[1, 1].set_xlim(extent[0], extent[1])
     
-    ax5.text(
-        0.05, 0.95,
-        param_text,
-        transform=ax5.transAxes,
-        fontsize=10,
-        verticalalignment='top',
-        fontfamily='monospace',
-        bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.3)
+    # Ensure all subplots have nice thick spines
+    for ax in axes.flatten():
+        for spine in ax.spines.values():
+            spine.set_linewidth(1.5)
+
+    # Output parameters title
+    gof = results['goodness_of_fit']
+    title_text = (
+        f"{burst_name} - {results['best_model']} Fit (χ²/dof={gof['chi2_reduced']:.2f}, R²={gof['r_squared']:.2f})\n"
     )
+    if hasattr(params, 'tau_1ghz') and params.tau_1ghz > 1e-6:
+        title_text += (
+            f"τ(1GHz)={params.tau_1ghz:.3f}ms, α={params.alpha:.1f}, t₀={params.t0:.2f}ms"
+        )
     
-    # Overall title
-    fig.suptitle(
-        f'{burst_name} - Scattering Analysis Diagnostics',
-        fontsize=14,
-        fontweight='bold',
-        y=0.995
-    )
+    plt.suptitle(title_text, fontsize=14, y=0.98)
+    plt.tight_layout()
     
-    # Save if path provided
-    if output_path:
-        output_path = Path(output_path)
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        plt.savefig(output_path, dpi=dpi, bbox_inches='tight')
-        print(f"✓ Saved diagnostic plot to: {output_path}")
-    
-    # Show if requested
-    if show:
-        plt.show()
+    # Save
+    plt.savefig(output_path, dpi=150, bbox_inches='tight')
+    print(f"Saved: {output_path}")
     
     return fig
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Generate diagnostic plots from scattering fit results",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=__doc__
+    )
+    
+    parser.add_argument(
+        "results_json",
+        type=Path,
+        help="Path to fit results JSON file"
+    )
+    parser.add_argument(
+        "data_npy",
+        type=Path,
+        help="Path to raw data .npy file"
+    )
+    parser.add_argument(
+        "telescope",
+        type=str,
+        help="Telescope name (must be in telescopes.yaml)"
+    )
+    parser.add_argument(
+        "--t-factor",
+        type=int,
+        default=4,
+        help="Time downsampling factor (default: 4)"
+    )
+    parser.add_argument(
+        "--f-factor",
+        type=int,
+        default=32,
+        help="Frequency downsampling factor (default: 32)"
+    )
+    parser.add_argument(
+        "--outer-trim",
+        type=float,
+        default=0.45,
+        help="Fraction to trim from each end (default: 0.45)"
+    )
+    parser.add_argument(
+        "--output",
+        "-o",
+        type=Path,
+        help="Output file path (default: auto-generated from input)"
+    )
+    parser.add_argument(
+        "--config",
+        type=Path,
+        help="Path to telescopes.yaml (default: auto-detect)"
+    )
+    parser.add_argument(
+        "--show",
+        action="store_true",
+        help="Show plot interactively"
+    )
+    
+    args = parser.parse_args()
+    
+    # Load results
+    print(f"Loading results from {args.results_json}")
+    with open(args.results_json) as f:
+        results = json.load(f)
+    
+    best_params = results["best_params"]
+    print(f"Best model: {results['best_model']}")
+    print(f"Best-fit parameters: {best_params}")
+    
+    # Load telescope config
+    print(f"Loading telescope config for '{args.telescope}'")
+    config = load_telescope_config(args.telescope, args.config)
+    
+    # Load raw data
+    print(f"Loading data from {args.data_npy}")
+    raw_data = np.load(args.data_npy)
+    print(f"Raw data shape: {raw_data.shape}")
+    
+    # Preprocess data
+    print(f"Preprocessing (t_factor={args.t_factor}, f_factor={args.f_factor}, "
+          f"outer_trim={args.outer_trim})")
+    data, freq, time, dt_ms, df_MHz = preprocess_data(
+        raw_data, config, args.t_factor, args.f_factor, args.outer_trim
+    )
+    print(f"Processed shape: {data.shape}")
+    print(f"Time range: {time[0]:.3f} to {time[-1]:.3f} ms")
+    print(f"Freq range: {freq[0]:.4f} to {freq[-1]:.4f} GHz")
+    
+    # Generate model
+    print("Generating model...")
+    model_obj = FRBModel(time=time, freq=freq, data=data, df_MHz=df_MHz)
+    params = FRBParams(**best_params)
+    model = model_obj(params, results["best_model"])
+    
+    # Determine output path
+    if args.output is None:
+        output_path = args.results_json.parent / args.results_json.name.replace(
+            "_fit_results.json", "_diagnostic.png"
+        )
+    else:
+        output_path = args.output
+    
+    # Extract burst name from filename
+    burst_name = args.data_npy.stem.split('_')[0].capitalize()
+    
+    # Create plot
+    print("Creating diagnostic plot...")
+    fig = plot_scattering_diagnostic(
+        data, model, freq, time, params, results, output_path, burst_name
+    )
+    
+    if args.show:
+        plt.show()
+    
+    print("Done!")
+
+
+if __name__ == "__main__":
+    main()

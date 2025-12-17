@@ -844,6 +844,7 @@ class BurstPipeline:
                         priors=None, # Will use defaults in nested module
                         nlive=n_steps // 4, # Heuristic mapping steps -> nlive
                         alpha_prior=(alpha_mu, alpha_sigma) if alpha_fixed is None else None,
+                        alpha_fixed=alpha_fixed,
                         likelihood_kind=likelihood_kind,
                         student_nu=studentt_nu,
                     )
@@ -1150,12 +1151,6 @@ class BurstPipeline:
                 f"Best model: {best_key} | χ²/dof = {results['goodness_of_fit']['chi2_reduced']:.2f}"
             )
 
-            if plot:
-                p_path_sixt = os.path.join(self.outpath, f"{self.name}_diagnostics.pdf")
-                create_sixteen_panel_plot(self.dataset, results, save=save, show=show)
-                p_path_four = os.path.join(self.outpath, f"{self.name}_fullmodel.pdf")
-                create_four_panel_plot(self.dataset, results, save=save, show=show)
-
             if save:
                 import json
                 
@@ -1190,6 +1185,12 @@ class BurstPipeline:
                 with open(json_path, "w") as f:
                     json.dump(safe_results, f, indent=4, cls=NumpyEncoder)
                 log.info(f"Saved fit results to {json_path}")
+
+            if plot:
+                p_path_sixt = os.path.join(self.outpath, f"{self.name}_diagnostics.pdf")
+                create_sixteen_panel_plot(self.dataset, results, save=save, show=False)
+                p_path_four = os.path.join(self.outpath, f"{self.name}_fullmodel.pdf")
+                create_four_panel_plot(self.dataset, results, save=save, show=False)
 
             return results
 

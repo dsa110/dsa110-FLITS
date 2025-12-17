@@ -14,16 +14,14 @@
 
 # Telescope parameters
 dsa:
-  df_MHz_raw: 0.03051757812           # float, MHz
-  dt_ms_raw: 32.768e-3            # float, ms
-  f_min_GHz:  1.31125           # float, GHz
-  f_max_GHz:  1.49875           # float, GHz
-  
+  df_MHz_raw: 0.03051757812 # float, MHz
+  dt_ms_raw: 32.768e-3 # float, ms
+  f_min_GHz: 1.31125 # float, GHz
+  f_max_GHz: 1.49875 # float, GHz
+
 chime:
-  df_MHz_raw: 0.390625           # float, MHz
-  dt_ms_raw: 2.56e-3            # float, ms
-  f_min_GHz:  0.40019           # float, GHz
-  f_max_GHz:  0.80019           # float, GHz
-    
-  
+  df_MHz_raw: 0.390625 # float, MHz
+  dt_ms_raw: 0.98304 # float, ms
+  f_min_GHz: 0.40019 # float, GHz
+  f_max_GHz: 0.80019 # float, GHz
 

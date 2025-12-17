@@ -244,6 +244,7 @@ def fit_single_model_nested(
     nlive: int = 500,
     dlogz: float = 0.1,
     alpha_prior: Optional[Tuple[float, float]] = None,
+    alpha_fixed: Optional[float] = None,
     tau_prior: Optional[Tuple[float, float]] = None,
     likelihood_kind: str = "gaussian",
     student_nu: float = 5.0,
@@ -300,6 +301,13 @@ def fit_single_model_nested(
         )
     
     param_names = _PARAM_KEYS[model_key]
+    
+    # Remove alpha from param list if fixed
+    if alpha_fixed is not None and "alpha" in param_names:
+        param_names = tuple(p for p in param_names if p != "alpha")
+        # Set alpha in init to fixed value
+        init = FRBParams(**{**init.__dict__, "alpha": alpha_fixed})
+    
     ndim = len(param_names)
     
     # Build priors if not provided
@@ -353,6 +361,7 @@ def fit_models_evidence(
     nlive: int = 500,
     dlogz: float = 0.1,
     alpha_prior: Optional[Tuple[float, float]] = None,
+    alpha_fixed: Optional[float] = None,
     tau_prior: Optional[Tuple[float, float]] = None,
     likelihood_kind: str = "gaussian",
     verbose: bool = True,
@@ -414,6 +423,7 @@ def fit_models_evidence(
             nlive=nlive,
             dlogz=dlogz,
             alpha_prior=alpha_prior,
+            alpha_fixed=alpha_fixed,
             tau_prior=tau_prior,
             likelihood_kind=likelihood_kind,
             verbose=verbose,

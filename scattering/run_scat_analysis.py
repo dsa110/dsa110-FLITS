@@ -24,6 +24,7 @@ import csv
 # --- Package-relative imports (work via console-script entry point) ---
 try:
     from .scat_analysis.burstfit_pipeline import BurstPipeline
+    from flits.utils.reporting import print_fit_summary
     from .scat_analysis.burstfit_corner import (
         quick_chain_check,
         get_clean_samples,

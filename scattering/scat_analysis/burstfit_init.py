@@ -49,6 +49,7 @@ import numpy as np
 from numpy.typing import NDArray
 from scipy.optimize import curve_fit
 from scipy.ndimage import gaussian_filter1d
+from scipy.special import erfc
 
 from .burstfit import FRBParams
 
@@ -57,9 +58,12 @@ log = logging.getLogger(__name__)
 __all__ = [
     "data_driven_initial_guess",
     "estimate_spectral_index",
+    "estimate_spectral_index",
     "estimate_pulse_width",
+    "estimate_profile_emg",
     "estimate_scattering_from_tail",
     "estimate_scattering_frequency_scaling",
+    "estimate_params_from_subbands",
     "InitialGuessResult",
 ]
 
@@ -106,7 +110,6 @@ def _scattered_gaussian(
     
     # Analytic convolution: Gaussian * Exponential
     # Result is proportional to exp((t-mu)/tau) * erfc((t-mu)/(sqrt(2)*sigma) + sigma/(sqrt(2)*tau))
-    from scipy.special import erfc
     
     arg1 = (t - mu) / tau + (sigma ** 2) / (2 * tau ** 2)
     arg2 = (t - mu) / (np.sqrt(2) * sigma) + sigma / (np.sqrt(2) * tau)
@@ -275,6 +278,234 @@ def estimate_pulse_width(
         width_err = width * 0.2
     
     return float(t0), float(width), float(width_err)
+
+
+def estimate_profile_emg(
+    data: NDArray[np.floating],
+    time: NDArray[np.floating],
+    freq: Optional[NDArray[np.floating]] = None,
+    burst_lims: Optional[Tuple[int, int]] = None,
+) -> Tuple[float, float, float]:
+    """Estimate pulse parameters using 1D EMG fit on low-frequency band.
+
+    Fits a Pulse-Broadened Gaussian (EMG) to the profile. 
+    If freq is provided, uses lowest 25% of band where scattering is strongest.
+
+    Returns
+    -------
+    t0 : float
+        Peak time (ms)
+    zeta : float
+        Intrinsic width (sigma, ms)
+    tau : float
+        Scattering timescale (effective at band center/low, ms)
+    """
+    # 1. Get Gaussian guess
+    t0_init, width_init, _ = estimate_pulse_width(data, time, burst_lims)
+    sigma_init = width_init / 2.355
+
+    # Select low-frequency band if freq provided
+    if freq is not None:
+        freq_lo = np.percentile(freq, 0)
+        freq_hi = np.percentile(freq, 25)
+        freq_mask = (freq >= freq_lo) & (freq <= freq_hi)
+        if freq_mask.sum() < 3:
+             freq_mask = np.ones(len(freq), dtype=bool)
+        profile = np.nansum(data[freq_mask, :], axis=0)
+    else:
+        profile = np.nansum(data, axis=0)
+
+    if burst_lims:
+        sl = slice(burst_lims[0], burst_lims[1])
+        t_win = time[sl]
+        p_win = profile[sl]
+
+    else:
+        t_win = time
+        p_win = profile
+
+    # Sub baseline
+    base = np.nanpercentile(p_win, 10)
+    p_sub = p_win - base
+    amp_init = np.max(p_sub)
+
+    # Strategy: Try two initial guesses.
+    # 1. Balanced: sigma ~ width, tau ~ small (or balanced)
+    # 2. Scattering Dominant: sigma ~ small, tau ~ width
+    
+    # Guess 1: Balanced (Original)
+    tau_init_1 = width_init * 0.4
+    t0_guess_1 = t0_init - tau_init_1
+    sigma_init_1 = width_init / 2.355
+    p0_1 = [amp_init, t0_guess_1, sigma_init_1, tau_init_1, base]
+    
+    # Guess 2: Scattering Dominant
+    tau_init_2 = width_init * 0.9
+    t0_guess_2 = t0_init - tau_init_2
+    sigma_init_2 = width_init * 0.1 # Very narrow intrinsic
+    p0_2 = [amp_init, t0_guess_2, sigma_init_2, tau_init_2, base]
+
+    # Bounds: amp>0, mu in window, sigma>0, tau>=0
+    bounds = (
+        [0, t_win[0], 0.001, 0, -np.inf],
+        [np.inf, t_win[-1], (t_win[-1]-t_win[0]), (t_win[-1]-t_win[0]), np.inf]
+    )
+
+    best_popt = None
+    best_chi2 = np.inf
+    
+    for p0 in [p0_1, p0_2]:
+        try:
+            popt, _ = curve_fit(
+                _scattered_gaussian, t_win, p_win, p0=p0, bounds=bounds, maxfev=2000
+            )
+            # Calc chi2
+            model = _scattered_gaussian(t_win, *popt)
+            chi2 = np.sum((p_win - model)**2)
+            
+            if chi2 < best_chi2:
+                best_chi2 = chi2
+                best_popt = popt
+        except Exception:
+            continue
+
+    if best_popt is not None:
+        t0_fit = best_popt[1]
+        zeta_fit = best_popt[2]
+        tau_fit = best_popt[3]
+        return float(t0_fit), float(zeta_fit), float(tau_fit)
+    else:
+        log.warning("EMG fit failed for all guesses. Falling back.")
+        return t0_init, sigma_init, 0.05
+
+
+def estimate_params_from_subbands(
+    data: NDArray[np.floating],
+    freq: NDArray[np.floating],
+    time: NDArray[np.floating],
+    burst_lims: Optional[Tuple[int, int]] = None,
+    n_bands: int = 4,
+) -> Tuple[float, float, float, float]:
+    """Estimate parameters by splitting band into n_bands and fitting.
+
+    Returns
+    -------
+    t0 : float (ms)
+    zeta : float (ms) 
+    tau_1ghz : float (ms)
+    alpha : float (scattering index)
+    """
+    
+    # Divide band into N chunks
+    f_min, f_max = freq.min(), freq.max()
+    edges = np.linspace(f_min, f_max, n_bands + 1)
+    
+    subband_results = []
+    
+    for i in range(n_bands):
+        f_lo, f_hi = edges[i], edges[i+1]
+        f_center = (f_lo + f_hi) / 2
+        
+        # Fit EMG to this subband
+        # Note: estimate_profile_emg handles the masking internally if freq provided
+        # But we want to call it with a specific mask or freq subset?
+        # estimate_profile_emg currently takes 'freq' and selects lowest 25%.
+        # We should modify it or just manually subset here.
+        # Manual subsetting is safer.
+        
+        mask = (freq >= f_lo) & (freq <= f_hi)
+        if mask.sum() < 2:
+            continue
+            
+        data_sub = data[mask, :]
+        
+        try:
+            # First get width/peak for this band
+            t0_sub, w_sub, _ = estimate_pulse_width(data_sub, time, burst_lims=burst_lims)
+            
+            # Use tail estimator for tau (more robust than EMG for faint tails)
+            # data_sub has shape (freqs, time). mask is already applied?
+            # estimate_scattering_from_tail expects (data, time, freq, t0, width)
+            # We pass the full data frequency array subset? No, we need to pass matching shapes.
+            # But data_sub is already subsetted.
+            # We can pass freq=None/dummy? 
+            # estimate_scattering_from_tail uses freq to select low band. 
+            # We want to use the WHOLE subband.
+            # So we pass freq_band=(min, max) covering the whole subband.
+            
+            # Construct a dummy freq array for the subband
+            freq_sub = freq[mask]
+            
+            tau_s, _ = estimate_scattering_from_tail(
+                data_sub, time, freq_sub, t0_sub, w_sub, freq_band=(f_lo, f_hi)
+            )
+            
+            # Approximate zeta as width (since tau is from tail). 
+            # If tau is large, zeta ~ sqrt(w^2 - tau^2).
+            zeta_s = w_sub / 2.355 
+            if tau_s < w_sub:
+                 zeta_s = np.sqrt(max(0, (w_sub/2.355)**2 - (tau_s/2.355)**2)) # Crude approx
+
+            subband_results.append({
+                'freq': f_center,
+                't0': t0_sub,
+                'zeta': zeta_s,
+                'tau': tau_s
+            })
+            log.info(f"  Subband {i} ({f_center:.3f} GHz): t0={t0_sub:.3f}, width={w_sub:.3f}, tau={tau_s:.3f}")
+        except Exception:
+            continue
+            
+    if len(subband_results) < 2:
+        return 0.0, 0.0, 0.0, 4.0 # Failed
+        
+    # Fit Power Law to Tau: tau = A * freq^-alpha
+    freqs = np.array([r['freq'] for r in subband_results])
+    taus = np.array([r['tau'] for r in subband_results])
+    
+    # Filter out bad fits (tau ~ 0 or unreasonable)
+    valid = (taus > 0.001) & (taus < 100)
+    if valid.sum() < 2:
+         # Fallback
+         best_band = subband_results[0] # Usually lowest freq has strongest signal/tau
+         return best_band['t0'], best_band['zeta'], 0.0, 4.0
+
+    try:
+        log_f = np.log(freqs[valid])
+        log_tau = np.log(taus[valid])
+        
+        coeffs = np.polyfit(log_f, log_tau, 1)
+        alpha_fit = -coeffs[0]
+        
+        # tau(1GHz) -> log(tau) = -alpha * log(1) + C => C = log(tau_1ghz)
+        # But our fit is log(tau) = -alpha * log(f) + C
+        # So exp(C) is tau at 1 GHz (if f is in GHz).
+        tau_1ghz_fit = np.exp(coeffs[1])
+        
+        # Clip alpha to reasonable physics
+        alpha_final = np.clip(alpha_fit, 2.0, 6.0)
+        
+        # Re-estimate tau_1ghz if we clipped alpha?
+        # No, just keep the fitted value or re-project from mean.
+        # Let's re-project from the most reliable band (lowest freq)
+        idx_low = np.argmin(freqs[valid])
+        f_ref = freqs[valid][idx_low]
+        tau_ref = taus[valid][idx_low]
+        tau_1ghz_final = tau_ref * (f_ref / 1.0)**alpha_final
+        
+    except Exception:
+        alpha_final = 4.0
+        tau_1ghz_final = 1.0 # Placeholder
+        
+    # Intrinsic parameters (zeta, t0) usually best from highest frequency (least scattering)
+    # But if high freq has low SNR, middle is better.
+    # Let's take the mean of the top 50% frequency bands
+    high_freq_indices = np.argsort(freqs)[-max(1, len(freqs)//2):]
+    
+    avg_t0 = np.mean([subband_results[i]['t0'] for i in high_freq_indices])
+    avg_zeta = np.mean([subband_results[i]['zeta'] for i in high_freq_indices])
+
+    return avg_t0, avg_zeta, tau_1ghz_final, alpha_final
 
 
 def estimate_scattering_from_tail(
@@ -573,8 +804,8 @@ def data_driven_initial_guess(
     
     if verbose:
         log.info(f"Spectral index: γ = {gamma:.2f} ± {gamma_err:.2f}")
-    
-    # 4. Scattering from tail
+
+    # 4. Scattering from tail (Legacy method, moved up for fallback availability)
     tau_meas, tau_err = estimate_scattering_from_tail(
         data, time, freq, t0, width
     )
@@ -583,30 +814,68 @@ def data_driven_initial_guess(
     
     # Measure at band center, scale to 1 GHz
     freq_center = np.median(freq)
-    alpha_init = 4.0  # Initial guess for scaling
+
+    # NEW: Subband-based Initialization
+    # This is superior to single-band EMG or tail fitting.
+    t0_sb, zeta_sb, tau_sb, alpha_sb = estimate_params_from_subbands(data, freq, time, burst_lims)
     
-    # 5. Scattering frequency scaling
-    alpha, alpha_err, tau_1ghz_from_scaling = estimate_scattering_frequency_scaling(
-        data, time, freq, t0
-    )
+    # Check if subband fit was reliable
+    # If alpha is hitting bounds (2.0 or 6.0), the spectral fit failed (e.g. inverted spectrum).
+    # In that case, tau_sb is likely wrong (extrapolated from bad index).
+    subband_reliable = (tau_sb > min_scattering) and (2.01 < alpha_sb < 5.99)
+    
+    if subband_reliable:
+        diagnostics['method'] = 'subband_tail_fit'
+        t0 = t0_sb
+        zeta = zeta_sb
+        tau_1ghz = tau_sb
+        alpha = alpha_sb
+        
+        if verbose:
+            log.info(f"Subband Init -> t0={t0:.3f}, ζ={zeta:.3f}, τ(1GHz)={tau_1ghz:.3f}, α={alpha:.2f}")
+    else:
+        # Fallback to single-band methods
+        log.info(f"Subband init unreliable (α={alpha_sb:.2f}, τ={tau_sb:.3f}), falling back.")
+        
+        # Prefer the legacy tail fit (tau_meas) if available and reasonable
+        # Prefer the legacy tail fit (tau_meas) if available and reasonable
+        if tau_meas > min_scattering:
+             tau_1ghz = tau_meas * (freq_center / 1.0) ** 4.0 # Assume alpha=4
+             diagnostics['method'] = 'legacy_tail_fit'
+             
+             # Estimate zeta from width and tau
+             # width roughly sqrt(zeta_fwhm^2 + tau^2) + ...
+             # Just use width/2.35 as upper bound or crude estimate
+             zeta = max(0.01, (width / 2.355))
+        else:
+             # Fallback to single-band EMG
+             t0_emg, zeta_emg, tau_emg_obs = estimate_profile_emg(data, time, freq, burst_lims)
+             
+             # Project tau observed (at low band center) to 1 GHz
+             freq_lo_mean = np.mean(freq[freq <= np.percentile(freq, 25)])
+             tau_1ghz = tau_emg_obs * (freq_lo_mean / 1.0) ** 4.0
+             
+             t0 = t0_emg
+             zeta = zeta_emg
+             diagnostics['method'] = 'single_band_emg'
+        
+        # Default alpha
+        alpha = 4.0
+
+    # Diagnostics storage
     diagnostics['alpha'] = alpha
-    diagnostics['alpha_err'] = alpha_err
-    
-    if verbose:
-        log.info(f"Scattering α = {alpha:.2f} ± {alpha_err:.2f}")
-    
-    # Scale measured tau to 1 GHz
-    tau_1ghz = tau_meas * (freq_center / 1.0) ** alpha
-    tau_1ghz = max(tau_1ghz, min_scattering)
-    
-    # Use average of both methods
-    if tau_1ghz_from_scaling > 0:
-        tau_1ghz = np.sqrt(tau_1ghz * tau_1ghz_from_scaling)  # Geometric mean
-    
     diagnostics['tau_1ghz_estimate'] = tau_1ghz
+    diagnostics['zeta_estimate'] = zeta
+    diagnostics['t0_estimate'] = t0
     
     if verbose:
-        log.info(f"Scattering τ(1GHz) = {tau_1ghz:.3f} ms")
+        log.info(f"Scattering τ(1GHz) = {tau_1ghz:.3f} ms, α={alpha:.2f}")
+
+    # Legacy tail fit for comparison/logging only
+    try:
+         estimate_scattering_from_tail(data, time, freq, t0, width)
+    except:
+         pass
     
     # 6. NE2001 fallback/comparison
     if ne2001_fallback and ra_deg is not None and dec_deg is not None:
@@ -624,14 +893,10 @@ def data_driven_initial_guess(
         except Exception as e:
             log.debug(f"NE2001 fallback failed: {e}")
     
-    # 7. Intrinsic width (deconvolve scattering)
-    # Observed width² ≈ intrinsic² + scattering²
-    tau_at_center = tau_1ghz * (freq_center / 1.0) ** (-alpha)
-    width_squared = max(width ** 2 - tau_at_center ** 2, 0.01 ** 2)
-    zeta = np.sqrt(width_squared)
-    
-    # Minimum intrinsic width
+    # 7. Intrinsic width (Use EMG result directly)
     zeta = max(zeta, 0.01)
+    # Check if zeta is reliable? If EMG tau >> zeta, zeta might be very small.
+    # Keep it.
     diagnostics['zeta_estimate'] = zeta
     
     if verbose:

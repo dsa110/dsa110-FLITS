@@ -1,5 +1,19 @@
-from .burstfit_pipeline import BurstPipeline, BurstDataset, BurstDiagnostics
-from .burstfit import FRBModel, FRBFitter, FRBParams, build_priors
+from .burstfit import FRBModel, FRBParams, FRBFitter
+from .burstfit_pipeline import BurstDataset
+from .burstfit_interactive import InitialGuessWidget
+from .visualization import plot_scattering_diagnostic
+
+__all__ = [
+    "FRBModel",
+    "FRBParams",
+    "FRBFitter",
+    "BurstDataset",
+    "InitialGuessWidget",
+    "plot_scattering_diagnostic",
+]
+
+from .burstfit_pipeline import BurstPipeline, BurstDiagnostics
+from .burstfit import build_priors
 from .dm_preprocessing import refine_dm_init
 
 # Model selection (BIC-based)

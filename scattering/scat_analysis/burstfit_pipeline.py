@@ -228,8 +228,10 @@ def create_sixteen_panel_plot(
 
     # Panel 3: Residual Histogram
     res_norm = residual / model_instance.noise_std[:, None]
+    # Filter out NaNs and Infs (from masked channels with noise_std=0)
+    res_norm_clean = res_norm[np.isfinite(res_norm)]
     ax[3].hist(
-        res_norm.flatten(), bins=100, density=True, color="gray", label="Residuals"
+        res_norm_clean, bins=100, density=True, color="gray", label="Residuals"
     )
     x_pdf = np.linspace(-4, 4, 100)
     ax[3].plot(x_pdf, sp.stats.norm.pdf(x_pdf), "m-", lw=2, label="N(0,1)")

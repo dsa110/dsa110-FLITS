@@ -210,7 +210,7 @@ def plot_diagnostic(
         ax.tick_params(which='both', direction='in', top=True, right=True,
                        left=True, bottom=True, width=1.5)
         ax.tick_params(which='major', length=6)
-        ax.tick_params(which='minor', length=3, visible=True)
+        ax.tick_params(which='minor', length=3)
         ax.minorticks_on()
         
         if cbar_im:
@@ -255,15 +255,23 @@ def plot_diagnostic(
     axes[1, 1].set_title("Time Profile", pad=10)
     axes[1, 1].legend(frameon=True, fontsize=14, loc='upper right')
     
+    from matplotlib.ticker import MaxNLocator, AutoMinorLocator
+
     # Specific style matching: inward ticks on all sides, no grid
     # Force ticks on all sides
     axes[1, 1].tick_params(which='both', direction='in', top=True, right=True, 
                            left=True, bottom=True, width=1.5)
     axes[1, 1].tick_params(which='major', length=6)
-    axes[1, 1].tick_params(which='minor', length=3, visible=True)
+    axes[1, 1].tick_params(which='minor', length=3)
     
-    # Explicitly turn on minor ticks for both axes
-    axes[1, 1].minorticks_on()
+    # Force consistent tick density
+    # X-axis: ~8-10 major ticks (e.g. every 1ms for 8ms range)
+    axes[1, 1].xaxis.set_major_locator(MaxNLocator(nbins=10))
+    axes[1, 1].xaxis.set_minor_locator(AutoMinorLocator())
+    
+    # Y-axis: ~6-8 major ticks
+    axes[1, 1].yaxis.set_major_locator(MaxNLocator(nbins=8))
+    axes[1, 1].yaxis.set_minor_locator(AutoMinorLocator())
     
     # Ensure x-limit matches the imshow plots exactly
     axes[1, 1].set_xlim(extent[0], extent[1])

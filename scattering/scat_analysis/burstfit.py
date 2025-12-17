@@ -829,7 +829,9 @@ def goodness_of_fit(
 
     # Use only valid pixels for statistics
     resid_valid = residual[valid_mask]
-    noise_valid = noise_std_safe[valid_mask]
+    # Broadcast noise_std_safe to data shape before masking
+    noise_std_full = np.broadcast_to(noise_std_safe, data.shape)
+    noise_valid = noise_std_full[valid_mask]
     data_valid = data[valid_mask]
 
     n_valid = resid_valid.size

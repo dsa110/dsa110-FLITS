@@ -21,7 +21,8 @@ dsa:
 
 chime:
   df_MHz_raw: 0.390625 # float, MHz
-  dt_ms_raw: 0.98304 # float, ms
+  dt_ms_raw: 2.56e-3 # float, ms (voltage sample rate)
   f_min_GHz: 0.40019 # float, GHz
   f_max_GHz: 0.80019 # float, GHz
+  freq_descending: true # data[0] = f_max (high freq at row 0)
 

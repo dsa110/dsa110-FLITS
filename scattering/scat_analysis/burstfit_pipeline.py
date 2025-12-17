@@ -533,7 +533,14 @@ class BurstDataset:
         final_n_ch = shape[0]
         final_n_t = shape[1]
 
-        freq = np.linspace(p.f_min_GHz, p.f_max_GHz, final_n_ch)
+        # Check if data has high freq at row 0 (freq_descending)
+        freq_desc = getattr(p, 'freq_descending', False)
+        if freq_desc:
+            # data[0] = f_max, data[-1] = f_min
+            freq = np.linspace(p.f_max_GHz, p.f_min_GHz, final_n_ch)
+        else:
+            # data[0] = f_min, data[-1] = f_max (default/legacy)
+            freq = np.linspace(p.f_min_GHz, p.f_max_GHz, final_n_ch)
         time = np.arange(final_n_t) * dt_ms
         return freq, time, df_MHz, dt_ms
 

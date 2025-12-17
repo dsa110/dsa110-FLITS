@@ -181,7 +181,7 @@ def create_sixteen_panel_plot(
     log.info("Generating 16-panel comprehensive diagnostics plot...")
 
     best_key, best_p = results["best_key"], results["best_params"]
-    sampler, gof = results["sampler"], results.get("goodness_of_fit")
+    sampler, gof = results.get("sampler"), results.get("goodness_of_fit")
     chain_stats, flat_chain = results.get("chain_stats", {}), results["flat_chain"]
     param_names, diag_results = results["param_names"], results.get("diagnostics", {})
     model_instance = results["model_instance"]
@@ -294,10 +294,15 @@ def create_sixteen_panel_plot(
         ax[8].set_axis_off()
 
     # Panel 9-10: MCMC chains
-    chain = sampler.get_chain()
-    burn = chain_stats.get("burn_in", 0)
-    ax[9].plot(chain[:, ::10, 0], "k", alpha=0.3)
-    ax[9].axvline(burn, color="m", ls="--")
+    if sampler is not None:
+        chain = sampler.get_chain()
+        burn = chain_stats.get("burn_in", 0)
+        ax[9].plot(chain[:, ::10, 0], "k", alpha=0.3)
+        ax[9].axvline(burn, color="m", ls="--")
+        ax[9].set_title(f"Trace: {param_names[0]}")
+    else:
+        ax[9].text(0.5, 0.5, "MCMC Traces\nN/A (Nested Sampling)", ha="center", va="center")
+        ax[9].set_axis_off()
     ax[9].set_title(f"Trace: {param_names[0]}")
     ax[9].set_xlabel("Step")
     if len(param_names) > 1:
@@ -844,10 +849,15 @@ class BurstPipeline:
                     )
                     
                     # Convert NS result to pipeline format
+                    from dynesty.utils import resample_equal
                     best_res = ns_results[best_key]
+                    flat_chain = resample_equal(best_res.samples, best_res.weights)
+                    
                     results = {
                         "best_key": best_key,
-                        "best_params": FRBParams(**dict(zip(best_res.param_names, best_res.samples.mean(axis=0)))), # approximate
+                        "best_params": best_res.get_best_params(),
+                        "flat_chain": flat_chain,
+                        "model_instance": self.dataset.model,
                         "param_names": best_res.param_names,
                         "goodness_of_fit": {"log_evidence": best_res.log_evidence, "log_evidence_err": best_res.log_evidence_err},
                         "dm_init": self.dm_init,

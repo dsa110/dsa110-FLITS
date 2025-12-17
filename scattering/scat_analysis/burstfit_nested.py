@@ -196,7 +196,6 @@ def _build_log_likelihood(
     alpha_prior: Optional[Tuple[float, float]] = None,
     tau_prior: Optional[Tuple[float, float]] = None,
     likelihood_kind: str = "gaussian",
-    likelihood_kind: str = "gaussian",
     student_nu: float = 5.0,
     fixed_params: Optional[Dict[str, float]] = None,
 ):

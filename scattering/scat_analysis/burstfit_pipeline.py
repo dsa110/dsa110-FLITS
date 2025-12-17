@@ -48,6 +48,7 @@ from .burstfit_robust import (
     plot_subband_profiles,
     dm_optimization_check,
 )
+from flits.utils.reporting import print_fit_summary
 from flits.fitting.diagnostics import analyze_residuals, ResidualDiagnostics
 from flits.sampler import MCMCDiagnostics
 from .burstfit_nested import fit_models_evidence
@@ -1345,6 +1346,10 @@ class BurstPipeline:
             log.info(
                 f"Best model: {best_key} | χ²/dof = {results['goodness_of_fit']['chi2_reduced']:.2f}"
             )
+            
+            # --- CONSOLIDATED FIT REPORTING ---
+            print_fit_summary(results)
+            # ----------------------------------
 
             if save:
                 import json

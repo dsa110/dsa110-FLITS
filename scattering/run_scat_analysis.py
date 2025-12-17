@@ -248,7 +248,8 @@ def main():
     if results.get("goodness_of_fit"):
         print(f"Reduced Chi-squared: {results['goodness_of_fit']['chi2_reduced']:.2f}")
     print("Best-fit parameters (from highest-likelihood sample):")
-    print(results["best_params"])
+    # print(results["best_params"]) # Replaced by consolidated summary
+    print_fit_summary(results)
 
     extend_chain = pipeline_kwargs.get("extend_chain", config.pipeline.extend_chain)
     if extend_chain:

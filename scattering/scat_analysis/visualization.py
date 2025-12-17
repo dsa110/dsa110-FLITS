@@ -26,7 +26,9 @@ import yaml
 from pathlib import Path
 from scipy.ndimage import gaussian_filter1d
 
+
 from scattering.scat_analysis.burstfit import FRBModel, FRBParams, downsample
+from flits.utils.reporting import print_fit_summary
 
 
 def load_telescope_config(telescope_name: str, config_path: Path = None) -> dict:
@@ -366,8 +368,11 @@ def main():
         results = json.load(f)
     
     best_params = results["best_params"]
-    print(f"Best model: {results['best_model']}")
-    print(f"Best-fit parameters: {best_params}")
+    best_params = results["best_params"]
+    
+    # --- CONSOLIDATED FIT REPORTING ---
+    print_fit_summary(results)
+    # ----------------------------------
     
     # Load telescope config
     print(f"Loading telescope config for '{args.telescope}'")

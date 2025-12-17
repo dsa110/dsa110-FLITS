@@ -83,6 +83,7 @@ class NestedSamplingResult:
     
     # Derived quantities
     percentiles: Dict[str, Dict[str, float]] = field(default_factory=dict)
+    fixed_params: Dict[str, float] = field(default_factory=dict)
     
     def __post_init__(self):
         """Compute parameter percentiles from weighted samples."""
@@ -114,7 +115,16 @@ class NestedSamplingResult:
     
     def get_best_params(self) -> FRBParams:
         """Return FRBParams at posterior median."""
-        theta = [self.percentiles[name]["median"] for name in self.param_names]
+        full_names = _PARAM_KEYS[self.model_key]
+        theta = []
+        for name in full_names:
+            if name in self.fixed_params:
+                theta.append(self.fixed_params[name])
+            elif name in self.percentiles:
+                theta.append(self.percentiles[name]["median"])
+            else:
+                # Should not happen if logic is correct
+                theta.append(0.0) 
         return FRBParams.from_sequence(theta, self.model_key)
     
     def __repr__(self) -> str:
@@ -350,6 +360,7 @@ def fit_single_model_nested(
         model_key=model_key,
         nlive=nlive,
         ncall=results.ncall,
+        fixed_params={"alpha": alpha_fixed} if alpha_fixed is not None and "alpha" in _PARAM_KEYS[model_key] else {},
     )
 
 

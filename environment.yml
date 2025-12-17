@@ -2,29 +2,79 @@ name: flits
 channels:
   - conda-forge
   - defaults
+
 dependencies:
+  # ===== Core Python =====
   - python=3.12
-  - numpy
-  - scipy
-  - astropy
-  - pandas
-  - h5py
-  - matplotlib
+  
+  # ===== Core Scientific Computing =====
+  - numpy>=1.20.0
+  - scipy>=1.7.0
+  - astropy>=5.0
+  - pandas>=1.3.0
+  - h5py>=3.0
+  
+  # ===== Plotting and Visualization =====
+  - matplotlib>=3.4.0
+  - seaborn  # For enhanced statistical visualizations
+  
+  # ===== Interactive Computing =====
   - ipython
   - jupyter
+  - jupyterlab  # Modern Jupyter interface
   - notebook
-  - ipywidgets
-  - tqdm
-  - pyyaml
-  - numba
-  - joblib
-  - scikit-image
-  - uncertainties
-  - dynesty
+  - ipywidgets>=7.6.0  # Required for interactive widgets
+  - ipykernel  # Jupyter kernel
+  
+  # ===== Performance and Parallel Computing =====
+  - numba>=0.54.0  # JIT compilation
+  - joblib>=1.1.0  # Parallel processing
+  
+  # ===== Data Analysis and Manipulation =====
+  - scikit-image>=0.18.0  # Image processing and Gaussian filtering
+  
+  # ===== Configuration and I/O =====
+  - pyyaml>=5.4.0
+  - tqdm>=4.62.0  # Progress bars
+  
+  # ===== Statistical Analysis and Error Propagation =====
+  - uncertainties>=3.1.4
+  
+  # ===== Astronomy-Specific Packages =====
+  - astroquery  # Query astronomical databases (NED, SDSS, etc.)
+  - healpy  # HEALPix for all-sky maps
+  - regions  # Astronomical region handling
+  
+  # ===== Testing and Quality Assurance =====
+  - pytest>=7.0
+  - pytest-cov  # Code coverage
+  - hypothesis  # Property-based testing
+  
+  # ===== Development Tools =====
+  - black  # Code formatting
+  - ruff  # Fast linter
+  - mypy  # Static type checking
+  - pre-commit  # Git hooks for quality checks
+  
+  # ===== Documentation =====
+  - sphinx  # Documentation generation
+  - sphinx_rtd_theme  # Read the Docs theme
+  
+  # ===== Package Management =====
   - pip
+  - setuptools>=65
+  - wheel
+  
+  # ===== Pip-only Packages =====
   - pip:
-    - emcee
-    - corner
-    - chainconsumer
-    - lmfit
-    - mwprop
+    # MCMC and Bayesian Inference
+    - emcee>=3.1.0  # Affine-invariant MCMC sampler
+    - dynesty>=2.1.0  # Nested sampling for Bayesian evidence
+    - corner>=2.2.0  # Corner plots for MCMC diagnostics
+    - chainconsumer>=0.34.0  # MCMC chain analysis and visualization
+    
+    # Fitting and Optimization  
+    - lmfit>=1.0.0  # Non-linear least-squares minimization
+    
+    # Galactic Models
+    - mwprop>=0.1.0  # Milky Way electron density models (NE2001)

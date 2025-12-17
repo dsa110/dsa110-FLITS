@@ -4,7 +4,12 @@ A step-by-step guide for running the scattering analysis pipeline on FRB data.
 
 ## Prerequisites
 
-1. **Environment**: Python 3.12 with dependencies installed
+1. **Environment**: Create and activate the `flits` conda environment:
+   ```bash
+   cd /path/to/FLITS
+   conda env create -f environment.yml
+   conda activate flits
+   ```
 2. **Data**: `.npy` file containing the dynamic spectrum (freq × time)
 3. **Telescope config**: Entry in `scattering/configs/telescopes.yaml`
 

@@ -196,7 +196,9 @@ def _build_log_likelihood(
     alpha_prior: Optional[Tuple[float, float]] = None,
     tau_prior: Optional[Tuple[float, float]] = None,
     likelihood_kind: str = "gaussian",
+    likelihood_kind: str = "gaussian",
     student_nu: float = 5.0,
+    fixed_params: Optional[Dict[str, float]] = None,
 ):
     """Build log-likelihood function for dynesty.
     
@@ -210,9 +212,26 @@ def _build_log_likelihood(
     tau_prior : tuple, optional
         (mu, sigma) for log-normal prior on τ (in log10 space)
     """
+    full_param_names = _PARAM_KEYS[model_key]
+
     def log_likelihood(theta: NDArray[np.floating]) -> float:
-        # Build params from theta
-        params = FRBParams.from_sequence(theta, model_key)
+        # Reconstruct full theta vector if we have fixed params
+        if fixed_params:
+            full_theta = []
+            # We need to map the current sub-theta to names
+            # But theta only has values. We assume theta follows 'param_names' order.
+            # param_names is the REDUCED list.
+            theta_ptr = 0
+            for name in full_param_names:
+                if name in fixed_params:
+                    full_theta.append(fixed_params[name])
+                else:
+                    full_theta.append(theta[theta_ptr])
+                    theta_ptr += 1
+            params = FRBParams.from_sequence(full_theta, model_key)
+        else:
+            # Standard path
+            params = FRBParams.from_sequence(theta, model_key)
         
         # Base likelihood
         if likelihood_kind == "gaussian":
@@ -328,7 +347,8 @@ def fit_single_model_nested(
     # Build callable functions
     prior_transform = _build_prior_transform(priors, param_names)
     log_likelihood = _build_log_likelihood(
-        model, model_key, param_names, alpha_prior, tau_prior, likelihood_kind, student_nu
+        model, model_key, param_names, alpha_prior, tau_prior, likelihood_kind, student_nu,
+        fixed_params={"alpha": alpha_fixed} if alpha_fixed is not None and "alpha" in _PARAM_KEYS[model_key] else None
     )
     
     # Run nested sampling

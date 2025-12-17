@@ -820,46 +820,53 @@ def goodness_of_fit(
     if noise_std_safe.ndim == 1 and data.ndim == 2:
          noise_std_safe = noise_std_safe[:, np.newaxis]
 
+    # Create valid mask based on noise threshold
+    valid_mask = noise_std > 1e-9
+    # Ensure mask broadcasts to data shape if needed
+    if valid_mask.ndim == 1 and data.ndim == 2:
+        valid_mask = valid_mask[:, np.newaxis]
+    valid_mask = np.broadcast_to(valid_mask, data.shape)
+
+    # Use only valid pixels for statistics
+    resid_valid = residual[valid_mask]
+    noise_valid = noise_std_safe[valid_mask]
+    data_valid = data[valid_mask]
+
+    n_valid = resid_valid.size
+    
     # 1. Chi-squared
-    chi2 = np.sum((residual / noise_std_safe) ** 2)
-    ndof = data.size - n_params
+    chi2 = np.sum((resid_valid / noise_valid) ** 2)
+    ndof = n_valid - n_params
     chi2_reduced = chi2 / ndof if ndof > 0 else np.inf
 
     # 2. R-squared
-    ss_res = np.sum((residual / noise_std_safe) ** 2)
-    # Total sum of squares weighted by noise? Or standard definition?
-    # Standard definition: 1 - SS_res / SS_tot
-    # Weighted version to match chi2 scaling:
-    weights = 1.0 / noise_std_safe**2
-    # Fix: Broadcast weights to match data shape explicitly for flatten() behavior
-    weights_full = np.broadcast_to(weights, data.shape)
-    mean_data = np.average(data, weights=weights_full)
-    ss_tot = np.sum(((data - mean_data) / noise_std_safe) ** 2)
+    ss_res = np.sum((resid_valid / noise_valid) ** 2)
+    # Weighted calculation on valid data only
+    weights = 1.0 / noise_valid**2
+    mean_data = np.average(data_valid, weights=weights)
+    ss_tot = np.sum(((data_valid - mean_data) / noise_valid) ** 2)
     r_squared = 1 - (ss_res / ss_tot) if ss_tot > 0 else -np.inf
 
     # 3. Normality Test (Shapiro-Wilk)
     # Downsample for speed if needed
-    data_flat = residual.flatten()
+    data_flat = resid_valid.flatten()
     test_resids = data_flat[::max(1, len(data_flat)//5000)]
     try:
         _, normality_pvalue = stats.shapiro(test_resids)
         normality_pass = normality_pvalue > RESIDUAL_NORMALITY_PVALUE
     except Exception:
         normality_pvalue = 0.0
-        normality_pass = True # Fail open if test breaks? Or False? False is safer.
         normality_pass = False
 
     # 4. Bias Test
-    bias_mean = np.mean(residual)
-    bias_std = np.std(residual)
-    bias_sem = bias_std / np.sqrt(residual.size)
+    bias_mean = np.mean(resid_valid)
+    bias_std = np.std(resid_valid)
+    bias_sem = bias_std / np.sqrt(resid_valid.size)
     bias_nsigma = abs(bias_mean) / bias_sem if bias_sem > 0 else 0.0
     bias_pass = bias_nsigma < 3.0
 
     # 5. Durbin-Watson (Autocorrelation)
-    # Flatten residuals or profile? Guide uses differencing.
-    # Usually DW is for 1D time series. We have 2D.
-    # We can compute it on the flattened array (pixel-to-pixel correlation)
+    # We can compute it on the flattened valid array
     diffs = np.diff(data_flat)
     dw_stat = np.sum(diffs ** 2) / np.sum(data_flat ** 2)
     autocorr_pass = RESIDUAL_AUTOCORR_DW_MIN <= dw_stat <= RESIDUAL_AUTOCORR_DW_MAX
@@ -901,7 +908,7 @@ def goodness_of_fit(
         "chi2_reduced": float(chi2_reduced),
         "r_squared": float(r_squared),
         "ndof": int(ndof),
-        "residual_rms": float(np.std(residual)),
+        "residual_rms": float(np.std(resid_valid)),
         "residual_autocorr": norm_autocorr, # Keep array for plotting
         "normality_pvalue": float(normality_pvalue),
         "bias_nsigma": float(bias_nsigma),

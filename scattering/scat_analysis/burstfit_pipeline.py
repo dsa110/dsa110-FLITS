@@ -1372,13 +1372,25 @@ class BurstPipeline:
                 elif hasattr(best_params, "__dict__"):
                     best_params = best_params.__dict__
                     
+                # Include a summary of all model results if present
+                all_res_summary = {}
+                if "all_results" in results:
+                    for k, v in results["all_results"].items():
+                        if k == "bayes_factors":
+                            continue
+                        all_res_summary[k] = {
+                            "log_evidence": getattr(v, "log_evidence", None),
+                            "log_evidence_err": getattr(v, "log_evidence_err", None)
+                        }
+                
                 safe_results = {
                     "best_model": results.get("best_key"),
                     "best_params": best_params,
                     "param_names": results.get("param_names"),
                     "goodness_of_fit": results.get("goodness_of_fit"),
                     "dm_init": results.get("dm_init"),
-                    "convergence": results.get("loop_stats")
+                    "convergence": results.get("loop_stats"),
+                    "all_results": all_res_summary
                 }
                 
                 json_path = os.path.join(self.outpath, f"{self.name}_fit_results.json")

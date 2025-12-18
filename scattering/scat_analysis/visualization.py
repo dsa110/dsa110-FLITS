@@ -371,59 +371,71 @@ def plot_scattering_diagnostic(
     tns_name = load_tns_name(burst_name)
     
     # Panel 1: Event Information (compact layout)
-    fig.text(0.07, 0.975, "EVENT", **KW_TITLE)
-    fig.text(0.07, 0.95, tns_name, fontname=FONT_SANS, fontsize=13, weight='bold', color=C_TEXT_PRIMARY, va='top')
-    fig.text(0.07, 0.93, burst_name.upper(), fontname=FONT_SANS, fontsize=10, color=C_TEXT_PRIMARY, va='top')
-    fig.text(0.07, 0.905, f"Observatory: {observatory}", fontname=FONT_SANS, fontsize=8, color=C_TEXT_SECONDARY, va='top')
+    fig.text(0.06, 0.975, "EVENT", **KW_TITLE)
+    fig.text(0.06, 0.95, tns_name, fontname=FONT_SANS, fontsize=13, weight='bold', color=C_TEXT_PRIMARY, va='top')
+    fig.text(0.06, 0.93, burst_name.upper(), fontname=FONT_SANS, fontsize=10, color=C_TEXT_PRIMARY, va='top')
+    fig.text(0.06, 0.905, f"Observatory: {observatory}", fontname=FONT_SANS, fontsize=8, color=C_TEXT_SECONDARY, va='top')
     
-    add_divider(0.28)
+    add_divider(0.25)
     
     # Panel 2: Model Selection with BIC comparison
-    fig.text(0.30, 0.975, "MODEL SELECTION", **KW_TITLE)
+    fig.text(0.27, 0.975, "MODEL SELECTION", **KW_TITLE)
     
     if "all_results" in results:
         res_all = results["all_results"]
-        keys = sorted(res_all.keys(), reverse=True)
-        best_z = max(float(res_all[k].log_evidence) for k in keys) if keys else 0
+        # Use fixed ordering for consistent 2-column layout: M0, M1 in Col 1; M2, M3 in Col 2
+        model_keys = ["M0", "M1", "M2", "M3"]
+        x_col1, x_col2 = 0.27, 0.36
+        y_row1, y_row2 = 0.95, 0.93
         
-        y_start = 0.95
-        for k in keys:
-            z = float(res_all[k].log_evidence)
-            # Compute BIC = -2 * ln(Z)
+        for i, k in enumerate(model_keys):
+            if k not in res_all:
+                continue
+                
+            res_k = res_all[k]
+            # Handle both objects (runtime) and dicts (loaded from JSON)
+            if isinstance(res_k, dict):
+                z = float(res_k.get('log_evidence', 0))
+            else:
+                z = float(getattr(res_k, 'log_evidence', 0))
+                
             bic = -2 * z
+            x_pos = x_col1 if i < 2 else x_col2
+            y_pos = y_row1 if i % 2 == 0 else y_row2
             
             if k == best_key:
                 model_line = f"{k}: BIC = {bic:.0f} ✓"
-                fig.text(0.30, y_start, model_line, fontname=FONT_SANS, fontsize=9,
+                fig.text(x_pos, y_pos, model_line, fontname=FONT_SANS, fontsize=9,
                         weight='bold', color=C_HIGHLIGHT_BLUE, va='top')
             else:
                 model_line = f"{k}: BIC = {bic:.0f}"
-                fig.text(0.30, y_start, model_line, fontname=FONT_SANS, fontsize=8,
+                fig.text(x_pos, y_pos, model_line, fontname=FONT_SANS, fontsize=8,
                         color=C_TEXT_SECONDARY, va='top')
-            y_start -= 0.02
     else:
-        fig.text(0.30, 0.95, f"{best_key} (Selected)", fontname=FONT_SANS, fontsize=9, color=C_TEXT_PRIMARY, va='top')
+        # Fallback if no all_results, but we still want more than just one model shown if possible
+        fig.text(0.27, 0.95, f"{best_key}: Selected ✓", fontname=FONT_SANS, fontsize=9, 
+                weight='bold', color=C_HIGHLIGHT_BLUE, va='top')
     
-    add_divider(0.52)
+    add_divider(0.45)
     
     # Panel 3: Fit Evaluation (2-column layout)
-    fig.text(0.54, 0.975, "FIT EVALUATION", **KW_TITLE)
+    fig.text(0.47, 0.975, "FIT EVALUATION", **KW_TITLE)
     
     is_fail = quality == "FAIL"
     status_color = C_STATUS_RED if is_fail else C_STATUS_GREEN
-    # Compact status line (no huge gap)
-    fig.text(0.54, 0.95, f"Status: {quality}", fontname=FONT_SANS, fontsize=9, weight='bold', color=status_color, va='top')
+    # Compact status line
+    fig.text(0.47, 0.95, f"Status: {quality}", fontname=FONT_SANS, fontsize=9, weight='bold', color=status_color, va='top')
     
-    # Column 1: Chi-squared (clarify it's reduced)
-    fig.text(0.54, 0.92, f"χ²ᵣ = {chi2:.2f}", fontname=FONT_SANS, fontsize=9, color=C_TEXT_PRIMARY, va='top')
+    # Column 1: χ²ᵣ
+    fig.text(0.47, 0.92, f"χ²ᵣ = {chi2:.2f}", fontname=FONT_SANS, fontsize=9, color=C_TEXT_PRIMARY, va='top')
     
-    # Column 2: R-squared (start 2nd column after max 2 rows)
-    fig.text(0.64, 0.92, f"R² = {r2:.3f}", fontname=FONT_SANS, fontsize=9, color=C_TEXT_PRIMARY, va='top')
+    # Column 2: R²
+    fig.text(0.57, 0.92, f"R² = {r2:.3f}", fontname=FONT_SANS, fontsize=9, color=C_TEXT_PRIMARY, va='top')
     
-    add_divider(0.75)
+    add_divider(0.67)
     
-    # Panel 4: Best Fit Parameters (multi-column: 2 params per column)
-    fig.text(0.77, 0.975, "BEST FIT PARAMETERS", **KW_TITLE)
+    # Panel 4: Best Fit Parameters (multi-column)
+    fig.text(0.69, 0.975, "BEST FIT PARAMETERS", **KW_TITLE)
     
     # Compute parameter values
     param_strs = []
@@ -444,8 +456,8 @@ def plot_scattering_diagnostic(
             param_str = f"{name} = {val:.3g} ± {err:.1g}"
         param_strs.append(param_str)
     
-    # Layout: 2 params per column, columns at x = 0.77, 0.87, 0.97
-    x_positions = [0.77, 0.87, 0.97]
+    # Layout: 2 rows per column, spread across available space
+    x_positions = [0.69, 0.79, 0.89]
     y_start = 0.95
     row_spacing = 0.018
     

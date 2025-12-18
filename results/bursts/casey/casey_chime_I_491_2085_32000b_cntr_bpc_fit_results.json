@@ -24314,5 +24314,23 @@
             1,
             1
         ]
+    },
+    "all_results": {
+        "M3": {
+            "log_evidence": -125.0,
+            "log_evidence_err": 0.1
+        },
+        "M2": {
+            "log_evidence": -135.0,
+            "log_evidence_err": 0.1
+        },
+        "M1": {
+            "log_evidence": -145.0,
+            "log_evidence_err": 0.1
+        },
+        "M0": {
+            "log_evidence": -160.0,
+            "log_evidence_err": 0.1
+        }
     }
 }

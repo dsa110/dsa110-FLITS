@@ -191,9 +191,11 @@ def estimate_ps1_photoz(ps1_table):
 
 # --------------- add projected separation (RA/DEC name-agnostic) ----------
 def _add_proj(tab, coord, z):
-    # Find RA/Dec columns (case-insensitive)
-    ra_col = next((c for c in tab.colnames if c.lower() in ['ra', 'ramean']), None)
-    dec_col = next((c for c in tab.colnames if c.lower() in ['dec', 'decmean']), None)
+    # Find RA/Dec columns (case-insensitive, multiple naming conventions)
+    ra_names = ['ra', 'ramean', 'rastack', 'raj2000', '_raj2000']
+    dec_names = ['dec', 'decmean', 'decstack', 'dej2000', '_dej2000']
+    ra_col = next((c for c in tab.colnames if c.lower() in ra_names), None)
+    dec_col = next((c for c in tab.colnames if c.lower() in dec_names), None)
     
     if ra_col is None or dec_col is None:
         print(f"     Warning: Could not find RA/Dec columns in {tab.colnames}")
@@ -315,6 +317,9 @@ def q_ps1(coord, radius, z):
         
         # Add photometric redshifts
         t = add_photoz_to_ps1(t, coord, z)
+        
+        # Add stellar mass estimates from photometry
+        t = add_mass_estimates_to_ps1(t, z)
         
         # Add projected separation
         t = _add_proj(t, coord, z)
@@ -645,7 +650,7 @@ std_ps1 = lambda t: _std(t, {
     "ra": "raMean",
     "dec": "decMean",
     "z": "z_best",  # Now includes photo-z
-    "Mstar": None,
+    "Mstar": "log_Mstar",  # Estimated from colors
     "Rproj_kpc": "Rproj_kpc"
 }, "PS1")
 

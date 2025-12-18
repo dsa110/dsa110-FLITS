@@ -28,6 +28,8 @@ import yaml
 from pathlib import Path
 from scipy.ndimage import gaussian_filter1d
 
+from .burst_metadata import load_tns_name
+
 
 from scattering.scat_analysis.burstfit import FRBModel, FRBParams, downsample
 from flits.utils.reporting import print_fit_summary, get_fit_summary_lines
@@ -149,7 +151,8 @@ def plot_scattering_diagnostic(
     params: FRBParams,
     results: dict,
     output_path: Path,
-    burst_name: str = "FRB"
+    burst_name: str = "FRB",
+    telescope: str = None
 ):
     """
     Create 4-panel diagnostic plot with elegant header.
@@ -357,9 +360,15 @@ def plot_scattering_diagnostic(
     quality = gof.get("quality_flag", "UNKNOWN")
     
     # Determine observatory and TNS name (all from data/results, nothing hard-coded)
-    fname = output_path.name
-    tns_name = results.get('tns_name', results.get('frb_name', burst_name.upper()))
-    observatory = results.get('observatory', 'CHIME/FRB' if 'chime' in fname.lower() else 'DSA-110')
+    # Use telescope parameter or detect from filename as fallback
+    if telescope:
+        observatory_map = {'chime': 'CHIME/FRB', 'dsa': 'DSA-110', 'dsa110': 'DSA-110'}
+        observatory = results.get('observatory', observatory_map.get(telescope.lower(), telescope.upper()))
+    else:
+        fname = output_path.name
+        observatory = results.get('observatory', 'CHIME/FRB' if 'chime' in fname.lower() else 'DSA-110')
+    # Load TNS name from CSV (all metadata now from external sources)
+    tns_name = load_tns_name(burst_name)
     
     # Panel 1: Observation Context (compact layout)
     fig.text(0.07, 0.975, "OBSERVATION CONTEXT", **KW_TITLE)
@@ -550,7 +559,7 @@ def main():
     # Create plot
     print("Creating diagnostic plot...")
     fig = plot_scattering_diagnostic(
-        data, model, freq, time, params, results, output_path, burst_name
+        data, model, freq, time, params, results, output_path, burst_name, args.telescope
     )
     
     if args.show:

@@ -113,11 +113,17 @@ def preprocess_data(
     df_MHz = config["df_MHz_raw"] * f_factor
     
     # Handle frequency ordering
+    # Force output to be ascending frequency (Low -> High) for standardized plotting
     freq_desc = config.get("freq_descending", False)
+    
     if freq_desc:
-        freq = np.linspace(config["f_max_GHz"], config["f_min_GHz"], n_ch)
-    else:
-        freq = np.linspace(config["f_min_GHz"], config["f_max_GHz"], n_ch)
+        # Data is High -> Low. Flip to make it Low -> High.
+        data = np.flip(data, axis=0)
+        # Verify: original data[0] was High Freq. Now data[-1] is High Freq.
+        # So Index 0 is Low Freq.
+    
+    # Always generate ascending frequency axis
+    freq = np.linspace(config["f_min_GHz"], config["f_max_GHz"], n_ch)
     
     time = np.arange(n_t) * dt_ms
     
@@ -242,7 +248,7 @@ def plot_scattering_diagnostic(
     # Share Y axis label only on leftmost, others clear?
     # Usually keep y-axis ticks but remove label to save space?
     # User requested "row of sub-plots".
-    format_ax(axes[1], f"Model ({results['best_model']})", ylabel=False, cbar_im=im1)
+    format_ax(axes[1], f"Model ({results.get('best_model', results.get('best_key', 'Unknown'))})", ylabel=False, cbar_im=im1)
     
     # Panel 3: Residuals
     vmax_res = np.percentile(np.abs(residual), 99)
@@ -315,7 +321,7 @@ def plot_scattering_diagnostic(
     # Output parameters title
     gof = results['goodness_of_fit']
     title_text = (
-        f"{burst_name} - {results['best_model']} Fit (χ²/dof={gof['chi2_reduced']:.2f}, R²={gof['r_squared']:.2f})\n"
+        f"{burst_name} - {results.get('best_model', results.get('best_key', 'Unknown'))} Fit (χ²/dof={gof['chi2_reduced']:.2f}, R²={gof['r_squared']:.2f})\n"
     )
     if hasattr(params, 'tau_1ghz') and params.tau_1ghz > 1e-6:
         title_text += (

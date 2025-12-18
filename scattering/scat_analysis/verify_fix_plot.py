@@ -2,7 +2,8 @@
 import json
 import numpy as np
 from pathlib import Path
-from scattering.scat_analysis.burstfit_pipeline import BurstDataset, create_sixteen_panel_plot, create_four_panel_plot
+from scattering.scat_analysis.burstfit_pipeline import BurstDataset, create_sixteen_panel_plot
+from scattering.scat_analysis.visualization import plot_scattering_diagnostic
 from scattering.scat_analysis.burstfit import FRBParams
 import matplotlib.pyplot as plt
 
@@ -51,7 +52,32 @@ def verify_plot():
     
     # 3. Plot
     print("Generating plots...")
-    create_four_panel_plot(dataset, results, save=True, show=False)
+    
+    # Needs: data, model, freq, time, params, results, output_path, burst_name
+    # Reconstruct these from dataset
+    freq = dataset.freq
+    time_ms = dataset.time
+    data = dataset.data
+    # model_instance is already in results["model_instance"]
+    
+    # We need to compute the model array
+    # params is results["best_params"]
+    # model key is M3
+    model_arr = results["model_instance"](results["best_params"], model_key=results["best_key"])
+    
+    out_path = Path(out_dir) / f"{dataset.name}_four_panel.pdf"
+    
+    plot_scattering_diagnostic(
+        data=data,
+        model=model_arr,
+        freq=freq,
+        time=time_ms,
+        params=results["best_params"],
+        results=results,
+        output_path=out_path,
+        burst_name="Casey"
+    )
+    # create_four_panel_plot(dataset, results, save=True, show=False)
     # create_sixteen_panel_plot requires more data (chain etc) which we might lack in JSON reconstruction without full pickle
     # But try anyway for resid histogram check?
     # The JSON only has summary stats, not the full chain. 

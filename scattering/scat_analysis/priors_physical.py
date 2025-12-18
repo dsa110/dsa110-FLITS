@@ -391,7 +391,12 @@ def log_prob_lognormal(x: float, mu: float, sigma: float) -> float:
         return -np.inf
     
     log10_x = np.log10(x)
-    z = (log10_x - mu) / sigma
+    # Convert user-facing mode parameterization to the equivalent Normal mean.
+    # If y = log10(x) ~ Normal(mean, sigma), then the mode of x occurs at:
+    # y_mode = mean - sigma^2 * ln(10)
+    # Therefore if mu is provided as y_mode, mean = mu + sigma^2 * ln(10).
+    log10_mean = mu + (sigma**2) * np.log(10)
+    z = (log10_x - log10_mean) / sigma
     
     # Normal PDF for log10(x), plus Jacobian 1/(x * ln(10))
     return -0.5 * z**2 - np.log(sigma) - np.log(x) - np.log(np.log(10))

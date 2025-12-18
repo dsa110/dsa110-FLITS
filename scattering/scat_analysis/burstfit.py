@@ -706,7 +706,7 @@ def build_priors(
     abs_min: float = _MIN_POS,  # floor for positive parameters
     abs_max: dict[str, float] | None = None,  # optional hard ceilings
     log_weight_pos: bool = False,  # True → Jeffreys p(x)∝1/x   (still linear sampling)
-) -> dict[str, tuple[float, float]]:
+) -> tuple[dict[str, tuple[float, float]], bool]:
     """
     Build simple linear-space top-hat priors that *won’t* strangle the chain.
 
@@ -724,14 +724,6 @@ def build_priors(
         If True, you still sample in linear units but will later *add*
         -log(x) to the log-prior for each positive parameter.
     """
-    from dataclasses import asdict
-    from .validation_thresholds import (
-        DM_MIN, DM_MAX,
-        AMP_MIN, AMP_MAX,
-        WIDTH_MIN, WIDTH_MAX,
-        ALPHA_GOOD_MIN, ALPHA_MARGINAL_MAX
-    )
-
     pri = {}
     
     # Map parameters to their specific bounds

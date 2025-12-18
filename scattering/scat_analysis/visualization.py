@@ -238,19 +238,8 @@ def _draw_diagnostic_header(fig, results, tns_name, burst_name, observatory, bes
         if col < len(x_cols):
             fig.text(x_cols[col], 0.95 - (row * 0.018), s, fontname=FONT_SANS, fontsize=8, color=C_TEXT_PRIMARY, va='top')
 
-def plot_scattering_diagnostic(
-    data: np.ndarray,
-    model: np.ndarray,
-    freq: np.ndarray,
-    time: np.ndarray,
-    params: FRBParams,
-    results: dict,
-    output_path: Path,
-    burst_name: str = "FRB",
-    telescope: str = None
-):
-    """Create 4-panel diagnostic plot with elegant header."""
-    # Data Preparation
+def _prepare_diagnostic_data(data: np.ndarray, model: np.ndarray):
+    """Normalize data and calculate residuals/synthetic data."""
     q = data.shape[1] // 4
     data_off = data[:, np.r_[0:q, -q:0]]
     noise_std = np.nanstd(data_off, axis=1)
@@ -264,7 +253,48 @@ def plot_scattering_diagnostic(
     p_snr = np.nanmax((data - m_off) / s_off) or 1.0
     norm = lambda x, sub=True: ((x - m_off) if sub else x) / s_off / p_snr
     
-    d_norm, m_norm, s_norm, r_norm = norm(data), norm(model), norm(synth_data), norm(residual, False)
+    return norm(data), norm(model), norm(synth_data), norm(residual, False)
+
+def _render_diagnostic_panel(axes, i, ds, title, label, extent, freq, time_centered, ts_ylim):
+    """Render a single diagnostic panel (timeseries, waterfall, spectrum)."""
+    ax_ts, ax_wf, ax_sp = axes[0, i*2], axes[1, i*2], axes[1, i*2+1]
+    
+    # Timeseries (top row)
+    ax_ts.step(time_centered, np.nansum(ds, axis=0), where="mid", c="k", lw=1.5, label=label)
+    ax_ts.legend(loc="upper right", fontsize=14, frameon=False)
+    ax_ts.set_ylim(ts_ylim); ax_ts.set_yticks([]); ax_ts.set_xlim(extent[0], extent[1])
+    ax_ts.tick_params(labelbottom=False)
+    
+    # Dynamic Spectrum (bottom row)
+    cmap = "coolwarm" if title == "Residual" else "plasma"
+    vmin = -np.nanmax(np.abs(ds)) if title=="Residual" else np.nanpercentile(ds, 1)
+    vmax = np.nanmax(np.abs(ds)) if title=="Residual" else np.nanpercentile(ds, 99.5)
+    
+    ax_wf.imshow(ds, extent=extent, vmin=vmin, vmax=vmax, cmap=cmap, aspect="auto", origin="lower")
+    ax_wf.set_xlabel("Time [ms]", fontsize=16)
+    if i == 0: ax_wf.set_ylabel("Frequency [GHz]", fontsize=16)
+    else: ax_wf.tick_params(labelleft=False)
+    
+    # Frequency Profile (vertical)
+    sp = np.nansum(ds, axis=1)
+    ax_sp.step(sp, freq, where="mid", c="k", lw=1.5)
+    ax_sp.set_yticks([]); ax_sp.set_xticks([]); ax_sp.set_ylim(extent[2], extent[3])
+    axes[0, i*2+1].axis("off")
+
+def plot_scattering_diagnostic(
+    data: np.ndarray,
+    model: np.ndarray,
+    freq: np.ndarray,
+    time: np.ndarray,
+    params: FRBParams,
+    results: dict,
+    output_path: Path,
+    burst_name: str = "FRB",
+    telescope: str = None
+):
+    """Create 4-panel diagnostic plot with elegant header."""
+    # Data Preparation & Normalization
+    d_norm, m_norm, s_norm, r_norm = _prepare_diagnostic_data(data, model)
     
     # Configure Style
     plt.rcParams.update({
@@ -274,39 +304,22 @@ def plot_scattering_diagnostic(
         'xtick.labelsize': 14, 'ytick.labelsize': 14, 'axes.labelsize': 16,
     })
     
-    # Create Figure
+    # Setup Figure and Axes
     fig, axes = plt.subplots(nrows=2, ncols=8, gridspec_kw={"height_ratios": [1, 2.5], "width_ratios": [2, 0.5] * 4}, figsize=(24, 8.5))
     
     time_centered = time - (time[0] + (time[-1] - time[0]) / 2)
     extent = [time_centered[0], time_centered[-1], freq[0], freq[-1]]
     
-    # shared limits
+    # Calculate shared limits for timeseries
     ts_list = [np.nansum(x, axis=0) for x in [d_norm, m_norm, s_norm, r_norm]]
     ts_ylim = (min(np.min(t) for t in ts_list) * 1.05, max(np.max(t) for t in ts_list) * 1.05)
     
+    # Render Panels
     panels = [(d_norm, "Data", r"$\mathbf{I}_{\rm data}$"), (m_norm, "Model", r"$\mathbf{I}_{\rm model}$"),
               (s_norm, "Model + Noise", r"$\mathbf{I}_{\rm model} + \mathbf{N}$"), (r_norm, "Residual", r"$\mathbf{I}_{\rm residual}$")]
     
     for i, (ds, title, label) in enumerate(panels):
-        ax_ts, ax_wf, ax_sp = axes[0, i*2], axes[1, i*2], axes[1, i*2+1]
-        ax_ts.step(time_centered, np.nansum(ds, axis=0), where="mid", c="k", lw=1.5, label=label)
-        ax_ts.legend(loc="upper right", fontsize=14, frameon=False)
-        ax_ts.set_ylim(ts_ylim); ax_ts.set_yticks([]); ax_ts.set_xlim(extent[0], extent[1])
-        ax_ts.tick_params(labelbottom=False)
-        
-        cmap = "coolwarm" if title == "Residual" else "plasma"
-        vmin = -np.nanmax(np.abs(ds)) if title=="Residual" else np.nanpercentile(ds, 1)
-        vmax = np.nanmax(np.abs(ds)) if title=="Residual" else np.nanpercentile(ds, 99.5)
-        
-        ax_wf.imshow(ds, extent=extent, vmin=vmin, vmax=vmax, cmap=cmap, aspect="auto", origin="lower")
-        ax_wf.set_xlabel("Time [ms]", fontsize=16)
-        if i == 0: ax_wf.set_ylabel("Frequency [GHz]", fontsize=16)
-        else: ax_wf.tick_params(labelleft=False)
-        
-        sp = np.nansum(ds, axis=1)
-        ax_sp.step(sp, freq, where="mid", c="k", lw=1.5)
-        ax_sp.set_yticks([]); ax_sp.set_xticks([]); ax_sp.set_ylim(extent[2], extent[3])
-        axes[0, i*2+1].axis("off")
+        _render_diagnostic_panel(axes, i, ds, title, label, extent, freq, time_centered, ts_ylim)
 
     plt.subplots_adjust(hspace=0.05, wspace=0.05, top=0.88, bottom=0.08, left=0.05, right=0.98)
 

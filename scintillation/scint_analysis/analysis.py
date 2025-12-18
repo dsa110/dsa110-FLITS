@@ -10,9 +10,12 @@ try:
     import numba as nb
     _NUMBA = True
     log.info("Numba detected. Using JIT-accelerated ACF computations.")
-except ModuleNotFoundError:  # pragma: no cover - optional dependency
+except (ModuleNotFoundError, ImportError) as e:  # Catch both missing module and NumPy incompatibility
     _NUMBA = False
-    log.info("Numba not found. Using pure Python ACF computations.")
+    if 'NumPy 2' in str(e):
+        log.info(f"Numba not compatible with current NumPy version. Using pure Python ACF computations.")
+    else:
+        log.info("Numba not found. Using pure Python ACF computations.")
 from .core import ACF
 from lmfit import Model, Parameters
 from lmfit.models import ConstantModel

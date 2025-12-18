@@ -29,7 +29,6 @@ TARGETS: List[Tuple[str, str, str, float]] = [
 
 # Catalog identifiers for Vizier
 VIZIER_CATALOGS = {
-    "GLADE+": "VII/281/glade2",
-    "2MPZ": "J/ApJ/776/43/table1",
-    "SDSS_DR17": "V/154/sdss17",
+    "GLADE+": "VII/281/glade2", # Includes 2MPZ, 2MASS XSC, SDSS-DR16Q
+    "SDSS_DR12": "V/147/sdss12", # Stable spectroscopic/photometric catalog
 }

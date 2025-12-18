@@ -53,7 +53,7 @@ def plot_impact_vs_redshift(summary_df: pd.DataFrame, all_galaxies_df: pd.DataFr
         
     ax.set_xlabel('Redshift ($z$)')
     ax.set_ylabel('Impact Parameter ($b$ [kpc])')
-    ax.set_title('Foreground Galaxy Environment')
+    # ax.set_title('Foreground Galaxy Environment')
     
     # Add colorbar or legend
     if color_col == 'name':
@@ -107,7 +107,8 @@ def plot_sightline(target_info: dict, galaxies_df: pd.DataFrame, output_path: Op
         # Add labels for galaxies
         for _, row in galaxies_df.iterrows():
             label = row['name'] if pd.notna(row['name']) and row['name'] != "" else f"z={row['z']:.3f}"
-            ax.annotate(label, (row['dra'], row['ddec']), xytext=(5, 5), textcoords='offset points', fontsize=9, fontweight='bold')
+            ax.annotate(label, (row['dra'], row['ddec']), xytext=(0, -15), textcoords='offset points', 
+                        fontsize=9, fontweight='bold', ha='center', va='top')
             
         cbar = plt.colorbar(scatter)
         cbar.set_label('Redshift ($z$)')

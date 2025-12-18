@@ -4,7 +4,8 @@
 import numpy as np
 import logging
 from typing import Union
-from astropy.stats import sigma_clip
+# Removed astropy.stats import to avoid bottleneck dependency (NumPy 2.x incompatibility)
+# Using NumPy-native sigma clipping below
 from scipy.ndimage import label
 from scipy.stats import median_abs_deviation
 from tqdm import tqdm
@@ -12,6 +13,52 @@ import matplotlib.pyplot as plt
 
 # Set up a logger for this module
 log = logging.getLogger(__name__)
+
+def sigma_clip(data, sigma=3, maxiters=5, masked=True):
+    """
+    NumPy-native iterative sigma clipping to avoid bottleneck dependency.
+    
+    Parameters
+    ----------
+    data : array-like
+        Data to clip
+    sigma : float
+        Number of standard deviations for clipping threshold
+    maxiters : int
+        Maximum number of clipping iterations
+    masked : bool
+        If True, return a masked array; otherwise return regular array
+    
+    Returns
+    -------
+    np.ma.MaskedArray or np.ndarray
+        Sigma-clipped data
+    """
+    data = np.asarray(data)
+    mask = np.zeros(data.shape, dtype=bool)
+    
+    for _ in range(maxiters):
+        masked_data = np.ma.masked_array(data, mask=mask)
+        med = np.ma.median(masked_data)
+        std = np.ma.std(masked_data)
+        
+        if std == 0 or std is np.ma.masked:
+            break
+        
+        # Find outliers
+        deviation = np.abs(data - med)
+        new_mask = deviation > (sigma * std)
+        
+        # If no new points are flagged, we've converged
+        if not np.any(new_mask & ~mask):
+            break
+        
+        mask = new_mask
+    
+    if masked:
+        return np.ma.masked_array(data, mask=mask)
+    else:
+        return data[~mask]
 
 class DynamicSpectrum:
     """

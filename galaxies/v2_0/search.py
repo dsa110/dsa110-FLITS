@@ -4,11 +4,11 @@ import os
 import pandas as pd
 from astropy.coordinates import SkyCoord
 import astropy.units as u
-from .config import TARGETS, DEFAULT_IMPACT_KPC, VIZIER_CATALOGS
+from .config import TARGETS, DEFAULT_IMPACT_KPC, VIZIER_CATALOGS, DEFAULT_Z_EPS
 from .utils import parse_coord, get_angular_radius, calculate_impact_parameter
 from .engines import NedEngine, VizierEngine
 
-def run_search(impact_kpc: float = DEFAULT_IMPACT_KPC, output_dir: str = "results"):
+def run_search(impact_kpc: float = DEFAULT_IMPACT_KPC, output_dir: str = "results", z_eps: float = DEFAULT_Z_EPS):
     """Run the galaxy search for all targets."""
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
@@ -29,7 +29,13 @@ def run_search(impact_kpc: float = DEFAULT_IMPACT_KPC, output_dir: str = "result
             df = engine.query(coord, radius)
             engine_name = engine.__class__.__name__
             if isinstance(engine, VizierEngine):
-                engine_name = f"VizierEngine({engine.catalog_id})"
+                # Find the catalog name from VIZIER_CATALOGS
+                cat_label = engine.catalog_id
+                for k, v in VIZIER_CATALOGS.items():
+                    if v == engine.catalog_id:
+                        cat_label = k
+                        break
+                engine_name = f"VizierEngine({cat_label})"
                 
             if not df.empty:
                 print(f"    {engine_name} returned {len(df)} raw results.")
@@ -55,13 +61,15 @@ def run_search(impact_kpc: float = DEFAULT_IMPACT_KPC, output_dir: str = "result
                             row['ra'], row['dec'], row['z'], coord.ra.deg, coord.dec.deg
                         ), axis=1
                     )
-                    # Filter for foreground and impact parameter
-                    df_filtered = df[(df['z'] < z_frb) & (df['impact_kpc'] <= impact_kpc)]
+                    # Filter for foreground (with buffer) and impact parameter
+                    df_filtered = df[(df['z'] < (z_frb + z_eps)) & (df['impact_kpc'] <= impact_kpc)]
                     if not df_filtered.empty:
                         target_matches.append(df_filtered)
                         print(f"      {engine_name}: Found {len(df_filtered)} matches (from {with_z_count} with z).")
                     else:
                         print(f"      {engine_name}: 0 matches (from {with_z_count} with z).")
+            else:
+                print(f"    {engine_name} returned 0 results.")
         
         if target_matches:
             all_matches = pd.concat(target_matches, ignore_index=True)

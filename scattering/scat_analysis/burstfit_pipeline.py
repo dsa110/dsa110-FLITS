@@ -544,7 +544,7 @@ def create_fit_summary_plot(
     ax_params.set_title("Best Fit Parameters", fontweight="bold", loc="left")
 
     if save:
-        spath = dataset.outpath / f"{dataset.name}_enhanced_diagnostics.png"
+        spath = dataset.outpath / f"{dataset.name}_fit_summary.png"
         fig.savefig(spath, dpi=150, bbox_inches="tight")
         log.info(f"Saved enhanced diagnostics to {spath}")
     

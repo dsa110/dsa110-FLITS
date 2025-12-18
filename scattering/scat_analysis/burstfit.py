@@ -27,6 +27,7 @@ import emcee
 import numpy as np
 from numpy.typing import NDArray
 from scipy.signal import fftconvolve
+from scipy import stats
 
 __all__ = [
     "FRBParams",
@@ -46,6 +47,20 @@ from flits.scattering import (
     tau_per_freq,
     log_normal_prior,
     gaussian_prior,
+)
+
+from .validation_thresholds import (
+    DM_MIN, DM_MAX,
+    AMP_MIN, AMP_MAX,
+    WIDTH_MIN, WIDTH_MAX,
+    ALPHA_GOOD_MIN, ALPHA_MARGINAL_MAX,
+    CHI_SQ_RED_MARGINAL_MAX,
+    CHI_SQ_RED_SUSPICIOUSLY_LOW,
+    R_SQ_POOR_MIN,
+    R_SQ_MARGINAL_MIN,
+    RESIDUAL_NORMALITY_PVALUE,
+    RESIDUAL_AUTOCORR_DW_MIN,
+    RESIDUAL_AUTOCORR_DW_MAX,
 )
 
 # ----------------------------------------------------------------------
@@ -772,40 +787,6 @@ def downsample(data: NDArray[np.floating], f_factor=1, t_factor=1):
     )
     return d.mean(axis=(1, 3))
 
-
-def goodness_of_fit(
-    data: NDArray[np.floating],
-    model: NDArray[np.floating],
-    noise_std: NDArray[np.floating],
-    n_params: int,
-) -> Dict[str, Any]:
-    """Compute goodness-of-fit metrics."""
-    residual = data - model
-    noise_std_safe = np.clip(noise_std, 1e-9, None)[:, np.newaxis]
-
-    chi2 = np.sum((residual / noise_std_safe) ** 2)
-    ndof = data.size - n_params
-    chi2_reduced = chi2 / ndof if ndof > 0 else np.inf
-
-    residual_profile = np.sum(residual, axis=0)
-    residual_profile -= np.mean(residual_profile)
-
-    autocorr = np.correlate(residual_profile, residual_profile, mode="same")
-    center_val = autocorr[len(autocorr) // 2]
-    if center_val > 0:
-        autocorr /= center_val
-
-
-from scipy import stats
-from .validation_thresholds import (
-    CHI_SQ_RED_MARGINAL_MAX,
-    CHI_SQ_RED_SUSPICIOUSLY_LOW,
-    R_SQ_POOR_MIN,
-    R_SQ_MARGINAL_MIN,
-    RESIDUAL_NORMALITY_PVALUE,
-    RESIDUAL_AUTOCORR_DW_MIN,
-    RESIDUAL_AUTOCORR_DW_MAX,
-)
 
 def goodness_of_fit(
     data: NDArray[np.floating],

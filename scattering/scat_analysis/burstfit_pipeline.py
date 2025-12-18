@@ -229,15 +229,20 @@ def create_four_panel_plot(
         res_all = results["all_results"]
         keys = list(res_all.keys())
         keys.sort(reverse=True) # M3, M2, M1
-        best_z = max(float(res_all[k].log_evidence) for k in keys) if keys else 0
+        def get_logz(res):
+            if isinstance(res, dict):
+                return res.get("log_evidence", 0)
+            return getattr(res, "log_evidence", 0)
+
+        best_z = max(float(get_logz(res_all[k])) for k in keys) if keys else 0
         
         for k in keys:
-            z = float(res_all[k].log_evidence)
+            z = float(get_logz(res_all[k]))
             dz = z - best_z
             # Clean format: M3: logZ = -562 (d=0)
             mark = r"$\mathbf{\ast}$" if k == best_key else " "
             # Use LaTeX for cleaner look if possible, or just text
-            model_text += f"{mark} {k}: $\ln{{Z}}={z:.0f}$ ($\Delta={dz:.0f}$)\n"
+            model_text += rf"{mark} {k}: $\ln{{Z}}={z:.0f}$ ($\Delta={dz:.0f}$)\n"
     else:
         model_text += f"{best_key} (Selected)\n(Comparison N/A)"
 
@@ -249,9 +254,10 @@ def create_four_panel_plot(
     
     # Use color only for the status word
     gof_header = "Goodness of Fit:"
-    gof_body = (
-        f"$\chi^2_\\nu = {chi2:.2f}$\n"
-        f"$R^2   = {r2:.3f}$"
+    reduced_chi2_label = r"$\chi^2_r$"
+    gof_text_1 = (
+        f"{reduced_chi2_label} = {chi2:.2f}\n"
+        f"$R^2 = {r2:.3f}$"
     )
     
     # 4. Parameters
@@ -272,7 +278,8 @@ def create_four_panel_plot(
         else:
             s_val = f"{val:.4g}"
             
-        param_lines.append(f"{name} = ${s_val} \pm {err:.1g}$")
+        msg = rf"{name} = ${s_val} \pm {err:.1g}$"
+        param_lines.append(msg)
     param_text = "\n".join(param_lines)
 
     # --- Rendering Text Blocks ---
@@ -1393,10 +1400,19 @@ class BurstPipeline:
                 log.info(f"Saved fit results to {json_path}")
 
             if plot:
-                p_path_sixt = os.path.join(self.outpath, f"{self.name}_diagnostics.pdf")
-                create_sixteen_panel_plot(self.dataset, results, save=save, show=False)
-                p_path_four = os.path.join(self.outpath, f"{self.name}_fullmodel.pdf")
-                create_four_panel_plot(self.dataset, results, save=save, show=False)
+                try:
+                    from .visualization import plot_scattering_diagnostic
+                    log.info("Generating publication-quality diagnostic plot...")
+                    plot_scattering_diagnostic(
+                        dataset=self.dataset,
+                        results=results,
+                        save=save,
+                        telescope=self.telescope_orig, # Use original telescope name
+                    )
+                except Exception as e:
+                    log.warning(f"Modular plotting failed: {e}. Falling back to legacy plots.")
+                    create_sixteen_panel_plot(self.dataset, results, save=save, show=False)
+                    create_four_panel_plot(self.dataset, results, save=save, show=False)
 
             return results
 

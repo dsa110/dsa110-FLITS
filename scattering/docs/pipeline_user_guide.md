@@ -175,13 +175,13 @@ The plot automatically handles:
 
 ## Troubleshooting
 
-| Symptom                              | Cause                         | Solution                        |
-| ------------------------------------ | ----------------------------- | ------------------------------- |
-| `chi2_reduced > 10^10`               | Masked channels in validation | Fixed in code                   |
-| `alpha` not matching `--alpha-fixed` | Parameter injection bug       | Fixed in code                   |
-| Model at wrong time                  | Time axis mismatch            | Check `dt_ms_raw` in YAML       |
-| Burst upside-down                    | Frequency axis flipped        | Check `freq_descending` in YAML |
-| M0/M2 "plateau"                      | Prior too wide for data       | Expected behavior               |
+| Symptom                              | Cause                         | Solution                                         |
+| ------------------------------------ | ----------------------------- | ------------------------------------------------ |
+| `chi2_reduced > 10^10`               | Masked channels in validation | Fixed in code                                    |
+| `alpha` not matching `--alpha-fixed` | Parameter injection bug       | Fixed in code                                    |
+| Model at wrong time                  | Time axis mismatch            | Check `dt_ms_raw` in YAML                        |
+| Burst upside-down                    | Frequency axis flipped        | Standardize with `scripts/standardize_robust.py` |
+| M0/M2 "plateau"                      | Prior too wide for data       | Expected behavior                                |
 
 ---
 
@@ -194,9 +194,13 @@ The plot automatically handles:
      df_MHz_raw: 0.5 # Channel width in MHz
      dt_ms_raw: 0.001 # Time sample in ms
      f_min_GHz: 1.0 # Bottom of band in GHz
-     f_max_GHz: 2.0 # Top of band in GHz
-     freq_descending: false # true if data[0] = high freq
+     f_max_GHz: 2.0 # Top of processed band    [GHz]
    ```
+
+> [!IMPORTANT]
+> All data must be in **Ascending** frequency order (data[0] = Low frequency). If your new data is Descending, use the robust standardization script provided.
+
+```
 
 2. Verify with a test run on your data.
 
@@ -213,3 +217,4 @@ The plot automatically handles:
 | t₀         | 3.85 ms                           |
 | χ²/dof     | 3.90                              |
 | R²         | 0.68                              |
+```

@@ -92,7 +92,6 @@ class TelescopeConfig:
     f_min_GHz: float
     f_max_GHz: float
     n_ch_raw: Optional[int] = None
-    freq_descending: bool = False  # True if data[0] = f_max (high freq at row 0)
 
 
 @dataclass

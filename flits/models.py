@@ -8,9 +8,11 @@ from numpy.typing import NDArray
 from .params import FRBParams
 from .scattering import scatter_broaden, tau_per_freq
 
-# Dispersion constant: delay(ms) = K_DM * DM(pc/cm³) / freq(MHz)²
-# Derived from: dt = 4.148808 ms × DM / f_GHz², converting GHz → MHz gives factor of 1e6
-K_DM = 4.148808e6
+# Import the canonical dispersion constant from the shared constants module.
+# K_DM_MS gives delay in ms when DM is in pc/cm³ and freq is in MHz.
+from .common.constants import K_DM_MS as K_DM
+
+
 
 
 class FRBModel:

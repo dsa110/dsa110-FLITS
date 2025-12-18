@@ -1,39 +1,50 @@
-
 import numpy as np
+import glob
 from pathlib import Path
 
-def check_orientation():
-    files = sorted(Path("data/chime").glob("*.npy"))
-    print(f"Checking {len(files)} files for frequency orientation...")
+def check_orientation(data):
+    # Sum over time to get frequency profile
+    prof = np.sum(data, axis=1)
+    # This might not be enough. Let's look at the scattering tail.
+    # We'll take the centroid of each channel.
+    n_ch = data.shape[0]
+    n_t = data.shape[1]
+    times = np.arange(n_t)
     
-    for f in files:
-        try:
-            data = np.load(f)
-            # Simple heuristic: CHIME bursts are usually dedispersed to ~400 MHz (bottom of band) or ~800 MHz (top).
-            # But the raw data (before dedispersion correction in pipeline) contains dispersed signal.
-            # More simply: The background noise levels or dropped channels might give a clue.
-            # Or we can just check if the signal is at the "bottom" (index 0) or "top" (index -1) of the array 
-            # relative to the dedispersion sweep. 
-            
-            # Actually, the user stated for Casey: "flux heavily concentrated within 700-800 MHz" in the corrupted fit,
-            # meaning the signal was at the array indices corresponding to 800 MHz in the model.
-            # If the model is Ascending (0=400, -1=800), and the signal was at 800 MHz (Index -1), 
-            # then the signal was at Index -1.
-            # If the data was Descending (0=800, -1=400), then signal at ~400 MHz would be at Index -1.
-            
-            # Let's just print the index of the peak for each file to see if they are consistent.
-            # If all files have peak at similar relative frequency indices, they likely share the same orientation.
-            
-            # Collapse to frequency profile
-            prof = np.sum(np.nan_to_num(data), axis=1)
-            peak_idx = np.argmax(prof)
-            total_ch = len(prof)
-            rel_pos = peak_idx / total_ch
-            
-            print(f"{f.name}: Peak at index {peak_idx}/{total_ch} ({rel_pos:.2f})")
-            
-        except Exception as e:
-            print(f"Failed to load {f.name}: {e}")
+    centroids = []
+    for i in range(n_ch):
+        ch_data = data[i] - np.mean(data[i][:n_t//4])
+        if np.max(ch_data) > 3 * np.std(ch_data[:n_t//4]):
+            centroid = np.sum(times * ch_data) / np.sum(ch_data)
+            centroids.append(centroid)
+        else:
+            centroids.append(np.nan)
+    
+    centroids = np.array(centroids)
+    valid = ~np.isnan(centroids)
+    if np.sum(valid) < 10:
+        return "Unknown"
+    
+    # Fit a line to centroids vs channel index
+    idx = np.arange(n_ch)[valid]
+    p = np.polyfit(idx, centroids[valid], 1)
+    # p[0] is the slope (dt/d_chan_idx)
+    # Scattering: low freq has LATER centroid.
+    # If slope is positive: as index increases, centroid increases (gets later).
+    # So higher index = lower frequency. -> Descending!
+    # If slope is negative: as index increases, centroid decreases (gets earlier).
+    # So higher index = higher frequency. -> Ascending!
+    
+    if p[0] > 0:
+        return "Descending"
+    else:
+        return "Ascending"
 
-if __name__ == "__main__":
-    check_orientation()
+files = glob.glob("data/chime/*.npy")
+for f in files:
+    try:
+        data = np.load(f)
+        orient = check_orientation(data)
+        print(f"{f}: {orient}")
+    except Exception as e:
+        print(f"{f}: Error {e}")

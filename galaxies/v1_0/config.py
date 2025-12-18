@@ -41,19 +41,20 @@ class Target:
 
 
 # Master target list - single source of truth
+# Names: person name (TNS name)
 TARGETS: List[Target] = [
-    Target("20h40m47.886s", "+72d52m56.378s", 0.0430, "T01"),
-    Target("08h58m52.92s",  "+73d29m27.0s",   0.4790, "T02"),
-    Target("21h12m10.760s", "+72d49m38.20s",  0.3005, "T03"),
-    Target("04h45m38.64s",  "+70d18m26.6s",   0.2505, "T04"),
-    Target("21h00m31.09s",  "+72d02m15.22s",  0.5100, "T05"),
-    Target("11h51m07.52s",  "+71d41m44.3s",   0.2710, "T06"),
-    Target("05h52m45.12s",  "+74d12m01.7s",   1.0000, "T07"),
-    Target("20h20m08.92s",  "+70d47m33.96s",  0.3024, "T08"),
-    Target("02h39m03.96s",  "+71d01m04.3s",   1.0000, "T09"),
-    Target("20h50m28.59s",  "+73d54m00.0s",   0.0740, "T10"),
-    Target("11h19m56.05s",  "+70d40m34.4s",   0.2870, "T11"),
-    Target("22h23m53.94s",  "+73d01m33.26s",  1.0000, "T12"),
+    Target("20h40m47.886s", "+72d52m56.378s", 0.0430, "Zach (FRB20220207A)"),
+    Target("08h58m52.92s",  "+73d29m27.0s",   0.4790, "Whitney (FRB20220310A)"),
+    Target("21h12m10.760s", "+72d49m38.20s",  0.3005, "Oran (FRB20220506A)"),
+    Target("04h45m38.64s",  "+70d18m26.6s",   0.2505, "Isha (FRB20221113A)"),
+    Target("21h00m31.09s",  "+72d02m15.22s",  0.5100, "Wilhelm (FRB20221203A)"),
+    Target("11h51m07.52s",  "+71d41m44.3s",   0.2710, "Phineas (FRB20230307A)"),
+    Target("05h52m45.12s",  "+74d12m01.7s",   1.0000, "Freya (FRB20230325A)"),
+    Target("20h20m08.92s",  "+70d47m33.96s",  0.3024, "Hamilton (FRB20230913A)"),
+    Target("02h39m03.96s",  "+71d01m04.3s",   1.0000, "Mahi (FRB20240122A)"),
+    Target("20h50m28.59s",  "+73d54m00.0s",   0.0740, "Chromatica (FRB20240203A)"),
+    Target("11h19m56.05s",  "+70d40m34.4s",   0.2870, "Casey (FRB20240229A)"),
+    Target("22h23m53.94s",  "+73d01m33.26s",  1.0000, "JohnDoeII (FRB20230814A)"),
 ]
 
 # Legacy tuple format for backward compatibility

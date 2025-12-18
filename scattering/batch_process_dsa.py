@@ -27,174 +27,13 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from scattering.scat_analysis.burstfit_pipeline import BurstPipeline, BurstDataset
 from scattering.scat_analysis.burstfit import FRBModel, FRBParams, goodness_of_fit
 from scattering.scat_analysis.config_utils import load_telescope_block
+from scattering.scat_analysis.visualization import plot_scattering_diagnostic
 
 # Burst list
 DSA_BURSTS = [
     "casey", "chromatica", "freya", "hamilton", "isha", "johndoeII",
     "mahi", "oran", "phineas", "whitney", "wilhelm", "zach"
 ]
-
-def create_highres_diagnostic_plot(
-    data: np.ndarray,
-    model: np.ndarray,
-    freq: np.ndarray,
-    time: np.ndarray,
-    params: FRBParams,
-    gof_dict: Dict[str, Any],
-    burst_name: str,
-    output_path: Path,
-):
-    """Create 1x4 diagnostic plot with header."""
-    
-    # Generate synthetic data and residuals
-    noise_std = np.nanstd(data[:, :data.shape[1]//4], axis=1)
-    synthetic = model + np.random.normal(0, noise_std[:, None], size=data.shape)
-    residual = data - synthetic
-    
-    # Normalization
-    q = data.shape[1] // 4
-    off_pulse = data[:, np.r_[0:q, -q:0]]
-    mean_off, std_off = np.nanmean(off_pulse), np.nanstd(off_pulse)
-    if std_off < 1e-9:
-        std_off = 1.0
-    
-    peak_snr = np.nanmax((data - mean_off) / std_off)
-    if peak_snr <= 0:
-        peak_snr = 1.0
-    
-    def norm(arr, subtract=True):
-        if subtract:
-            return (arr - mean_off) / std_off / peak_snr
-        return arr / std_off / peak_snr
-    
-    data_n = norm(data)
-    model_n = norm(model)
-    synth_n = norm(synthetic)
-    resid_n = norm(residual, False)
-    
-    # Setup figure
-    fig, axes = plt.subplots(
-        nrows=2, ncols=8,
-        gridspec_kw={"height_ratios": [1, 2.5], "width_ratios": [2, 0.5] * 4},
-        figsize=(24, 8.5)
-    )
-    
-    time_centered = time - (time[0] + (time[-1] - time[0]) / 2)
-    extent = [time_centered[0], time_centered[-1], freq[0], freq[-1]]
-    
-    # Calculate shared Y-limits for time series
-    all_ts = [np.nansum(x, axis=0) for x in [data_n, model_n, synth_n, resid_n]]
-    ts_min = min(np.nanmin(t) for t in all_ts if t.size > 0)
-    ts_max = max(np.nanmax(t) for t in all_ts if t.size > 0)
-    ts_ylim = (ts_min * 1.05, ts_max * 1.05)
-    
-    # Render 4 panels
-    panels = [
-        (data_n, "Data", r"$\mathbf{I}_{\rm data}$"),
-        (model_n, "Model", r"$\mathbf{I}_{\rm model}$"),
-        (synth_n, "Model + Noise", r"$\mathbf{I}_{\rm model} + \mathbf{N}$"),
-        (resid_n, "Residual", r"$\mathbf{I}_{\rm residual}$"),
-    ]
-    
-    for i, (ds, title, label) in enumerate(panels):
-        col_idx = i * 2
-        ax_ts = axes[0, col_idx]
-        ax_wf = axes[1, col_idx]
-        ax_sp = axes[1, col_idx + 1]
-        
-        # Time series
-        ts = np.nansum(ds, axis=0)
-        ax_ts.step(time_centered, ts, where="mid", c="k", lw=1.5, label=label)
-        ax_ts.legend(loc="upper right", fontsize=14, frameon=False)
-        ax_ts.set_ylim(ts_ylim)
-        ax_ts.set_yticks([])
-        ax_ts.set_xlim(extent[0], extent[1])
-        ax_ts.tick_params(labelbottom=False)
-        
-        # Waterfall
-        cmap = "coolwarm" if title == "Residual" else "plasma"
-        if title == "Residual":
-            vmax = np.nanmax(np.abs(ds))
-            vmin = -vmax
-        else:
-            vmin = np.nanpercentile(ds, 1)
-            vmax = np.nanpercentile(ds, 99.5)
-        
-        ax_wf.imshow(ds, extent=extent, vmin=vmin, vmax=vmax, cmap=cmap,
-                     aspect="auto", origin="lower")
-        ax_wf.set_xlabel("Time [ms]", fontsize=16)
-        if i == 0:
-            ax_wf.set_ylabel("Frequency [GHz]", fontsize=16)
-        else:
-            ax_wf.tick_params(labelleft=False)
-        
-        # Spectrum
-        sp = np.nansum(ds, axis=1)
-        ax_sp.step(sp, freq, where="mid", c="k", lw=1.5)
-        ax_sp.set_yticks([])
-        ax_sp.set_xticks([])
-        ax_sp.set_ylim(extent[2], extent[3])
-        
-        # Hide top-right corner
-        axes[0, col_idx + 1].axis("off")
-    
-    plt.subplots_adjust(hspace=0.05, wspace=0.05, top=0.88, bottom=0.08,
-                        left=0.05, right=0.98)
-    
-    # Add header
-    _add_header(fig, burst_name, params, gof_dict, data.shape)
-    
-    fig.savefig(output_path, dpi=150, bbox_inches='tight')
-    plt.close(fig)
-
-
-def _add_header(fig, burst_name: str, params: FRBParams, gof: Dict, data_shape: tuple):
-    """Add informative header to diagnostic plot."""
-    
-    # Header configuration
-    header_y = 0.94
-    body_y = 0.91
-    fontsize_head = 12
-    fontsize_body = 10
-    
-    # Block 1: Burst Info
-    tns_name = f"FRB (DSA-110)"  # Could load from metadata
-    fig.text(0.05, header_y, f"{burst_name.upper()}", fontsize=14,
-             weight="bold", va="top")
-    fig.text(0.05, body_y, f"Observatory: DSA-110\nData: {data_shape[0]}×{data_shape[1]}",
-             fontsize=10, va="top")
-    
-    # Block 2: Fit Mode
-    fig.text(0.25, header_y, "Fit Mode", fontsize=fontsize_head, weight="bold", va="top")
-    fig.text(0.25, body_y, "ULTRA_FAST\n(Low-res fit,\nHigh-res plot)",
-             fontsize=fontsize_body, va="top")
-    
-    # Block 3: Goodness of Fit
-    chi2 = gof.get("chi2_reduced", np.nan)
-    r2 = gof.get("r_squared", np.nan)
-    quality = gof.get("quality_flag", "UNKNOWN")
-    
-    fig.text(0.42, header_y, "Goodness of Fit", fontsize=fontsize_head,
-             weight="bold", va="top")
-    fig.text(0.42, body_y, f"χ²/dof = {chi2:.2f}\nR² = {r2:.3f}",
-             fontsize=fontsize_body, va="top")
-    
-    q_color = "green" if quality == "PASS" else ("red" if quality == "FAIL" else "orange")
-    fig.text(0.42, body_y - 0.04, f"Status: {quality}", fontsize=fontsize_body,
-             weight="bold", color=q_color, va="top")
-    
-    # Block 4: Parameters
-    fig.text(0.65, header_y, "Best Fit Parameters", fontsize=fontsize_head,
-             weight="bold", va="top")
-    
-    param_text = (
-        f"τ@1GHz = {params.tau_1ghz:.4f} ms\n"
-        f"α = {params.alpha:.2f}\n"
-        f"ζ = {params.zeta:.4f} ms\n"
-        f"γ = {params.gamma:.2f}"
-    )
-    fig.text(0.65, body_y, param_text, fontsize=fontsize_body, va="top",
-             fontfamily="monospace")
 
 
 def process_burst(
@@ -265,7 +104,7 @@ def process_burst(
         
         print(f"  ✓ High-res data: {highres_dataset.data.shape}")
         
-        # Step 3: Generate high-res model and plot
+        # Step 3: Generate high-res model and plot using standard visualization
         print(f"  [3/3] Generating diagnostic plot...")
         highres_model = FRBModel(
             time=highres_dataset.time,
@@ -285,17 +124,29 @@ def process_burst(
             n_params=7,
         )
         
-        # Create plot
+        # Create plot using standard function
         plot_path = output_dir / f"{burst_name}_diagnostic.png"
-        create_highres_diagnostic_plot(
-            highres_dataset.data,
-            model_highres,
-            highres_dataset.freq,
-            highres_dataset.time,
-            best_params,
-            gof,
-            burst_name,
-            plot_path,
+        
+        # Package results dictionary for plot_scattering_diagnostic
+        results_for_plot = {
+            "best_params": best_params,
+            "best_key": "M3",
+            "goodness_of_fit": gof,
+            "param_names": ["c0", "t0", "gamma", "zeta", "tau_1ghz", "delta_dm"],
+            "best_model": "M3",
+        }
+        
+        # Use the standard plotting function
+        plot_scattering_diagnostic(
+            data=highres_dataset.data,
+            model=model_highres,
+            freq=highres_dataset.freq,
+            time=highres_dataset.time,
+            params=best_params,
+            results=results_for_plot,
+            output_path=plot_path,
+            burst_name=burst_name,
+            telescope="dsa",
         )
         
         total_time = time.time() - start_time

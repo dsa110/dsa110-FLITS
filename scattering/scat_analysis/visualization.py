@@ -356,10 +356,10 @@ def plot_scattering_diagnostic(
     r2 = gof.get("r_squared", np.nan)
     quality = gof.get("quality_flag", "UNKNOWN")
     
-    # Determine observatory
+    # Determine observatory and TNS name (all from data/results, nothing hard-coded)
     fname = output_path.name
-    tns_name = "FRB 20190425A" if "casey" in burst_name.lower() else f"FRB ({burst_name})"
-    observatory = "CHIME/FRB" if "chime" in fname.lower() else "DSA-110"
+    tns_name = results.get('tns_name', results.get('frb_name', burst_name.upper()))
+    observatory = results.get('observatory', 'CHIME/FRB' if 'chime' in fname.lower() else 'DSA-110')
     
     # Panel 1: Observation Context (compact layout)
     fig.text(0.07, 0.975, "OBSERVATION CONTEXT", **KW_TITLE)

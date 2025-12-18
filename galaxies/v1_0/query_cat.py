@@ -1,22 +1,27 @@
 #!/usr/bin/env python
-# ---------------------------------------------------------------------------
-# Query NED, Pan-STARRS DR2, SDSS DR17, DESI DR1 for galaxies within
-# ≤100 kpc proper of each foreground position.  Output: Excel workbook
-# with one sheet per (target, catalogue) containing columns
-#   name | ra | dec | z | Mstar | Rproj_kpc | catalog | galaxy_confidence
-# ---------------------------------------------------------------------------
+"""
+Query NED, Pan-STARRS DR2, SDSS DR17, DESI DR1 for galaxies within
+<=100 kpc proper of each foreground position.
 
-import time, warnings, sys
+Output: Excel workbook (or CSV fallback) with one sheet per (target, catalogue)
+containing columns: name | ra | dec | z | Mstar | Rproj_kpc | catalog
+"""
+from __future__ import annotations
+
+import sys
+import time
 import hashlib
 import json
+import warnings
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
+from typing import Optional, List, Dict, Any
+
 import numpy as np
 import pandas as pd
 import astropy.units as u
 from astropy.table import Table
 from astropy.coordinates import SkyCoord
-from astropy.cosmology import Planck18 as cosmo
 from requests.exceptions import ConnectionError as RequestsConnectionError, ReadTimeout
 
 # astroquery back-ends
@@ -25,36 +30,27 @@ from astroquery.mast import Catalogs
 from astroquery.sdss import SDSS
 from astroquery.vizier import Vizier
 
+# Shared configuration
+from config import (
+    TARGETS_TUPLE as targets,
+    TARGETS,
+    R_PHYS, R_PHYS_KPC,
+    MAX_TRIES, BASE_DELAY, PAUSE,
+    NED_TIMEOUT, MAX_WORKERS,
+    CACHE_DIR, CACHE_EXPIRY_HOURS,
+    angular_diameter_distance_fast,
+    theta_for_impact,
+    filter_targets,
+)
+
 # ------------------------------- CONFIG ------------------------------------
-Ned.TIMEOUT = 180
-MAX_TRIES   = 5
-BASE_DELAY  = 2
-PAUSE       = 0.5
-R_PHYS      = 100 * u.kpc
-OUTFILE     = Path(f"galaxies_{int(R_PHYS.value)}kpc_proper.xlsx")
-CACHE_DIR   = Path(".cache/galaxy_queries")
-MAX_WORKERS = 8  # parallel NED redshift lookups
+Ned.TIMEOUT = NED_TIMEOUT
+OUTFILE = Path(f"galaxies_{R_PHYS_KPC}kpc_proper.xlsx")
 
 np.seterr(invalid="ignore")
 warnings.filterwarnings("ignore",
         message="Field info are not available for this data release",
         module="astroquery.sdss")
-
-# ---------------------------- TARGET LIST ----------------------------------
-targets = [
-    ("20h40m47.886s", "+72d52m56.378s", 0.0430),
-    ("08h58m52.92s",  "+73d29m27.0s",   0.4790),
-    ("21h12m10.760s", "+72d49m38.20s",  0.3005),
-    ("04h45m38.64s",  "+70d18m26.6s",   0.2505),
-    ("21h00m31.09s",  "+72d02m15.22s",  0.5100),
-    ("11h51m07.52s",  "+71d41m44.3s",   0.2710),
-    ("05h52m45.12s",  "+74d12m01.7s",   1.0000),
-    ("20h20m08.92s",  "+70d47m33.96s",  0.3024),
-    ("02h39m03.96s",  "+71d01m04.3s",   1.0000),
-    ("20h50m28.59s",  "+73d54m00.0s",  0.0740),
-    ("11h19m56.05s",  "+70d40m34.4s",   0.2870),
-    ("22h23m53.94s",  "+73d01m33.26s",  1.0000),
-]
 
 def debug_table(table, name="Table"):
     """Print table info for debugging"""

@@ -88,19 +88,50 @@ def analytic_gaussian_exp_convolution(t, mu, sig, tau):
     
     This uses the erfcx-based stable formulation:
     f(t) = (1/2*tau) * exp(-(t-mu)^2 / (2*sig^2)) * erfcx(sig/(sqrt(2)*tau) - (t-mu)/(sqrt(2)*sig))
+    
+    Stability:
+    If tau -> 0 (scattering is negligible compared to smearing), this returns G(t).
+    If sig -> 0 (smearing is negligible compared to scattering), this returns E(t).
     """
     if t.ndim == 1:
         t = t[None, :]
     
     # Pre-calculate common terms
-    inv_tau = 1.0 / tau
     t_minus_mu = t - mu
     
-    # b = sig/(sqrt(2)*tau) - (t-mu)/(sqrt(2)*sig)
-    b = (sig / (np.sqrt(2.0) * tau)) - (t_minus_mu / (np.sqrt(2.0) * sig))
+    # --- STABILITY GUARD: Gaussian Limit ---
+    # If tau is extremely small relative to sig, convolution is just the Gaussian.
+    # This prevents numerical overflow in erfcx(b) / inv_tau when tau -> 0.
+    is_gauss = (tau < 1e-9) | (sig > 100 * tau)
     
-    # Stable result using erfcx
-    return (0.5 * inv_tau) * np.exp(-0.5 * (t_minus_mu / sig)**2) * erfcx(b)
+    # Standard Gaussian part (unnormalized)
+    gauss_exp = np.exp(-0.5 * (t_minus_mu / sig)**2)
+    
+    # Initialize result with Gaussian limit
+    # f(t) = (1/sqrt(2pi)sig) * exp(-0.5*(t-mu/sig)^2)
+    res = (1.0 / (np.sqrt(2.0 * np.pi) * sig)) * gauss_exp
+    
+    # Only evaluate the erfcx part where it is NOT a pure Gaussian
+    # This avoids NaNs from inf * 0 in the deep tails.
+    mask = ~is_gauss.squeeze()
+    if np.any(mask):
+        # We need to handle masks carefully for 2D broadcast
+        # mask is (nfreq,), results are (nfreq, ntime)
+        inv_tau_m = 1.0 / tau[mask]
+        t_m = t_minus_mu[mask]
+        sig_m = sig[mask]
+        
+        b = (sig_m / (np.sqrt(2.0) * tau[mask])) - (t_m / (np.sqrt(2.0) * sig_m))
+        
+        # In-place update for non-gaussian channels
+        res_m = (0.5 * inv_tau_m) * gauss_exp[mask] * erfcx(b)
+        
+        # Replace NaNs (if any remain in deep tails) with 0
+        np.nan_to_num(res_m, copy=False, nan=0.0, posinf=0.0, neginf=0.0)
+        
+        res[mask] = res_m
+        
+    return res
 
 # ----------------------------------------------------------------------
 # Log-probability wrapper

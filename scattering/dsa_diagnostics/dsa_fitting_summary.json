@@ -1,0 +1,18 @@
+[
+  {
+    "success": true,
+    "burst_name": "freya",
+    "tau_1ghz": 0.04702198861170426,
+    "alpha": 4.0,
+    "zeta": 0.004957238679121721,
+    "gamma": 0.3029973808141486,
+    "t0": -0.6693456633546333,
+    "delta_dm": -0.0004172075311870138,
+    "chi2_reduced_highres": 3.78545460803999,
+    "r_squared_highres": -0.026404630035233856,
+    "quality_highres": "FAIL",
+    "fit_time_sec": 0.8676948547363281,
+    "total_time_sec": 2.2091310024261475,
+    "plot_file": "freya_diagnostic.png"
+  }
+]

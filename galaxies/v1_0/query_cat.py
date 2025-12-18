@@ -7,6 +7,9 @@
 # ---------------------------------------------------------------------------
 
 import time, warnings, sys
+import hashlib
+import json
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 import numpy as np
 import pandas as pd
@@ -14,7 +17,7 @@ import astropy.units as u
 from astropy.table import Table
 from astropy.coordinates import SkyCoord
 from astropy.cosmology import Planck18 as cosmo
-from requests.exceptions import ConnectionError, ReadTimeout
+from requests.exceptions import ConnectionError as RequestsConnectionError, ReadTimeout
 
 # astroquery back-ends
 from astroquery.ipac.ned import Ned
@@ -29,6 +32,8 @@ BASE_DELAY  = 2
 PAUSE       = 0.5
 R_PHYS      = 100 * u.kpc
 OUTFILE     = Path(f"galaxies_{int(R_PHYS.value)}kpc_proper.xlsx")
+CACHE_DIR   = Path(".cache/galaxy_queries")
+MAX_WORKERS = 8  # parallel NED redshift lookups
 
 np.seterr(invalid="ignore")
 warnings.filterwarnings("ignore",
@@ -76,25 +81,78 @@ def _retry(fn, *args, **kw):
     for attempt in range(MAX_TRIES):
         try:
             return fn(*args, **kw)
-        except (ConnectionError, ReadTimeout) as e:
+        except (RequestsConnectionError, ReadTimeout):
             if attempt == MAX_TRIES - 1:
                 raise
             time.sleep(BASE_DELAY * 2**attempt)
 
+# ------------------------- caching helpers ---------------------------------
+def _cache_key(prefix: str, *args) -> Path:
+    """Generate a cache file path based on query parameters."""
+    key = hashlib.md5(f"{prefix}:{args}".encode()).hexdigest()[:16]
+    return CACHE_DIR / f"{prefix}_{key}.json"
+
+def _load_cache(cache_path: Path):
+    """Load cached result if exists and not expired (24h)."""
+    if cache_path.exists():
+        age_hours = (time.time() - cache_path.stat().st_mtime) / 3600
+        if age_hours < 24:
+            try:
+                with open(cache_path) as f:
+                    return json.load(f)
+            except (json.JSONDecodeError, IOError):
+                pass
+    return None
+
+def _save_cache(cache_path: Path, data):
+    """Save result to cache."""
+    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    try:
+        with open(cache_path, 'w') as f:
+            json.dump(data, f)
+    except (IOError, TypeError):
+        pass  # silently skip if not JSON-serializable
+
 # ------------------------- best redshift per NED obj -----------------------
 def _best_redshift(name):
+    """Get best redshift for a NED object, with caching."""
+    cache_path = _cache_key("ned_z", name)
+    cached = _load_cache(cache_path)
+    if cached is not None:
+        return cached.get("z")
+    
     try:
         ztbl = Ned.get_table(name, table="Redshift")
     except Exception:
+        _save_cache(cache_path, {"z": None})
         return None
     if len(ztbl) == 0:
+        _save_cache(cache_path, {"z": None})
         return None
     z    = ztbl["Redshift"]; kind = ztbl["Velocity / Redshift Flag"]
     spec = z[(kind == "SPEC") & (~z.mask)]
     if len(spec):
-        return float(spec[0])
+        result = float(spec[0])
+        _save_cache(cache_path, {"z": result})
+        return result
     phot = z[(kind == "PHOTO") & (~z.mask)]
-    return float(phot[0]) if len(phot) else None
+    result = float(phot[0]) if len(phot) else None
+    _save_cache(cache_path, {"z": result})
+    return result
+
+def _get_redshifts_parallel(names):
+    """Fetch redshifts for multiple NED objects in parallel."""
+    results = [None] * len(names)
+    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+        future_to_idx = {executor.submit(_best_redshift, name): i 
+                         for i, name in enumerate(names)}
+        for future in as_completed(future_to_idx):
+            idx = future_to_idx[future]
+            try:
+                results[idx] = future.result()
+            except Exception:
+                results[idx] = None
+    return results
 
 def estimate_ps1_photoz(ps1_table):
     """Rough photo-z estimate from PS1 colors using empirical relations"""
@@ -201,8 +259,8 @@ def q_ned(coord, radius, z):
         print(f"     NED filtered to {len(t)} galaxies")
         
         if len(t) > 0:
-            print("     Getting NED redshifts...")
-            t["z_best"] = [_best_redshift(n) for n in t["Object Name"]]
+            print(f"     Getting NED redshifts for {len(t)} galaxies (parallel)...")
+            t["z_best"] = _get_redshifts_parallel(list(t["Object Name"]))
             
             # Convert z_best to a proper numpy array, replacing None with nan
             z_best_array = np.array([z if z is not None else np.nan for z in t["z_best"]])
@@ -370,7 +428,6 @@ def q_sdss(coord, radius, z):
     return None
 
 def q_desi(coord, radius, z):
-    from astroquery.vizier import Vizier
     Vizier.ROW_LIMIT = -1
     
     # Try multiple DESI catalogs with correct IDs
@@ -412,8 +469,6 @@ def q_desi(coord, radius, z):
 
 def get_legacy_survey_photoz(coord, radius):
     """Query Legacy Survey DR10 for photometric redshifts"""
-    from astroquery.vizier import Vizier
-    
     Vizier.ROW_LIMIT = -1
     
     # Legacy Survey DR10 catalog
@@ -501,7 +556,6 @@ def add_photoz_to_ps1(ps1_table, coord, z):
     # 3. Try WISE photo-z catalog
     print("     Cross-matching with WISE...")
     try:
-        from astroquery.vizier import Vizier
         Vizier.ROW_LIMIT = -1
         wise_result = Vizier.query_region(coord, radius=theta_proper(z), 
                                          catalog="J/ApJS/234/23/galaxies")
@@ -591,32 +645,64 @@ QUERY_FUNCS = {"NED":q_ned,"PS1":q_ps1,"SDSS":q_sdss,"DESI":q_desi}
 STD_FUNCS   = {"NED":std_ned,"PS1":std_ps1,"SDSS":std_sdss,"DESI":std_desi}
 
 # -------------------------------- MAIN -------------------------------------
-sheets={}
-try:
-    for tid,(ra_s,dec_s,z_t) in enumerate(targets,1):
-        coord=SkyCoord(ra_s,dec_s,unit=(u.hourangle,u.deg))
-        radius=theta_proper(z_t)
-        print(f"[{tid:02d}] {coord.to_string('hmsdms'):>22s}  z={z_t:.3f}  θ={radius:.2f}")
-        for cat in ("NED","PS1","SDSS","DESI"):
-            raw=QUERY_FUNCS[cat](coord,radius,z_t); time.sleep(PAUSE)
-            tab=STD_FUNCS[cat](raw); 
-            debug_table(tab, name=f"{cat} Table")
-            if tab is None or len(tab)==0: continue
-            sheets[f"T{tid:02d}_{cat}"]=tab.to_pandas()
-            print(f"   ↳ {cat:<4s}: {len(tab):3d} rows")
-        print()
-    if sheets:
-        with pd.ExcelWriter(OUTFILE,engine="openpyxl") as xl:
-            for name,df in sheets.items():
-                df.to_excel(xl,sheet_name=name[:31],index=False)
-        print(f"Results written to “{OUTFILE.name}”")
-    else:
-        print("No catalogue returned any galaxy within 100 kpc.")
-except KeyboardInterrupt:
-    print("\nInterrupted — writing collected data …")
-    if sheets:
-        with pd.ExcelWriter(OUTFILE,engine="openpyxl") as xl:
-            for name,df in sheets.items():
-                df.to_excel(xl,sheet_name=name[:31],index=False)
-        print(f"Partial results written to “{OUTFILE.name}”")
-    sys.exit(130)
+def main(target_indices=None):
+    """Run catalog queries for specified targets (or all if None)."""
+    sheets = {}
+    target_list = targets if target_indices is None else [targets[i-1] for i in target_indices]
+    
+    try:
+        for tid, (ra_s, dec_s, z_t) in enumerate(target_list, 1):
+            coord = SkyCoord(ra_s, dec_s, unit=(u.hourangle, u.deg))
+            radius = theta_proper(z_t)
+            print(f"[{tid:02d}] {coord.to_string('hmsdms'):>22s}  z={z_t:.3f}  θ={radius:.2f}")
+            for cat in ("NED", "PS1", "SDSS", "DESI"):
+                raw = QUERY_FUNCS[cat](coord, radius, z_t)
+                time.sleep(PAUSE)
+                tab = STD_FUNCS[cat](raw)
+                debug_table(tab, name=f"{cat} Table")
+                if tab is None or len(tab) == 0:
+                    continue
+                sheets[f"T{tid:02d}_{cat}"] = tab.to_pandas()
+                print(f"   ↳ {cat:<4s}: {len(tab):3d} rows")
+            print()
+        if sheets:
+            try:
+                with pd.ExcelWriter(OUTFILE, engine="openpyxl") as xl:
+                    for name, df in sheets.items():
+                        df.to_excel(xl, sheet_name=name[:31], index=False)
+                print(f"Results written to '{OUTFILE.name}'")
+            except ImportError:
+                # Fall back to CSV if openpyxl not installed
+                csv_dir = OUTFILE.with_suffix("")
+                csv_dir.mkdir(exist_ok=True)
+                for name, df in sheets.items():
+                    df.to_csv(csv_dir / f"{name}.csv", index=False)
+                print(f"Results written to '{csv_dir}/' (CSV fallback)")
+        else:
+            print("No catalogue returned any galaxy within 100 kpc.")
+    except KeyboardInterrupt:
+        print("\nInterrupted - writing collected data...")
+        if sheets:
+            try:
+                with pd.ExcelWriter(OUTFILE, engine="openpyxl") as xl:
+                    for name, df in sheets.items():
+                        df.to_excel(xl, sheet_name=name[:31], index=False)
+                print(f"Partial results written to '{OUTFILE.name}'")
+            except ImportError:
+                csv_dir = OUTFILE.with_suffix("")
+                csv_dir.mkdir(exist_ok=True)
+                for name, df in sheets.items():
+                    df.to_csv(csv_dir / f"{name}.csv", index=False)
+                print(f"Partial results written to '{csv_dir}/' (CSV fallback)")
+        sys.exit(130)
+    
+    return sheets
+
+
+if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser(description="Query galaxy catalogs for FRB host candidates")
+    parser.add_argument("--targets", type=int, nargs="+", 
+                        help="Target indices to query (1-indexed), default: all")
+    args = parser.parse_args()
+    main(target_indices=args.targets)

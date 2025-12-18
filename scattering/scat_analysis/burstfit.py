@@ -28,6 +28,7 @@ import numpy as np
 from numpy.typing import NDArray
 from scipy.signal import fftconvolve
 from scipy import stats
+from scipy.special import erfcx
 
 __all__ = [
     "FRBParams",
@@ -80,6 +81,26 @@ log = logging.getLogger(__name__)
 if not log.handlers:
     log.addHandler(logging.StreamHandler())
 log.setLevel(logging.INFO)
+
+def analytic_gaussian_exp_convolution(t, mu, sig, tau):
+    """
+    Analytic convolution of a Gaussian G(t; mu, sig) and an exponential E(t; tau).
+    
+    This uses the erfcx-based stable formulation:
+    f(t) = (1/2*tau) * exp(-(t-mu)^2 / (2*sig^2)) * erfcx(sig/(sqrt(2)*tau) - (t-mu)/(sqrt(2)*sig))
+    """
+    if t.ndim == 1:
+        t = t[None, :]
+    
+    # Pre-calculate common terms
+    inv_tau = 1.0 / tau
+    t_minus_mu = t - mu
+    
+    # b = sig/(sqrt(2)*tau) - (t-mu)/(sqrt(2)*sig)
+    b = (sig / (np.sqrt(2.0) * tau)) - (t_minus_mu / (np.sqrt(2.0) * sig))
+    
+    # Stable result using erfcx
+    return (0.5 * inv_tau) * np.exp(-0.5 * (t_minus_mu / sig)**2) * erfcx(b)
 
 # ----------------------------------------------------------------------
 # Log-probability wrapper
@@ -295,6 +316,12 @@ class FRBModel:
             self.noise_std = self._estimate_noise(off_pulse)
         else:
             self.noise_std = noise_std
+        
+        # Pre-calculate validity mask (exclude dead channels and NaNs)
+        if self.data is not None and self.noise_std is not None:
+            self.valid = (self.noise_std > 1e-9) & (np.isfinite(np.nanmean(self.data, axis=1)))
+        else:
+            self.valid = None
 
     def _dispersion_delay(
         self, dm_err: float = 0.0, ref_freq: float | None = None
@@ -332,76 +359,84 @@ class FRBModel:
         )
         return 1.4826 * mad  # Do not clip to 1e-6, allow 0 for dead channels
 
-    def __call__(self, p: FRBParams, model_key: str = "M3") -> NDArray[np.floating]:
-        """Return model dynamic spectrum for parameters *p*."""
-        ref_freq = np.median(self.freq)
-        amp = p.c0 * (self.freq / ref_freq) ** p.gamma
-        # include residual DM offset around dm_init
-        mu = p.t0 + self._dispersion_delay(p.delta_dm)[:, None]
+    def __call__(
+        self, p: FRBParams, model_key: str = "M3", freq_subset: NDArray[np.bool_] | None = None
+    ) -> NDArray[np.floating]:
+        """Return model dynamic spectrum for parameters *p*.
+        
+        Args:
+            p: Parameters
+            model_key: Model variant
+            freq_subset: Optional boolean mask of frequencies to evaluate.
+                         If None, evaluates all frequencies.
+        """
+        if freq_subset is None:
+            freq = self.freq
+        else:
+            freq = self.freq[freq_subset]
+
+        n_freq = freq.size
+        n_time = self.time.size
+
+        ref_freq = np.median(self.freq) # Keep global ref_freq for consistency
+        amp = p.c0 * (freq / ref_freq) ** p.gamma
+        
+        # Dispersion delay
+        dd_full = self._dispersion_delay(p.delta_dm)
+        if freq_subset is None:
+            mu = p.t0 + dd_full[:, None]
+        else:
+            mu = p.t0 + dd_full[freq_subset, None]
 
         if model_key in {"M1", "M3"}:
-            sig = self._smearing_sigma(self.dm_init, p.zeta)[:, None]
+            sig_full = self._smearing_sigma(self.dm_init, p.zeta)
         else:
-            sig = self._smearing_sigma(self.dm_init, 0.0)[:, None]
+            sig_full = self._smearing_sigma(self.dm_init, 0.0)
+            
+        if freq_subset is None:
+            sig = sig_full[:, None]
+        else:
+            sig = sig_full[freq_subset, None]
 
         # Guard against non-physical width
         sig = np.clip(sig, 1e-6, None)
 
-        gauss = (1 / (np.sqrt(2 * np.pi) * sig)) * np.exp(
+        if model_key in {"M2", "M3"} and p.tau_1ghz > 1e-6:
+            alpha = getattr(p, "alpha", 4.4)
+            tau = p.tau_1ghz * (freq / 1.0) ** (-alpha)
+            tau = np.clip(tau, 1e-6, None)[:, None]
+            
+            # Use analytic convolution for speed and precision
+            return amp[:, None] * analytic_gaussian_exp_convolution(
+                self.time, mu, sig, tau
+            )
+
+        # Non-scattering models (M0, M1) or negligible tau
+        gauss = (1.0 / (np.sqrt(2.0 * np.pi) * sig)) * np.exp(
             -0.5 * ((self.time - mu) / sig) ** 2
         )
-
-        # --- FIX: Implement safe division to prevent NaN ---
+        # Normalize
         gauss_sum = np.sum(gauss, axis=1, keepdims=True)
-        # Clip the sum to a tiny positive number to avoid 0/0 division
         safe_gauss_sum = np.clip(gauss_sum, 1e-30, None)
-        gauss_norm = gauss / safe_gauss_sum
-
-        profile = amp[:, None] * gauss_norm
-
-        if model_key in {"M2", "M3"} and p.tau_1ghz > 1e-6:
-            alpha = 4.0
-            # use parameterized frequency scaling exponent for scattering
-            alpha = getattr(p, "alpha", 4.4)
-            tau = p.tau_1ghz * (self.freq / 1.0) ** (-alpha)
-            t_kernel = self.time - self.time[0]
-
-            kernel = np.exp(-t_kernel[None, :] / np.clip(tau, 1e-6, None)[:, None])
-
-            # --- FIX: Implement safe division for the kernel as well ---
-            kernel_sum = np.sum(kernel, axis=1, keepdims=True)
-            safe_kernel_sum = np.clip(kernel_sum, 1e-30, None)
-            kernel_norm = kernel / safe_kernel_sum
-
-            # --- FIX: Use causal convolution (mode='full' truncated) instead of mode='same'
-            # mode='same' centers the output, which incorrectly shifts the peak earlier.
-            # For a causal exponential scattering kernel, we want the first N samples
-            # of the full convolution, which preserves the peak position and only delays it.
-            n_time = profile.shape[1]
-            result_full = fftconvolve(profile, kernel_norm, mode="full", axes=1)
-            return result_full[:, :n_time]
-
+        
         if model_key not in {"M0", "M1", "M2", "M3"}:
-            raise ValueError(f"unknown model '{model_key}'")
+             raise ValueError(f"unknown model '{model_key}'")
 
-        return profile
+        return amp[:, None] * (gauss / safe_gauss_sum)
 
     def log_likelihood(self, p: FRBParams, model: str = "M3") -> float:
         if self.data is None or self.noise_std is None:
             raise RuntimeError("need observed data + noise_std for likelihood")
 
-        # Ignore channels with ~0 noise (dead/masked) or NaNs in data
-        valid = (self.noise_std > 1e-9) & (np.isfinite(np.nanmean(self.data, axis=1)))
-        if not np.any(valid):
+        # Use pre-calculated validity mask
+        if self.valid is None or not np.any(self.valid):
             return -np.inf
 
-        noise_valid = self.noise_std[valid]
-        data_valid = self.data[valid]
+        noise_valid = self.noise_std[self.valid]
+        data_valid = self.data[self.valid]
         
-        # Calculate model only for valid channels is hard due to optimized call structure, 
-        # so calculate full model and slice
-        model_out = self(p, model)
-        model_valid = model_out[valid]
+        # Calculate model only for valid channels
+        model_valid = self(p, model, freq_subset=self.valid)
         
         resid = (data_valid - model_valid) / noise_valid[:, None]
         return -0.5 * np.sum(resid**2)
@@ -411,14 +446,13 @@ class FRBModel:
     ) -> float:
         if self.data is None or self.noise_std is None:
             raise RuntimeError("need observed data + noise_std for likelihood")
-        # Ignore channels with ~0 noise or NaNs in data
-        valid = (self.noise_std > 1e-9) & (np.isfinite(np.nanmean(self.data, axis=1)))
-        if not np.any(valid):
+        # Use pre-calculated validity mask
+        if self.valid is None or not np.any(self.valid):
              return -np.inf
              
-        noise_valid = self.noise_std[valid]
-        data_valid = self.data[valid]
-        model_valid = self(p, model)[valid]
+        noise_valid = self.noise_std[self.valid]
+        data_valid = self.data[self.valid]
+        model_valid = self(p, model, freq_subset=self.valid)
         
         resid = (data_valid - model_valid) / noise_valid[:, None]
         

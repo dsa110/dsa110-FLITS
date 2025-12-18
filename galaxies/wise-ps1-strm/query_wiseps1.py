@@ -24,7 +24,14 @@ import pandas as pd
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astropy.cosmology import Planck18
-import pyarrow.parquet as pq  # needed for streaming Parquet
+
+# Optional: pyarrow for Parquet support (faster than CSV)
+try:
+    import pyarrow.parquet as pq
+    HAS_PYARROW = True
+except ImportError:
+    pq = None
+    HAS_PYARROW = False
 
 # ───────────────────────────────── CONFIGURATION ──────────────────────────────
 TARGETS: list[tuple[str, str, float]] = [
@@ -72,9 +79,12 @@ def main(catalog_path: pathlib.Path, make_parquet: bool = False):
 
     parquet_path = catalog_path.with_suffix(".parquet")
     if make_parquet and not parquet_path.exists():
-        print(f"[info] Converting {catalog_path.name} → Parquet (one‑time)…")
+        if not HAS_PYARROW:
+            print("[error] pyarrow is required for Parquet conversion. Install with: pip install pyarrow")
+            return
+        print(f"[info] Converting {catalog_path.name} -> Parquet (one-time)...")
         to_parquet(catalog_path, parquet_path)
-    use_parquet = parquet_path.exists()
+    use_parquet = HAS_PYARROW and parquet_path.exists()
 
     if use_parquet:
         print(f"[info] Using Parquet file {parquet_path.name}")
@@ -142,7 +152,7 @@ def to_parquet(csv_path: pathlib.Path, parquet_path: pathlib.Path):
     ):
         rows += len(chunk)
         if writer is None:
-            import pyarrow as pa, pyarrow.parquet as pq
+            import pyarrow as pa
             writer = pq.ParquetWriter(parquet_path,
                                       pa.Table.from_pandas(chunk).schema,
                                       compression="zstd")

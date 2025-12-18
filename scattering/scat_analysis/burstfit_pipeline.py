@@ -102,17 +102,19 @@ def create_four_panel_plot(
 
     q = data.shape[1] // 4
     data_off_pulse = data[:, np.r_[0:q, -q:0]]
-    
+
     # Calculate global normalization stats from Data
     mean_off = np.nanmean(data_off_pulse)
     std_off = np.nanstd(data_off_pulse)
-    if std_off < 1e-9: std_off = 1.0 # Prevent div/0
-    
+    if std_off < 1e-9:
+        std_off = 1.0  # Prevent div/0
+
     # Pre-normalize data to get peak S/N
     data_snr = (data - mean_off) / std_off
     peak_snr = np.nanmax(data_snr)
-    if peak_snr <= 0: peak_snr = 1.0
-    
+    if peak_snr <= 0:
+        peak_snr = 1.0
+
     def _apply_norm(arr, subtract_mean=True):
         if subtract_mean:
             return (arr - mean_off) / std_off / peak_snr
@@ -122,11 +124,16 @@ def create_four_panel_plot(
     data_norm = _apply_norm(data, subtract_mean=True)
     model_norm = _apply_norm(clean_model, subtract_mean=True)
     synthetic_norm = _apply_norm(synthetic_data, subtract_mean=True)
-    residual_norm = _apply_norm(residual, subtract_mean=False) # Residuals already centered
+    residual_norm = _apply_norm(
+        residual, subtract_mean=False
+    )  # Residuals already centered
 
     # Calculate global Y-limits for Time Series (Top Panels)
     # We want valid limits covering min/max of everything
-    all_ts = [np.nansum(p, axis=0) for p in [data_norm, model_norm, synthetic_norm, residual_norm]]
+    all_ts = [
+        np.nansum(p, axis=0)
+        for p in [data_norm, model_norm, synthetic_norm, residual_norm]
+    ]
     ts_min = min(np.min(t) for t in all_ts if t.size > 0)
     ts_max = max(np.max(t) for t in all_ts if t.size > 0)
     y_range = ts_max - ts_min
@@ -134,7 +141,10 @@ def create_four_panel_plot(
 
     # Calculate global X-limits for Spectrum (Side Panels)
     # These plot Flux (x) vs Freq (y), so we need shared X-limits
-    all_sp = [np.nansum(p, axis=1) for p in [data_norm, model_norm, synthetic_norm, residual_norm]]
+    all_sp = [
+        np.nansum(p, axis=1)
+        for p in [data_norm, model_norm, synthetic_norm, residual_norm]
+    ]
     sp_min = min(np.min(s) for s in all_sp if s.size > 0)
     sp_max = max(np.max(s) for s in all_sp if s.size > 0)
     x_range = sp_max - sp_min
@@ -169,16 +179,16 @@ def create_four_panel_plot(
 
         ax_ts.step(time_centered, ts, where="mid", c="k", lw=1.5, label=label)
         ax_ts.legend(loc="upper right", fontsize=14, frameon=False)
-        ax_ts.set_ylim(ts_ylim) # Enforce shared Y-limits
+        ax_ts.set_ylim(ts_ylim)  # Enforce shared Y-limits
 
         cmap = "coolwarm" if title == "Residual" else "plasma"
         if title == "Residual":
-            vmax = np.nanmax(np.abs(panel_ds)) # Symmetric around 0
+            vmax = np.nanmax(np.abs(panel_ds))  # Symmetric around 0
             vmin = -vmax
         else:
-             vmin = np.nanpercentile(panel_ds, 1)
-             vmax = np.nanpercentile(panel_ds, 99.5)
-             
+            vmin = np.nanpercentile(panel_ds, 1)
+            vmax = np.nanpercentile(panel_ds, 99.5)
+
         ax_wf.imshow(
             panel_ds,
             extent=extent,
@@ -190,9 +200,9 @@ def create_four_panel_plot(
         )
 
         ax_sp.step(sp, freq, where="mid", c="k", lw=1.5)
-        ax_sp.set_xlim(sp_xlim) # Enforce shared X-limits
+        ax_sp.set_xlim(sp_xlim)  # Enforce shared X-limits
 
-        ax_ts.set_yticks([]) 
+        ax_ts.set_yticks([])
         ax_ts.tick_params(axis="x", labelbottom=False)
         ax_ts.set_xlim(extent[0], extent[1])
         ax_sp.set_xticks([])
@@ -207,35 +217,35 @@ def create_four_panel_plot(
 
     # Adjust top to make room for header without cutoff
     # Tighten wspace to align with hspace (user requested equivalent margins)
-    plt.subplots_adjust(hspace=0.05, wspace=0.05, top=0.83, bottom=0.15, left=0.05, right=0.98)
-    
+    plt.subplots_adjust(
+        hspace=0.05, wspace=0.05, top=0.83, bottom=0.15, left=0.05, right=0.98
+    )
+
     # --- Detailed Header Table Implementation (Clean/Scientific) ---
     # Aligned with panels, no boxes, clean text.
-    
+
     # 1. Metadata
     fname = dataset.inpath.name
     tns_name = "FRB 20190425A" if "casey" in dataset.name.lower() else "FRB (Unknown)"
-    person_name = dataset.name.split('_')[0].upper() # e.g. CASEY
+    person_name = dataset.name.split("_")[0].upper()  # e.g. CASEY
     observatory = "CHIME/FRB" if "chime" in fname.lower() else "DSA-110"
-    
-    meta_text = (
-        f"{tns_name} / {person_name}\n"
-        f"Observatory: {observatory}"
-    )
-    
+
+    meta_text = f"{tns_name} / {person_name}\nObservatory: {observatory}"
+
     # 2. Model Selection
     model_text = "Model Selection:\n"
     if "all_results" in results:
         res_all = results["all_results"]
         keys = list(res_all.keys())
-        keys.sort(reverse=True) # M3, M2, M1
+        keys.sort(reverse=True)  # M3, M2, M1
+
         def get_logz(res):
             if isinstance(res, dict):
                 return res.get("log_evidence", 0)
             return getattr(res, "log_evidence", 0)
 
         best_z = max(float(get_logz(res_all[k])) for k in keys) if keys else 0
-        
+
         for k in keys:
             z = float(get_logz(res_all[k]))
             dz = z - best_z
@@ -251,15 +261,12 @@ def create_four_panel_plot(
     chi2 = gof.get("chi2_reduced", np.nan)
     r2 = gof.get("r_squared", np.nan)
     quality = gof.get("quality_flag", "UNKNOWN")
-    
+
     # Use color only for the status word
     gof_header = "Goodness of Fit:"
     reduced_chi2_label = r"$\chi^2_r$"
-    gof_text_1 = (
-        f"{reduced_chi2_label} = {chi2:.2f}\n"
-        f"$R^2 = {r2:.3f}$"
-    )
-    
+    gof_text_1 = f"{reduced_chi2_label} = {chi2:.2f}\n$R^2 = {r2:.3f}$"
+
     # 4. Parameters
     param_header = "Best Fit Parameters:"
     param_lines = []
@@ -271,45 +278,85 @@ def create_four_panel_plot(
         else:
             val = np.median(vals)
             err = np.std(vals)
-        
+
         # Smart Formatting
         if abs(val) < 0.001 and val != 0:
             s_val = f"{val:.1e}"
         else:
             s_val = f"{val:.4g}"
-            
+
         msg = rf"{name} = ${s_val} \pm {err:.1g}$"
         param_lines.append(msg)
     param_text = "\n".join(param_lines)
 
     # --- Rendering Text Blocks ---
     # Y position for all blocks (moved down slightly to ensure safe margin)
-    header_y = 0.94 
+    header_y = 0.94
     body_y = 0.91
     fontsize_head = 12
     fontsize_body = 10
-    
+
     # Block 1 (Left): Meta (Larger, bold)
-    fig.text(0.05, header_y, meta_text, fontsize=14, weight='bold', va='top', fontfamily='sans-serif')
-    
+    fig.text(
+        0.05,
+        header_y,
+        meta_text,
+        fontsize=14,
+        weight="bold",
+        va="top",
+        fontfamily="sans-serif",
+    )
+
     # Block 2: Model
-    fig.text(0.28, header_y, "Model Selection", fontsize=fontsize_head, weight='bold', va='top')
-    fig.text(0.28, body_y, model_text.replace("Model Selection:\n", ""), fontsize=fontsize_body, va='top')
-    
+    fig.text(
+        0.28,
+        header_y,
+        "Model Selection",
+        fontsize=fontsize_head,
+        weight="bold",
+        va="top",
+    )
+    fig.text(
+        0.28,
+        body_y,
+        model_text.replace("Model Selection:\n", ""),
+        fontsize=fontsize_body,
+        va="top",
+    )
+
     # Block 3: GoF
-    fig.text(0.52, header_y, gof_header, fontsize=fontsize_head, weight='bold', va='top')
-    fig.text(0.52, body_y, gof_body, fontsize=fontsize_body, va='top')
+    fig.text(
+        0.52, header_y, gof_header, fontsize=fontsize_head, weight="bold", va="top"
+    )
+    fig.text(0.52, body_y, gof_body, fontsize=fontsize_body, va="top")
     # Status below params or specifically colored
-    q_color = "green" if quality == "PASS" else ("red" if quality == "FAIL" else "orange")
-    fig.text(0.52, body_y - 0.04, f"Status: {quality}", fontsize=fontsize_body, weight='bold', color=q_color, va='top')
-             
+    q_color = (
+        "green" if quality == "PASS" else ("red" if quality == "FAIL" else "orange")
+    )
+    fig.text(
+        0.52,
+        body_y - 0.04,
+        f"Status: {quality}",
+        fontsize=fontsize_body,
+        weight="bold",
+        color=q_color,
+        va="top",
+    )
+
     # Block 4: Params
-    fig.text(0.75, header_y, param_header, fontsize=fontsize_head, weight='bold', va='top')
-    fig.text(0.75, body_y, param_text, fontsize=fontsize_body, va='top', fontfamily='monospace')
-             
+    fig.text(
+        0.75, header_y, param_header, fontsize=fontsize_head, weight="bold", va="top"
+    )
+    fig.text(
+        0.75,
+        body_y,
+        param_text,
+        fontsize=fontsize_body,
+        va="top",
+        fontfamily="monospace",
+    )
+
     # No separator line requested.
-
-
 
     if save:
         output_path = os.path.join(dataset.outpath, f"{dataset.name}_four_panel.pdf")
@@ -382,9 +429,7 @@ def create_sixteen_panel_plot(
     res_norm = residual / model_instance.noise_std[:, None]
     # Filter out NaNs and Infs (from masked channels with noise_std=0)
     res_norm_clean = res_norm[np.isfinite(res_norm)]
-    ax[3].hist(
-        res_norm_clean, bins=100, density=True, color="gray", label="Residuals"
-    )
+    ax[3].hist(res_norm_clean, bins=100, density=True, color="gray", label="Residuals")
     x_pdf = np.linspace(-4, 4, 100)
     ax[3].plot(x_pdf, sp.stats.norm.pdf(x_pdf), "m-", lw=2, label="N(0,1)")
     ax[3].set_title("Residual Distribution")
@@ -455,7 +500,9 @@ def create_sixteen_panel_plot(
         ax[9].axvline(burn, color="m", ls="--")
         ax[9].set_title(f"Trace: {param_names[0]}")
     else:
-        ax[9].text(0.5, 0.5, "MCMC Traces\nN/A (Nested Sampling)", ha="center", va="center")
+        ax[9].text(
+            0.5, 0.5, "MCMC Traces\nN/A (Nested Sampling)", ha="center", va="center"
+        )
         ax[9].set_axis_off()
     ax[9].set_title(f"Trace: {param_names[0]}")
     ax[9].set_xlabel("Step")
@@ -466,7 +513,7 @@ def create_sixteen_panel_plot(
         ax[10].scatter(flat_chain[:, i], flat_chain[:, j], s=1, alpha=0.1, c="k")
         ax[10].set_xlabel(param_names[i])
         ax[10].set_ylabel(param_names[j])
-        ax[10].set_title(f"Highest Correlation (ρ={corr[i,j]:.2f})")
+        ax[10].set_title(f"Highest Correlation (ρ={corr[i, j]:.2f})")
 
     # Panel 11-12: ACF and DM Check
     if gof:
@@ -515,13 +562,13 @@ def create_sixteen_panel_plot(
         ax[i].set_axis_off()
     if gof:
         # Format validation summary
-        quality = gof.get('quality_flag', 'UNKNOWN')
-        chi2 = gof.get('chi2_reduced', 0.0)
-        r2 = gof.get('r_squared', 0.0)
-        p_norm = gof.get('normality_pvalue', 0.0)
-        bias = gof.get('bias_nsigma', 0.0)
-        dw = gof.get('durbin_watson', 0.0)
-        
+        quality = gof.get("quality_flag", "UNKNOWN")
+        chi2 = gof.get("chi2_reduced", 0.0)
+        r2 = gof.get("r_squared", 0.0)
+        p_norm = gof.get("normality_pvalue", 0.0)
+        bias = gof.get("bias_nsigma", 0.0)
+        dw = gof.get("durbin_watson", 0.0)
+
         gof_text = (
             f"V&V STATUS: {quality}\n"
             f"-----------------\n"
@@ -533,9 +580,12 @@ def create_sixteen_panel_plot(
         )
         # Determine color based on quality
         color = "black"
-        if quality == "FAIL": color = "red"
-        elif quality == "MARGINAL": color = "orange"
-        elif quality == "PASS": color = "green"
+        if quality == "FAIL":
+            color = "red"
+        elif quality == "MARGINAL":
+            color = "orange"
+        elif quality == "PASS":
+            color = "green"
 
         ax[13].text(
             0.05,
@@ -545,11 +595,11 @@ def create_sixteen_panel_plot(
             fontfamily="monospace",
             fontsize=11,
             color=color,
-            weight="bold" if quality != "UNKNOWN" else "normal"
+            weight="bold" if quality != "UNKNOWN" else "normal",
         )
     p_summary = "Best Fit (Median & 1σ):\n" + "\n".join(
         [
-            f"{n}: {np.median(flat_chain[:,i]):.3f} ± {np.std(flat_chain[:,i]):.3f}"
+            f"{n}: {np.median(flat_chain[:, i]):.3f} ± {np.std(flat_chain[:, i]):.3f}"
             for i, n in enumerate(param_names)
         ]
     )
@@ -621,7 +671,7 @@ class BurstDataset:
         outer_trim: float = 0.45,
         smooth_ms: float = 0.1,
         center_burst: bool = True,
-        flip_freq: bool = True,
+        flip_freq: bool = False,  # Data is now pre-standardized to ascending
         lazy: bool = False,
     ):
         self.inpath = Path(inpath)
@@ -766,10 +816,12 @@ class BurstDiagnostics:
             data=self.dataset.data,
             model_pred=model_dyn,
             noise_std=model_instance.noise_std,
-            output_path=str(self.dataset.outpath / f"{self.dataset.name}_residuals_detailed.png")
+            output_path=str(
+                self.dataset.outpath / f"{self.dataset.name}_residuals_detailed.png"
+            ),
         )
         self.diag_results["residual_analysis"] = res_diag
-        
+
         log.info("Diagnostics complete.")
         return self.diag_results
 
@@ -777,6 +829,7 @@ class BurstDiagnostics:
 ###############################################################################
 # 3. PIPELINE FAÇADE
 ###############################################################################
+
 
 def refine_initial_guess_mle(model: FRBModel, init_guess: FRBParams) -> FRBParams:
     """
@@ -791,42 +844,45 @@ def refine_initial_guess_mle(model: FRBModel, init_guess: FRBParams) -> FRBParam
     # We work in log-space for positive params to ensure positivity
     x0 = [
         np.log(max(init_guess.tau_1ghz, 1e-4)),  # log tau
-        init_guess.alpha,                        # alpha (linear)
-        init_guess.t0,                           # t0 (linear)
-        np.log(max(init_guess.c0, 1e-4))         # log c0
+        init_guess.alpha,  # alpha (linear)
+        init_guess.t0,  # t0 (linear)
+        np.log(max(init_guess.c0, 1e-4)),  # log c0
     ]
 
     def obj_func(theta):
         ln_tau, alpha, t0, ln_c0 = theta
-        
+
         # Constraints
-        if not (0.1 < alpha < 8.0): return 1e20 # Reasonable alpha bounds
-        
+        if not (0.1 < alpha < 8.0):
+            return 1e20  # Reasonable alpha bounds
+
         tau_val = np.exp(ln_tau)
         c0_val = np.exp(ln_c0)
-        
+
         # Build params
         p = FRBParams(
             c0=c0_val,
             t0=t0,
-            gamma=init_guess.gamma, # Fixed
-            zeta=init_guess.zeta,   # Fixed
+            gamma=init_guess.gamma,  # Fixed
+            zeta=init_guess.zeta,  # Fixed
             tau_1ghz=tau_val,
             alpha=alpha,
-            delta_dm=init_guess.delta_dm # Fixed
+            delta_dm=init_guess.delta_dm,  # Fixed
         )
-        
+
         # Negative Log Likelihood
         # Add simple priors to prevent runaway
         nll = -model.log_likelihood(p, "M3")
         return nll
 
     try:
-        res = minimize(obj_func, x0, method='Nelder-Mead', options={'maxiter': 200, 'xatol': 1e-2})
-        
+        res = minimize(
+            obj_func, x0, method="Nelder-Mead", options={"maxiter": 200, "xatol": 1e-2}
+        )
+
         if res.success or res.message:
             log.info(f"MLE Refinement finished: {res.message}")
-            
+
             ln_tau, alpha, t0, ln_c0 = res.x
             refined_params = FRBParams(
                 c0=np.exp(ln_c0),
@@ -835,17 +891,19 @@ def refine_initial_guess_mle(model: FRBModel, init_guess: FRBParams) -> FRBParam
                 zeta=init_guess.zeta,
                 tau_1ghz=np.exp(ln_tau),
                 alpha=alpha,
-                delta_dm=init_guess.delta_dm
+                delta_dm=init_guess.delta_dm,
             )
-            
-            log.info(f"  tau:   {init_guess.tau_1ghz:.3f} -> {refined_params.tau_1ghz:.3f} ms")
+
+            log.info(
+                f"  tau:   {init_guess.tau_1ghz:.3f} -> {refined_params.tau_1ghz:.3f} ms"
+            )
             log.info(f"  alpha: {init_guess.alpha:.3f} -> {refined_params.alpha:.3f}")
             log.info(f"  t0:    {init_guess.t0:.3f} -> {refined_params.t0:.3f} ms")
             return refined_params
         else:
             log.warning("MLE refinement did not converge, using original guess.")
             return init_guess
-            
+
     except Exception as e:
         log.warning(f"MLE refinement failed with error: {e}. using original guess.")
         return init_guess
@@ -944,15 +1002,23 @@ class BurstPipeline:
                     self.pipeline_kwargs["ncomp"] = max(1, len(comp))
             except Exception as e:
                 warnings.warn(f"Failed to read init-guess '{init_guess_path}': {e}")
-                
+
         # Resolve telescope config if it's a string
-        if "telescope" in self.dataset_kwargs and isinstance(self.dataset_kwargs["telescope"], str):
+        if "telescope" in self.dataset_kwargs and isinstance(
+            self.dataset_kwargs["telescope"], str
+        ):
             tel_name = self.dataset_kwargs["telescope"]
-            telcfg_path = self.dataset_kwargs.get("telcfg_path", "scattering/configs/telescopes.yaml")
+            telcfg_path = self.dataset_kwargs.get(
+                "telcfg_path", "scattering/configs/telescopes.yaml"
+            )
             try:
-                self.dataset_kwargs["telescope"] = load_telescope_block(telcfg_path, tel_name)
+                self.dataset_kwargs["telescope"] = load_telescope_block(
+                    telcfg_path, tel_name
+                )
             except Exception as e:
-                raise ValueError(f"Failed to load telescope config for '{tel_name}' from '{telcfg_path}': {e}")
+                raise ValueError(
+                    f"Failed to load telescope config for '{tel_name}' from '{telcfg_path}': {e}"
+                )
 
     def run_full(
         self,
@@ -973,24 +1039,31 @@ class BurstPipeline:
             self.dataset.model.dm_init = self.dm_init
 
             # Optional DM refinement via phase-coherence method
-            if self.pipeline_kwargs.get('refine_dm', False):
+            if self.pipeline_kwargs.get("refine_dm", False):
                 log.info("DM refinement enabled, running phase-coherence estimation...")
                 try:
                     from .dm_preprocessing import refine_dm_init
+
                     catalog_dm = self.dm_init  # Original value from config/bursts.yaml
-                    
+
                     self.dm_init = refine_dm_init(
                         dataset=self.dataset,
                         catalog_dm=catalog_dm,
                         enable_dm_estimation=True,
-                        dm_search_window=self.pipeline_kwargs.get('dm_search_window', 5.0),
-                        dm_grid_resolution=self.pipeline_kwargs.get('dm_grid_resolution', 0.01),
-                        n_bootstrap=self.pipeline_kwargs.get('dm_n_bootstrap', 200),
+                        dm_search_window=self.pipeline_kwargs.get(
+                            "dm_search_window", 5.0
+                        ),
+                        dm_grid_resolution=self.pipeline_kwargs.get(
+                            "dm_grid_resolution", 0.01
+                        ),
+                        n_bootstrap=self.pipeline_kwargs.get("dm_n_bootstrap", 200),
                     )
-                    
+
                     # Update model's dm_init
                     self.dataset.model.dm_init = self.dm_init
-                    log.info(f"✓ DM refined: {catalog_dm:.3f} → {self.dm_init:.3f} pc/cm³")
+                    log.info(
+                        f"✓ DM refined: {catalog_dm:.3f} → {self.dm_init:.3f} pc/cm³"
+                    )
                 except Exception as e:
                     log.error(f"DM refinement failed: {e}")
                     log.info(f"Continuing with catalog DM: {self.dm_init:.3f} pc/cm³")
@@ -1025,43 +1098,51 @@ class BurstPipeline:
             if model_scan and ncomp == 1:
                 sampler_name = self.pipeline_kwargs.get("fitting_method", "emcee")
                 log.info(f"DEBUG: fitting_method='{sampler_name}'")
-                
+
                 if sampler_name == "nested":
-                    log.info("Starting model selection using Nested Sampling (dynesty)...")
+                    log.info(
+                        "Starting model selection using Nested Sampling (dynesty)..."
+                    )
                     best_key, ns_results = fit_models_evidence(
                         model=self.dataset.model,
                         init=init_guess,
                         model_keys=model_keys,
-                        priors=None, # Will use defaults in nested module
-                        nlive=n_steps // 4, # Heuristic mapping steps -> nlive
-                        alpha_prior=(alpha_mu, alpha_sigma) if alpha_fixed is None else None,
+                        priors=None,  # Will use defaults in nested module
+                        nlive=n_steps // 4,  # Heuristic mapping steps -> nlive
+                        alpha_prior=(alpha_mu, alpha_sigma)
+                        if alpha_fixed is None
+                        else None,
                         alpha_fixed=alpha_fixed,
                         likelihood_kind=likelihood_kind,
                         student_nu=studentt_nu,
                     )
-                    
+
                     # Convert NS result to pipeline format
                     from dynesty.utils import resample_equal
+
                     best_res = ns_results[best_key]
                     flat_chain = resample_equal(best_res.samples, best_res.weights)
-                    
+
                     results = {
                         "best_key": best_key,
                         "best_params": best_res.get_best_params(),
                         "flat_chain": flat_chain,
                         "model_instance": self.dataset.model,
                         "param_names": best_res.param_names,
-                        "goodness_of_fit": {"log_evidence": best_res.log_evidence, "log_evidence_err": best_res.log_evidence_err},
+                        "goodness_of_fit": {
+                            "log_evidence": best_res.log_evidence,
+                            "log_evidence_err": best_res.log_evidence_err,
+                        },
                         "dm_init": self.dm_init,
                         "loop_stats": {"ncall": best_res.ncall},
-                        "all_results": ns_results
+                        "all_results": ns_results,
                     }
-                    
+
                     # For nested, we don't have a 'sampler' object in the emcee sense
                     # So we construct a dummy sampler or skip steps that require it
-                    sampler = None 
-                    
-                else: 
+                    sampler = None
+
+                else:
                     log.info("Starting model selection scan (BIC)...")
                     best_key, all_res = fit_models_bic(
                         model=self.dataset.model,
@@ -1086,26 +1167,27 @@ class BurstPipeline:
                     chain = sampler.get_chain(flat=True)
                     log.info(f"Emcee chain shape: {chain.shape}")
                     param_names = FRBFitter._ORDER[best_key]
-                    best_params_vec = np.median(chain, axis=0) # crude estimate
-                    
+                    best_params_vec = np.median(chain, axis=0)  # crude estimate
+
                     results = {
                         "best_key": best_key,
-                        "best_params": FRBParams.from_sequence(best_params_vec, best_key),
-                         "param_names": param_names,
-                         "goodness_of_fit": {}, # Populated later
-                         "dm_init": self.dm_init,
-                         "loop_stats": {},
+                        "best_params": FRBParams.from_sequence(
+                            best_params_vec, best_key
+                        ),
+                        "param_names": param_names,
+                        "goodness_of_fit": {},  # Populated later
+                        "dm_init": self.dm_init,
+                        "loop_stats": {},
                     }
-
 
             elif ncomp == 1:
                 # Direct single model fit code... (keeping existing structure but wrapping in else)
                 best_key = "M3"
                 if self.pipeline_kwargs.get("sampler") == "nested":
-                     log.info("Fitting model M3 directly with Nested Sampling...")
-                     # Implement direct nested fit logic here if needed, or fall through
-                     pass
-                     
+                    log.info("Fitting model M3 directly with Nested Sampling...")
+                    # Implement direct nested fit logic here if needed, or fall through
+                    pass
+
                 log.info(f"Fitting model {best_key} directly...")
                 # right before sampling
                 priors, use_logw = build_priors(
@@ -1144,7 +1226,7 @@ class BurstPipeline:
                         "walker_width_frac", 0.01
                     ),
                 )
-                
+
                 # UPDATED: Unpack tuple return (sampler, diagnostics)
                 sampler, mcmc_diag = fitter.sample(init_guess, model_key=best_key)
             else:
@@ -1187,8 +1269,9 @@ class BurstPipeline:
                 priors["delta_dm"] = (-3.0 * dm_w, 3.0 * dm_w)
 
                 # per-component bounds
-                tmin, tmax = float(self.dataset.time.min()), float(
-                    self.dataset.time.max()
+                tmin, tmax = (
+                    float(self.dataset.time.min()),
+                    float(self.dataset.time.max()),
                 )
                 for i in range(1, K + 1):
                     priors[f"c0_{i}"] = (1e-6, 1e9)
@@ -1210,7 +1293,7 @@ class BurstPipeline:
                     ),
                 )
                 names = fitter.build_multicomp_order(K)
-                
+
                 # UPDATED: Unpack tuple return (sampler, diagnostics)
                 sampler, mcmc_diag = fitter.sample(init_multi, model_key="M3_multi")
                 best_key = "M3_multi"
@@ -1227,10 +1310,12 @@ class BurstPipeline:
                 if best_key == "M3_multi":
                     # keep theta_best and names for downstream
                     idx_best = int(
-                        np.argmax(sampler.get_log_prob(discard=burn, thin=thin, flat=True))
+                        np.argmax(
+                            sampler.get_log_prob(discard=burn, thin=thin, flat=True)
+                        )
                     )
                     theta_best = flat_chain[idx_best]
-                    
+
                     param_names = list(fitter.custom_order["M3_multi"])  # type: ignore[attr-defined]
                     results = {
                         "best_key": best_key,
@@ -1258,27 +1343,27 @@ class BurstPipeline:
                         ],
                         best_key,
                     )
-                    
+
                     param_names = (
                         FRBFitter._ORDER[best_key]
                         if best_key in FRBFitter._ORDER
-                        else [] # Should not happen for standard BIC scan
+                        else []  # Should not happen for standard BIC scan
                     )
-                    
+
                     # Calculate goodness of fit
                     # Fix: pass correct arguments matching definition
                     gof = goodness_of_fit(
                         self.dataset.data,
                         self.dataset.model(best_params, best_key),
                         self.dataset.model.noise_std,
-                        len(param_names)
+                        len(param_names),
                     )
                     loop_stats = {
                         "burn_in": burn,
                         "thin": thin,
                         "convergence": convergence_info,
                     }
-                    
+
                     results = {
                         "best_key": best_key,
                         "best_params": best_params,
@@ -1295,13 +1380,19 @@ class BurstPipeline:
 
             # Diagnostics and plotting should happen after results is definitely populated
             if results is None:
-                raise RuntimeError("Results dictionary was not populated by any fitting path.")
+                raise RuntimeError(
+                    "Results dictionary was not populated by any fitting path."
+                )
 
             if diagnostics:
                 # Skip diagnostics if chain is badly non-converged (R̂ > 5)
                 # Only applicable if sampler is not None (i.e., emcee)
                 if sampler is not None:
-                    max_rhat = results["chain_stats"].get("convergence", {}).get("max_rhat", 1.0)
+                    max_rhat = (
+                        results["chain_stats"]
+                        .get("convergence", {})
+                        .get("max_rhat", 1.0)
+                    )
                     if max_rhat > 5.0:
                         log.warning(
                             f"Skipping diagnostics: chain not converged (R̂ = {max_rhat:.2f} > 5)"
@@ -1319,7 +1410,7 @@ class BurstPipeline:
                         except Exception as e:
                             log.warning(f"Diagnostics failed: {e}")
                             results["diagnostics"] = {"skipped": True, "reason": str(e)}
-                else: # Nested sampling path, no Rhat
+                else:  # Nested sampling path, no Rhat
                     try:
                         diag_runner = BurstDiagnostics(self.dataset, results)
                         results["diagnostics"] = diag_runner.run_all(
@@ -1347,14 +1438,14 @@ class BurstPipeline:
             log.info(
                 f"Best model: {best_key} | χ²/dof = {results['goodness_of_fit']['chi2_reduced']:.2f}"
             )
-            
+
             # --- CONSOLIDATED FIT REPORTING ---
             print_fit_summary(results)
             # ----------------------------------
 
             if save:
                 import json
-                
+
                 # Helper to convert numpy types
                 class NumpyEncoder(json.JSONEncoder):
                     def default(self, obj):
@@ -1372,7 +1463,7 @@ class BurstPipeline:
                     best_params = dataclasses.asdict(best_params)
                 elif hasattr(best_params, "__dict__"):
                     best_params = best_params.__dict__
-                    
+
                 # Include a summary of all model results if present
                 all_res_summary = {}
                 if "all_results" in results:
@@ -1381,9 +1472,9 @@ class BurstPipeline:
                             continue
                         all_res_summary[k] = {
                             "log_evidence": getattr(v, "log_evidence", None),
-                            "log_evidence_err": getattr(v, "log_evidence_err", None)
+                            "log_evidence_err": getattr(v, "log_evidence_err", None),
                         }
-                
+
                 safe_results = {
                     "best_model": results.get("best_key"),
                     "best_params": best_params,
@@ -1391,9 +1482,9 @@ class BurstPipeline:
                     "goodness_of_fit": results.get("goodness_of_fit"),
                     "dm_init": results.get("dm_init"),
                     "convergence": results.get("loop_stats"),
-                    "all_results": all_res_summary
+                    "all_results": all_res_summary,
                 }
-                
+
                 json_path = os.path.join(self.outpath, f"{self.name}_fit_results.json")
                 with open(json_path, "w") as f:
                     json.dump(safe_results, f, indent=4, cls=NumpyEncoder)
@@ -1402,34 +1493,37 @@ class BurstPipeline:
             if plot:
                 try:
                     from .visualization import plot_scattering_diagnostic
+
                     log.info("Generating publication-quality diagnostic plot...")
                     plot_scattering_diagnostic(
                         dataset=self.dataset,
                         results=results,
                         save=save,
-                        telescope=self.telescope_orig, # Use original telescope name
+                        telescope=self.telescope_orig,  # Use original telescope name
                     )
                 except Exception as e:
-                    log.warning(f"Modular plotting failed: {e}. Falling back to legacy plots.")
-                    create_sixteen_panel_plot(self.dataset, results, save=save, show=False)
+                    log.warning(
+                        f"Modular plotting failed: {e}. Falling back to legacy plots."
+                    )
+                    create_sixteen_panel_plot(
+                        self.dataset, results, save=save, show=False
+                    )
                     create_four_panel_plot(self.dataset, results, save=save, show=False)
 
             return results
 
-
-
     def _get_initial_guess(self, model: "FRBModel") -> "FRBParams":
         """Generate data-driven initial guess for MCMC.
-        
+
         Uses the burstfit_init module to extract parameter estimates
         directly from the data instead of hardcoded values.
         """
         log.info("Finding data-driven initial guess for MCMC...")
-        
+
         # Try data-driven estimation first
         try:
             from .burstfit_init import data_driven_initial_guess
-            
+
             result = data_driven_initial_guess(
                 data=model.data,
                 freq=model.freq,
@@ -1437,7 +1531,7 @@ class BurstPipeline:
                 dm=self.dm_init,
                 verbose=True,
             )
-            
+
             init_guess = result.params
             log.info(f"Data-driven initial guess:")
             log.info(f"  c0      = {init_guess.c0:.2f}")
@@ -1446,15 +1540,15 @@ class BurstPipeline:
             log.info(f"  zeta    = {init_guess.zeta:.3f} ms")
             log.info(f"  tau_1ghz= {init_guess.tau_1ghz:.3f} ms")
             log.info(f"  alpha   = {init_guess.alpha:.2f}")
-            
+
             # Store diagnostics for later inspection
             self._init_guess_diagnostics = result.diagnostics
-            
+
             return init_guess
-            
+
         except Exception as e:
             log.warning(f"Data-driven guess failed: {e}. Falling back to optimization.")
-        
+
         # Fallback: quick optimization-based guess
         f_ds = 1
         t_ds = 1
@@ -1475,15 +1569,15 @@ class BurstPipeline:
         prof = np.nansum(model_ds.data, axis=0)
         if np.all(prof == 0):
             return FRBParams(c0=0, t0=model_ds.time.mean(), gamma=0, zeta=0, tau_1ghz=0)
-        
+
         # Data-derived rough guess (better than pure hardcodes)
         t0_idx = np.argmax(prof)
         t0 = model_ds.time[t0_idx]
         c0 = np.sum(prof)
-        
+
         # Estimate spectral index from data
         spectrum = np.nansum(model_ds.data, axis=1)
-        with np.errstate(invalid='ignore', divide='ignore'):
+        with np.errstate(invalid="ignore", divide="ignore"):
             log_freq = np.log(freq_ds)
             log_flux = np.log(np.maximum(spectrum, 1e-10))
             mask = np.isfinite(log_flux) & np.isfinite(log_freq)
@@ -1495,17 +1589,17 @@ class BurstPipeline:
                 gamma = -1.6
         else:
             gamma = -1.6
-        
+
         # Estimate width from profile variance
         weights = np.maximum(prof - np.percentile(prof, 10), 0)
         weights /= np.sum(weights) + 1e-30
         t_var = np.sum((model_ds.time - t0) ** 2 * weights)
         width = 2.355 * np.sqrt(max(t_var, 1e-6))
-        
+
         # Initial zeta and tau: split observed width
         zeta = max(0.1, width * 0.4)
         tau_1ghz = max(0.1, width * 0.4)
-        
+
         rough_guess = FRBParams(
             c0=c0,
             t0=t0,
@@ -1514,7 +1608,7 @@ class BurstPipeline:
             tau_1ghz=tau_1ghz,
             alpha=4.0,  # Thin screen default
         )
-        
+
         # Refine with L-BFGS-B
         priors, use_logw = build_priors(
             rough_guess,
@@ -1769,7 +1863,7 @@ def _main():
     p.add_argument("--no-scan", dest="model_scan", action="store_false")
     p.add_argument("--no-diag", dest="diagnostics", action="store_false")
     p.add_argument("--no-plot", dest="plot", action="store_false")
-    p.set_defaults(model_scan=True, diagnostics=True, plot=True, flip_freq=True)
+    p.set_defaults(model_scan=True, diagnostics=True, plot=True, flip_freq=False)
     args = p.parse_args()
 
     # --- FIX: Pass all arguments as a dict to the pipeline constructor ---

@@ -97,7 +97,7 @@ try:
     plt.title("Dedispersed Data (Loaded by Pipeline)")
     plt.xlabel("Frequency (GHz)")
     plt.ylabel("Time (ms)")
-    # plt.show()
+    plt.show()
 
 except FileNotFoundError:
     print("Data file not found. Creating Mock Data for Demo...")
@@ -128,7 +128,7 @@ except FileNotFoundError:
     plt.title("Mock Data (Since Real Data Missing)")
     plt.xlabel("Time (ms)")
     plt.ylabel("Freq (GHz)")
-    # plt.show()
+    plt.show()
 
 
 # ## 2. DM Refinement
@@ -192,5 +192,5 @@ plt.colorbar(label='Model Intensity')
 plt.title(f"Scattering Model (τ={test_params.tau_1ghz}ms, α={test_params.alpha})")
 plt.xlabel("Frequency (GHz)")
 plt.ylabel("Time (ms)")
-# plt.show()
+plt.show()
 

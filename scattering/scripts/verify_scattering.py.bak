@@ -224,7 +224,7 @@ def plot_results(
             print(f"Could not plot posteriors: {e}")
 
     plt.suptitle(title, fontsize=14, fontweight="bold")
-    # plt.show()
+    plt.show()
 
 
 if __name__ == "__main__":
@@ -287,7 +287,7 @@ if __name__ == "__main__":
     ax2.set_title("Time Profile (Freq-Averaged)")
     ax2.grid(True, alpha=0.3)
     plt.tight_layout()
-    # plt.show()
+    plt.show()
 
     print("\n[4] Summary of integration:")
     print("  ✓ FRBParams: tau_ms and tau_alpha parameters")

@@ -115,7 +115,7 @@ def generate_theoretical_plots():
             title="Figure 4: Two-Screen ACF Decomposition", ylim=(0, 3.1))
     ax4.legend()
     fig4.savefig("figure_4_replication.png", dpi=150)
-    # plt.show()
+    plt.show()
 
 def generate_figure_6():
     """Generates plot for Figure 6, showing the simulation components."""
@@ -153,7 +153,7 @@ def generate_figure_6():
     axes[0].set_xlim(peak_time_ms - window_ms, peak_time_ms + window_ms)
     
     fig.savefig("figure_6_replication.png", dpi=150)
-    # plt.show()
+    plt.show()
 
 def generate_figure_7_and_8():
     """Generates plots for Figures 7 (Dynamic Spectra) and 8 (ACFs)."""
@@ -229,7 +229,7 @@ def generate_figure_7_and_8():
     
     fig7.savefig("figure_7_replication.png", dpi=150)
     fig8.savefig("figure_8_replication.png", dpi=150)
-    # plt.show()
+    plt.show()
 
 
 def generate_figure_15():
@@ -275,7 +275,7 @@ def generate_figure_15():
 
     fig.suptitle("Figure 15: Scintillation Quenching for 1D Screens", fontsize=16)
     fig.savefig("figure_15_replication.png", dpi=150)
-    # plt.show()
+    plt.show()
 
 def generate_figure_noisy_acf():
     """
@@ -362,7 +362,7 @@ def generate_figure_noisy_acf():
     
     plt.tight_layout()
     fig.savefig("figure_noisy_acf_demo.png", dpi=150)
-    # plt.show()
+    plt.show()
     
 # ============================================================================
 # 3. MAIN EXECUTION BLOCK

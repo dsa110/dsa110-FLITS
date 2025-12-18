@@ -186,7 +186,7 @@ def plot_broadband_results(results: dict):
         axis.set_major_formatter(ScalarFormatter())
 
     plt.tight_layout()
-    # plt.show()
+    plt.show()
 
 if __name__ == '__main__':
     # Run the full analysis and generate the plot

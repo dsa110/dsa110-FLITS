@@ -294,7 +294,7 @@ def main():
         corner_path = data_path.with_name(f"{data_path.stem}_corner.png")
         fig_corner.savefig(corner_path, dpi=200, bbox_inches="tight")
         print(f"Saved final corner plot to: {corner_path}")
-        # plt.show()
+        plt.show()
 
     print("\n--- Analysis complete. ---")
 

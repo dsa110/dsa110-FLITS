@@ -123,7 +123,7 @@ def main():
     ax.set_xlim(-2 * fD_max_theory, 2 * fD_max_theory)
     
     plt.tight_layout()
-    # plt.show()
+    plt.show()
 
 if __name__ == "__main__":
     main()

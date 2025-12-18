@@ -97,7 +97,7 @@ def run_validation():
     
     plt.tight_layout()
     plt.savefig("validation_unresolved_case.png", dpi=150)
-    # plt.show()
+    plt.show()
 
 if __name__ == '__main__':
     run_validation()

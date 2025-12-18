@@ -98,7 +98,7 @@ def plot_pulse_window_diagnostic(spectrum_obj, title, save_path=None, **kwargs):
         except Exception as e:
             log.error(f"Failed to save diagnostic plot to {save_path}: {e}")
 
-    # plt.show()
+    plt.show()
     plt.close(fig)
 
 
@@ -126,7 +126,7 @@ def plot_acf(acf_obj, fit_result=None, **kwargs):
     ax.set_ylabel("Autocorrelation")
     ax.grid(True, alpha=0.3)
     ax.legend()
-    # plt.show()
+    plt.show()
     
 def plot_analysis_overview(
     analysis_results, 
@@ -379,7 +379,7 @@ def plot_analysis_overview(
         except Exception as e:
             log.error(f"Failed to save plot to {save_path}: {e}")
             
-    # plt.show()
+    plt.show()
     
 def plot_noise_distribution(spectrum_obj, downsample_factor=8, save_path=None, **kwargs):
     """
@@ -438,7 +438,7 @@ def plot_noise_distribution(spectrum_obj, downsample_factor=8, save_path=None, *
         except Exception as e:
             log.error(f"Failed to save plot to {save_path}: {e}")
 
-    # plt.show()
+    plt.show()
 
 def plot_intra_pulse_evolution(
     intra_pulse_results,
@@ -552,7 +552,7 @@ def plot_intra_pulse_evolution(
         except Exception as e:
             log.error(f"Failed to save plot to {save_path}: {e}")
             
-    # plt.show()
+    plt.show()
     
 def plot_intra_pulse_evolution_stackacfs(
     intra_pulse_results,
@@ -660,7 +660,7 @@ def plot_intra_pulse_evolution_stackacfs(
         except Exception as e:
             log.error(f"Failed to save plot to {save_path}: {e}")
             
-    # plt.show()
+    plt.show()
     
 def plot_baseline_fit(
     off_pulse_spectrum,
@@ -732,7 +732,7 @@ def plot_baseline_fit(
         except Exception as e:
             log.error(f"Failed to save baseline plot to {save_path}: {e}")
     
-    # plt.show()
+    plt.show()
     plt.close(fig)
 
 # ==============================================================================
@@ -955,7 +955,7 @@ def plot_publication_acf(
         plt.savefig(save_path, bbox_inches='tight', dpi=300)
         log.info(f"Publication ACF plot saved to: {save_path}")
     
-    # plt.show()
+    plt.show()
 
 
 # ==============================================================================

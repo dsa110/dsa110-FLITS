@@ -112,7 +112,7 @@ def create_sample_overview(
         log.info(f"Sample overview saved to {output_path}")
     
     if show:
-        # plt.show()
+        plt.show()
     else:
         plt.close(fig)
     
@@ -409,7 +409,7 @@ def create_tau_deltanu_scatter(
         log.info(f"τ-Δν scatter plot saved to {output_path}")
     
     if show:
-        # plt.show()
+        plt.show()
     else:
         plt.close(fig)
     

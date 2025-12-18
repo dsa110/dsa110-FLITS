@@ -29,7 +29,7 @@ TARGETS: List[Tuple[str, str, float]] = [
 
 # Catalog identifiers for Vizier
 VIZIER_CATALOGS = {
-    "GLADE+": "VII/281/gladeplus",
-    "DESI_DR8_NORTH": "VII/292/north",
+    "GLADE+": "VII/281/glade2",
+    "2MPZ": "J/ApJ/776/43/table1",
     "SDSS_DR17": "V/154/sdss17",
 }

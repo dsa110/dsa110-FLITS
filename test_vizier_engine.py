@@ -11,12 +11,14 @@ def test_vizier():
     
     from astroquery.vizier import Vizier
     v = Vizier(columns=['*'])
-    print("Querying Vizier without catalog ID...")
-    result = v.query_region(coord, radius=radius)
+    catalog_id = "VII/281/glade2"
+    print(f"Querying Vizier {catalog_id} for M31...")
+    result = v.query_region(coord, radius=radius, catalog=catalog_id)
     print(f"Found {len(result)} tables.")
     if result:
         for table in result:
             print(f"Table: {table.meta.get('ID')}, Rows: {len(table)}")
+            print("Columns:", table.colnames)
 
 if __name__ == "__main__":
     test_vizier()

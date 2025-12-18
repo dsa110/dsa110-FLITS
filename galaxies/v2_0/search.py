@@ -11,11 +11,9 @@ def run_search(impact_kpc: float = DEFAULT_IMPACT_KPC, output_dir: str = "result
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
         
-    engines = [
-        NedEngine(),
-        VizierEngine(VIZIER_CATALOGS["GLADE+"]),
-        # Add more engines as needed
-    ]
+    engines = [NedEngine()]
+    for cat_name, cat_id in VIZIER_CATALOGS.items():
+        engines.append(VizierEngine(cat_id))
     
     summary_data = []
     

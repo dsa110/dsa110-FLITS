@@ -244,8 +244,6 @@ def plot_systematics_matrix(
         ax.set_xlabel(label)
         ax.set_ylabel('Residual [ms]')
         ax.grid(linestyle=':', alpha=0.4)
-        
-    fig.suptitle('Systematic Correlation Search Matrix', fontsize=16, fontweight='bold')
     
     if output_path:
         fig.savefig(output_path, dpi=300)

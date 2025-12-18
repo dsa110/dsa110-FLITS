@@ -17,14 +17,19 @@ def plot_impact_vs_redshift(summary_df: pd.DataFrame, all_galaxies_df: pd.DataFr
     fig, ax = plt.subplots(figsize=(10, 6))
     
     # Plot galaxies
-    # Use name for coloring if available
-    color_col = 'name' if 'name' in all_galaxies_df.columns else 'target_id'
+    # Use target_name for coloring if available, otherwise name (which might be the same) or target_id
+    if 'target_name' in all_galaxies_df.columns:
+        color_col = 'target_name'
+    elif 'name' in all_galaxies_df.columns:
+        color_col = 'name'
+    else:
+        color_col = 'target_id'
     
     # Create a mapping for categorical colors if using names
-    if color_col == 'name':
-        names = all_galaxies_df['name'].unique()
+    if color_col in ['target_name', 'name']:
+        names = all_galaxies_df[color_col].unique()
         name_to_id = {name: i for i, name in enumerate(names)}
-        colors = all_galaxies_df['name'].map(name_to_id)
+        colors = all_galaxies_df[color_col].map(name_to_id)
     else:
         colors = all_galaxies_df['target_id']
 

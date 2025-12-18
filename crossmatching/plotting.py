@@ -19,10 +19,10 @@ from scipy import stats
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Try to use FLITS style, fallback to seaborn-v0_8-whitegrid
+# Use scienceplots for publication-quality plots
 try:
-    from flits.plotting import use_flits_style
-    use_flits_style()
+    import scienceplots
+    plt.style.use(['science', 'notebook'])
     # Handle negative signs in case of font issues
     plt.rcParams['axes.unicode_minus'] = False
 except ImportError:

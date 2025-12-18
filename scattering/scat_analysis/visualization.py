@@ -143,6 +143,111 @@ def preprocess_data(
     return data, freq, time, dt_ms, df_MHz
 
 
+def _draw_diagnostic_header(fig, results, tns_name, burst_name, observatory, best_key):
+    """Draw the elegant header at the top of the diagnostic plot."""
+    # Design Configuration
+    C_BG = "#F4F6F7"
+    C_TEXT_PRIMARY = "#333333"
+    C_TEXT_SECONDARY = "#777777"
+    C_HIGHLIGHT_BLUE = "#0056b3"
+    C_STATUS_RED = "#d9534f"
+    C_STATUS_GREEN = "#28a745"
+    C_DIVIDER = "#E0E0E0"
+    
+    FONT_SANS = 'DejaVu Sans'
+    KW_TITLE = dict(fontname=FONT_SANS, fontsize=9, color=C_TEXT_SECONDARY, weight='bold', ha='left', va='top')
+    
+    # Add background rectangle
+    header_rect = mpatches.Rectangle((0.05, 0.89), 0.93, 0.10, 
+                                    transform=fig.transFigure,
+                                    facecolor=C_BG, edgecolor='none', zorder=-1)
+    fig.add_artist(header_rect)
+    
+    def add_divider(x_pos):
+        line = mpatches.ConnectionPatch(
+            xyA=(x_pos, 0.90), xyB=(x_pos, 0.98),
+            coordsA='figure fraction', coordsB='figure fraction',
+            color=C_DIVIDER, linewidth=1)
+        fig.add_artist(line)
+
+    # Panel 1: Event Information
+    fig.text(0.06, 0.975, "EVENT", **KW_TITLE)
+    fig.text(0.06, 0.95, tns_name, fontname=FONT_SANS, fontsize=13, weight='bold', color=C_TEXT_PRIMARY, va='top')
+    fig.text(0.06, 0.93, burst_name.upper(), fontname=FONT_SANS, fontsize=10, color=C_TEXT_PRIMARY, va='top')
+    fig.text(0.06, 0.905, f"Observatory: {observatory}", fontname=FONT_SANS, fontsize=8, color=C_TEXT_SECONDARY, va='top')
+    
+    add_divider(0.25)
+    
+    # Panel 2: Model Selection
+    fig.text(0.27, 0.975, "MODEL SELECTION", **KW_TITLE)
+    if "all_results" in results:
+        res_all = results["all_results"]
+        model_keys = ["M0", "M1", "M2", "M3"]
+        x_positions = [0.27, 0.36]
+        y_positions = [0.95, 0.93]
+        
+        for i, k in enumerate(model_keys):
+            if k not in res_all: continue
+            res_k = res_all[k]
+            z = float(res_k.get('log_evidence', 0)) if isinstance(res_k, dict) else float(getattr(res_k, 'log_evidence', 0))
+            bic = -2 * z
+            x_pos = x_positions[i // 2]
+            y_pos = y_positions[i % 2]
+            
+            is_best = (k == best_key)
+            color = C_HIGHLIGHT_BLUE if is_best else C_TEXT_SECONDARY
+            weight = 'bold' if is_best else 'normal'
+            size = 9 if is_best else 8
+            suffix = " ✓" if is_best else ""
+            fig.text(x_pos, y_pos, f"{k}: BIC = {bic:.0f}{suffix}", fontname=FONT_SANS, 
+                    fontsize=size, weight=weight, color=color, va='top')
+    else:
+        fig.text(0.27, 0.95, f"{best_key}: Selected ✓", fontname=FONT_SANS, fontsize=9, 
+                weight='bold', color=C_HIGHLIGHT_BLUE, va='top')
+    
+    add_divider(0.45)
+    
+    # Panel 3: Fit Evaluation
+    fig.text(0.47, 0.975, "FIT EVALUATION", **KW_TITLE)
+    gof = results.get("goodness_of_fit", {})
+    quality = gof.get("quality_flag", "UNKNOWN")
+    chi2 = gof.get("chi2_reduced", np.nan)
+    r2 = gof.get("r_squared", np.nan)
+    
+    status_color = C_STATUS_RED if quality == "FAIL" else C_STATUS_GREEN
+    fig.text(0.47, 0.95, f"Status: {quality}", fontname=FONT_SANS, fontsize=9, weight='bold', color=status_color, va='top')
+    fig.text(0.47, 0.92, f"χ²ᵣ = {chi2:.2f}", fontname=FONT_SANS, fontsize=9, color=C_TEXT_PRIMARY, va='top')
+    fig.text(0.57, 0.92, f"R² = {r2:.3f}", fontname=FONT_SANS, fontsize=9, color=C_TEXT_PRIMARY, va='top')
+    
+    add_divider(0.67)
+    
+    # Panel 4: Best Fit Parameters
+    fig.text(0.69, 0.975, "BEST FIT PARAMETERS", **KW_TITLE)
+    param_names = results.get('param_names', [])
+    param_strs = []
+    flat_chain = results.get('flat_chain', np.array([]))
+    
+    for i, name in enumerate(param_names):
+        val, err = np.nan, 0.0
+        if flat_chain.size > 0 and flat_chain.ndim == 2 and i < flat_chain.shape[1]:
+            vals = flat_chain[:, i]
+            if not np.all(np.isnan(vals)):
+                val, err = np.median(vals), np.std(vals)
+        
+        if np.isnan(val): # Fallback
+            val = getattr(results.get('best_params_obj', {}), name, np.nan)
+
+        if abs(val) < 0.001 and val != 0:
+            param_strs.append(f"{name} = {val:.2e} ± {err:.1e}")
+        else:
+            param_strs.append(f"{name} = {val:.3g} ± {err:.1g}")
+
+    x_cols = [0.69, 0.79, 0.89]
+    for i, s in enumerate(param_strs):
+        col, row = i // 2, i % 2
+        if col < len(x_cols):
+            fig.text(x_cols[col], 0.95 - (row * 0.018), s, fontname=FONT_SANS, fontsize=8, color=C_TEXT_PRIMARY, va='top')
+
 def plot_scattering_diagnostic(
     data: np.ndarray,
     model: np.ndarray,
@@ -154,327 +259,80 @@ def plot_scattering_diagnostic(
     burst_name: str = "FRB",
     telescope: str = None
 ):
-    """
-    Create 4-panel diagnostic plot with elegant header.
-    
-    Layout: 3 rows
-    - Row 1: Professional header strip with 4 panels (observation, model, evaluation, parameters)
-    - Row 2: Time series profiles for each panel
-    - Row 3: Dynamic spectra + frequency profiles
-    
-    Parameters
-    ----------
-    data : ndarray
-        Preprocessed data (freq × time)
-    model : ndarray
-        Model dynamic spectrum
-    freq : ndarray
-        Frequency axis in GHz
-    time : ndarray
-        Time axis in ms
-    params : FRBParams
-        Best-fit parameters
-    results : dict
-        Full results dictionary (must contain 'goodness_of_fit', 'best_key', 'param_names', 'flat_chain')
-    output_path : Path
-        Output file path
-    burst_name : str
-        Name of the burst for title
-    """
-    # ==========================================
-    # Design Configuration (Colors & Styles)
-    # ==========================================
-    C_BG = "#F4F6F7"
-    C_TEXT_PRIMARY = "#333333"
-    C_TEXT_SECONDARY = "#777777"
-    C_HIGHLIGHT_BLUE = "#0056b3"
-    C_STATUS_RED = "#d9534f"
-    C_STATUS_GREEN = "#28a745"
-    C_DIVIDER = "#E0E0E0"
-    
-    FONT_SANS = 'DejaVu Sans'
-    KW_TITLE = dict(fontname=FONT_SANS, fontsize=9, color=C_TEXT_SECONDARY, weight='bold', ha='left', va='top')
-    KW_BODY = dict(fontname=FONT_SANS, fontsize=10, color=C_TEXT_PRIMARY, ha='left', va='top')
-    
-    # ==========================================
+    """Create 4-panel diagnostic plot with elegant header."""
     # Data Preparation
-    # ==========================================
     q = data.shape[1] // 4
-    data_off_pulse = data[:, np.r_[0:q, -q:0]]
-    noise_std = np.nanstd(data_off_pulse, axis=1)
+    data_off = data[:, np.r_[0:q, -q:0]]
+    noise_std = np.nanstd(data_off, axis=1)
     
-    synthetic_noise = np.random.normal(0.0, noise_std[:, None], size=data.shape)
-    synthetic_data = model + synthetic_noise
-    residual = data - synthetic_data
+    synth_data = model + np.random.normal(0.0, noise_std[:, None], size=data.shape)
+    residual = data - synth_data
     
-    # Normalize consistently
-    mean_off = np.nanmean(data_off_pulse)
-    std_off = np.nanstd(data_off_pulse)
-    if std_off < 1e-9:
-        std_off = 1.0
+    m_off, s_off = np.nanmean(data_off), np.nanstd(data_off)
+    if s_off < 1e-9: s_off = 1.0
     
-    data_snr = (data - mean_off) / std_off
-    peak_snr = np.nanmax(data_snr)
-    if peak_snr <= 0:
-        peak_snr = 1.0
+    p_snr = np.nanmax((data - m_off) / s_off) or 1.0
+    norm = lambda x, sub=True: ((x - m_off) if sub else x) / s_off / p_snr
     
-    def _apply_norm(arr, subtract_mean=True):
-        if subtract_mean:
-            return (arr - mean_off) / std_off / peak_snr
-        else:
-            return arr / std_off / peak_snr
+    d_norm, m_norm, s_norm, r_norm = norm(data), norm(model), norm(synth_data), norm(residual, False)
     
-    data_norm = _apply_norm(data, subtract_mean=True)
-    model_norm = _apply_norm(model, subtract_mean=True)
-    synthetic_norm = _apply_norm(synthetic_data, subtract_mean=True)
-    residual_norm = _apply_norm(residual, subtract_mean=False)
-    
-    # ==========================================
-    # Configure Matplotlib Style to Match Reference
-    # ==========================================
-    # Set rcParams to match SciencePlots "science" style with larger fonts
+    # Configure Style
     plt.rcParams.update({
-        'xtick.direction': 'in',
-        'ytick.direction': 'in',
-        'xtick.top': True,
-        'ytick.right': True,
-        'xtick.minor.visible': True,
-        'ytick.minor.visible': True,
-        'xtick.major.size': 6,
-        'xtick.minor.size': 3,
-        'ytick.major.size': 6,
-        'ytick.minor.size': 3,
-        'xtick.labelsize': 14,
-        'ytick.labelsize': 14,
-        'axes.labelsize': 16,
+        'xtick.direction': 'in', 'ytick.direction': 'in',
+        'xtick.top': True, 'ytick.right': True,
+        'xtick.minor.visible': True, 'ytick.minor.visible': True,
+        'xtick.labelsize': 14, 'ytick.labelsize': 14, 'axes.labelsize': 16,
     })
     
-    # Calculate shared axis limits
-    all_ts = [np.nansum(p, axis=0) for p in [data_norm, model_norm, synthetic_norm, residual_norm]]
-    ts_min = min(np.min(t) for t in all_ts if t.size > 0)
-    ts_max = max(np.max(t) for t in all_ts if t.size > 0)
-    y_range = ts_max - ts_min
-    ts_ylim = (ts_min - 0.05 * y_range, ts_max + 0.05 * y_range)
-    
-    all_sp = [np.nansum(p, axis=1) for p in [data_norm, model_norm, synthetic_norm, residual_norm]]
-    sp_min = min(np.min(s) for s in all_sp if s.size > 0)
-    sp_max = max(np.max(s) for s in all_sp if s.size > 0)
-    x_range = sp_max - sp_min
-    sp_xlim = (sp_min - 0.05 * x_range, sp_max + 0.05 * x_range)
-    
-    # ==========================================
-    # Create Original 2x8 Grid Using plt.subplots()
-    # ==========================================
-    # This exactly matches create_four_panel_plot structure
-    # Original: (24, 8), we use (24, 8.5) - minimal increase to fit compact header
-    fig, axes = plt.subplots(
-        nrows=2,
-        ncols=8,
-        gridspec_kw={"height_ratios": [1, 2.5], "width_ratios": [2, 0.5] * 4},
-        figsize=(24, 8.5),
-    )
+    # Create Figure
+    fig, axes = plt.subplots(nrows=2, ncols=8, gridspec_kw={"height_ratios": [1, 2.5], "width_ratios": [2, 0.5] * 4}, figsize=(24, 8.5))
     
     time_centered = time - (time[0] + (time[-1] - time[0]) / 2)
     extent = [time_centered[0], time_centered[-1], freq[0], freq[-1]]
     
-    panel_data = [
-        (data_norm, "Data", r"$\mathbf{I}_{\rm data}$"),
-        (model_norm, "Model", r"$\mathbf{I}_{\rm model}$"),
-        (synthetic_norm, "Model + Noise", r"$\mathbf{I}_{\rm model} + \mathbf{N}$"),
-        (residual_norm, "Residual", r"$\mathbf{I}_{\rm residual}$"),
-    ]
+    # shared limits
+    ts_list = [np.nansum(x, axis=0) for x in [d_norm, m_norm, s_norm, r_norm]]
+    ts_ylim = (min(np.min(t) for t in ts_list) * 1.05, max(np.max(t) for t in ts_list) * 1.05)
     
-    for i, (panel_ds, title, label) in enumerate(panel_data):
-        col_idx = i * 2
-        ax_ts, ax_sp, ax_wf = axes[0, col_idx], axes[1, col_idx + 1], axes[1, col_idx]
-        
-        ts = np.nansum(panel_ds, axis=0)
-        sp = np.nansum(panel_ds, axis=1)
-        
-        ax_ts.step(time_centered, ts, where="mid", c="k", lw=1.5, label=label)
+    panels = [(d_norm, "Data", r"$\mathbf{I}_{\rm data}$"), (m_norm, "Model", r"$\mathbf{I}_{\rm model}$"),
+              (s_norm, "Model + Noise", r"$\mathbf{I}_{\rm model} + \mathbf{N}$"), (r_norm, "Residual", r"$\mathbf{I}_{\rm residual}$")]
+    
+    for i, (ds, title, label) in enumerate(panels):
+        ax_ts, ax_wf, ax_sp = axes[0, i*2], axes[1, i*2], axes[1, i*2+1]
+        ax_ts.step(time_centered, np.nansum(ds, axis=0), where="mid", c="k", lw=1.5, label=label)
         ax_ts.legend(loc="upper right", fontsize=14, frameon=False)
-        ax_ts.set_ylim(ts_ylim)
+        ax_ts.set_ylim(ts_ylim); ax_ts.set_yticks([]); ax_ts.set_xlim(extent[0], extent[1])
+        ax_ts.tick_params(labelbottom=False)
         
         cmap = "coolwarm" if title == "Residual" else "plasma"
-        if title == "Residual":
-            vmax = np.nanmax(np.abs(panel_ds))
-            vmin = -vmax
-        else:
-            vmin = np.nanpercentile(panel_ds, 1)
-            vmax = np.nanpercentile(panel_ds, 99.5)
+        vmin = -np.nanmax(np.abs(ds)) if title=="Residual" else np.nanpercentile(ds, 1)
+        vmax = np.nanmax(np.abs(ds)) if title=="Residual" else np.nanpercentile(ds, 99.5)
         
-        ax_wf.imshow(
-            panel_ds,
-            extent=extent,
-            vmin=vmin,
-            vmax=vmax,
-            cmap=cmap,
-            aspect="auto",
-            origin="lower",
-        )
-        
-        ax_sp.step(sp, freq, where="mid", c="k", lw=1.5)
-        ax_sp.set_xlim(sp_xlim)
-        
-        # Exact tick styling from original
-        ax_ts.set_yticks([])
-        ax_ts.tick_params(axis="x", labelbottom=False)
-        ax_ts.set_xlim(extent[0], extent[1])
-        ax_sp.set_xticks([])
-        ax_sp.tick_params(axis="y", labelleft=False)
-        ax_sp.set_ylim(extent[2], extent[3])
+        ax_wf.imshow(ds, extent=extent, vmin=vmin, vmax=vmax, cmap=cmap, aspect="auto", origin="lower")
         ax_wf.set_xlabel("Time [ms]", fontsize=16)
-        if i == 0:
-            ax_wf.set_ylabel("Frequency [GHz]", fontsize=16)
-        else:
-            ax_wf.tick_params(axis="y", labelleft=False)
-        axes[0, col_idx + 1].axis("off")
-    
-    # Adjust spacing - equal vertical and horizontal gaps
+        if i == 0: ax_wf.set_ylabel("Frequency [GHz]", fontsize=16)
+        else: ax_wf.tick_params(labelleft=False)
+        
+        sp = np.nansum(ds, axis=1)
+        ax_sp.step(sp, freq, where="mid", c="k", lw=1.5)
+        ax_sp.set_yticks([]); ax_sp.set_xticks([]); ax_sp.set_ylim(extent[2], extent[3])
+        axes[0, i*2+1].axis("off")
+
     plt.subplots_adjust(hspace=0.05, wspace=0.05, top=0.88, bottom=0.08, left=0.05, right=0.98)
-    
-    # ==========================================
-    # Overlay Elegant Header Above
-    # ==========================================
-    # Add background rectangle for header (compact for 8.5" height)
-    header_rect = mpatches.Rectangle((0.05, 0.89), 0.93, 0.10, 
-                                    transform=fig.transFigure,
-                                    facecolor=C_BG, edgecolor='none', zorder=-1)
-    fig.add_artist(header_rect)
-    
-    # Helper function for dividers
-    def add_divider(x_pos):
-        line = mpatches.ConnectionPatch(
-            xyA=(x_pos, 0.90), xyB=(x_pos, 0.98),
-            coordsA='figure fraction', coordsB='figure fraction',
-            color=C_DIVIDER, linewidth=1)
-        fig.add_artist(line)
-    
-    # Extract data for header
-    best_key = results.get('best_key', results.get('best_model', 'Unknown'))
-    param_names = results.get('param_names', [])
-    flat_chain = results.get('flat_chain', np.array([]))
-    gof = results.get("goodness_of_fit", {})
-    chi2 = gof.get("chi2_reduced", np.nan)
-    r2 = gof.get("r_squared", np.nan)
-    quality = gof.get("quality_flag", "UNKNOWN")
-    
-    # Determine observatory and TNS name (all from data/results, nothing hard-coded)
-    # Use telescope parameter or detect from filename as fallback
-    if telescope:
-        observatory_map = {'chime': 'CHIME/FRB', 'dsa': 'DSA-110', 'dsa110': 'DSA-110'}
-        observatory = results.get('observatory', observatory_map.get(telescope.lower(), telescope.upper()))
-    else:
-        fname = output_path.name
-        observatory = results.get('observatory', 'CHIME/FRB' if 'chime' in fname.lower() else 'DSA-110')
-    # Load TNS name from CSV (all metadata now from external sources)
+
+    # Observatory & Metadata
+    obs_map = {'chime': 'CHIME/FRB', 'dsa': 'DSA-110', 'dsa110': 'DSA-110'}
+    observatory = telescope and obs_map.get(telescope.lower()) or ('CHIME/FRB' if 'chime' in str(output_path).lower() else 'DSA-110')
     tns_name = load_tns_name(burst_name)
+    best_key = results.get('best_model', results.get('best_key', 'M3'))
     
-    # Panel 1: Event Information (compact layout)
-    fig.text(0.06, 0.975, "EVENT", **KW_TITLE)
-    fig.text(0.06, 0.95, tns_name, fontname=FONT_SANS, fontsize=13, weight='bold', color=C_TEXT_PRIMARY, va='top')
-    fig.text(0.06, 0.93, burst_name.upper(), fontname=FONT_SANS, fontsize=10, color=C_TEXT_PRIMARY, va='top')
-    fig.text(0.06, 0.905, f"Observatory: {observatory}", fontname=FONT_SANS, fontsize=8, color=C_TEXT_SECONDARY, va='top')
+    # Ensure best_params is accessible to header helper
+    results['best_params_obj'] = params
     
-    add_divider(0.25)
+    _draw_diagnostic_header(fig, results, tns_name, burst_name, observatory, best_key)
     
-    # Panel 2: Model Selection with BIC comparison
-    fig.text(0.27, 0.975, "MODEL SELECTION", **KW_TITLE)
-    
-    if "all_results" in results:
-        res_all = results["all_results"]
-        # Use fixed ordering for consistent 2-column layout: M0, M1 in Col 1; M2, M3 in Col 2
-        model_keys = ["M0", "M1", "M2", "M3"]
-        x_col1, x_col2 = 0.27, 0.36
-        y_row1, y_row2 = 0.95, 0.93
-        
-        for i, k in enumerate(model_keys):
-            if k not in res_all:
-                continue
-                
-            res_k = res_all[k]
-            # Handle both objects (runtime) and dicts (loaded from JSON)
-            if isinstance(res_k, dict):
-                z = float(res_k.get('log_evidence', 0))
-            else:
-                z = float(getattr(res_k, 'log_evidence', 0))
-                
-            bic = -2 * z
-            x_pos = x_col1 if i < 2 else x_col2
-            y_pos = y_row1 if i % 2 == 0 else y_row2
-            
-            if k == best_key:
-                model_line = f"{k}: BIC = {bic:.0f} ✓"
-                fig.text(x_pos, y_pos, model_line, fontname=FONT_SANS, fontsize=9,
-                        weight='bold', color=C_HIGHLIGHT_BLUE, va='top')
-            else:
-                model_line = f"{k}: BIC = {bic:.0f}"
-                fig.text(x_pos, y_pos, model_line, fontname=FONT_SANS, fontsize=8,
-                        color=C_TEXT_SECONDARY, va='top')
-    else:
-        # Fallback if no all_results, but we still want more than just one model shown if possible
-        fig.text(0.27, 0.95, f"{best_key}: Selected ✓", fontname=FONT_SANS, fontsize=9, 
-                weight='bold', color=C_HIGHLIGHT_BLUE, va='top')
-    
-    add_divider(0.45)
-    
-    # Panel 3: Fit Evaluation (2-column layout)
-    fig.text(0.47, 0.975, "FIT EVALUATION", **KW_TITLE)
-    
-    is_fail = quality == "FAIL"
-    status_color = C_STATUS_RED if is_fail else C_STATUS_GREEN
-    # Compact status line
-    fig.text(0.47, 0.95, f"Status: {quality}", fontname=FONT_SANS, fontsize=9, weight='bold', color=status_color, va='top')
-    
-    # Column 1: χ²ᵣ
-    fig.text(0.47, 0.92, f"χ²ᵣ = {chi2:.2f}", fontname=FONT_SANS, fontsize=9, color=C_TEXT_PRIMARY, va='top')
-    
-    # Column 2: R²
-    fig.text(0.57, 0.92, f"R² = {r2:.3f}", fontname=FONT_SANS, fontsize=9, color=C_TEXT_PRIMARY, va='top')
-    
-    add_divider(0.67)
-    
-    # Panel 4: Best Fit Parameters (multi-column)
-    fig.text(0.69, 0.975, "BEST FIT PARAMETERS", **KW_TITLE)
-    
-    # Compute parameter values
-    param_strs = []
-    for i, name in enumerate(param_names):
-        if flat_chain.size > 0 and flat_chain.ndim == 2 and i < flat_chain.shape[1]:
-            vals = flat_chain[:, i]
-            if not np.all(np.isnan(vals)):
-                val = np.median(vals)
-                err = np.std(vals)
-            else:
-                val, err = getattr(params, name, np.nan), 0.0
-        else:
-            val, err = getattr(params, name, np.nan), 0.0
-        
-        if abs(val) < 0.001 and val != 0:
-            param_str = f"{name} = {val:.2e} ± {err:.1e}"
-        else:
-            param_str = f"{name} = {val:.3g} ± {err:.1g}"
-        param_strs.append(param_str)
-    
-    # Layout: 2 rows per column, spread across available space
-    x_positions = [0.69, 0.79, 0.89]
-    y_start = 0.95
-    row_spacing = 0.018
-    
-    for i, param_str in enumerate(param_strs):
-        col = i // 2  # 2 rows per column
-        row = i % 2
-        
-        if col < len(x_positions):
-            x_pos = x_positions[col]
-            y_pos = y_start - (row * row_spacing)
-            fig.text(x_pos, y_pos, param_str, fontname=FONT_SANS, fontsize=8, color=C_TEXT_PRIMARY, va='top')
-    
-    # Save
     fig.savefig(output_path, dpi=150)
-    print(f"Saved: {output_path}")
     plt.close(fig)
-    
     return fig
 
 

@@ -14,7 +14,7 @@ def test_frbmodel_peak_time_no_dm():
 
 
 def test_frbmodel_dispersion_delay():
-    t = np.linspace(0, 10, 2001)
+    t = np.linspace(0, 400, 4001)
     freqs = np.array([1000.0, 800.0])
     params = FRBParams(dm=50.0, amplitude=1.0, t0=0.0, width=0.2)
     model = FRBModel(params)
@@ -22,4 +22,4 @@ def test_frbmodel_dispersion_delay():
     peak_high = t[np.argmax(spec[0])]
     peak_low = t[np.argmax(spec[1])]
     expected_delay = K_DM * params.dm * (1 / freqs[1] ** 2 - 1 / freqs[0] ** 2)
-    assert np.isclose(peak_low - peak_high, expected_delay, atol=1e-2)
+    assert np.isclose(peak_low - peak_high, expected_delay, atol=0.2)

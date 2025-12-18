@@ -370,7 +370,7 @@ def create_four_panel_plot(
     return fig
 
 
-def create_enhanced_diagnostics_page(
+def create_fit_summary_plot(
     dataset: "BurstDataset",
     results: Dict[str, Any],
     *,
@@ -1408,7 +1408,7 @@ class BurstPipeline:
                     log.warning(
                         f"Modular plotting failed: {e}. Falling back to legacy plots."
                     )
-                    create_enhanced_diagnostics_page(
+                    create_fit_summary_plot(
                         self.dataset, results, save=save, show=False
                     )
                     create_four_panel_plot(self.dataset, results, save=save, show=False)

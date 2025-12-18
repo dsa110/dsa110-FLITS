@@ -228,3 +228,19 @@ The plot automatically handles:
 | χ²/dof     | 3.90                              |
 | R²         | 0.68                              |
 ```
+
+---
+
+## Scintillation vs Scattering Consistency
+
+To validate measured scintillation bandwidths ($\gamma$) against scattering timescales ($\tau$):
+
+```bash
+python3 -m scintillation.scint_analysis.consistency \
+    <scat_results_json> \
+    <scint_results_json> \
+    --burst_id <burst_id> \
+    --outdir <output_dir>
+```
+
+This performs a consistency check using the relation $\Delta \nu_d \cdot \tau = C / (2\pi)$, where $C \approx 1.16$ for Kolmogorov turbulence. It produces a plot showing the measured bandwidths vs the prediction derived from the scattering fit.

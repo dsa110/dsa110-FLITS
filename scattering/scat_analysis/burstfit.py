@@ -49,7 +49,7 @@ from flits.scattering import (
     gaussian_prior,
 )
 
-from .validation_thresholds import (
+from flits.fitting.VALIDATION_THRESHOLDS import (
     DM_MIN, DM_MAX,
     AMP_MIN, AMP_MAX,
     WIDTH_MIN, WIDTH_MAX,

@@ -117,4 +117,3 @@ if __name__ == "__main__":
         c_factor=args.c_factor,
         output_dir=args.outdir
     )
-    plt.show()

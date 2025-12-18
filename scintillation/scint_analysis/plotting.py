@@ -326,7 +326,7 @@ def plot_analysis_overview(
             redchi_vals = [m.get('gof', {}).get('redchi') for m in measurements]
             ax_gof.plot(freqs, redchi_vals, 'o-', label=f'Best Model ({best_model_name})')
     
-    ax_gof.axhline(1.0, color='r', linestyle='--', alpha=0.7, label='Ideal Fit ($\chi^2_\\nu=1$)')
+    ax_gof.axhline(1.0, color='r', linestyle='--', alpha=0.7, label=r'Ideal Fit ($\chi^2_\nu=1$)')
     ax_gof.set_title("Goodness-of-Fit Diagnostic")
     ax_gof.set_xlabel("Frequency (MHz)")
     ax_gof.set_ylabel("Reduced Chi-Squared ($\\chi^2_\\nu$)")

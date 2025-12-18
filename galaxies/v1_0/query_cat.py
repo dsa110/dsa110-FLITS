@@ -675,19 +675,35 @@ def q_glade(coord, radius, z):
     
     # GLADE+ catalog (VII/281/glade2)
     try:
-        Vizier.columns = ['GWGC', 'PGC', 'RAJ2000', 'DEJ2000', 'z', 'zflag', 
-                         'Bmag', 'Kmag', 'Mstar', 'd_L']
+        Vizier.columns = ['GWGC', 'PGC', '2MASS', 'RAJ2000', 'DEJ2000', 'z', 'Dist',
+                         'Bmag', 'Kmag', 'Hmag', 'Jmag', 'Flag1']
         result = Vizier.query_region(coord, radius=radius, catalog="VII/281/glade2")
         
         if result and len(result) > 0:
             t = result[0]
             print(f"     GLADE+ returned {len(t)} galaxies")
             
-            # zflag: 0=spec, 1=photo, 2=no z
-            if 'zflag' in t.colnames:
-                n_spec = np.sum(t['zflag'] == 0)
-                n_phot = np.sum(t['zflag'] == 1)
-                print(f"       {n_spec} spectroscopic, {n_phot} photometric redshifts")
+            # Estimate stellar mass from K-band magnitude
+            # M_K,sun = 3.27, log(M/L_K) ~ -0.4 for typical galaxies
+            # log(M*) = -0.4 * (M_K - M_K,sun) + log(L_K/L_sun)
+            if 'Kmag' in t.colnames and 'Dist' in t.colnames:
+                Kmag = np.array(t['Kmag'], dtype=float)
+                Dist = np.array(t['Dist'], dtype=float)  # Mpc
+                
+                # Absolute K magnitude: M_K = m_K - 5*log10(D/10pc)
+                valid = (Kmag > 0) & (Kmag < 30) & (Dist > 0)
+                M_K = np.full(len(t), np.nan)
+                M_K[valid] = Kmag[valid] - 5 * np.log10(Dist[valid] * 1e6 / 10)
+                
+                # Stellar mass from K-band: log(M*/Msun) ≈ -0.4*(M_K - 3.27) + 0.0
+                # Using M/L_K ~ 1 (typical for old stellar populations)
+                M_K_sun = 3.27
+                log_Mstar = np.full(len(t), np.nan)
+                log_Mstar[valid] = -0.4 * (M_K[valid] - M_K_sun)
+                t['log_Mstar'] = log_Mstar
+                
+                n_with_mass = np.sum(~np.isnan(log_Mstar))
+                print(f"       Estimated stellar masses for {n_with_mass} galaxies from K-band")
             
             t = _add_proj(t, coord, z)
             return t
@@ -768,6 +784,85 @@ def q_gama(coord, radius, z):
     return None
 
 
+def estimate_stellar_mass_from_color(g_mag, r_mag, i_mag, z_redshift):
+    """
+    Estimate stellar mass from optical colors using Bell+03 relations.
+    
+    Uses g-r color and i-band magnitude with redshift-dependent distance.
+    Returns log(M*/Msun).
+    """
+    if z_redshift <= 0 or z_redshift > 2:
+        return np.nan
+    
+    # Distance modulus from redshift (using fast lookup)
+    from config import angular_diameter_distance_fast
+    d_a = angular_diameter_distance_fast(np.array([z_redshift]))[0]  # Mpc
+    d_l = d_a * (1 + z_redshift)**2  # Luminosity distance
+    dist_mod = 5 * np.log10(d_l * 1e6 / 10)  # Distance modulus
+    
+    # Absolute i-band magnitude
+    M_i = i_mag - dist_mod
+    
+    # Bell+03 relation: log(M/L_i) = a + b*(g-r)
+    # For i-band: a = -0.222, b = 0.864
+    g_r = g_mag - r_mag
+    if g_r < -0.5 or g_r > 2.0:  # Sanity check on color
+        return np.nan
+    
+    log_ML_i = -0.222 + 0.864 * g_r
+    
+    # Solar absolute i-band magnitude
+    M_i_sun = 4.53
+    
+    # log(M*) = log(M/L) + log(L) = log(M/L) - 0.4*(M_i - M_i_sun)
+    log_Mstar = log_ML_i - 0.4 * (M_i - M_i_sun)
+    
+    return log_Mstar
+
+
+def add_mass_estimates_to_ps1(ps1_table, z_target):
+    """Add stellar mass estimates to PS1 table using color-based relations."""
+    if ps1_table is None or len(ps1_table) == 0:
+        return ps1_table
+    
+    n = len(ps1_table)
+    log_Mstar = np.full(n, np.nan)
+    
+    # Get magnitudes - try different column names for stack vs mean catalogs
+    g_col = 'gKronMag' if 'gKronMag' in ps1_table.colnames else 'gMeanKronMag'
+    r_col = 'rKronMag' if 'rKronMag' in ps1_table.colnames else 'rMeanKronMag'
+    i_col = 'iKronMag' if 'iKronMag' in ps1_table.colnames else 'iMeanKronMag'
+    
+    if g_col in ps1_table.colnames and r_col in ps1_table.colnames and i_col in ps1_table.colnames:
+        g = np.array(ps1_table[g_col], dtype=float)
+        r = np.array(ps1_table[r_col], dtype=float)
+        i = np.array(ps1_table[i_col], dtype=float)
+        
+        # Replace bad values with nan
+        g[g < 0] = np.nan
+        r[r < 0] = np.nan
+        i[i < 0] = np.nan
+        
+        # Use redshift from table if available, else use target redshift
+        z_arr = np.full(n, z_target)
+        if 'z_best' in ps1_table.colnames:
+            z_data = np.array(ps1_table['z_best'], dtype=float)
+            valid_z = ~np.isnan(z_data) & (z_data > 0)
+            z_arr[valid_z] = z_data[valid_z]
+        
+        # Estimate mass for each galaxy
+        for idx in range(n):
+            if not np.isnan(g[idx]) and not np.isnan(r[idx]) and not np.isnan(i[idx]):
+                log_Mstar[idx] = estimate_stellar_mass_from_color(g[idx], r[idx], i[idx], z_arr[idx])
+        
+        n_with_mass = np.sum(~np.isnan(log_Mstar))
+        if n_with_mass > 0:
+            print(f"       Estimated stellar masses for {n_with_mass}/{n} PS1 galaxies")
+    
+    ps1_table['log_Mstar'] = log_Mstar
+    return ps1_table
+
+
 def q_6dfgs(coord, radius, z):
     """Query 6dF Galaxy Survey for Southern hemisphere spectroscopic redshifts."""
     # Only query if target is in Southern hemisphere
@@ -829,11 +924,11 @@ def q_2mrs(coord, radius, z):
 
 # Standardization functions for new catalogs
 std_glade = lambda t: _std(t, {
-    "name": "PGC" if t is not None and "PGC" in t.colnames else "GWGC",
+    "name": "2MASS" if t is not None and "2MASS" in t.colnames else ("PGC" if t is not None and "PGC" in t.colnames else "GWGC"),
     "ra": "RAJ2000",
     "dec": "DEJ2000", 
     "z": "z",
-    "Mstar": "Mstar",
+    "Mstar": "log_Mstar",  # Now estimated from K-band
     "Rproj_kpc": "Rproj_kpc"
 }, "GLADE+") if t is not None else None
 

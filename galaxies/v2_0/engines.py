@@ -55,6 +55,10 @@ class VizierEngine(BaseEngine):
                 return pd.DataFrame()
             
             df = result[0].to_pandas()
+            if df.empty:
+                return df
+            
+            # print(f"DEBUG: Vizier {self.catalog_id} columns: {df.columns.tolist()}")
             
             # Standardize common Vizier column names
             rename_map = {

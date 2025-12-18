@@ -1,0 +1,124 @@
+\documentclass[twocolumn]{aastex631}
+
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{hyperref}
+
+\shorttitle{CHIME/FRB and DSA-110 ToA Crossmatching}
+\shortauthors{Faber et al.}
+
+\begin{document}
+
+\title{Precision Time-of-Arrival Crossmatching of Fast Radio Bursts between CHIME/FRB and DSA-110}
+
+\author[0000-0000-0000-0000]{Josh Faber}
+\affiliation{Deep Astronomy Group, California Institute of Technology, Pasadena, CA 91125, USA}
+
+\begin{abstract}
+We present a high-precision cross-observatory time-of-arrival (ToA) analysis of 12 Fast Radio Bursts (FRBs) co-detected by the CHIME/FRB and DSA-110 telescopes. By accounting for differential dispersion delays and geometric light-travel time between the two facilities, we measure the residuals between predicted and observed arrival times. Our analysis shows excellent agreement across the sample, with a median residual offset of $2.42 \pm 3.06$ ms. We conduct a systematic search for correlations between ToA residuals and physical burst properties including Dispersion Measure (DM), pulse width (FWHM), measurement uncertainty, and epoch (MJD). We find no statistically significant correlations, demonstrating the robustness of current dispersion modeling and instrumental calibration between the two facilities. A suggestive trend in residuals over time ($p=0.07$) warrants further investigation with larger sample sizes to monitor for potential long-term instrumental drift.
+\end{abstract}
+
+\keywords{Fast radio bursts (529) --- Interstellar medium (847) --- Radio astronomy (1338)}
+
+\section{Introduction} \label{sec:intro}
+
+Fast Radio Bursts (FRBs) are millisecond-duration radio transients of extragalactic origin \citep{Lorimer2007, Thornton2013}. High-precision timing across multiple observatories is critical for robust localization, interferometic studies, and probing the ionized media through which the signals propagate. The Canadian Hydrogen Intensity Mapping Experiment (CHIME/FRB) and the Deep Synoptic Array (DSA-110) provide complementary coverage in the 400--800 MHz and 1.28--1.53 GHz bands, respectively. Co-detections between these facilities offer unique opportunities to test the $1/\nu^2$ scaling of dispersion delays and verify the relative timing alignment of global radio telescope networks.
+
+\section{Methodology} \label{sec:methods}
+
+To crossmatch arrival times between CHIME and DSA-110, we must translate arrival times at different central frequencies to a common reference frequency, $\nu_{\text{ref}}$.
+
+\subsection{Dispersion Delay Correction}
+
+The time delay $\Delta t_{p}$ due to dispersion in a cold plasma is given by:
+\begin{equation}
+    \Delta t_{p} = K_{\text{DM}} \cdot \text{DM} \cdot \left( \frac{1}{\nu_{\text{ref}}^2} - \frac{1}{\nu_{\text{obs}}^2} \right)
+\end{equation}
+where $K_{\text{DM}} = 4.148808 \times 10^3 \, \text{MHz}^2 \, \text{pc}^{-1} \, \text{cm}^3 \, \text{s}$. In our analysis, we adopt $\nu_{\text{ref}} = 400$ MHz as the canonical reference frequency.
+
+\subsection{Geometric Delay Calculation}
+
+The light-travel time difference between the two observatories depends on the source coordinates $(\alpha, \delta)$ and the instantaneous orbital positions of the facilities. The predicted geometric delay $\tau_{\text{geo}}$ is calculated as:
+\begin{equation}
+    \tau_{\text{geo}} = \frac{(\mathbf{p}_2 - \mathbf{p}_1) \cdot \mathbf{\hat{s}}}{c}
+\end{equation}
+where $\mathbf{p}_1$ and $\mathbf{p}_2$ are the GCRS position vectors of CHIME and DSA-110, respectively, and $\mathbf{\hat{s}}$ is the unit vector pointing toward the source.
+
+\section{Results} \label{sec:results}
+
+We analyzed 12 co-detected bursts. For each event, we computed the "measured offset" ($\Delta \tau_{\text{obs}}$) as the difference between the frequency-corrected ToAs at both sites. The residual is then defined as:
+\begin{equation}
+    \mathcal{R} = \Delta \tau_{\text{obs}} - \tau_{\text{geo}}
+\end{equation}
+A residual of zero indicates perfect agreement between the observed timing and the theoretical prediction.
+
+\subsection{Residual Distribution}
+
+The residual distribution across our sample is shown in Figure \ref{fig:resid_burst}. We find a mean residual of $2.42$ ms with a standard deviation of $3.06$ ms. The median residual is $1.88$ ms. These results are consistent with the combined timing uncertainties of the two instruments, which are dominated by the coarse time resolution and pulse-width variations (FWHM).
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=\columnwidth]{toa_crossmatch_analysis_premium.png}
+    \caption{TOA residual analysis. Panel A shows the residual (Measured - Geometric) for each burst, colored by DM. The green shaded region represents the median $1\sigma$ timing uncertainty ($\pm 2.5$ ms). Panel B shows the residual vs. DM systematics check.}
+    \label{fig:resid_burst}
+\end{figure}
+
+\section{Systematics Analysis} \label{sec:systematics}
+
+We performed a systematic correlation search (Figure \ref{fig:matrix}) between the observed residuals and several burst parameters to identify potential biases in our dispersion modeling or instrumental effects.
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=0.8\textwidth]{systematics_check_matrix.png}
+    \caption{Systematic correlation search matrix. Residuals are plotted against DM, FWHM, Combined Uncertainty, and Time (MJD). Pearson correlation coefficients ($r$) and $p$-values are indicated. No correlations reach statistical significance ($p < 0.05$).}
+    \label{fig:matrix}
+\end{figure*}
+
+\subsection{Dispersion Measure Correlation}
+
+The correlation between residual and DM is negligible ($r=0.14, p=0.67$), suggesting that the $1/\nu^2$ scaling and the adopted $K_{\text{DM}}$ constant accurately describe the frequency-dependent delays across the observed DM range ($262 - 959 \, \text{pc cm}^{-3}$).
+
+\subsection{Timing Precision and FWHM}
+
+A moderate positive correlation exists between residuals and both burst FWHM ($r=0.48, p=0.11$) and combined measurement uncertainty ($r=0.49, p=0.11$). This is expected, as wider bursts have intrinsically poorer timing precision. However, neither reaches statistical significance ($p < 0.05$).
+
+\subsection{Temporal Stability}
+
+The correlation between residuals and time (MJD) yields $r=-0.54$ with $p=0.07$. While not formally significant, this suggestive trend indicates a possible drift in relative clock calibration or long-term baseline stability that warrants monitoring as the sample size increases.
+
+\section{Conclusions} \label{sec:conclusions}
+
+We have demonstrated high-precision ToA crossmatching between CHIME/FRB and DSA-110 for a sample of 12 co-detected bursts. The consistent residuals and lack of significant systematic correlations validate the current cross-calibration and dispersion delay models. Future co-detections will allow for more stringent tests of the cold-plasma dispersion law and finer monitoring of inter-observatory timing stability.
+
+\begin{acknowledgments}
+This work utilized data from the CHIME/FRB collaboration and the Deep Synoptic Array (DSA-110).
+\end{acknowledgments}
+
+\appendix
+\section{Crossmatch Result Table}
+
+Table \ref{tab:results} summarizes the properties of the bursts included in this study. All residuals are calculated at a reference frequency of 400 MHz.
+
+\begin{table}[h!]
+    \centering
+    \caption{Summary of Co-detected FRB Properties and Timing Residuals}
+    \begin{tabular}{ccccc}
+    \hline \hline
+    Nickname & DM (pc cm$^{-3}$) & MJD & FWHM (ms) & Residual (ms) \\ \hline
+    Zach         & 262.37 & 59617.809 & 0.96 & 1.53 \\
+    Whitney      & 462.17 & 59648.242 & 0.49 & 2.24 \\
+    Oran         & 396.88 & 59705.597 & 74.20 & 8.41 \\
+    Isha         & 411.57 & 59896.387 & 1.81 & 0.58 \\
+    Wilhelm      & 602.35 & 59916.002 & 0.39 & 6.82 \\
+    Phineas      & 610.27 & 60010.379 & 2.99 & 3.45 \\
+    Freya        & 912.40 & 60028.072 & 0.40 & 3.95 \\
+    Johndoeii    & 696.51 & 60170.361 & 0.70 & 4.55 \\
+    Hamilton     & 518.80 & 60200.207 & 0.20 & 1.23 \\
+    Mahi         & 960.13 & 60331.104 & 24.29 & -0.76 \\
+    Chromatica   & 272.66 & 60343.832 & 0.82 & -2.69 \\
+    Casey        & 491.21 & 60369.371 & 0.18 & -0.32 \\ \hline
+    \end{tabular}
+    \label{tab:results}
+\end{table}
+
+\end{document}

@@ -22,6 +22,8 @@ import argparse
 import json
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
+import matplotlib.patches as mpatches
 import yaml
 from pathlib import Path
 from scipy.ndimage import gaussian_filter1d
@@ -150,12 +152,12 @@ def plot_scattering_diagnostic(
     burst_name: str = "FRB"
 ):
     """
-    Create 4-panel diagnostic plot matching create_four_panel_plot layout.
+    Create 4-panel diagnostic plot with elegant header.
     
-    Each of the 4 panels shows:
-    - Top row: Time series profile
-    - Bottom-left: Dynamic spectrum (2D waterfall)
-    - Bottom-right: Frequency spectrum
+    Layout: 3 rows
+    - Row 1: Professional header strip with 4 panels (observation, model, evaluation, parameters)
+    - Row 2: Time series profiles for each panel
+    - Row 3: Dynamic spectra + frequency profiles
     
     Parameters
     ----------
@@ -176,8 +178,24 @@ def plot_scattering_diagnostic(
     burst_name : str
         Name of the burst for title
     """
-    # Generate synthetic data with noise for comparison
-    # Extract noise from results if available, otherwise estimate from off-pulse
+    # ==========================================
+    # Design Configuration (Colors & Styles)
+    # ==========================================
+    C_BG = "#F4F6F7"
+    C_TEXT_PRIMARY = "#333333"
+    C_TEXT_SECONDARY = "#777777"
+    C_HIGHLIGHT_BLUE = "#0056b3"
+    C_STATUS_RED = "#d9534f"
+    C_STATUS_GREEN = "#28a745"
+    C_DIVIDER = "#E0E0E0"
+    
+    FONT_SANS = 'DejaVu Sans'
+    KW_TITLE = dict(fontname=FONT_SANS, fontsize=9, color=C_TEXT_SECONDARY, weight='bold', ha='left', va='top')
+    KW_BODY = dict(fontname=FONT_SANS, fontsize=10, color=C_TEXT_PRIMARY, ha='left', va='top')
+    
+    # ==========================================
+    # Data Preparation
+    # ==========================================
     q = data.shape[1] // 4
     data_off_pulse = data[:, np.r_[0:q, -q:0]]
     noise_std = np.nanstd(data_off_pulse, axis=1)
@@ -186,15 +204,15 @@ def plot_scattering_diagnostic(
     synthetic_data = model + synthetic_noise
     residual = data - synthetic_data
     
-    # Normalize all panels consistently
+    # Normalize consistently
     mean_off = np.nanmean(data_off_pulse)
     std_off = np.nanstd(data_off_pulse)
-    if std_off < 1e-9: 
+    if std_off < 1e-9:
         std_off = 1.0
     
     data_snr = (data - mean_off) / std_off
     peak_snr = np.nanmax(data_snr)
-    if peak_snr <= 0: 
+    if peak_snr <= 0:
         peak_snr = 1.0
     
     def _apply_norm(arr, subtract_mean=True):
@@ -208,26 +226,49 @@ def plot_scattering_diagnostic(
     synthetic_norm = _apply_norm(synthetic_data, subtract_mean=True)
     residual_norm = _apply_norm(residual, subtract_mean=False)
     
-    # Calculate global Y-limits for Time Series
+    # ==========================================
+    # Configure Matplotlib Style to Match Reference
+    # ==========================================
+    # Set rcParams to match SciencePlots "science" style with larger fonts
+    plt.rcParams.update({
+        'xtick.direction': 'in',
+        'ytick.direction': 'in',
+        'xtick.top': True,
+        'ytick.right': True,
+        'xtick.minor.visible': True,
+        'ytick.minor.visible': True,
+        'xtick.major.size': 6,
+        'xtick.minor.size': 3,
+        'ytick.major.size': 6,
+        'ytick.minor.size': 3,
+        'xtick.labelsize': 14,
+        'ytick.labelsize': 14,
+        'axes.labelsize': 16,
+    })
+    
+    # Calculate shared axis limits
     all_ts = [np.nansum(p, axis=0) for p in [data_norm, model_norm, synthetic_norm, residual_norm]]
     ts_min = min(np.min(t) for t in all_ts if t.size > 0)
     ts_max = max(np.max(t) for t in all_ts if t.size > 0)
     y_range = ts_max - ts_min
     ts_ylim = (ts_min - 0.05 * y_range, ts_max + 0.05 * y_range)
     
-    # Calculate global X-limits for Spectrum
     all_sp = [np.nansum(p, axis=1) for p in [data_norm, model_norm, synthetic_norm, residual_norm]]
     sp_min = min(np.min(s) for s in all_sp if s.size > 0)
     sp_max = max(np.max(s) for s in all_sp if s.size > 0)
     x_range = sp_max - sp_min
     sp_xlim = (sp_min - 0.05 * x_range, sp_max + 0.05 * x_range)
     
-    # Create figure: 2 rows, 8 columns
+    # ==========================================
+    # Create Original 2x8 Grid Using plt.subplots()
+    # ==========================================
+    # This exactly matches create_four_panel_plot structure
+    # Original: (24, 8), we use (24, 8.5) - minimal increase to fit compact header
     fig, axes = plt.subplots(
         nrows=2,
         ncols=8,
         gridspec_kw={"height_ratios": [1, 2.5], "width_ratios": [2, 0.5] * 4},
-        figsize=(24, 8),
+        figsize=(24, 8.5),
     )
     
     time_centered = time - (time[0] + (time[-1] - time[0]) / 2)
@@ -272,66 +313,106 @@ def plot_scattering_diagnostic(
         ax_sp.step(sp, freq, where="mid", c="k", lw=1.5)
         ax_sp.set_xlim(sp_xlim)
         
+        # Exact tick styling from original
         ax_ts.set_yticks([])
         ax_ts.tick_params(axis="x", labelbottom=False)
         ax_ts.set_xlim(extent[0], extent[1])
         ax_sp.set_xticks([])
         ax_sp.tick_params(axis="y", labelleft=False)
         ax_sp.set_ylim(extent[2], extent[3])
-        ax_wf.set_xlabel("Time [ms]")
+        ax_wf.set_xlabel("Time [ms]", fontsize=16)
         if i == 0:
-            ax_wf.set_ylabel("Frequency [GHz]")
+            ax_wf.set_ylabel("Frequency [GHz]", fontsize=16)
         else:
             ax_wf.tick_params(axis="y", labelleft=False)
         axes[0, col_idx + 1].axis("off")
     
-    plt.subplots_adjust(hspace=0.05, wspace=0.05, top=0.83, bottom=0.15, left=0.05, right=0.98)
+    # Adjust spacing - equal vertical and horizontal gaps
+    plt.subplots_adjust(hspace=0.05, wspace=0.05, top=0.88, bottom=0.08, left=0.05, right=0.98)
     
-    # --- Create Header ---
+    # ==========================================
+    # Overlay Elegant Header Above
+    # ==========================================
+    # Add background rectangle for header (compact for 8.5" height)
+    header_rect = mpatches.Rectangle((0.05, 0.89), 0.93, 0.10, 
+                                    transform=fig.transFigure,
+                                    facecolor=C_BG, edgecolor='none', zorder=-1)
+    fig.add_artist(header_rect)
+    
+    # Helper function for dividers
+    def add_divider(x_pos):
+        line = mpatches.ConnectionPatch(
+            xyA=(x_pos, 0.90), xyB=(x_pos, 0.98),
+            coordsA='figure fraction', coordsB='figure fraction',
+            color=C_DIVIDER, linewidth=1)
+        fig.add_artist(line)
+    
+    # Extract data for header
     best_key = results.get('best_key', results.get('best_model', 'Unknown'))
     param_names = results.get('param_names', [])
     flat_chain = results.get('flat_chain', np.array([]))
-    
-    # 1. Metadata
-    fname = output_path.name
-    tns_name = "FRB 20190425A" if "casey" in burst_name.lower() else f"FRB ({burst_name})"
-    observatory = "CHIME/FRB" if "chime" in fname.lower() else "DSA-110"
-    
-    meta_text = (
-        f"{tns_name} / {burst_name.upper()}\n"
-        f"Observatory: {observatory}"
-    )
-    
-    # 2. Model Selection
-    model_text = "Model Selection:\n"
-    if "all_results" in results:
-        res_all = results["all_results"]
-        keys = list(res_all.keys())
-        keys.sort(reverse=True)
-        best_z = max(float(res_all[k].log_evidence) for k in keys) if keys else 0
-        
-        for k in keys:
-            z = float(res_all[k].log_evidence)
-            dz = z - best_z
-            mark = r"$\mathbf{\ast}$" if k == best_key else " "
-            model_text += f"{mark} {k}: $\\ln{{Z}}={z:.0f}$ ($\\Delta={dz:.0f}$)\n"
-    else:
-        model_text += f"{best_key} (Selected)\n(Comparison N/A)"
-    
-    # 3. Goodness of Fit
     gof = results.get("goodness_of_fit", {})
     chi2 = gof.get("chi2_reduced", np.nan)
     r2 = gof.get("r_squared", np.nan)
     quality = gof.get("quality_flag", "UNKNOWN")
     
-    gof_body = (
-        f"$\\chi^2_{{\\nu}} = {chi2:.2f}$\n"
-        f"$R^2   = {r2:.3f}$"
-    )
+    # Determine observatory
+    fname = output_path.name
+    tns_name = "FRB 20190425A" if "casey" in burst_name.lower() else f"FRB ({burst_name})"
+    observatory = "CHIME/FRB" if "chime" in fname.lower() else "DSA-110"
     
-    # 4. Parameters
-    param_lines = []
-    for i, name in enumerate(param_names):
+    # Panel 1: Observation Context (compact layout)
+    fig.text(0.07, 0.975, "OBSERVATION CONTEXT", **KW_TITLE)
+    fig.text(0.07, 0.95, tns_name, fontname=FONT_SANS, fontsize=13, weight='bold', color=C_TEXT_PRIMARY, va='top')
+    fig.text(0.07, 0.93, burst_name.upper(), fontname=FONT_SANS, fontsize=10, color=C_TEXT_PRIMARY, va='top')
+    fig.text(0.07, 0.905, f"Observatory: {observatory}", fontname=FONT_SANS, fontsize=8, color=C_TEXT_SECONDARY, va='top')
+    
+    add_divider(0.28)
+    
+    # Panel 2: Model Selection
+    fig.text(0.30, 0.975, "MODEL SELECTION", **KW_TITLE)
+    
+    if "all_results" in results:
+        res_all = results["all_results"]
+        keys = sorted(res_all.keys(), reverse=True)
+        best_z = max(float(res_all[k].log_evidence) for k in keys) if keys else 0
+        
+        y_start = 0.95
+        for k in keys:
+            z = float(res_all[k].log_evidence)
+            dz = z - best_z
+            if k == best_key:
+                model_line = f"→ {k}: ln Z = {z:.0f}"
+                fig.text(0.30, y_start, model_line, fontname=FONT_SANS, fontsize=9,
+                        weight='bold', color=C_HIGHLIGHT_BLUE, va='top')
+            else:
+                model_line = f"   {k}: ln Z = {z:.0f} (Δ≪0)"
+                fig.text(0.30, y_start, model_line, fontname=FONT_SANS, fontsize=8,
+                        color=C_TEXT_SECONDARY, va='top')
+            y_start -= 0.02
+    else:
+        fig.text(0.30, 0.95, f"{best_key} (Selected)", fontname=FONT_SANS, fontsize=9, color=C_TEXT_PRIMARY, va='top')
+    
+    add_divider(0.52)
+    
+    # Panel 3: Fit Evaluation
+    fig.text(0.54, 0.975, "FIT EVALUATION", **KW_TITLE)
+    
+    is_fail = quality == "FAIL"
+    status_color = C_STATUS_RED if is_fail else C_STATUS_GREEN
+    fig.text(0.54, 0.95, "Status:", **KW_BODY)
+    fig.text(0.61, 0.95, quality, fontname=FONT_SANS, fontsize=11, weight='bold', color=status_color, va='top')
+    
+    fig.text(0.54, 0.92, f"χ²ᵥ = {chi2:.2f}", fontname=FONT_SANS, fontsize=9, color=C_TEXT_PRIMARY, va='top')
+    fig.text(0.54, 0.895, f"R² = {r2:.3f}", fontname=FONT_SANS, fontsize=9, color=C_TEXT_PRIMARY, va='top')
+    
+    add_divider(0.75)
+    
+    # Panel 4: Best Fit Parameters
+    fig.text(0.77, 0.975, "BEST FIT PARAMETERS", **KW_TITLE)
+    
+    y_param = 0.95
+    for i, name in enumerate(param_names[:5]):
         if flat_chain.size > 0 and flat_chain.ndim == 2 and i < flat_chain.shape[1]:
             vals = flat_chain[:, i]
             if not np.all(np.isnan(vals)):
@@ -343,30 +424,12 @@ def plot_scattering_diagnostic(
             val, err = getattr(params, name, np.nan), 0.0
         
         if abs(val) < 0.001 and val != 0:
-            s_val = f"{val:.1e}"
+            param_str = f"{name} = {val:.2e} ± {err:.1e}"
         else:
-            s_val = f"{val:.4g}"
+            param_str = f"{name} = {val:.3g} ± {err:.1g}"
         
-        param_lines.append(f"{name} = ${s_val} \\pm {err:.1g}$")
-    param_text = "\n".join(param_lines)
-    
-    # Render Header
-    header_y = 0.94
-    body_y = 0.91
-    fontsize_head = 12
-    fontsize_body = 10
-    
-    fig.text(0.05, header_y, meta_text, fontsize=14, weight='bold', va='top', fontfamily='sans-serif')
-    fig.text(0.28, header_y, "Model Selection", fontsize=fontsize_head, weight='bold', va='top')
-    fig.text(0.28, body_y, model_text.replace("Model Selection:\n", ""), fontsize=fontsize_body, va='top')
-    fig.text(0.52, header_y, "Goodness of Fit", fontsize=fontsize_head, weight='bold', va='top')
-    fig.text(0.52, body_y, gof_body, fontsize=fontsize_body, va='top')
-    
-    q_color = "green" if quality == "PASS" else ("red" if quality == "FAIL" else "orange")
-    fig.text(0.52, body_y - 0.04, f"Status: {quality}", fontsize=fontsize_body, weight='bold', color=q_color, va='top')
-    
-    fig.text(0.75, header_y, "Best Fit Parameters", fontsize=fontsize_head, weight='bold', va='top')
-    fig.text(0.75, body_y, param_text, fontsize=fontsize_body, va='top', fontfamily='monospace')
+        fig.text(0.77, y_param, param_str, fontname=FONT_SANS, fontsize=8, color=C_TEXT_PRIMARY, va='top')
+        y_param -= 0.018
     
     # Save
     fig.savefig(output_path, dpi=150)
@@ -374,6 +437,7 @@ def plot_scattering_diagnostic(
     plt.close(fig)
     
     return fig
+
 
 
 def main():

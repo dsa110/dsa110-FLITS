@@ -5,11 +5,13 @@ A step-by-step guide for running the scattering analysis pipeline on FRB data.
 ## Prerequisites
 
 1. **Environment**: Create and activate the `flits` conda environment:
-   ```bash
-   cd /path/to/FLITS
-   conda env create -f environment.yml
-   conda activate flits
-   ```
+
+```bash
+cd /path/to/FLITS
+conda env create -f environment.yml
+conda activate flits
+```
+
 2. **Data**: `.npy` file containing the dynamic spectrum (freq × time)
 3. **Telescope config**: Entry in `scattering/configs/telescopes.yaml`
 
@@ -93,10 +95,11 @@ M3: log(Z) =  8406.30 ± 0.44  ← BEST
 
 ## Output Files
 
-| File                 | Description                                |
-| -------------------- | ------------------------------------------ |
-| `*_fit_results.json` | Best-fit parameters and validation metrics |
-| `*_four_panel.pdf`   | Diagnostic plot (if `--no-plot` omitted)   |
+| File                 | Description                                 |
+| -------------------- | ------------------------------------------- |
+| `*_fit_results.json` | Best-fit parameters and validation metrics  |
+| `*_fit_summary.png`  | Comprehensive diagnostic and summary report |
+| `*_four_panel.pdf`   | Legacy 4-panel diagnostic plot              |
 
 ### JSON Structure
 
@@ -132,11 +135,18 @@ M3: log(Z) =  8406.30 ± 0.44  ← BEST
 
 > **Note**: `quality_flag = FAIL` with good `chi2_reduced` (3-5) usually indicates residual RFI or unmodeled burst structure, not a fundamental failure.
 
+### Residual Autocorrelation (PPC)
+
+The **Expected (90% CI)** region in the Residual ACF plot is generated via a **Posterior Predictive Check (PPC)**:
+
+1. Multiple realizations of white noise are generated using the estimated `noise_std` of each channel.
+2. These noise spectra are integrated over frequency and their ACFs calculated.
+3. The 5th and 95th percentiles of these mock ACFs form the "Expected" region.
+4. **Interpretation**: If the real data ACF (black line) exceeds this region, it indicates significant temporal correlation (e.g., poor fit or "red noise").
+
 ---
 
 ## Generating Diagnostic Plots
-
-After the fit completes, generate plots using the saved parameters:
 
 After the fit completes, generate publication-quality diagnostic plots using the generalized visualization tool:
 
@@ -160,10 +170,10 @@ python3 -m scattering.scat_analysis.visualization \
 
 This will produce a 4-panel plot showing:
 
-1.  **Data**: Preprocessed dynamic spectrum.
-2.  **Model**: Best-fit model dynamic spectrum.
-3.  **Residuals**: Data minus Model.
-4.  **Time Profile**: Collapsed pulse profile with data, model, and residuals.
+1. **Data**: Preprocessed dynamic spectrum.
+2. **Model**: Best-fit model dynamic spectrum.
+3. **Residuals**: Data minus Model.
+4. **Time Profile**: Collapsed pulse profile with data, model, and residuals.
 
 The plot automatically handles:
 

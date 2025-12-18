@@ -1349,3 +1349,105 @@ def plot_2d_acf_grid(
     
     plt.tight_layout()
     return fig
+
+
+def plot_scat_scint_consistency(
+    scint_results: dict,
+    scat_results: dict,
+    c_factor: float = 1.16,
+    save_path: str = None,
+    figsize: tuple = (10, 8)
+):
+    """
+    Generate a consistency plot comparing measured scintillation bandwidths (gamma)
+    with predictions derived from the scattering timescale (tau).
+    
+    The prediction follows: delta_nu_d = C / (2 * pi * tau)
+    
+    Parameters
+    ----------
+    scint_results : dict
+        Dictionary containing 'subband_center_freqs_mhz' and 'subband_gamma' (or from 2D fit)
+    scat_results : dict
+        Dictionary containing scattering best_params (tau_1ghz, alpha, etc.)
+    c_factor : float, optional
+        The proportionality constant C in delta_nu_d * tau = C / (2*pi).
+        Default is 1.16 (Kolmogorov thin screen).
+    save_path : str, optional
+        Path to save the figure
+    figsize : tuple
+        Figure size
+    """
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=figsize, sharex=True, 
+                                  gridspec_kw={'height_ratios': [3, 1]})
+    
+    # 1. Extract Scintillation Data
+    # Handle both sub-band results and 2D fit results
+    nu_scint = np.array(scint_results.get('subband_center_freqs_mhz', [])) / 1000.0 # to GHz
+    gamma_scint = np.array(scint_results.get('subband_gamma', []))
+    gamma_err = np.array(scint_results.get('subband_gamma_err', np.zeros_like(gamma_scint)))
+    
+    if len(nu_scint) == 0:
+        log.error("No scintillation frequency data found.")
+        return fig
+
+    # 2. Extract Scattering Data
+    params = scat_results.get('best_params', {})
+    tau_1ghz = params.get('tau_1ghz')
+    alpha_scat = params.get('alpha', 4.0)
+    
+    if tau_1ghz is None:
+        log.error("No scattering tau_1ghz found.")
+        return fig
+
+    # 3. Calculate Predicted Bandwidth
+    # tau(nu) = tau_1ghz * (nu / 1.0)^-alpha
+    # delta_nu_pred = C / (2 * pi * tau(nu))
+    nu_fine = np.logspace(np.log10(nu_scint.min()*0.9), np.log10(nu_scint.max()*1.1), 100)
+    tau_fine = tau_1ghz * (nu_fine / 1.0)**(-alpha_scat)
+    # Convert tau from ms to s for the relation? No, delta_nu is in MHz, tau in ms.
+    # 1 MHz * 1 ms = 1. Correct.
+    gamma_pred = c_factor / (2 * np.pi * tau_fine)
+
+    # 4. Plot consistency
+    ax1.errorbar(nu_scint, gamma_scint, yerr=gamma_err, fmt='o', color='C0', 
+                 ms=8, capsize=5, label='Measured Scintillation ($\\gamma$)')
+    
+    ax1.plot(nu_fine, gamma_pred, 'm-', lw=2.5, 
+             label=f'Predicted $\\Delta\\nu_d$ ($C={c_factor:.2f}$, $\\alpha_{{scat}}={alpha_scat:.2f}$)')
+
+    ax1.set_yscale('log')
+    ax1.set_ylabel('Scintillation Bandwidth (MHz)', fontsize=12)
+    ax1.set_title('Scintillation-Scattering Consistency', fontsize=14, fontweight='bold')
+    ax1.legend(loc='best', frameon=True)
+    ax1.grid(True, which='both', alpha=0.3)
+
+    # 5. Residuals (Measured / Predicted)
+    # Interpolate predicted gamma to measured frequencies
+    gamma_pred_interp = np.interp(nu_scint, nu_fine, gamma_pred)
+    ratio = gamma_scint / gamma_pred_interp
+    ratio_err = gamma_err / gamma_pred_interp
+    
+    ax2.errorbar(nu_scint, ratio, yerr=ratio_err, fmt='o', color='gray')
+    ax2.axhline(1.0, color='m', ls='--', alpha=0.7)
+    ax2.set_xlabel('Frequency (GHz)', fontsize=12)
+    ax2.set_ylabel('Ratio (Meas/Pred)', fontsize=10)
+    ax2.set_ylim(0.1, 10.0)
+    ax2.set_yscale('log')
+    ax2.grid(True, which='both', alpha=0.3)
+
+    # Add summary text
+    avg_ratio = np.nanmean(ratio)
+    summary_text = (
+        f"$\\langle \\gamma_{{meas}} / \\Delta\\nu_{{pred}} \\rangle = {avg_ratio:.2f}$\n"
+        f"Scattering $\\tau_{{1GHz}} = {tau_1ghz:.3f}$ ms"
+    )
+    ax1.text(0.05, 0.05, summary_text, transform=ax1.transAxes, 
+             bbox=dict(boxstyle='round', facecolor='white', alpha=0.8),
+             verticalalignment='bottom')
+
+    if save_path:
+        plt.savefig(save_path, bbox_inches='tight', dpi=200)
+        log.info(f"Consistency plot saved to {save_path}")
+    
+    return fig

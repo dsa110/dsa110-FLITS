@@ -28,7 +28,7 @@ from scipy.ndimage import gaussian_filter1d
 
 
 from scattering.scat_analysis.burstfit import FRBModel, FRBParams, downsample
-from flits.utils.reporting import print_fit_summary
+from flits.utils.reporting import print_fit_summary, get_fit_summary_lines
 
 
 def load_telescope_config(telescope_name: str, config_path: Path = None) -> dict:
@@ -192,8 +192,10 @@ def plot_scattering_diagnostic(
     # Calculate residuals
     residual = data - model_scaled
     
-    # Create figure
-    fig, axes = plt.subplots(2, 2, figsize=(14, 11))
+    # Create figure: 1 row, 5 columns (Data, Model, Resid, Profile, Stats)
+    # Aspect ratio: Standard 4-panel is wide but 2 rows. Here 1 row.
+    # Each plot needs width. Let's try 20x5.
+    fig, axes = plt.subplots(1, 5, figsize=(22, 5.5))
     
     # Extent for imshow: [left, right, bottom, top]
     extent = [time[0], time[-1], freq[0], freq[-1]]
@@ -207,6 +209,8 @@ def plot_scattering_diagnostic(
         ax.set_xlabel("Time (ms)")
         if ylabel:
             ax.set_ylabel("Freq (GHz)")
+        else:
+            ax.set_yticklabels([])
         
         # Inward ticks, minor ticks on all sides
         ax.tick_params(which='both', direction='in', top=True, right=True,
@@ -216,72 +220,97 @@ def plot_scattering_diagnostic(
         ax.minorticks_on()
         
         if cbar_im:
+            # Place colorbar horizontally below or vertical inside?
+            # With 1 row, vertical right next to plot is typical.
             cbar = plt.colorbar(cbar_im, ax=ax, fraction=0.046, pad=0.04)
             cbar.set_label(cbar_label)
             cbar.ax.tick_params(direction='in', length=4, width=1.5)
             cbar.ax.minorticks_on()
 
     # Panel 1: Data
-    im0 = axes[0, 0].imshow(
+    im0 = axes[0].imshow(
         data, aspect='auto', origin='lower', extent=extent,
         cmap='viridis', vmin=0, vmax=vmax
     )
-    format_ax(axes[0, 0], "Data", cbar_im=im0)
+    format_ax(axes[0], "Data", ylabel=True, cbar_im=im0)
     
     # Panel 2: Model
-    im1 = axes[0, 1].imshow(
+    im1 = axes[1].imshow(
         model_scaled, aspect='auto', origin='lower', extent=extent,
         cmap='viridis', vmin=0, vmax=vmax
     )
-    format_ax(axes[0, 1], f"Model ({results['best_model']})", cbar_im=im1)
+    # Share Y axis label only on leftmost, others clear?
+    # Usually keep y-axis ticks but remove label to save space?
+    # User requested "row of sub-plots".
+    format_ax(axes[1], f"Model ({results['best_model']})", ylabel=False, cbar_im=im1)
     
     # Panel 3: Residuals
     vmax_res = np.percentile(np.abs(residual), 99)
-    im2 = axes[1, 0].imshow(
+    im2 = axes[2].imshow(
         residual, aspect='auto', origin='lower', extent=extent,
         cmap='RdBu_r', vmin=-vmax_res, vmax=vmax_res
     )
-    format_ax(axes[1, 0], "Residuals", cbar_im=im2)
+    format_ax(axes[2], "Residuals", ylabel=False, cbar_im=im2)
     
     # Panel 4: Time profiles
     data_prof = np.sum(data, axis=0)
     model_prof = np.sum(model_scaled, axis=0)
     
-    axes[1, 1].plot(time, data_prof, 'b-', label='Data', alpha=0.7, lw=1.5)
-    axes[1, 1].plot(time, model_prof, 'r-', label='Model', lw=2.5)
-    axes[1, 1].axvline(params.t0, color='g', ls='--', alpha=0.8, lw=2.0,
+    axes[3].plot(time, data_prof, 'b-', label='Data', alpha=0.7, lw=1.5)
+    axes[3].plot(time, model_prof, 'r-', label='Model', lw=2.5)
+    axes[3].axvline(params.t0, color='g', ls='--', alpha=0.8, lw=2.0,
                        label=f't₀={params.t0:.2f}ms')
     
-    axes[1, 1].set_xlabel("Time (ms)")
-    axes[1, 1].set_ylabel("Flux")
-    axes[1, 1].set_title("Time Profile", pad=10)
-    axes[1, 1].legend(frameon=True, fontsize=14, loc='upper right')
+    axes[3].set_xlabel("Time (ms)")
+    # axes[3].set_ylabel("Flux")
+    axes[3].set_title("Time Profile", pad=10)
+    axes[3].legend(frameon=True, fontsize=10, loc='upper right')
     
     from matplotlib.ticker import MaxNLocator, AutoMinorLocator
 
     # Specific style matching: inward ticks on all sides, no grid
     # Force ticks on all sides
-    axes[1, 1].tick_params(which='both', direction='in', top=True, right=True, 
+    axes[3].tick_params(which='both', direction='in', top=True, right=True, 
                            left=True, bottom=True, width=1.5)
-    axes[1, 1].tick_params(which='major', length=6)
-    axes[1, 1].tick_params(which='minor', length=3)
+    axes[3].tick_params(which='major', length=6)
+    axes[3].tick_params(which='minor', length=3)
     
     # Force consistent tick density
     # X-axis: ~8-10 major ticks (e.g. every 1ms for 8ms range)
-    axes[1, 1].xaxis.set_major_locator(MaxNLocator(nbins=10))
-    axes[1, 1].xaxis.set_minor_locator(AutoMinorLocator())
+    axes[3].xaxis.set_major_locator(MaxNLocator(nbins=5)) # Reduced for narrow panels
+    axes[3].xaxis.set_minor_locator(AutoMinorLocator())
     
     # Y-axis: ~6-8 major ticks
-    axes[1, 1].yaxis.set_major_locator(MaxNLocator(nbins=8))
-    axes[1, 1].yaxis.set_minor_locator(AutoMinorLocator())
+    axes[3].yaxis.set_major_locator(MaxNLocator(nbins=6))
+    axes[3].yaxis.set_minor_locator(AutoMinorLocator())
     
     # Ensure x-limit matches the imshow plots exactly
-    axes[1, 1].set_xlim(extent[0], extent[1])
+    axes[3].set_xlim(extent[0], extent[1])
     
     # Ensure all subplots have nice thick spines
-    for ax in axes.flatten():
+    for ax in axes[:4]: # Only for plot axes
         for spine in ax.spines.values():
             spine.set_linewidth(1.5)
+
+    # Panel 5: Stats Table
+    from flits.utils.reporting import get_fit_summary_lines
+    stats_lines = get_fit_summary_lines(results, table_format="ascii")
+    
+    # Clean up lines for plot display (remove separators like --- or === if desired, or keep as monospace block)
+    # User "Markdown style" might mean formatted. But Matplotlib text is easier with monospace block.
+    # Let's keep the block but remove top/bottom empty lines
+    stats_text = "\n".join([l for l in stats_lines if l.strip() != ""])
+    
+    axes[4].axis('off')
+    # Using a monospaced font to preserve table alignment
+    # Place text roughly centered vertically, or top aligned?
+    # "Format it so that its height ... spans an equivalent height"
+    # Vertical alignment 'center' might be best if we want it to span.
+    # Or 'top' with adjusted bounds.
+    axes[4].text(0.0, 0.5, stats_text, 
+                 family='monospace', fontsize=10,
+                 va='center', ha='left')
+    axes[4].set_title("Fit Statistics", pad=10)
 
     # Output parameters title
     gof = results['goodness_of_fit']

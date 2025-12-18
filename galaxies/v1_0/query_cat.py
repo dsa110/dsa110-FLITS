@@ -15,7 +15,6 @@ import json
 import warnings
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
-from typing import Optional, List, Dict, Any
 
 import numpy as np
 import pandas as pd
@@ -33,14 +32,12 @@ from astroquery.vizier import Vizier
 # Shared configuration
 from config import (
     TARGETS_TUPLE as targets,
-    TARGETS,
-    R_PHYS, R_PHYS_KPC,
+    COSMO as cosmo,
+    R_PHYS_KPC,
     MAX_TRIES, BASE_DELAY, PAUSE,
     NED_TIMEOUT, MAX_WORKERS,
     CACHE_DIR, CACHE_EXPIRY_HOURS,
-    angular_diameter_distance_fast,
     theta_for_impact,
-    filter_targets,
 )
 
 # ------------------------------- CONFIG ------------------------------------
@@ -68,9 +65,8 @@ def debug_table(table, name="Table"):
 
 # ----------------------- helper: aperture in arcmin ------------------------
 def theta_proper(z):
-    D_A = cosmo.angular_diameter_distance(z)
-    with u.set_enabled_equivalencies(u.dimensionless_angles()):
-        return (R_PHYS.to(u.Mpc) / D_A).to(u.arcmin)
+    """Angular radius (arcmin) for R_PHYS at redshift z. Uses fast lookup."""
+    return theta_for_impact(z, R_PHYS_KPC) * u.arcmin
 
 # ------------------------------ retry wrapper ------------------------------
 def _retry(fn, *args, **kw):
@@ -89,10 +85,10 @@ def _cache_key(prefix: str, *args) -> Path:
     return CACHE_DIR / f"{prefix}_{key}.json"
 
 def _load_cache(cache_path: Path):
-    """Load cached result if exists and not expired (24h)."""
+    """Load cached result if exists and not expired."""
     if cache_path.exists():
         age_hours = (time.time() - cache_path.stat().st_mtime) / 3600
-        if age_hours < 24:
+        if age_hours < CACHE_EXPIRY_HOURS:
             try:
                 with open(cache_path) as f:
                     return json.load(f)

@@ -370,15 +370,15 @@ def plot_scattering_diagnostic(
     # Load TNS name from CSV (all metadata now from external sources)
     tns_name = load_tns_name(burst_name)
     
-    # Panel 1: Observation Context (compact layout)
-    fig.text(0.07, 0.975, "OBSERVATION CONTEXT", **KW_TITLE)
+    # Panel 1: Event Information (compact layout)
+    fig.text(0.07, 0.975, "EVENT", **KW_TITLE)
     fig.text(0.07, 0.95, tns_name, fontname=FONT_SANS, fontsize=13, weight='bold', color=C_TEXT_PRIMARY, va='top')
     fig.text(0.07, 0.93, burst_name.upper(), fontname=FONT_SANS, fontsize=10, color=C_TEXT_PRIMARY, va='top')
     fig.text(0.07, 0.905, f"Observatory: {observatory}", fontname=FONT_SANS, fontsize=8, color=C_TEXT_SECONDARY, va='top')
     
     add_divider(0.28)
     
-    # Panel 2: Model Selection
+    # Panel 2: Model Selection with BIC comparison
     fig.text(0.30, 0.975, "MODEL SELECTION", **KW_TITLE)
     
     if "all_results" in results:
@@ -389,13 +389,15 @@ def plot_scattering_diagnostic(
         y_start = 0.95
         for k in keys:
             z = float(res_all[k].log_evidence)
-            dz = z - best_z
+            # Compute BIC = -2 * ln(Z)
+            bic = -2 * z
+            
             if k == best_key:
-                model_line = f"→ {k}: ln Z = {z:.0f}"
+                model_line = f"{k}: BIC = {bic:.0f} ✓"
                 fig.text(0.30, y_start, model_line, fontname=FONT_SANS, fontsize=9,
                         weight='bold', color=C_HIGHLIGHT_BLUE, va='top')
             else:
-                model_line = f"   {k}: ln Z = {z:.0f} (Δ≪0)"
+                model_line = f"{k}: BIC = {bic:.0f}"
                 fig.text(0.30, y_start, model_line, fontname=FONT_SANS, fontsize=8,
                         color=C_TEXT_SECONDARY, va='top')
             y_start -= 0.02
@@ -404,24 +406,28 @@ def plot_scattering_diagnostic(
     
     add_divider(0.52)
     
-    # Panel 3: Fit Evaluation
+    # Panel 3: Fit Evaluation (2-column layout)
     fig.text(0.54, 0.975, "FIT EVALUATION", **KW_TITLE)
     
     is_fail = quality == "FAIL"
     status_color = C_STATUS_RED if is_fail else C_STATUS_GREEN
-    fig.text(0.54, 0.95, "Status:", **KW_BODY)
-    fig.text(0.61, 0.95, quality, fontname=FONT_SANS, fontsize=11, weight='bold', color=status_color, va='top')
+    # Compact status line (no huge gap)
+    fig.text(0.54, 0.95, f"Status: {quality}", fontname=FONT_SANS, fontsize=9, weight='bold', color=status_color, va='top')
     
-    fig.text(0.54, 0.92, f"χ²ᵥ = {chi2:.2f}", fontname=FONT_SANS, fontsize=9, color=C_TEXT_PRIMARY, va='top')
-    fig.text(0.54, 0.895, f"R² = {r2:.3f}", fontname=FONT_SANS, fontsize=9, color=C_TEXT_PRIMARY, va='top')
+    # Column 1: Chi-squared (clarify it's reduced)
+    fig.text(0.54, 0.92, f"χ²ᵣ = {chi2:.2f}", fontname=FONT_SANS, fontsize=9, color=C_TEXT_PRIMARY, va='top')
+    
+    # Column 2: R-squared (start 2nd column after max 2 rows)
+    fig.text(0.64, 0.92, f"R² = {r2:.3f}", fontname=FONT_SANS, fontsize=9, color=C_TEXT_PRIMARY, va='top')
     
     add_divider(0.75)
     
-    # Panel 4: Best Fit Parameters
+    # Panel 4: Best Fit Parameters (multi-column: 2 params per column)
     fig.text(0.77, 0.975, "BEST FIT PARAMETERS", **KW_TITLE)
     
-    y_param = 0.95
-    for i, name in enumerate(param_names[:5]):
+    # Compute parameter values
+    param_strs = []
+    for i, name in enumerate(param_names):
         if flat_chain.size > 0 and flat_chain.ndim == 2 and i < flat_chain.shape[1]:
             vals = flat_chain[:, i]
             if not np.all(np.isnan(vals)):
@@ -436,9 +442,21 @@ def plot_scattering_diagnostic(
             param_str = f"{name} = {val:.2e} ± {err:.1e}"
         else:
             param_str = f"{name} = {val:.3g} ± {err:.1g}"
+        param_strs.append(param_str)
+    
+    # Layout: 2 params per column, columns at x = 0.77, 0.87, 0.97
+    x_positions = [0.77, 0.87, 0.97]
+    y_start = 0.95
+    row_spacing = 0.018
+    
+    for i, param_str in enumerate(param_strs):
+        col = i // 2  # 2 rows per column
+        row = i % 2
         
-        fig.text(0.77, y_param, param_str, fontname=FONT_SANS, fontsize=8, color=C_TEXT_PRIMARY, va='top')
-        y_param -= 0.018
+        if col < len(x_positions):
+            x_pos = x_positions[col]
+            y_pos = y_start - (row * row_spacing)
+            fig.text(x_pos, y_pos, param_str, fontname=FONT_SANS, fontsize=8, color=C_TEXT_PRIMARY, va='top')
     
     # Save
     fig.savefig(output_path, dpi=150)

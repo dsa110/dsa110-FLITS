@@ -265,6 +265,7 @@ class TestFullPipelineIntegration:
                     outpath=outdir,
                     name="test_burst",
                     dm_init=metadata['dm'],
+                    nproc=0,  # Run serially to avoid interactive prompt
                 )
                 assert pipe is not None
             except Exception as e:

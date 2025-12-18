@@ -78,7 +78,9 @@ def synthetic_burst(simple_time, simple_freq):
         # Convolve with exponential
         kernel = np.exp(-time / max(t, 0.01))
         kernel /= np.sum(kernel)
-        data[i, :] = np.convolve(data[i, :], kernel, mode='same')
+        # Use full convolution and slice to keep causal part
+        convolved = np.convolve(data[i, :], kernel, mode='full')
+        data[i, :] = convolved[:len(time)]
     
     # Normalize
     data = data / np.max(data) * 1000

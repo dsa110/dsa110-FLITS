@@ -205,6 +205,7 @@ def main():
         "auto_components": args.auto_components,
         "init_guess": args.init_guess,
         "walker_width_frac": args.walker_width_frac,
+        "fitting_method": args.sampler, # Ensure compatibility with pipeline naming
         # DM refinement controls (NEW)
         "refine_dm": args.refine_dm,
         "dm_search_window": args.dm_search_window,

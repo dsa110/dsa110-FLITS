@@ -65,6 +65,7 @@ RA_COL = "RAJ2000"
 DEC_COL = "DEJ2000"
 ZPHOT_COL = "zph2MPZ"
 OBJ_COL = "id"
+PSTAR_COL = "Bmag"  # Use Bmag as placeholder since GLADE1 has no pstar column
 
 COSMO = Planck18
 Vizier.row_limit = -1  # no limit, trust radius cone to keep it tiny
@@ -81,7 +82,10 @@ def theta_max_kpc(z: float, impact_kpc: float) -> float:
 
 def query_beam(centre: SkyCoord, radius_rad: float) -> pd.DataFrame:
     """Query Vizier and return a pandas DataFrame (can be empty)."""
-    Vizier.columns = [OBJ_COL, RA_COL, DEC_COL, ZPHOT_COL, PSTAR_COL]
+    # Request only columns that exist in the catalog
+    Vizier.columns = [OBJ_COL, RA_COL, DEC_COL, ZPHOT_COL]
+    if PSTAR_COL:
+        Vizier.columns.append(PSTAR_COL)
     res = Vizier.query_region(centre, radius=radius_rad * u.rad, catalog=CATALOG)
     return res[0].to_pandas() if res else pd.DataFrame()
 
@@ -103,7 +107,10 @@ def main(output_dir: pathlib.Path, impact_kpc: float):
             continue
 
         # --- cast numeric columns & basic z cut
-        for col in (ZPHOT_COL, PSTAR_COL):
+        cols_to_cast = [ZPHOT_COL]
+        if PSTAR_COL and PSTAR_COL in df.columns:
+            cols_to_cast.append(PSTAR_COL)
+        for col in cols_to_cast:
             df[col] = pd.to_numeric(df[col], errors="coerce")
         df = df[(df[ZPHOT_COL].notna()) & (df[ZPHOT_COL] >= 0) & (df[ZPHOT_COL] <= z_max)]
         if df.empty:
@@ -114,7 +121,9 @@ def main(output_dir: pathlib.Path, impact_kpc: float):
         theta_arr = coords.separation(centre).radian
         d_a       = COSMO.angular_diameter_distance(df[ZPHOT_COL].to_numpy()).to(u.kpc)
 
-        finite_mask = np.isfinite(theta_arr) & np.isfinite(d_a.value) & np.isfinite(df[PSTAR_COL])
+        finite_mask = np.isfinite(theta_arr) & np.isfinite(d_a.value)
+        if PSTAR_COL and PSTAR_COL in df.columns:
+            finite_mask &= np.isfinite(df[PSTAR_COL])
         if not np.any(finite_mask):
             continue
         df          = df.loc[finite_mask].reset_index(drop=True)

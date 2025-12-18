@@ -390,8 +390,8 @@ class FRBModel:
         if self.data is None or self.noise_std is None:
             raise RuntimeError("need observed data + noise_std for likelihood")
 
-        # Ignore channels with ~0 noise (dead/masked)
-        valid = self.noise_std > 1e-9
+        # Ignore channels with ~0 noise (dead/masked) or NaNs in data
+        valid = (self.noise_std > 1e-9) & (np.isfinite(np.nanmean(self.data, axis=1)))
         if not np.any(valid):
             return -np.inf
 
@@ -411,8 +411,8 @@ class FRBModel:
     ) -> float:
         if self.data is None or self.noise_std is None:
             raise RuntimeError("need observed data + noise_std for likelihood")
-        # Ignore channels with ~0 noise
-        valid = self.noise_std > 1e-9
+        # Ignore channels with ~0 noise or NaNs in data
+        valid = (self.noise_std > 1e-9) & (np.isfinite(np.nanmean(self.data, axis=1)))
         if not np.any(valid):
              return -np.inf
              

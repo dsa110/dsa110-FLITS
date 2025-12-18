@@ -162,8 +162,8 @@ def write_results(matches: dict[int, list[pd.DataFrame]]):
             summary.append((idx+1, ra, dec, zmax, len(df)))
         else:
             summary.append((idx+1, ra, dec, zmax, 0))
-    pd.DataFrame(summary, columns=["beam#", "RA", "Dec", "z_max", "N_gal"])
-      .to_csv("wiseps1_beam_summary.csv", index=False)
+    (pd.DataFrame(summary, columns=["beam#", "RA", "Dec", "z_max", "N_gal"])
+      .to_csv("wiseps1_beam_summary.csv", index=False))
     print("Per‑beam CSVs written where matches ≥ 1.")
 
 # ─────────────────────────────────── CLI ──────────────────────────────────────

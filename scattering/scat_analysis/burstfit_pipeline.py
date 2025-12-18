@@ -998,6 +998,9 @@ class BurstPipeline:
             ncomp = int(self.pipeline_kwargs.get("ncomp", 1))
             auto_components = bool(self.pipeline_kwargs.get("auto_components", False))
 
+            sampler = None
+            mcmc_diag = None
+
             if model_scan and ncomp == 1:
                 sampler_name = self.pipeline_kwargs.get("fitting_method", "emcee")
                 log.info(f"DEBUG: fitting_method='{sampler_name}'")

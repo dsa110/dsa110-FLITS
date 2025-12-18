@@ -431,7 +431,8 @@ def get_legacy_survey_photoz(coord, radius):
                 for col in ['z_phot_mean', 'z_phot_median', 'photo_z', 'photoz']:
                     if col in t.colnames:
                         return t
-        except:
+        except Exception as e:
+            print(f"       Legacy Survey query failed for {cat}: {e}")
             continue
     
     return None
@@ -511,8 +512,8 @@ def add_photoz_to_ps1(ps1_table, coord, z):
             mask = d2d < 1*u.arcsec
             if 'zphot' in wise_data.colnames:
                 ps1_table['z_phot_wise'][mask] = wise_data['zphot'][idx[mask]]
-    except:
-        pass
+    except Exception as e:
+        print(f"       WISE cross-match failed: {e}")
     
     # 4. Combine all redshifts with priority: spec > SDSS photo > Legacy > WISE
     ps1_table['z_best'] = np.full(n, np.nan)

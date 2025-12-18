@@ -6,17 +6,13 @@ import numpy as np
 
 log = logging.getLogger(__name__)
 
-def print_fit_summary(results: dict):
+def print_fit_summary(results: dict, table_format: str = "ascii"):
     """
     Prints a consolidated summary table of the fit results to stdout.
     
     Args:
-        results (dict): The results dictionary from the pipeline containing:
-            - best_key (str)
-            - goodness_of_fit (dict)
-            - best_params (FRBParams or dict)
-            - param_names (list)
-            - flat_chain (array, optional)
+        results (dict): The results dictionary from the pipeline.
+        table_format (str): 'ascii' (default) or 'markdown'.
     """
     # Extract main info
     model = results.get("best_key", "Unknown")
@@ -29,32 +25,29 @@ def print_fit_summary(results: dict):
     param_names = results.get("param_names", [])
     flat_chain = results.get("flat_chain")
     
-    # Prepare lines
     lines = []
-    lines.append("")
-    lines.append("=" * 60)
-    lines.append(f"FIT SUMMARY: Model {model}")
-    lines.append("-" * 60)
     
-    # Goodness of Fit Section
-    lines.append("VIALIDATION STATUS:")
-    lines.append(f"  Flag:        {quality}")
-    lines.append(f"  Reduced Chi2: {chi2:.3f}")
-    lines.append(f"  R-squared:    {r2:.4f}")
-    
-    # Detailed Diagnostics (if available from recent run)
-    if "diagnostics" in results and isinstance(results["diagnostics"], dict):
-        diag = results["diagnostics"]
-        if "residual_analysis" in diag:
-            # It's an object, try to extract fields if simple
-            # (Users might just look at the plot, but basic flags help)
-            pass
-
-    lines.append("-" * 60)
-    
-    # Parameter Section
-    lines.append(f"{'Parameter':<15} | {'Best Fit':<12} | {'Uncertainty':<12}")
-    lines.append("-" * 45)
+    if table_format == "markdown":
+        lines.append(f"### Fit Summary: Model {model}")
+        lines.append("")
+        lines.append(f"**Validation Status**: {quality}")
+        lines.append(f"- **Reduced Chi2**: `{chi2:.3f}`")
+        lines.append(f"- **R-squared**: `{r2:.4f}`")
+        lines.append("")
+        lines.append("| Parameter | Best Fit | Uncertainty |")
+        lines.append("| :--- | :--- | :--- |")
+    else:  # ascii
+        lines.append("")
+        lines.append("=" * 60)
+        lines.append(f"FIT SUMMARY: Model {model}")
+        lines.append("-" * 60)
+        lines.append("VIALIDATION STATUS:")
+        lines.append(f"  Flag:        {quality}")
+        lines.append(f"  Reduced Chi2: {chi2:.3f}")
+        lines.append(f"  R-squared:    {r2:.4f}")
+        lines.append("-" * 60)
+        lines.append(f"{'Parameter':<15} | {'Best Fit':<12} | {'Uncertainty':<12}")
+        lines.append("-" * 45)
     
     for i, name in enumerate(param_names):
         val = np.nan
@@ -62,21 +55,17 @@ def print_fit_summary(results: dict):
         
         # Attempt to get stats from chain
         if flat_chain is not None:
-             # Ensure array
              arr = np.asanyarray(flat_chain)
              if arr.ndim == 2 and arr.shape[1] >= len(param_names):
-                 # Check matching indices
                  vals = arr[:, i]
                  val = np.median(vals)
                  err = np.std(vals)
         
-        # Fallback to best_params if val is nan
+        # Fallback to best_params
         if np.isnan(val):
-            # Try attribute access
             if hasattr(params, name):
                 val = getattr(params, name)
                 err = 0.0
-            # Try dict access
             elif isinstance(params, dict) and name in params:
                  val = params[name]
                  err = 0.0
@@ -89,10 +78,14 @@ def print_fit_summary(results: dict):
              s_val = f"{val:.5g}"
              s_err = f"{err:.5g}" if err > 0 else "N/A"
              
-        lines.append(f"{name:<15} | {s_val:<12} | {s_err:<12}")
+        if table_format == "markdown":
+            lines.append(f"| `{name}` | {s_val} | {s_err} |")
+        else:
+            lines.append(f"{name:<15} | {s_val:<12} | {s_err:<12}")
         
-    lines.append("=" * 60)
-    lines.append("")
+    if table_format != "markdown":
+        lines.append("=" * 60)
+        lines.append("")
     
     # Print to console
     print("\n".join(lines))

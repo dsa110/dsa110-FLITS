@@ -40,5 +40,8 @@ def test_reporting():
     print("\n[TEST 2] Results With Chain Statistics:")
     print_fit_summary(results)
 
+    print("\n[TEST 3] Markdown Format:")
+    print_fit_summary(results, table_format="markdown")
+
 if __name__ == "__main__":
     test_reporting()

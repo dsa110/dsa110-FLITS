@@ -129,7 +129,6 @@ def plot_toa_analysis(
     ax1.set_xticks(x_pos)
     ax1.set_xticklabels(nicknames, rotation=35, ha='right', fontsize=10)
     ax1.set_ylabel('Residual (Measured - Geo) [ms]', fontsize=12)
-    ax1.set_title('A: TOA Agreement by Burst', loc='left', fontsize=14, fontweight='bold')
     ax1.legend(loc='upper right', framealpha=0.9)
     ax1.grid(axis='y', linestyle=':', alpha=0.4)
     
@@ -155,7 +154,6 @@ def plot_toa_analysis(
         
     ax2.axhline(0, color='black', linestyle='--', linewidth=1.5, alpha=0.8)
     ax2.set_xlabel('DM [pc cm⁻³]', fontsize=12)
-    ax2.set_title('B: Systematics (Resid vs DM)', loc='left', fontsize=14, fontweight='bold')
     ax2.grid(linestyle=':', alpha=0.4)
     ax2.legend(loc='lower left', fontsize='small')
     
@@ -232,12 +230,9 @@ def plot_systematics_matrix(
         ax.scatter(x, y, s=60, alpha=0.7, edgecolors='k', color='steelblue')
         ax.axhline(0, color='black', linestyle='--', alpha=0.5)
         
-        # Add correlation coefficient
+        # Add correlation coefficient and trendline
         if len(x) > 2:
             r, p = stats.pearsonr(x, y)
-            ax.set_title(f"Resid vs {label.split(' [')[0]} (r={r:.2f}, p={p:.2f})", fontsize=11, fontweight='bold')
-            
-            # Add trendline
             slope, intercept, _, _, _ = stats.linregress(x, y)
             ax.plot(x, slope * x + intercept, color='red', alpha=0.4, linestyle=':')
             

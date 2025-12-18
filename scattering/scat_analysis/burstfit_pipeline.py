@@ -23,6 +23,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from numpy.typing import NDArray
 import scipy as sp
+import matplotlib.gridspec as gridspec
 from scipy.ndimage import gaussian_filter1d
 from scipy.optimize import minimize
 
@@ -369,15 +370,15 @@ def create_four_panel_plot(
     return fig
 
 
-def create_sixteen_panel_plot(
+def create_enhanced_diagnostics_page(
     dataset: "BurstDataset",
     results: Dict[str, Any],
     *,
     save: bool = True,
     show: bool = True,
 ):
-    """Creates a comprehensive 16-panel diagnostic plot summarizing the fit."""
-    log.info("Generating 16-panel comprehensive diagnostics plot...")
+    """Creates an instructive and logically grouped fit summary page."""
+    log.info("Generating enhanced fit diagnostics page...")
 
     best_key, best_p = results["best_key"], results["best_params"]
     sampler, gof = results.get("sampler"), results.get("goodness_of_fit")
@@ -388,263 +389,165 @@ def create_sixteen_panel_plot(
     model_dyn = model_instance(best_p, best_key)
     residual = dataset.data - model_dyn
 
-    fig, axes = plt.subplots(4, 4, figsize=(20, 20), constrained_layout=True)
-    ax = axes.ravel()
+    # Set up GridSpec (5 rows, 4 columns)
+    fig = plt.figure(figsize=(18, 22), constrained_layout=True)
+    gs = gridspec.GridSpec(5, 4, figure=fig, height_ratios=[0.1, 1, 0.8, 0.8, 0.8])
 
-    # Panels 0-2: Data, Model, Residual
-    vmin, vmax = np.percentile(dataset.data, [1, 99])
-    plot_dynamic(
-        ax[0],
-        dataset.data,
-        dataset.time,
-        dataset.freq,
-        vmin=vmin,
-        vmax=vmax,
-        cmap="plasma",
+    # Title row
+    ax_title = fig.add_subplot(gs[0, :])
+    ax_title.set_axis_off()
+    ax_title.text(
+        0.5,
+        0.5,
+        f"Fit Diagnostics - {dataset.name} ({best_key})",
+        fontsize=24,
+        ha="center",
+        va="center",
+        weight="bold",
     )
-    ax[0].set_title("Data")
-    plot_dynamic(
-        ax[1],
-        model_dyn,
-        dataset.time,
-        dataset.freq,
-        vmin=vmin,
-        vmax=vmax,
-        cmap="plasma",
-    )
-    ax[1].set_title(f"Model ({best_key})")
-    res_std = np.std(residual)
-    plot_dynamic(
-        ax[2],
-        residual,
-        dataset.time,
-        dataset.freq,
-        vmin=-3 * res_std,
-        vmax=3 * res_std,
-        cmap="coolwarm",
-    )
-    ax[2].set_title("Residual")
 
-    # Panel 3: Residual Histogram
+    # --- SECTION 1: Fit Overview (Top Row) ---
+    ax_wf_data = fig.add_subplot(gs[1, 0])
+    ax_wf_model = fig.add_subplot(gs[1, 1])
+    ax_wf_res = fig.add_subplot(gs[1, 2])
+    ax_prof = fig.add_subplot(gs[1, 3])
+
+    vmin, vmax = np.nanpercentile(dataset.data, [1, 99])
+    plot_dynamic(ax_wf_data, dataset.data, dataset.time, dataset.freq, vmin=vmin, vmax=vmax, cmap="plasma")
+    ax_wf_data.set_title("1. Data", fontweight="bold")
+    
+    plot_dynamic(ax_wf_model, model_dyn, dataset.time, dataset.freq, vmin=vmin, vmax=vmax, cmap="plasma")
+    ax_wf_model.set_title(f"2. Model ({best_key})", fontweight="bold")
+    
+    res_std = np.nanstd(residual)
+    plot_dynamic(ax_wf_res, residual, dataset.time, dataset.freq, vmin=-3 * res_std, vmax=3 * res_std, cmap="coolwarm")
+    ax_wf_res.set_title("3. Residuals", fontweight="bold")
+
+    ax_prof.plot(dataset.time, np.nansum(dataset.data, axis=0), "k-", alpha=0.5, label="Data")
+    ax_prof.plot(dataset.time, np.nansum(model_dyn, axis=0), "m-", lw=2, label="Model")
+    ax_prof.set_title("Time Profile", fontweight="bold")
+    ax_prof.legend(fontsize=9)
+    ax_prof.set_xlabel("Time [ms]")
+
+    # --- SECTION 2: Residual Analysis (Statistical Quality) ---
+    ax_res_hist = fig.add_subplot(gs[2, 0:2])
+    ax_res_acf = fig.add_subplot(gs[2, 2:4])
+
     res_norm = residual / model_instance.noise_std[:, None]
-    # Filter out NaNs and Infs (from masked channels with noise_std=0)
     res_norm_clean = res_norm[np.isfinite(res_norm)]
-    ax[3].hist(res_norm_clean, bins=100, density=True, color="gray", label="Residuals")
+    ax_res_hist.hist(res_norm_clean, bins=100, density=True, color="gray", alpha=0.7, label="Residuals")
     x_pdf = np.linspace(-4, 4, 100)
-    ax[3].plot(x_pdf, sp.stats.norm.pdf(x_pdf), "m-", lw=2, label="N(0,1)")
-    ax[3].set_title("Residual Distribution")
-    ax[3].legend()
+    ax_res_hist.plot(x_pdf, sp.stats.norm.pdf(x_pdf), "m--", lw=2, label="N(0,1)")
+    ax_res_hist.set_title("Residual Distribution (S/N units)", fontweight="bold")
+    ax_res_hist.legend()
+    ax_res_hist.set_xlabel("Residual (σ)")
 
-    # Panel 4-5: Time Profile and Spectrum
-    ax[4].plot(dataset.time, np.sum(dataset.data, axis=0), "k-", label="Data")
-    ax[4].plot(dataset.time, np.sum(model_dyn, axis=0), "m--", lw=2, label="Model")
-    ax[4].set_title("Time Profile")
-    ax[4].legend()
-    ax[4].set_xlabel("Time [ms]")
-    ax[5].plot(dataset.freq, np.sum(dataset.data, axis=1), "k-", label="Data")
-    ax[5].plot(dataset.freq, np.sum(model_dyn, axis=1), "m--", lw=2, label="Model")
-    ax[5].set_title("Frequency Spectrum")
-    ax[5].legend()
-    ax[5].set_xlabel("Frequency [GHz]")
+    if gof:
+        lags_ms = (np.arange(len(gof["residual_autocorr"])) - len(gof["residual_autocorr"]) // 2) * dataset.dt_ms
+        ax_res_acf.plot(lags_ms, gof["residual_autocorr"], "k-", label="Data")
+        try:
+            n_ppc = 50
+            acfs = []
+            for _ in range(n_ppc):
+                noise = np.random.normal(0.0, model_instance.noise_std[:, None], size=dataset.data.shape)
+                resid_ppc = np.nansum(noise, axis=0)
+                resid_ppc -= np.nanmean(resid_ppc)
+                acf_ppc = np.correlate(resid_ppc, resid_ppc, mode="same")
+                cv = acf_ppc[len(acf_ppc) // 2]
+                if cv > 0: acf_ppc = acf_ppc / cv
+                acfs.append(acf_ppc)
+            acfs = np.asarray(acfs)
+            ax_res_acf.fill_between(lags_ms, np.percentile(acfs, 5, axis=0), np.percentile(acfs, 95, axis=0), color="m", alpha=0.15, label="Expected (90% CI)")
+        except Exception: pass
+        ax_res_acf.axhline(0, color='gray', lw=0.5)
+        ax_res_acf.set_title("Residual ACF (Temporal Correlations)", fontweight="bold")
+        ax_res_acf.set_xlabel("Lag [ms]")
+        ax_res_acf.legend(loc="upper right", fontsize=9)
 
-    # Panel 6-8: Diagnostics
-    if diag_results.get("influence") is not None:
-        plot_influence(ax[6], diag_results["influence"], dataset.freq)
-    else:
-        ax[6].text(0.5, 0.5, "Influence\nNot Run", ha="center", va="center")
-        ax[6].set_axis_off()
+    # --- SECTION 3: Consistency checks ---
+    ax_sub_consist = fig.add_subplot(gs[3, 0:2])
+    ax_dm_opt = fig.add_subplot(gs[3, 2])
+    ax_influence = fig.add_subplot(gs[3, 3])
 
     if diag_results.get("subband_2d") is not None:
         p_name, s_res, _ = diag_results["subband_2d"]
         if p_name:
-            valid = [
-                (i, v, e) for i, (v, e) in enumerate(s_res) if np.isfinite(v) and e > 0
-            ]
+            valid = [(i, v, e) for i, (v, e) in enumerate(s_res) if np.isfinite(v) and e > 0]
             if valid:
                 idx, vals, errs = zip(*valid)
                 edges = np.linspace(0, dataset.freq.size, len(s_res) + 1, dtype=int)
-                band_centers = np.array(
-                    [
-                        dataset.freq[edges[i] : edges[i + 1]].mean()
-                        for i in range(len(s_res))
-                    ]
-                )[list(idx)]
-                ax[7].errorbar(
-                    band_centers,
-                    vals,
-                    yerr=errs,
-                    fmt="o",
-                    c="k",
-                    capsize=3,
-                    label=f"Sub-band {p_name}",
-                )
+                bc = np.array([dataset.freq[edges[i]:edges[i+1]].mean() for i in range(len(s_res))])[list(idx)]
+                ax_sub_consist.errorbar(bc, vals, yerr=errs, fmt="o", c="k", capsize=3, label=f"Sub-band {p_name}")
                 global_val = getattr(best_p, p_name)
-                ax[7].axhline(global_val, color="m", ls="--", label="Global Fit")
-                ax[7].legend()
-                ax[7].set_ylabel(p_name)
+                ax_sub_consist.axhline(global_val, color="m", ls="--", label="Global Fit")
+                ax_sub_consist.set_ylabel(p_name)
+                ax_sub_consist.set_title(f"Parameter Consistency: {p_name}", fontweight="bold")
+                ax_sub_consist.legend(fontsize=9)
     else:
-        ax[7].text(0.5, 0.5, "2D Sub-band\nNot Run", ha="center", va="center")
-        ax[7].set_axis_off()
+        ax_sub_consist.text(0.5, 0.5, "Sub-band Diagnostics\nNot Run", ha="center", va="center")
+        ax_sub_consist.set_axis_off()
 
-    if diag_results.get("profile1d") is not None:
-        plot_subband_profiles(ax[8], *diag_results["profile1d"], best_p, fontsize=10)
-    else:
-        ax[8].text(0.5, 0.5, "1D Profile\nNot Run", ha="center", va="center")
-        ax[8].set_axis_off()
-
-    # Panel 9-10: MCMC chains
-    if sampler is not None:
-        chain = sampler.get_chain()
-        burn = chain_stats.get("burn_in", 0)
-        ax[9].plot(chain[:, ::10, 0], "k", alpha=0.3)
-        ax[9].axvline(burn, color="m", ls="--")
-        ax[9].set_title(f"Trace: {param_names[0]}")
-    else:
-        ax[9].text(
-            0.5, 0.5, "MCMC Traces\nN/A (Nested Sampling)", ha="center", va="center"
-        )
-        ax[9].set_axis_off()
-    ax[9].set_title(f"Trace: {param_names[0]}")
-    ax[9].set_xlabel("Step")
-    if len(param_names) > 1:
-        corr = np.corrcoef(flat_chain.T)
-        np.fill_diagonal(corr, 0)
-        i, j = np.unravel_index(np.abs(corr).argmax(), corr.shape)
-        ax[10].scatter(flat_chain[:, i], flat_chain[:, j], s=1, alpha=0.1, c="k")
-        ax[10].set_xlabel(param_names[i])
-        ax[10].set_ylabel(param_names[j])
-        ax[10].set_title(f"Highest Correlation (ρ={corr[i, j]:.2f})")
-
-    # Panel 11-12: ACF and DM Check
-    if gof:
-        lags_ms = (
-            np.arange(len(gof["residual_autocorr"]))
-            - len(gof["residual_autocorr"]) // 2
-        ) * dataset.dt_ms
-        ax[11].plot(lags_ms, gof["residual_autocorr"], "k-", label="Data")
-        # Posterior predictive residual ACF envelope (fast PPC via noise-only)
-        try:
-            n_ppc = 50
-            noise_std = model_instance.noise_std
-            acfs = []
-            for _ in range(n_ppc):
-                noise = np.random.normal(
-                    0.0, noise_std[:, None], size=dataset.data.shape
-                )
-                resid_ppc = np.sum(noise, axis=0)
-                resid_ppc -= np.mean(resid_ppc)
-                acf_ppc = np.correlate(resid_ppc, resid_ppc, mode="same")
-                center_val = acf_ppc[len(acf_ppc) // 2]
-                if center_val > 0:
-                    acf_ppc = acf_ppc / center_val
-                acfs.append(acf_ppc)
-            acfs = np.asarray(acfs)
-            ppc_med = np.median(acfs, axis=0)
-            ppc_lo = np.percentile(acfs, 5, axis=0)
-            ppc_hi = np.percentile(acfs, 95, axis=0)
-            ax[11].plot(lags_ms, ppc_med, color="m", lw=1.5, label="PPC median")
-            ax[11].fill_between(
-                lags_ms, ppc_lo, ppc_hi, color="m", alpha=0.15, label="PPC 5–95%"
-            )
-        except Exception as e:
-            log.warning(f"PPC ACF generation failed: {e}")
-        ax[11].set_title("Residual ACF")
-        ax[11].set_xlabel("Lag [ms]")
-        ax[11].legend(loc="upper right", fontsize=9)
     if diag_results.get("dm_check") is not None:
         dms, snrs = diag_results["dm_check"]
-        ax[12].plot(dms, snrs, "o-k")
-        ax[12].set_title("DM Optimization")
-        ax[12].set_xlabel(r"ΔDM (pc cm$^{-3}$)")
+        ax_dm_opt.plot(dms, snrs, "o-k")
+        ax_dm_opt.set_title("DM Tuning SNR", fontweight="bold")
+        ax_dm_opt.set_xlabel("ΔDM")
+    else:
+        ax_dm_opt.set_axis_off()
 
-    # Panels 13-15: Text Summaries
-    for i in [13, 14, 15]:
-        ax[i].set_axis_off()
+    if diag_results.get("influence") is not None:
+        plot_influence(ax_influence, diag_results["influence"], dataset.freq)
+        ax_influence.set_title("Channel Influence", fontweight="bold")
+    else:
+        ax_influence.set_axis_off()
+
+    # --- SECTION 4: Summary & Verdict (Reviewer Guidance) ---
+    ax_verdict = fig.add_subplot(gs[4, 0:2])
+    ax_params = fig.add_subplot(gs[4, 2:4])
+    ax_verdict.set_axis_off()
+    ax_params.set_axis_off()
+
     if gof:
-        # Format validation summary
         quality = gof.get("quality_flag", "UNKNOWN")
-        chi2 = gof.get("chi2_reduced", 0.0)
-        r2 = gof.get("r_squared", 0.0)
-        p_norm = gof.get("normality_pvalue", 0.0)
-        bias = gof.get("bias_nsigma", 0.0)
-        dw = gof.get("durbin_watson", 0.0)
-
-        gof_text = (
-            f"V&V STATUS: {quality}\n"
-            f"-----------------\n"
-            f"χ²/dof = {chi2:.2f}\n"
-            f"R²     = {r2:.3f}\n"
-            f"Normality p = {p_norm:.1e}\n"
-            f"Bias σ      = {bias:.1f}\n"
-            f"Durbin-Watson = {dw:.2f}"
+        color = {"PASS": "green", "MARGINAL": "orange", "FAIL": "red"}.get(quality, "black")
+        
+        verdict_text = (
+            f"V&V VERDICT: {quality}\n"
+            f"---------------------------------\n"
+            f"χ²/dof:      {gof.get('chi2_reduced', 0.0):.2f}\n"
+            f"R²:          {gof.get('r_squared', 0.0):.3f}\n"
+            f"Normality p: {gof.get('normality_pvalue', 0.0):.1e}\n"
+            f"Bias σ:      {gof.get('bias_nsigma', 0.0):.1f}\n"
+            f"DW Stat:     {gof.get('durbin_watson', 0.0):.2f}\n\n"
+            f"GUIDANCE:\n"
         )
-        # Determine color based on quality
-        color = "black"
-        if quality == "FAIL":
-            color = "red"
-        elif quality == "MARGINAL":
-            color = "orange"
-        elif quality == "PASS":
-            color = "green"
-
-        ax[13].text(
-            0.05,
-            0.95,
-            gof_text,
-            va="top",
-            fontfamily="monospace",
-            fontsize=11,
-            color=color,
-            weight="bold" if quality != "UNKNOWN" else "normal",
-        )
-    p_summary = "Best Fit (Median & 1σ):\n" + "\n".join(
-        [
-            f"{n}: {np.median(flat_chain[:, i]):.3f} ± {np.std(flat_chain[:, i]):.3f}"
-            for i, n in enumerate(param_names)
-        ]
-    )
-    ax[14].text(0.05, 0.95, p_summary, va="top", fontfamily="monospace", fontsize=12)
-    # Δν_d diagnostic from τ (report only)
-    try:
-        alpha = getattr(best_p, "alpha", 4.4)
-        tau1 = getattr(best_p, "tau_1ghz", 0.0)
-        if tau1 > 0:
-            f = dataset.freq
-            tau_ms = tau1 * (f / 1.0) ** (-alpha)
-            tau_sec = tau_ms * 1e-3
-            dnu_hz = 1.16 / (2.0 * np.pi * np.clip(tau_sec, 1e-12, None))
-            dnu_mhz = dnu_hz / 1e6
-            dnu_center = float(np.median(dnu_mhz))
-            dnu_min, dnu_max = float(np.min(dnu_mhz)), float(np.max(dnu_mhz))
-            diag_text = (
-                f"Δν_d (implied, MHz)\n"
-                f"center: {dnu_center:.3g}\n"
-                f"band: [{dnu_min:.3g}, {dnu_max:.3g}]\n"
-                f"(2π τ Δν_d ≈ 1.16)"
-            )
+        if quality == "PASS":
+            verdict_text += "• Robust convergence, clean residuals.\n• Model statistically matches data."
+        elif quality == "FAIL":
+            verdict_text += "• Persistent structure in residuals!\n• Check for unmodelled components/RFI."
         else:
-            diag_text = "Δν_d (implied): n/a"
-    except Exception as e:
-        diag_text = f"Δν_d diagnostic failed: {e}"
-    ax[15].text(
-        0.05,
-        0.95,
-        f"File:\n{dataset.inpath.name}\n\n{diag_text}",
-        va="top",
-        fontfamily="monospace",
-        fontsize=12,
-    )
+            verdict_text += "• Fit acceptable but check for mild biases\n  or autocorrelation in residuals."
 
-    fig.suptitle(
-        f"Comprehensive Fit Diagnostics: {dataset.inpath.name}",
-        fontsize=24,
-        weight="bold",
-    )
+        ax_verdict.text(0.05, 0.95, verdict_text, va="top", fontfamily="monospace", fontsize=12, color=color, fontweight="bold")
+
+    p_lines = [f"{'Param':<10} | {'Value':>10} | {'Unc (1σ)':>10}", "-" * 35]
+    for name in param_names:
+        val = getattr(best_p, name)
+        try:
+            idx = param_names.index(name)
+            unc = np.std(flat_chain[:, idx])
+            p_lines.append(f"{name:<10} | {val:>10.4f} | {unc:>10.4f}")
+        except:
+            p_lines.append(f"{name:<10} | {val:>10.4f} | {'N/A':>10}")
+
+    ax_params.text(0.05, 0.95, "\n".join(p_lines), va="top", fontfamily="monospace", fontsize=11)
+    ax_params.set_title("Best Fit Parameters", fontweight="bold", loc="left")
+
     if save:
-        comp_diag_path = os.path.join(
-            dataset.outpath, f"{dataset.name}_comp_diagnostics.pdf"
-        )
-        fig.savefig(comp_diag_path)
+        spath = dataset.outpath / f"{dataset.name}_enhanced_diagnostics.png"
+        fig.savefig(spath, dpi=150, bbox_inches="tight")
+        log.info(f"Saved enhanced diagnostics to {spath}")
+    
     if show:
         plt.show()
     else:
@@ -1505,7 +1408,7 @@ class BurstPipeline:
                     log.warning(
                         f"Modular plotting failed: {e}. Falling back to legacy plots."
                     )
-                    create_sixteen_panel_plot(
+                    create_enhanced_diagnostics_page(
                         self.dataset, results, save=save, show=False
                     )
                     create_four_panel_plot(self.dataset, results, save=save, show=False)

@@ -278,3 +278,5 @@ def main():
     logger.info("Done! Generated expanded systematic analysis figures.")
 
 
+if __name__ == '__main__':
+    main()

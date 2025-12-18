@@ -266,7 +266,7 @@ def create_four_panel_plot(
     # Use color only for the status word
     gof_header = "Goodness of Fit:"
     reduced_chi2_label = r"$\chi^2_r$"
-    gof_text_1 = f"{reduced_chi2_label} = {chi2:.2f}\n$R^2 = {r2:.3f}$"
+    gof_body = f"{reduced_chi2_label} = {chi2:.2f}\n$R^2 = {r2:.3f}$"
 
     # 4. Parameters
     param_header = "Best Fit Parameters:"
@@ -364,7 +364,7 @@ def create_four_panel_plot(
         log.info(f"Saving 4-panel plot to {output_path}")
         fig.savefig(output_path)  # , bbox_inches='tight', dpi=150)
     if show:
-        # plt.show()
+        plt.show()
     else:
         plt.close(fig)
     return fig
@@ -549,7 +549,7 @@ def create_fit_summary_plot(
         log.info(f"Saved enhanced diagnostics to {spath}")
     
     if show:
-        # plt.show()
+        plt.show()
     else:
         plt.close(fig)
     return fig

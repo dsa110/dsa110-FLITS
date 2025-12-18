@@ -1321,13 +1321,40 @@ def analyze_scintillation_from_acfs(acf_results, config):
             return param.stderr if param is not None and param.stderr is not None else np.nan
 
         component_params = []
-        is_gauss = 'gauss' in best_model_name
-        prefix = 'g_' if is_gauss else 'l_'
-        p_root = 'sigma' if is_gauss else 'gamma'
-        bw, bw_err = get_bw_params(f'{prefix}{p_root}', is_gauss)
-        mod = p[f'{prefix}m'].value
-        mod_err = get_mod_err(f'{prefix}m')
-        component_params.append((bw, mod, bw_err, mod_err))
+
+        # Handle different model types
+        if 'power' in best_model_name:
+            # Power-law model: C(Δν) = c · |Δν|^n
+            # No direct "bandwidth" - use characteristic scale at 1 MHz
+            prefix = 'p_'
+            c_val = p[f'{prefix}c'].value
+            c_err = p[f'{prefix}c'].stderr if p[f'{prefix}c'].stderr is not None else np.nan
+            n_val = p[f'{prefix}n'].value
+            n_err = p[f'{prefix}n'].stderr if p[f'{prefix}n'].stderr is not None else np.nan
+
+            # For power-law, store c and n instead of bandwidth and modulation
+            # Use c as proxy for "bandwidth scale" and set modulation to NaN
+            bw, bw_err = c_val, c_err
+            mod, mod_err = np.nan, np.nan  # Power-law has no modulation index
+            component_params.append((bw, mod, bw_err, mod_err))
+
+        elif 'lor_gen' in best_model_name or 'gen' in best_model_name:
+            # Generalized Lorentzian: has gamma, alpha, m
+            prefix = 'lg_'
+            bw, bw_err = get_bw_params(f'{prefix}gamma', False)
+            mod = p[f'{prefix}m'].value
+            mod_err = get_mod_err(f'{prefix}m')
+            component_params.append((bw, mod, bw_err, mod_err))
+
+        else:
+            # Standard Lorentzian or Gaussian
+            is_gauss = 'gauss' in best_model_name
+            prefix = 'g_' if is_gauss else 'l_'
+            p_root = 'sigma' if is_gauss else 'gamma'
+            bw, bw_err = get_bw_params(f'{prefix}{p_root}', is_gauss)
+            mod = p[f'{prefix}m'].value
+            mod_err = get_mod_err(f'{prefix}m')
+            component_params.append((bw, mod, bw_err, mod_err))
 
     final_results = {'best_model': best_model_name, 'components': {}}
     all_powerlaw_fits = {}

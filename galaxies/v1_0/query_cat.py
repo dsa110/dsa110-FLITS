@@ -271,9 +271,11 @@ def q_ned(coord, radius, z):
         return None
 
 def q_ps1(coord, radius, z):
+    """Query Pan-STARRS DR2 stack catalog for extended sources."""
+    # Note: 'mean' table has API issues as of 2024, use 'stack' instead
     try:
         t = _retry(Catalogs.query_region, coord, radius=radius,
-                   catalog="Panstarrs", table="mean", data_release="dr2")
+                   catalog="Panstarrs", table="stack", data_release="dr2")
     except Exception as e:
         print(f"   PS1 failed: {e}")
         return None
@@ -281,19 +283,35 @@ def q_ps1(coord, radius, z):
     if t is None or len(t) == 0:
         return None
     
-    # Filter for extended sources
-    mask_ext = (t['objInfoFlag'] & 0x400000000000) > 0
-    def _pk(b):
-        psf = f"{b}MeanPSFMag"
-        kron = f"{b}MeanKronMag"
-        if psf in t.colnames and kron in t.colnames:
-            return (t[psf].filled(99) - t[kron].filled(99) > 0.05)
-        return np.zeros(len(t), bool)
+    # Filter for extended sources using stack catalog columns
+    # Stack catalog uses different column names than mean catalog
+    def _is_extended(t):
+        """Identify extended sources using PSF-Kron magnitude difference."""
+        mask = np.zeros(len(t), dtype=bool)
+        for band in ['g', 'r', 'i', 'z', 'y']:
+            psf_col = f'{band}PSFMag'
+            kron_col = f'{band}KronMag'
+            if psf_col in t.colnames and kron_col in t.colnames:
+                psf = np.array(t[psf_col], dtype=float)
+                kron = np.array(t[kron_col], dtype=float)
+                # Replace -999 (no data) with nan
+                psf[psf < -900] = np.nan
+                kron[kron < -900] = np.nan
+                # Extended if PSF - Kron > 0.05 mag
+                band_mask = (psf - kron) > 0.05
+                mask = mask | np.nan_to_num(band_mask, nan=False).astype(bool)
+        return mask
     
-    t = t[mask_ext | _pk("g") | _pk("r") | _pk("i")]
+    ext_mask = _is_extended(t)
+    t = t[ext_mask]
     
     if len(t) > 0:
         print(f"     PS1 returned {len(t)} extended sources")
+        
+        # Rename columns for compatibility with rest of pipeline
+        if 'raMean' not in t.colnames and 'raStack' in t.colnames:
+            t['raMean'] = t['raStack']
+            t['decMean'] = t['decStack']
         
         # Add photometric redshifts
         t = add_photoz_to_ps1(t, coord, z)
@@ -355,24 +373,24 @@ def crossmatch_ps1_sdss(ps1_table, coord, z):
     return ps1_table
 
 def q_sdss(coord, radius, z):
+    """Query SDSS for photometric redshifts with multiple fallback methods."""
     r = radius.to(u.arcmin).value
     
-    # First try simple cone search
+    # Check if target is in SDSS footprint (roughly Dec < +70° for main survey)
+    if coord.dec.deg > 70:
+        print(f"     SDSS: target at Dec={coord.dec.deg:.1f}° is outside main footprint")
+    
+    # Method 1: Try astroquery cone search
     try:
         print(f"     Querying SDSS with radius {r:.2f} arcmin...")
         photoobj = SDSS.query_region(coord, radius=radius, 
-                                   spectro=False,  # Get photometric objects
+                                   spectro=False,
                                    photoobj_fields=['objid', 'ra', 'dec', 'type', 'z', 'zErr', 'petroMag_r'])
         
         if photoobj is not None and len(photoobj) > 0:
-            # Check if we got HTML (error page)
             if '<html>' in str(photoobj.colnames[0]).lower():
-                print("     SDSS returned HTML error page, trying SQL query...")
                 raise Exception("HTML response")
-                
-            # Filter for galaxies (type = 3)
             galaxies = photoobj[photoobj['type'] == 3]
-            
             if len(galaxies) > 0:
                 print(f"     SDSS found {len(galaxies)} galaxies via cone search")
                 galaxies['z_best'] = galaxies['z'] if 'z' in galaxies.colnames else np.nan
@@ -381,41 +399,49 @@ def q_sdss(coord, radius, z):
     except Exception as e:
         print(f"     SDSS cone search failed: {e}")
     
-    # Fall back to SQL query
+    # Method 2: Try SQL query with simpler structure
     sql = f"""
-      SELECT TOP 500 
-             p.objid, p.ra, p.dec, p.type, p.petroMag_r,
-             p.z AS photo_z, p.zErr AS photo_z_err
+      SELECT TOP 500 p.objid, p.ra, p.dec, p.type, p.petroMag_r
       FROM PhotoObjAll AS p
-      WHERE 
-        p.ra BETWEEN {coord.ra.deg - r/60} AND {coord.ra.deg + r/60}
+      WHERE p.ra BETWEEN {coord.ra.deg - r/60} AND {coord.ra.deg + r/60}
         AND p.dec BETWEEN {coord.dec.deg - r/60} AND {coord.dec.deg + r/60}
         AND p.type = 3
-        AND dbo.fDistanceArcMinEq(p.ra, p.dec, {coord.ra.deg}, {coord.dec.deg}) <= {r}
     """
     
     try:
-        t = _retry(SDSS.query_sql, sql, timeout=180)
-        
+        t = SDSS.query_sql(sql, timeout=60)
         if t is not None and len(t) > 0:
-            # Check for HTML response
             if '<html>' in str(t.colnames[0]).lower():
-                print("     SDSS SQL query returned HTML error page")
-                return None
-                
+                raise Exception("HTML response")
             print(f"     SDSS SQL query returned {len(t)} galaxies")
-            
-            # Add z_best column
-            if 'photo_z' in t.colnames:
-                t['z_best'] = t['photo_z']
-            else:
-                t['z_best'] = np.nan
-                
+            t['z_best'] = np.nan  # SQL query doesn't include photo-z
             t = _add_proj(t, coord, z)
             return t
-            
     except Exception as e:
-        print(f"   SDSS SQL query failed: {e}")
+        print(f"     SDSS SQL query failed: {e}")
+    
+    # Method 3: Try SDSS via Vizier as final fallback
+    try:
+        Vizier.ROW_LIMIT = 500
+        result = Vizier.query_region(coord, radius=radius, catalog="V/154/sdss16")
+        if result and len(result) > 0:
+            t = result[0]
+            print(f"     SDSS via Vizier returned {len(t)} objects")
+            # Filter for galaxies if 'cl' (class) column exists
+            if 'cl' in t.colnames:
+                t = t[t['cl'] == 3]  # cl=3 is galaxy
+            if len(t) > 0:
+                # Map Vizier column names
+                if 'zsp' in t.colnames:
+                    t['z_best'] = t['zsp']
+                elif 'zph' in t.colnames:
+                    t['z_best'] = t['zph']
+                else:
+                    t['z_best'] = np.nan
+                t = _add_proj(t, coord, z)
+                return t
+    except Exception as e:
+        print(f"     SDSS Vizier fallback failed: {e}")
         
     return None
 
@@ -590,12 +616,20 @@ def _std(src, mapping, cat):
     
     for new, old in mapping.items():
         if old and old in src.colnames:
-            # Handle masked arrays properly
             col_data = src[old]
+            # Handle masked arrays - need to check dtype for fill value
             if hasattr(col_data, 'filled'):
-                cols[new] = col_data.filled(np.nan)
+                # For numeric types, convert to float first to allow NaN
+                if np.issubdtype(col_data.dtype, np.integer):
+                    cols[new] = np.array(col_data, dtype=float)
+                    if hasattr(col_data, 'mask'):
+                        cols[new][col_data.mask] = np.nan
+                elif np.issubdtype(col_data.dtype, np.floating):
+                    cols[new] = col_data.filled(np.nan)
+                else:
+                    # String or other types - convert to array
+                    cols[new] = np.array(col_data.filled(''))
             else:
-                # Convert to numpy array to ensure consistent type
                 cols[new] = np.array(col_data)
         else:
             cols[new] = np.full(n, np.nan)
@@ -633,8 +667,224 @@ std_desi = lambda t: _std(t, {
     "Rproj_kpc": "Rproj_kpc" if t is not None else None
 }, "DESI") if t is not None else None
 
-QUERY_FUNCS = {"NED":q_ned,"PS1":q_ps1,"SDSS":q_sdss,"DESI":q_desi}
-STD_FUNCS   = {"NED":std_ned,"PS1":std_ps1,"SDSS":std_sdss,"DESI":std_desi}
+# ========================= NEW CATALOG QUERIES =============================
+
+def q_glade(coord, radius, z):
+    """Query GLADE+ catalog - optimized for transient host identification."""
+    Vizier.ROW_LIMIT = -1
+    
+    # GLADE+ catalog (VII/281/glade2)
+    try:
+        Vizier.columns = ['GWGC', 'PGC', 'RAJ2000', 'DEJ2000', 'z', 'zflag', 
+                         'Bmag', 'Kmag', 'Mstar', 'd_L']
+        result = Vizier.query_region(coord, radius=radius, catalog="VII/281/glade2")
+        
+        if result and len(result) > 0:
+            t = result[0]
+            print(f"     GLADE+ returned {len(t)} galaxies")
+            
+            # zflag: 0=spec, 1=photo, 2=no z
+            if 'zflag' in t.colnames:
+                n_spec = np.sum(t['zflag'] == 0)
+                n_phot = np.sum(t['zflag'] == 1)
+                print(f"       {n_spec} spectroscopic, {n_phot} photometric redshifts")
+            
+            t = _add_proj(t, coord, z)
+            return t
+    except Exception as e:
+        print(f"     GLADE+ query failed: {e}")
+    
+    return None
+
+
+def q_sdss_spec(coord, radius, z):
+    """Query SDSS spectroscopic redshifts from SpecObjAll."""
+    r = radius.to(u.arcmin).value
+    
+    # SQL query for spectroscopic objects
+    sql = f"""
+      SELECT TOP 500 
+             s.specObjID, s.ra, s.dec, s.z AS z_spec, s.zErr AS z_spec_err,
+             s.class, s.subClass, s.velDisp, s.velDispErr,
+             p.petroMag_r, p.modelMag_u - p.modelMag_r AS u_r
+      FROM SpecObjAll AS s
+      JOIN PhotoObjAll AS p ON s.bestObjID = p.objID
+      WHERE 
+        s.ra BETWEEN {coord.ra.deg - r/60} AND {coord.ra.deg + r/60}
+        AND s.dec BETWEEN {coord.dec.deg - r/60} AND {coord.dec.deg + r/60}
+        AND s.zWarning = 0
+        AND s.class = 'GALAXY'
+        AND s.z BETWEEN 0 AND {z + 0.1}
+    """
+    
+    try:
+        result = SDSS.query_sql(sql, timeout=60)
+        if result is not None and len(result) > 0:
+            print(f"     SDSS spectroscopic: {len(result)} galaxies with spec-z")
+            result['z_best'] = result['z_spec']
+            result = _add_proj(result, coord, z)
+            return result
+    except Exception as e:
+        print(f"     SDSS spectroscopic query failed: {e}")
+    
+    return None
+
+
+def q_gama(coord, radius, z):
+    """Query GAMA DR4 for galaxies with stellar masses and SFRs."""
+    Vizier.ROW_LIMIT = -1
+    
+    # GAMA DR4 catalogs
+    catalogs = [
+        "VIII/103/gama",      # Main GAMA catalog
+        "J/MNRAS/474/3875",   # GAMA stellar masses
+    ]
+    
+    for cat in catalogs:
+        try:
+            result = Vizier.query_region(coord, radius=radius, catalog=cat)
+            
+            if result and len(result) > 0:
+                t = result[0]
+                print(f"     GAMA returned {len(t)} galaxies from {cat}")
+                
+                # Look for redshift column
+                z_col = None
+                for col in ['Z', 'z', 'zspec', 'NQ', 'SPECZ']:
+                    if col in t.colnames:
+                        z_col = col
+                        break
+                
+                if z_col:
+                    t['z_best'] = t[z_col]
+                    t = _add_proj(t, coord, z)
+                    return t
+                    
+        except Exception as e:
+            print(f"       GAMA {cat} failed: {e}")
+            continue
+    
+    print("     No GAMA data found")
+    return None
+
+
+def q_6dfgs(coord, radius, z):
+    """Query 6dF Galaxy Survey for Southern hemisphere spectroscopic redshifts."""
+    # Only query if target is in Southern hemisphere
+    if coord.dec.deg > 10:
+        print("     6dFGS: skipping (Northern target)")
+        return None
+    
+    Vizier.ROW_LIMIT = -1
+    
+    try:
+        Vizier.columns = ['_6dFGS', 'RAJ2000', 'DEJ2000', 'cz', 'e_cz', 'q_cz', 
+                         'bJ', 'rF', 'Kmag']
+        result = Vizier.query_region(coord, radius=radius, catalog="VII/259/6dfgs")
+        
+        if result and len(result) > 0:
+            t = result[0]
+            print(f"     6dFGS returned {len(t)} galaxies with spec-z")
+            
+            # Convert cz (km/s) to redshift
+            c_kms = 299792.458
+            if 'cz' in t.colnames:
+                t['z_best'] = t['cz'] / c_kms
+            
+            t = _add_proj(t, coord, z)
+            return t
+            
+    except Exception as e:
+        print(f"     6dFGS query failed: {e}")
+    
+    return None
+
+
+def q_2mrs(coord, radius, z):
+    """Query 2MASS Redshift Survey for near-IR selected galaxies."""
+    Vizier.ROW_LIMIT = -1
+    
+    try:
+        result = Vizier.query_region(coord, radius=radius, catalog="J/ApJS/199/26/table3")
+        
+        if result and len(result) > 0:
+            t = result[0]
+            print(f"     2MRS returned {len(t)} galaxies")
+            
+            # Convert cz to redshift
+            c_kms = 299792.458
+            if 'cz' in t.colnames:
+                t['z_best'] = t['cz'] / c_kms
+            elif 'Vcmb' in t.colnames:
+                t['z_best'] = t['Vcmb'] / c_kms
+            
+            t = _add_proj(t, coord, z)
+            return t
+            
+    except Exception as e:
+        print(f"     2MRS query failed: {e}")
+    
+    return None
+
+
+# Standardization functions for new catalogs
+std_glade = lambda t: _std(t, {
+    "name": "PGC" if t is not None and "PGC" in t.colnames else "GWGC",
+    "ra": "RAJ2000",
+    "dec": "DEJ2000", 
+    "z": "z",
+    "Mstar": "Mstar",
+    "Rproj_kpc": "Rproj_kpc"
+}, "GLADE+") if t is not None else None
+
+std_sdss_spec = lambda t: _std(t, {
+    "name": "specObjID",
+    "ra": "ra",
+    "dec": "dec",
+    "z": "z_best",
+    "Mstar": None,
+    "Rproj_kpc": "Rproj_kpc"
+}, "SDSS_spec") if t is not None else None
+
+std_gama = lambda t: _std(t, {
+    "name": "CATAID" if t is not None and "CATAID" in t.colnames else None,
+    "ra": "RAJ2000" if t is not None and "RAJ2000" in t.colnames else "RA",
+    "dec": "DEJ2000" if t is not None and "DEJ2000" in t.colnames else "DEC",
+    "z": "z_best",
+    "Mstar": "logMstar" if t is not None and "logMstar" in t.colnames else None,
+    "Rproj_kpc": "Rproj_kpc"
+}, "GAMA") if t is not None else None
+
+std_6dfgs = lambda t: _std(t, {
+    "name": "_6dFGS",
+    "ra": "RAJ2000",
+    "dec": "DEJ2000",
+    "z": "z_best",
+    "Mstar": None,
+    "Rproj_kpc": "Rproj_kpc"
+}, "6dFGS") if t is not None else None
+
+std_2mrs = lambda t: _std(t, {
+    "name": "2MASS" if t is not None and "2MASS" in t.colnames else None,
+    "ra": "RAJ2000",
+    "dec": "DEJ2000",
+    "z": "z_best",
+    "Mstar": None,
+    "Rproj_kpc": "Rproj_kpc"
+}, "2MRS") if t is not None else None
+
+# ==========================================================================
+
+QUERY_FUNCS = {
+    "NED": q_ned, "PS1": q_ps1, "SDSS": q_sdss, "DESI": q_desi,
+    "GLADE+": q_glade, "SDSS_spec": q_sdss_spec, "GAMA": q_gama, 
+    "6dFGS": q_6dfgs, "2MRS": q_2mrs
+}
+STD_FUNCS = {
+    "NED": std_ned, "PS1": std_ps1, "SDSS": std_sdss, "DESI": std_desi,
+    "GLADE+": std_glade, "SDSS_spec": std_sdss_spec, "GAMA": std_gama,
+    "6dFGS": std_6dfgs, "2MRS": std_2mrs
+}
 
 # -------------------------------- MAIN -------------------------------------
 def main(target_indices=None):
@@ -647,7 +897,10 @@ def main(target_indices=None):
             coord = SkyCoord(ra_s, dec_s, unit=(u.hourangle, u.deg))
             radius = theta_proper(z_t)
             print(f"[{tid:02d}] {coord.to_string('hmsdms'):>22s}  z={z_t:.3f}  θ={radius:.2f}")
-            for cat in ("NED", "PS1", "SDSS", "DESI"):
+            # Query all catalogs: original + new additions
+            all_cats = ["NED", "PS1", "SDSS", "SDSS_spec", "DESI", 
+                        "GLADE+", "GAMA", "6dFGS", "2MRS"]
+            for cat in all_cats:
                 raw = QUERY_FUNCS[cat](coord, radius, z_t)
                 time.sleep(PAUSE)
                 tab = STD_FUNCS[cat](raw)
@@ -655,7 +908,7 @@ def main(target_indices=None):
                 if tab is None or len(tab) == 0:
                     continue
                 sheets[f"T{tid:02d}_{cat}"] = tab.to_pandas()
-                print(f"   ↳ {cat:<4s}: {len(tab):3d} rows")
+                print(f"   ↳ {cat:<10s}: {len(tab):3d} rows")
             print()
         if sheets:
             try:

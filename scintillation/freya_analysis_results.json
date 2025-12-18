@@ -1,0 +1,28 @@
+{
+    "best_model": "fit_tpl_power",
+    "components": {
+        "scint_scale": {
+            "power_law_fit_report": [
+                1.0,
+                4.0
+            ],
+            "scaling_index": 4.0,
+            "scaling_index_err": 0.0,
+            "bw_at_ref_mhz": 3841600000000.0054,
+            "bw_at_ref_mhz_err": 0.0,
+            "subband_measurements": [],
+            "scaling_interpretation": "Kolmogorov with inner scale effects (\u03b1 = 4.00 \u00b1 0.00) - consistent with Bhat et al. 2004 global fit (\u03b1 \u2248 3.9), suggests inner scale l_i ~ 300-800 km"
+        }
+    },
+    "fit_2d": {
+        "gamma_0": 0.016488881208263827,
+        "gamma_0_err": 0.0016690758937398995,
+        "alpha": 1.0002314791192255,
+        "alpha_err": 2.0836735472897856,
+        "m_0": 1.0,
+        "m_0_err": 2.4555646093244914e-10,
+        "nu_ref": 1419.9356991697866,
+        "redchi": 0.9647676557094772,
+        "success": true
+    }
+}

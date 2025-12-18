@@ -1,0 +1,17 @@
+{
+  "ULTRA_FAST": {
+    "success": false,
+    "runtime_sec": 60.00389218330383,
+    "error": "Analysis exceeded 60 second time limit!"
+  },
+  "FAST": {
+    "success": false,
+    "runtime_sec": 60.001689195632935,
+    "error": "Analysis exceeded 60 second time limit!"
+  },
+  "STANDARD": {
+    "success": false,
+    "runtime_sec": 60.00404715538025,
+    "error": "Analysis exceeded 60 second time limit!"
+  }
+}

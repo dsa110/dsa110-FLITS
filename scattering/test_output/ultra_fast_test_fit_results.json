@@ -1,0 +1,33 @@
+{
+  "best_params": {
+    "c0": 1.2810520596755421,
+    "t0": 4.046867275901588,
+    "gamma": -2.254460912445792,
+    "zeta": 0.07340240656375314,
+    "tau_1ghz": 0.018243539618262316,
+    "alpha": 4.0,
+    "delta_dm": -0.004054228880937705
+  },
+  "best_key": "M3",
+  "runtime_seconds": 25.205785274505615,
+  "data_shape": [
+    16,
+    400
+  ],
+  "goodness_of_fit": {
+    "chi2": 665295.0867437178,
+    "chi2_reduced": 104.04990408878915,
+    "r_squared": 0.4802203312796458,
+    "ndof": 6394.0,
+    "residual_rms": 0.22904149627967682,
+    "normality_pvalue": 4.49317267547521e-91,
+    "bias_nsigma": 1.7755843614753373,
+    "durbin_watson": 0.13415669514321032,
+    "quality_flag": "FAIL",
+    "validation_notes": [
+      "Catastrophic chi2_red (104.0)",
+      "Poor R2 (0.480)",
+      "Non-normal residuals (p=4.5e-91)"
+    ]
+  }
+}

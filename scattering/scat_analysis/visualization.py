@@ -454,7 +454,7 @@ def main():
     )
     
     if args.show:
-        # plt.show()
+        plt.show()
     
     print("Done!")
 

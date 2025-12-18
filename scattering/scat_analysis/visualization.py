@@ -116,17 +116,7 @@ def preprocess_data(
     dt_ms = config["dt_ms_raw"] * t_factor
     df_MHz = config["df_MHz_raw"] * f_factor
     
-    # Handle frequency ordering
-    # Force output to be ascending frequency (Low -> High) for standardized plotting
-    freq_desc = config.get("freq_descending", False)
-    
-    if freq_desc:
-        # Data is High -> Low. Flip to make it Low -> High.
-        data = np.flip(data, axis=0)
-        # Verify: original data[0] was High Freq. Now data[-1] is High Freq.
-        # So Index 0 is Low Freq.
-    
-    # Always generate ascending frequency axis
+    # Frequency ordering (standardized to Ascending)
     freq = np.linspace(config["f_min_GHz"], config["f_max_GHz"], n_ch)
     
     time = np.arange(n_t) * dt_ms

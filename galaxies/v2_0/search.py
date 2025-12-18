@@ -25,8 +25,12 @@ def run_search(impact_kpc: float = DEFAULT_IMPACT_KPC, output_dir: str = "result
         target_matches = []
         for engine in engines:
             df = engine.query(coord, radius)
+            engine_name = engine.__class__.__name__
+            if isinstance(engine, VizierEngine):
+                engine_name = f"VizierEngine({engine.catalog_id})"
+                
             if not df.empty:
-                print(f"    {engine.__class__.__name__} returned {len(df)} raw results.")
+                print(f"    {engine_name} returned {len(df)} raw results.")
                 # Ensure we have ra, dec, z
                 if 'ra' not in df.columns or 'dec' not in df.columns or 'z' not in df.columns:
                     # Try to find them case-insensitively
@@ -41,7 +45,7 @@ def run_search(impact_kpc: float = DEFAULT_IMPACT_KPC, output_dir: str = "result
                     df = df.dropna(subset=['ra', 'dec', 'z'])
                     with_z_count = len(df)
                     if df.empty: 
-                        print(f"      {engine.__class__.__name__}: 0/{raw_count} results have redshifts.")
+                        print(f"      {engine_name}: 0/{raw_count} results have redshifts.")
                         continue
 
                     df['impact_kpc'] = df.apply(
@@ -53,9 +57,9 @@ def run_search(impact_kpc: float = DEFAULT_IMPACT_KPC, output_dir: str = "result
                     df_filtered = df[(df['z'] < z_frb) & (df['impact_kpc'] <= impact_kpc)]
                     if not df_filtered.empty:
                         target_matches.append(df_filtered)
-                        print(f"      {engine.__class__.__name__}: Found {len(df_filtered)} matches (from {with_z_count} with z).")
+                        print(f"      {engine_name}: Found {len(df_filtered)} matches (from {with_z_count} with z).")
                     else:
-                        print(f"      {engine.__class__.__name__}: 0 matches (from {with_z_count} with z).")
+                        print(f"      {engine_name}: 0 matches (from {with_z_count} with z).")
         
         if target_matches:
             all_matches = pd.concat(target_matches, ignore_index=True)

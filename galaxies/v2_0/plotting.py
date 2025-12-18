@@ -14,13 +14,24 @@ def plot_impact_vs_redshift(summary_df: pd.DataFrame, all_galaxies_df: pd.DataFr
     Plot impact parameter vs redshift for all identified foreground galaxies.
     """
     use_flits_style()
-    fig, ax = plt.subplots(figsize=(8, 6))
+    fig, ax = plt.subplots(figsize=(10, 6))
     
     # Plot galaxies
+    # Use name for coloring if available
+    color_col = 'name' if 'name' in all_galaxies_df.columns else 'target_id'
+    
+    # Create a mapping for categorical colors if using names
+    if color_col == 'name':
+        names = all_galaxies_df['name'].unique()
+        name_to_id = {name: i for i, name in enumerate(names)}
+        colors = all_galaxies_df['name'].map(name_to_id)
+    else:
+        colors = all_galaxies_df['target_id']
+
     scatter = ax.scatter(
         all_galaxies_df['z'], 
         all_galaxies_df['impact_kpc'], 
-        c=all_galaxies_df['target_id'], 
+        c=colors, 
         cmap='tab20', 
         s=100, 
         edgecolor='k', 
@@ -31,14 +42,25 @@ def plot_impact_vs_redshift(summary_df: pd.DataFrame, all_galaxies_df: pd.DataFr
     # Plot FRBs as vertical lines or markers at their redshifts
     for _, row in summary_df.iterrows():
         ax.axvline(row['z_frb'], color='gray', linestyle='--', alpha=0.3)
+        # Label FRB at the top
+        name = row.get('name', f"Target {row['target_id']}")
+        ax.text(row['z_frb'], ax.get_ylim()[1], name, rotation=90, verticalalignment='bottom', fontsize=8)
         
     ax.set_xlabel('Redshift ($z$)')
     ax.set_ylabel('Impact Parameter ($b$ [kpc])')
     ax.set_title('Foreground Galaxy Environment')
     
-    # Add colorbar for target IDs
-    cbar = plt.colorbar(scatter)
-    cbar.set_label('Target ID')
+    # Add colorbar or legend
+    if color_col == 'name':
+        # Legend is better for names
+        from matplotlib.lines import Line2D
+        legend_elements = [Line2D([0], [0], marker='o', color='w', label=name,
+                          markerfacecolor=plt.cm.tab20(name_to_id[name]/20), markersize=10)
+                          for name in names]
+        ax.legend(handles=legend_elements, title="FRB Field", bbox_to_anchor=(1.05, 1), loc='upper left')
+    else:
+        cbar = plt.colorbar(scatter)
+        cbar.set_label('Target ID')
     
     ax.grid(True, which='both', linestyle=':', alpha=0.5)
     
@@ -55,13 +77,13 @@ def plot_sightline(target_info: dict, galaxies_df: pd.DataFrame, output_path: Op
     
     target_coord = parse_coord(target_info['ra'], target_info['dec'])
     ra0, dec0 = target_coord.ra.deg, target_coord.dec.deg
+    target_name = target_info.get('name', f"Target {target_info.get('target_id', 'Unknown')}")
     
     # Plot FRB at center
-    ax.scatter(0, 0, marker='*', s=400, color='red', edgecolor='k', label='FRB Sightline', zorder=10)
+    ax.scatter(0, 0, marker='*', s=400, color='red', edgecolor='k', label=f'FRB {target_name}', zorder=10)
     
     if not galaxies_df.empty:
         # Calculate relative offsets in arcmin
-        # Note: This is a simple projection, fine for small fields
         cos_dec = np.cos(np.radians(dec0))
         galaxies_df['dra'] = (galaxies_df['ra'] - ra0) * 60.0 * cos_dec
         galaxies_df['ddec'] = (galaxies_df['dec'] - dec0) * 60.0
@@ -70,7 +92,7 @@ def plot_sightline(target_info: dict, galaxies_df: pd.DataFrame, output_path: Op
             galaxies_df['dra'], 
             galaxies_df['ddec'], 
             c=galaxies_df['z'], 
-            s=galaxies_df['impact_kpc'] * 0.5 + 50, # Size scaled by impact parameter (inverted or just scaled)
+            s=150, 
             cmap='viridis', 
             edgecolor='k', 
             alpha=0.8,
@@ -79,15 +101,13 @@ def plot_sightline(target_info: dict, galaxies_df: pd.DataFrame, output_path: Op
         
         # Add labels for galaxies
         for _, row in galaxies_df.iterrows():
-            name = row['name'] if pd.notna(row['name']) else f"z={row['z']:.3f}"
-            ax.annotate(name, (row['dra'], row['ddec']), xytext=(5, 5), textcoords='offset points', fontsize=8)
+            label = row['name'] if pd.notna(row['name']) and row['name'] != "" else f"z={row['z']:.3f}"
+            ax.annotate(label, (row['dra'], row['ddec']), xytext=(5, 5), textcoords='offset points', fontsize=9, fontweight='bold')
             
         cbar = plt.colorbar(scatter)
         cbar.set_label('Redshift ($z$)')
 
     # Add concentric circles for physical impact parameters
-    # We need to convert kpc to arcmin at the galaxy redshifts
-    # For simplicity, we'll use the average redshift or a representative one
     if not galaxies_df.empty:
         avg_z = galaxies_df['z'].mean()
     else:
@@ -98,19 +118,18 @@ def plot_sightline(target_info: dict, galaxies_df: pd.DataFrame, output_path: Op
         theta = get_angular_radius(avg_z, b_kpc).to(u.arcmin).value
         circle = plt.Circle((0, 0), theta, color='gray', fill=False, linestyle=':', alpha=0.5)
         ax.add_artist(circle)
-        ax.text(0, theta + 0.2, f"{b_kpc} kpc", color='gray', fontsize=8, ha='center')
+        ax.text(0, theta, f"{b_kpc} kpc", color='gray', fontsize=8, ha='center', va='bottom')
 
     ax.set_xlabel(r'$\Delta$ RA [arcmin]')
     ax.set_ylabel(r'$\Delta$ Dec [arcmin]')
-    ax.set_title(f"Target {target_info['target_id']} Environment (z={target_info['z_frb']})")
+    ax.set_title(f'Sightline Environment: {target_name} ($z={target_info["z_frb"]}$)')
     ax.legend(loc='upper right')
     ax.set_aspect('equal')
-    ax.grid(True, alpha=0.2)
     
-    # Set limits to show the largest circle
-    max_theta = get_angular_radius(avg_z, 500).to(u.arcmin).value * 1.2
-    ax.set_xlim(max_theta, -max_theta) # RA increases to the left
-    ax.set_ylim(-max_theta, max_theta)
+    # Set limits to show at least the 500 kpc circle
+    limit = get_angular_radius(avg_z, 550).to(u.arcmin).value
+    ax.set_xlim(limit, -limit) # RA increases to the left
+    ax.set_ylim(-limit, limit)
     
     if output_path:
         plt.savefig(output_path, bbox_inches='tight', dpi=300)

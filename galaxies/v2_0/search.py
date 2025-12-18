@@ -19,8 +19,8 @@ def run_search(impact_kpc: float = DEFAULT_IMPACT_KPC, output_dir: str = "result
     
     summary_data = []
     
-    for i, (ra_str, dec_str, z_frb) in enumerate(TARGETS):
-        print(f"Processing Target {i+1}: {ra_str}, {dec_str} (z={z_frb})")
+    for i, (name, ra_str, dec_str, z_frb) in enumerate(TARGETS):
+        print(f"Processing {name} (Target {i+1}): {ra_str}, {dec_str} (z={z_frb})")
         coord = parse_coord(ra_str, dec_str)
         radius = get_angular_radius(z_frb, impact_kpc)
         
@@ -73,24 +73,17 @@ def run_search(impact_kpc: float = DEFAULT_IMPACT_KPC, output_dir: str = "result
                 duplicates = d2d < 2.0 * u.arcsec
                 if any(duplicates):
                     # Keep the first occurrence
-                    to_keep = []
-                    seen = set()
-                    for i, is_dup in enumerate(duplicates):
-                        # match_to_catalog_sky returns the index of the closest match
-                        # if d2d is small, it's a duplicate.
-                        # We can use a simpler approach: group by rounded coordinates
-                        pass
-                    
                     # Simpler de-duplication: round to 4 decimal places (~0.3 arcsec)
                     all_matches['ra_round'] = all_matches['ra'].round(4)
                     all_matches['dec_round'] = all_matches['dec'].round(4)
                     all_matches = all_matches.drop_duplicates(subset=['ra_round', 'dec_round'])
                     all_matches = all_matches.drop(columns=['ra_round', 'dec_round'])
 
-            out_path = os.path.join(output_dir, f"target_{i+1}_galaxies.csv")
+            out_path = os.path.join(output_dir, f"{name.lower()}_galaxies.csv")
             all_matches.to_csv(out_path, index=False)
             print(f"  Found {len(all_matches)} unique foreground galaxies.")
             summary_data.append({
+                'name': name,
                 'target_id': i+1,
                 'ra': ra_str,
                 'dec': dec_str,
@@ -100,6 +93,7 @@ def run_search(impact_kpc: float = DEFAULT_IMPACT_KPC, output_dir: str = "result
         else:
             print("  No foreground galaxies found.")
             summary_data.append({
+                'name': name,
                 'target_id': i+1,
                 'ra': ra_str,
                 'dec': dec_str,

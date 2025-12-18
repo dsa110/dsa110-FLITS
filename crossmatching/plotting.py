@@ -23,6 +23,8 @@ logger = logging.getLogger(__name__)
 try:
     from flits.plotting import use_flits_style
     use_flits_style()
+    # Handle negative signs in case of font issues
+    plt.rcParams['axes.unicode_minus'] = False
 except ImportError:
     plt.style.use('seaborn-v0_8-whitegrid')
 

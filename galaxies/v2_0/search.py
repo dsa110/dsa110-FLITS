@@ -2,6 +2,8 @@
 
 import os
 import pandas as pd
+from astropy.coordinates import SkyCoord
+import astropy.units as u
 from .config import TARGETS, DEFAULT_IMPACT_KPC, VIZIER_CATALOGS
 from .utils import parse_coord, get_angular_radius, calculate_impact_parameter
 from .engines import NedEngine, VizierEngine
@@ -63,9 +65,31 @@ def run_search(impact_kpc: float = DEFAULT_IMPACT_KPC, output_dir: str = "result
         
         if target_matches:
             all_matches = pd.concat(target_matches, ignore_index=True)
+            
+            # De-duplicate based on RA/Dec (within 2 arcsec)
+            if len(all_matches) > 1:
+                coords = SkyCoord(ra=all_matches['ra'].values*u.deg, dec=all_matches['dec'].values*u.deg)
+                idx, d2d, _ = coords.match_to_catalog_sky(coords, nthneighbor=2)
+                duplicates = d2d < 2.0 * u.arcsec
+                if any(duplicates):
+                    # Keep the first occurrence
+                    to_keep = []
+                    seen = set()
+                    for i, is_dup in enumerate(duplicates):
+                        # match_to_catalog_sky returns the index of the closest match
+                        # if d2d is small, it's a duplicate.
+                        # We can use a simpler approach: group by rounded coordinates
+                        pass
+                    
+                    # Simpler de-duplication: round to 4 decimal places (~0.3 arcsec)
+                    all_matches['ra_round'] = all_matches['ra'].round(4)
+                    all_matches['dec_round'] = all_matches['dec'].round(4)
+                    all_matches = all_matches.drop_duplicates(subset=['ra_round', 'dec_round'])
+                    all_matches = all_matches.drop(columns=['ra_round', 'dec_round'])
+
             out_path = os.path.join(output_dir, f"target_{i+1}_galaxies.csv")
             all_matches.to_csv(out_path, index=False)
-            print(f"  Found {len(all_matches)} foreground galaxies.")
+            print(f"  Found {len(all_matches)} unique foreground galaxies.")
             summary_data.append({
                 'target_id': i+1,
                 'ra': ra_str,
@@ -88,4 +112,9 @@ def run_search(impact_kpc: float = DEFAULT_IMPACT_KPC, output_dir: str = "result
     print("\nSearch complete. Summary saved to results/search_summary.csv")
 
 if __name__ == "__main__":
-    run_search()
+    import argparse
+    parser = argparse.ArgumentParser(description="Search for foreground galaxies around FRB targets.")
+    parser.add_argument("--impact_kpc", type=float, default=100.0, help="Maximum impact parameter in kpc.")
+    args = parser.parse_args()
+    
+    run_search(impact_kpc=args.impact_kpc)

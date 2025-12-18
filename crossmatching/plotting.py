@@ -162,6 +162,10 @@ def plot_toa_analysis(
     ax1.set_ylim(-ymax, ymax)
     ax2.set_ylim(-ymax, ymax)
 
+    ymax = max(abs(residuals.min()), abs(residuals.max())) * 1.4
+    ax1.set_ylim(-ymax, ymax)
+    ax2.set_ylim(-ymax, ymax)
+
     if output_path:
         fig.savefig(output_path, dpi=300)
         logger.info(f"Analysis plot saved to {output_path}")
@@ -169,6 +173,84 @@ def plot_toa_analysis(
     if show:
         plt.show()
 
+    return fig
+
+
+def plot_systematics_matrix(
+    results: dict,
+    output_path: Optional[str | Path] = None,
+    figsize: tuple = (14, 10),
+    show: bool = True,
+) -> plt.Figure:
+    """Create a 4-panel systematics matrix checking for various correlations.
+    
+    Plots Residual vs:
+    1. DM (Physical modeling)
+    2. FWHM (Signal structure/Pulse width)
+    3. Combined Uncertainty (Measurement quality)
+    4. MJD (Temporal stability)
+    """
+    if not results:
+        return plt.figure()
+
+    # Extract all data
+    residuals = []
+    dms = []
+    fwhms = []
+    errs = []
+    mjds = []
+    
+    for burst in results.values():
+        residuals.append(burst['measured_offset_ms'] - burst['geometric_delay_ms'])
+        dms.append(burst['dm'])
+        fwhms.append(burst.get('fwhm_ms', 0))
+        errs.append(np.sqrt(burst['combined_dm_uncertainty_ms']**2 + burst.get('fwhm_ms', 0)**2))
+        mjds.append(burst.get('dm_mjd', 0))
+        
+    data = {
+        'DM [pc cm⁻³]': np.array(dms),
+        'FWHM [ms]': np.array(fwhms),
+        'Combined Uncertainty [ms]': np.array(errs),
+        'Time [MJD]': np.array(mjds)
+    }
+    residuals = np.array(residuals)
+    
+    fig, axes = plt.subplots(2, 2, figsize=figsize, constrained_layout=True)
+    axes_flat = axes.flatten()
+    
+    for ax, (label, x_data) in zip(axes_flat, data.items()):
+        # Filter out 0/invalid MJDs if necessary
+        mask = x_data > 0 if 'Time' in label else np.ones_like(x_data, dtype=bool)
+        if not np.any(mask):
+            ax.text(0.5, 0.5, f"No valid {label} data", transform=ax.transAxes, ha='center')
+            continue
+            
+        x, y = x_data[mask], residuals[mask]
+        
+        ax.scatter(x, y, s=60, alpha=0.7, edgecolors='k', color='steelblue')
+        ax.axhline(0, color='black', linestyle='--', alpha=0.5)
+        
+        # Add correlation coefficient
+        if len(x) > 2:
+            r, p = stats.pearsonr(x, y)
+            ax.set_title(f"Resid vs {label.split(' [')[0]} (r={r:.2f}, p={p:.2f})", fontsize=11, fontweight='bold')
+            
+            # Add trendline
+            slope, intercept, _, _, _ = stats.linregress(x, y)
+            ax.plot(x, slope * x + intercept, color='red', alpha=0.4, linestyle=':')
+            
+        ax.set_xlabel(label)
+        ax.set_ylabel('Residual [ms]')
+        ax.grid(linestyle=':', alpha=0.4)
+        
+    fig.suptitle('Systematic Correlation Search Matrix', fontsize=16, fontweight='bold')
+    
+    if output_path:
+        fig.savefig(output_path, dpi=300)
+        logger.info(f"Systematics matrix saved to {output_path}")
+
+    if show:
+        plt.show()
     return fig
 
 
@@ -181,14 +263,18 @@ def main():
         return
     
     results = load_crossmatch_results(results_path)
-    output_path = Path(__file__).parent / 'toa_crossmatch_analysis_premium.png'
+    output_dir = Path(__file__).parent
     
-    plot_toa_analysis(results, output_path=output_path, show=False)
+    # Generate premium 2-panel analysis
+    plot_toa_analysis(results, output_path=output_dir / 'toa_crossmatch_analysis_premium.png', show=False)
     
-    # Also save as PDF for publication quality
-    plot_toa_analysis(results, output_path=output_path.with_suffix('.pdf'), show=False)
+    # Generate the new systematics matrix
+    plot_systematics_matrix(results, output_path=output_dir / 'systematics_check_matrix.png', show=False)
+    
+    # Also save as PDFs for publication quality
+    plot_toa_analysis(results, output_path=output_dir / 'toa_crossmatch_analysis_premium.pdf', show=False)
+    plot_systematics_matrix(results, output_path=output_dir / 'systematics_check_matrix.pdf', show=False)
+    
+    logger.info("Done! Generated expanded systematic analysis figures.")
 
-
-if __name__ == '__main__':
-    main()
 

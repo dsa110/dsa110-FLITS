@@ -153,6 +153,7 @@ def _log_prob_wrapper(
     student_nu=5.0,
     param_mode="single",
     K: int = 1,
+    components: Sequence[str] | None = None,
     tau_prior: tuple[float, float] | None = None,
 ):
     """Module-level function for multiprocessing compatibility.
@@ -163,6 +164,8 @@ def _log_prob_wrapper(
         Log-normal prior on tau_1ghz. Default None (no prior).
     alpha_gauss : (mu, sigma) or None
         Gaussian prior on alpha (will be converted to tuple for apply_physical_priors).
+    components : sequence of str or None
+        List of model keys for mixed multi-component fitting (e.g. ["M0", "M3"]).
     """
     # Map raw parameters (possibly in log-space) to linear domain
     names = order[key]
@@ -206,7 +209,62 @@ def _log_prob_wrapper(
                 logp += -np.log(max(v, 1e-30))
 
     # 4. Compute likelihood
-    if param_mode == "single":
+    if components is not None:
+        # --- Mixed Multi-Component Mode ---
+        # Parse global delta_dm (only fitted if "M3" is present)
+        delta_dm = 0.0
+        if "delta_dm" in names:
+            delta_dm = theta[names.index("delta_dm")]
+
+        model_sum = np.zeros_like(model.data)
+        
+        for i, model_type in enumerate(components):
+            suffix = f"_{i+1}"
+            
+            # Helper to extract parameter for this component
+            def get_p(root, default=0.0):
+                full_name = f"{root}{suffix}"
+                if full_name in names:
+                    return theta[names.index(full_name)]
+                return default
+
+            # Core parameters (always present for all models)
+            c0 = get_p("c0")
+            t0 = get_p("t0")
+            gamma = get_p("gamma", -1.6)
+
+            # Model-dependent parameters
+            zeta = get_p("zeta", 0.0)        # M1, M3
+            tau_1ghz = get_p("tau_1ghz", 0.0) # M2, M3
+            alpha = get_p("alpha", 4.4)      # M3 (fixed to 4.4 for M2)
+
+            p_i = FRBParams(
+                c0=c0,
+                t0=t0,
+                gamma=gamma,
+                zeta=zeta,
+                tau_1ghz=tau_1ghz,
+                alpha=alpha,
+                delta_dm=delta_dm,
+            )
+            model_sum = model_sum + model(p_i, model_type)
+
+        # Compute likelihood against summed model
+        noise_std_safe = np.clip(model.noise_std, 1e-9, None)
+        resid = (model.data - model_sum) / noise_std_safe[:, None]
+        
+        if likelihood_kind == "gaussian":
+            return logp + (-0.5 * np.sum(resid**2))
+        else:
+            # student-t
+            r2_over_nu = (resid**2) / float(student_nu)
+            term = -0.5 * (float(student_nu) + 1.0) * np.log1p(r2_over_nu)
+            const = -0.5 * model.data.size * np.log(float(student_nu) * np.pi) - np.sum(
+                np.log(noise_std_safe)
+            )
+            return logp + const + float(np.sum(term))
+
+    elif param_mode == "single":
         params = FRBParams.from_sequence(theta, key)
         if likelihood_kind == "gaussian":
             return logp + model.log_likelihood(params, key)
@@ -527,6 +585,7 @@ class FRBFitter:
         likelihood_kind: str = "gaussian",
         student_nu: float = 5.0,
         walker_width_frac: float = 0.01,
+        components: Sequence[str] | None = None,
         **kwargs,
     ):
         self.model = model
@@ -544,6 +603,11 @@ class FRBFitter:
         self.student_nu = student_nu
         self.custom_order: dict[str, tuple[str, ...]] = {}
         self.walker_width_frac = max(1e-4, float(walker_width_frac))
+        self.components = components
+        
+        # Pre-build order if components are provided
+        if self.components:
+             self.build_mixed_model_order(self.components)
 
     def _is_log_param(self, name: str) -> bool:
         """Check if a parameter should be sampled in log-space.
@@ -604,6 +668,10 @@ class FRBFitter:
 
     def sample(self, p0, model_key: str = "M3"):
         """Run the MCMC sampler."""
+        # Use "mixed" key if components are provided
+        if self.components:
+            model_key = "mixed"
+            
         names = (
             self._ORDER[model_key]
             if model_key in self._ORDER
@@ -631,8 +699,9 @@ class FRBFitter:
                 self.alpha_prior,
                 self.likelihood_kind,
                 self.student_nu,
-                "multi" if model_key == "M3_multi" else "single",
+                "multi" if model_key in ["M3_multi", "mixed"] else "single",
                 len(names) if model_key == "M3_multi" else 1,
+                self.components,
             ),
             pool=self.pool,
         )
@@ -645,6 +714,47 @@ class FRBFitter:
             order.extend([f"c0_{i}", f"t0_{i}", f"zeta_{i}"])
         self.custom_order["M3_multi"] = tuple(order)
         return self.custom_order["M3_multi"]
+
+    def build_mixed_model_order(self, components: Sequence[str]) -> tuple[str, ...]:
+        """Build parameter list for mixed multi-component models.
+        
+        Parameters
+        ----------
+        components : list of str
+            List of model keys (e.g. ["M0", "M3", "M1"]).
+            
+        Returns
+        -------
+        tuple of str
+            Ordered parameter names.
+        """
+        order = []
+        
+        # 1. Global Parameters
+        # Only fit delta_dm if at least one component is M3 (the full model)
+        if any(c == "M3" for c in components):
+            order.append("delta_dm")
+            
+        # 2. Per-Component Parameters
+        for i, c in enumerate(components):
+            idx = i + 1
+            # Core parameters (all models)
+            order.extend([f"c0_{idx}", f"t0_{idx}", f"gamma_{idx}"])
+            
+            # Intrinsic width (M1, M3)
+            if c in ["M1", "M3"]:
+                order.append(f"zeta_{idx}")
+                
+            # Scattering timescale (M2, M3)
+            if c in ["M2", "M3"]:
+                order.append(f"tau_1ghz_{idx}")
+                
+            # Scattering index (M3 only - M2 has fixed alpha)
+            if c == "M3":
+                order.append(f"alpha_{idx}")
+                
+        self.custom_order["mixed"] = tuple(order)
+        return self.custom_order["mixed"]
 
 
 # ----------------------------------------------------------------------

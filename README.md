@@ -10,6 +10,7 @@ The full documentation is available in the [`docs/`](docs/) directory.
 
 - [**Getting Started**](docs/getting-started/quickstart.md)
 - [**Architecture & Data Flow**](docs/architecture/overview.md)
+- [**Comprehensive System Reference**](docs/architecture/system_reference.md)
 - [**Analysis Inventory**](docs/architecture/inventory.md)
 - [**Installation**](docs/getting-started/installation.md)
 

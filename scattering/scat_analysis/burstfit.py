@@ -363,6 +363,19 @@ class FRBParams:
     alpha: float = 4.4  # frequency scaling exponent τ ∝ ν^{-alpha}
     delta_dm: float = 0.0  # residual DM error around dm_init
 
+    # Aliases for compatibility with flits.params
+    @property
+    def amplitude(self) -> float:
+        return self.c0
+    
+    @property
+    def width(self) -> float:
+        return self.zeta
+        
+    @property
+    def tau_alpha(self) -> float:
+        return self.alpha
+
     # ## FIX ##: Added the to_sequence method that was missing.
     def to_sequence(self, model_key: str = "M3") -> Sequence[float]:
         """Pack parameters into a flat sequence for a given model_key."""

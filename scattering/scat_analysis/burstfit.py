@@ -21,7 +21,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, asdict
-from typing import Dict, Sequence, Tuple
+from typing import Dict, Sequence, Tuple, Any
 
 import emcee
 import numpy as np
@@ -42,35 +42,46 @@ __all__ = [
     "gelman_rubin",
 ]
 
-from flits.common.constants import DM_DELAY_MS
-from flits.scattering import (
-    scatter_broaden,
-    tau_per_freq,
-    log_normal_prior,
-    gaussian_prior,
-)
-
-from flits.fitting.VALIDATION_THRESHOLDS import (
-    DM_MIN, DM_MAX,
-    AMP_MIN, AMP_MAX,
-    WIDTH_MIN, WIDTH_MAX,
-    ALPHA_GOOD_MIN, ALPHA_MARGINAL_MAX,
-    CHI_SQ_RED_MARGINAL_MAX,
-    CHI_SQ_RED_SUSPICIOUSLY_LOW,
-    R_SQ_POOR_MIN,
-    R_SQ_MARGINAL_MIN,
-    RESIDUAL_NORMALITY_PVALUE,
-    RESIDUAL_AUTOCORR_DW_MIN,
-    RESIDUAL_AUTOCORR_DW_MAX,
-)
-
 # ----------------------------------------------------------------------
-# Module-level constants
+# Constants & Helper Functions (Inlined from flits to avoid circular deps)
 # ----------------------------------------------------------------------
-DM_SMEAR_MS = 8.3e-6  # intra-channel smearing, ms GHz⁻³ MHz⁻¹ -> this is a more common formulation
-# The previous value was likely a typo or for a specific setup.
-# This standard form is: 8.3 * 1e6 * DM * dnu_MHz / nu_GHz**3 / 1e3
-# We will apply dnu_MHz later, so this constant is 8.3e-6 ms GHz^3 MHz^-1
+
+# Cold-plasma dispersion delay in ms GHz^2 (pc cm^-3)^-1
+DM_DELAY_MS = 4.148808
+
+DM_SMEAR_MS = 8.3e-6  # intra-channel smearing, ms GHz⁻³ MHz⁻¹
+
+# Validation Thresholds
+DM_MIN = 1e-3
+DM_MAX = 3000
+AMP_MIN = 0.01
+AMP_MAX = 10000
+WIDTH_MIN = 1e-4
+WIDTH_MAX = 1000
+ALPHA_GOOD_MIN = 3.0
+ALPHA_MARGINAL_MAX = 6.0
+CHI_SQ_RED_MARGINAL_MAX = 3.0
+CHI_SQ_RED_SUSPICIOUSLY_LOW = 0.3
+R_SQ_POOR_MIN = 0.50
+R_SQ_MARGINAL_MIN = 0.70
+RESIDUAL_NORMALITY_PVALUE = 0.05
+RESIDUAL_AUTOCORR_DW_MIN = 1.0
+RESIDUAL_AUTOCORR_DW_MAX = 3.0
+
+
+def log_normal_prior(x: float, mu: float, sigma: float) -> float:
+    """Log-probability for log-normal distribution (for τ_ms or similar)."""
+    if x <= 0.0:
+        return -np.inf
+    return -0.5 * ((np.log(x) - mu) / sigma) ** 2 - np.log(sigma * x)
+
+
+def gaussian_prior(x: float, mu: float, sigma: float) -> float:
+    """Log-probability for Gaussian (normal) distribution."""
+    if sigma <= 0.0:
+        return 0.0
+    return -0.5 * ((x - mu) / sigma) ** 2 - np.log(sigma * np.sqrt(2 * np.pi))
+
 
 # ## FIX ##: Restored the set of physically non-negative parameters.
 _POSITIVE = {"c0", "zeta", "tau_1ghz"}  # keep in ONE place only
@@ -563,7 +574,12 @@ class FRBModel:
         if self.valid is None or not np.any(self.valid):
             return -np.inf
 
-        noise_valid = self.noise_std[self.valid]
+        # Broadcast noise to full shape before masking
+        ns = self.noise_std
+        if ns.ndim == 1:
+            ns = ns[:, None]
+        noise_std_full = np.broadcast_to(ns, self.data.shape)
+        noise_valid = noise_std_full[self.valid]
         data_valid = self.data[self.valid]
         
         # Calculate model only for valid channels
@@ -581,7 +597,12 @@ class FRBModel:
         if self.valid is None or not np.any(self.valid):
              return -np.inf
              
-        noise_valid = self.noise_std[self.valid]
+        # Broadcast noise to full shape before masking
+        ns = self.noise_std
+        if ns.ndim == 1:
+            ns = ns[:, None]
+        noise_std_full = np.broadcast_to(ns, self.data.shape)
+        noise_valid = noise_std_full[self.valid]
         data_valid = self.data[self.valid]
         model_valid = self(p, model, freq_subset=self.valid)
         
@@ -1055,13 +1076,13 @@ def goodness_of_fit(
     bias_std = np.std(resid_valid)
     bias_sem = bias_std / np.sqrt(resid_valid.size)
     bias_nsigma = abs(bias_mean) / bias_sem if bias_sem > 0 else 0.0
-    bias_pass = bias_nsigma < 3.0
+    # bias_pass = bias_nsigma < 3.0
 
     # 5. Durbin-Watson (Autocorrelation)
     # We can compute it on the flattened valid array
     diffs = np.diff(data_flat)
     dw_stat = np.sum(diffs ** 2) / np.sum(data_flat ** 2)
-    autocorr_pass = RESIDUAL_AUTOCORR_DW_MIN <= dw_stat <= RESIDUAL_AUTOCORR_DW_MAX
+    # autocorr_pass = RESIDUAL_AUTOCORR_DW_MIN <= dw_stat <= RESIDUAL_AUTOCORR_DW_MAX
     
     # 6. Quality Flag
     quality = "PASS"

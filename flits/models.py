@@ -6,67 +6,18 @@ import numpy as np
 from numpy.typing import NDArray
 
 from .params import FRBParams
-from .scattering import scatter_broaden, tau_per_freq
-
-# Import the canonical dispersion constant from the shared constants module.
-# K_DM_MS gives delay in ms when DM is in pc/cm³ and freq is in MHz.
-from .common.constants import K_DM_MS as K_DM
-
-
-
+from .common.constants import K_DM_MS as K_DM, DM_DELAY_MS
+from scattering.scat_analysis.burstfit import FRBModel as CoreModel, FRBParams as CoreParams
 
 class FRBModel:
     """Generates dispersed Gaussian pulses, with optional scattering tail.
-
-    The scattering tail is modeled as an exponential decay convolved with the
-    Gaussian pulse in time: I(t) = Gauss(t) ⊗ exp(-t/τ) H(t), where H(t) is
-    the Heaviside step function.
-
-    Scattering modes:
-    - Disabled: tau_1ghz = 0 (default).
-    - Frequency-independent: tau_1ghz > 0, tau_alpha = 0.
-    - Frequency-dependent: tau_1ghz > 0, tau_alpha > 0 → τ(ν) = τ_1GHz × (1 GHz / ν)^α.
+    
+    This implementation wraps scattering.scat_analysis.burstfit.FRBModel to provide
+    a unified physics kernel across the codebase.
     """
 
     def __init__(self, params: FRBParams):
         self.params = params
-
-    def _generate_dispersed_pulse(
-        self, t: NDArray[np.floating], delays: NDArray[np.floating]
-    ) -> NDArray[np.floating]:
-        """Generate the dispersed Gaussian pulse profiles."""
-        result = []
-        for delay in delays:
-            shifted = t - (self.params.t0 + delay)
-            gauss = self.params.amplitude * np.exp(
-                -0.5 * (shifted / self.params.width) ** 2
-            )
-            result.append(gauss)
-        return np.vstack(result)
-
-    def _apply_scattering(
-        self,
-        dynspec: NDArray[np.floating],
-        t: NDArray[np.floating],
-        freqs: NDArray[np.floating],
-        tau_1ghz: float,
-        alpha: float,
-        ref_freq_mhz: float,
-    ) -> NDArray[np.floating]:
-        """Apply scattering broadening to the dynamic spectrum."""
-        if tau_1ghz <= 0.0:
-            return dynspec
-
-        if alpha > 0.0:
-            # Frequency-dependent: compute τ per frequency
-            tau_array: float | NDArray[np.floating] = tau_per_freq(
-                tau_1ghz, freqs, alpha, ref_freq_mhz
-            )
-        else:
-            # Frequency-independent: uniform τ
-            tau_array = tau_1ghz
-
-        return scatter_broaden(dynspec, t, tau_array, causal=True)
 
     def simulate(
         self,
@@ -99,25 +50,53 @@ class FRBModel:
         """
         t = np.asarray(t, dtype=np.float64)
         freqs = np.asarray(freqs, dtype=np.float64)
+        
+        # Convert MHz to GHz for CoreModel
+        freqs_ghz = freqs / 1000.0
+        
+        # Infer channel width for smearing calculation
+        if len(freqs) > 1:
+            df_mhz = abs(freqs[1] - freqs[0])
+        else:
+            df_mhz = 1.0 # Default if single channel
 
-        # Use override or fallback to params
-        tau_1ghz = (
-            tau_1ghz_override if tau_1ghz_override is not None else self.params.tau_1ghz
+        # Adjust t0 to match CoreModel's dispersion definition
+        # CoreModel delay is relative to the highest frequency in the band
+        # Legacy FRBModel delay was absolute (relative to infinite frequency)
+        # t0_core = t0_legacy + Delay(f_max)
+        f_max_ghz = np.max(freqs_ghz)
+        delay_at_max = DM_DELAY_MS * self.params.dm / (f_max_ghz**2)
+        
+        # Map parameters
+        tau_1ghz = tau_1ghz_override if tau_1ghz_override is not None else self.params.tau_1ghz
+        alpha = tau_alpha_override if tau_alpha_override is not None else self.params.tau_alpha
+        
+        core_p = CoreParams(
+            c0=self.params.amplitude,
+            t0=self.params.t0 + delay_at_max,
+            gamma=0.0, # Legacy model assumes flat spectrum or amplitude per-channel handled externally
+            zeta=self.params.width,
+            tau_1ghz=tau_1ghz,
+            alpha=alpha,
+            delta_dm=self.params.dm # We treat full DM as delta from 0 for dispersion calculation
         )
-        alpha = (
-            tau_alpha_override
-            if tau_alpha_override is not None
-            else self.params.tau_alpha
+        
+        # Instantiate CoreModel
+        # We set dm_init=0 so that _dispersion_delay uses full delta_dm
+        # We could set dm_init=params.dm and delta_dm=0, but _dispersion_delay only uses delta_dm
+        # However, _smearing_sigma uses dm_init.
+        # So we set dm_init = params.dm to get correct smearing,
+        # AND delta_dm = params.dm to get correct delay?
+        # No, _dispersion_delay depends ONLY on delta_dm.
+        # So delta_dm must be the full DM if we want full dispersion.
+        model = CoreModel(
+            time=t,
+            freq=freqs_ghz,
+            dm_init=self.params.dm, # For smearing
+            df_MHz=df_mhz
         )
-
-        # Compute per-frequency dispersion delays
-        delays = K_DM * self.params.dm / freqs**2  # ms
-
-        # Build dispersed Gaussian profile
-        dynspec = self._generate_dispersed_pulse(t, delays)
-
-        # Apply scattering broadening if enabled
-        return self._apply_scattering(dynspec, t, freqs, tau_1ghz, alpha, ref_freq_mhz)
-
+        
+        # Generate spectrum
+        return model(core_p, model_key="M3")
 
 __all__ = ["FRBModel", "K_DM"]

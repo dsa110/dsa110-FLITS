@@ -1,6 +1,10 @@
 from .burstfit import FRBModel, FRBParams, FRBFitter
-from .burstfit_pipeline import BurstDataset
-from .burstfit_interactive import InitialGuessWidget
+# Refactored pipeline components
+from .pipeline.io import BurstDataset
+from .pipeline.core import BurstPipeline
+from .pipeline.diagnostics import BurstDiagnostics
+# from .burstfit_interactive import InitialGuessWidget # Requires ipywidgets
+
 from .visualization import plot_scattering_diagnostic
 
 __all__ = [
@@ -8,11 +12,12 @@ __all__ = [
     "FRBParams",
     "FRBFitter",
     "BurstDataset",
-    "InitialGuessWidget",
+    "BurstPipeline",
+    "BurstDiagnostics",
+    # "InitialGuessWidget",
     "plot_scattering_diagnostic",
 ]
 
-from .burstfit_pipeline import BurstPipeline, BurstDiagnostics
 from .burstfit import build_priors
 from .dm_preprocessing import refine_dm_init
 

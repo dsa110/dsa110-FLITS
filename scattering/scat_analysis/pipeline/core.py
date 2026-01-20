@@ -291,10 +291,17 @@ class BurstPipeline:
                     )
                     sampler = all_res[best_key][0]
                     # Pack results for emcee (legacy) path
-                    chain = sampler.get_chain(flat=True)
+                    
+                    # Compute convergence stats for the best model from the scan
+                    burn, thin, convergence_info = auto_burn_thin(sampler)
+                    
+                    chain = sampler.get_chain(discard=burn, thin=thin, flat=True)
                     log.info(f"Emcee chain shape: {chain.shape}")
                     param_names = FRBFitter._ORDER[best_key]
-                    best_params_vec = np.median(chain, axis=0)  # crude estimate
+                    
+                    # Better estimate than crude median of raw chain
+                    best_idx = np.argmax(sampler.get_log_prob(discard=burn, thin=thin, flat=True))
+                    best_params_vec = chain[best_idx]
 
                     results = {
                         "best_key": best_key,
@@ -305,6 +312,15 @@ class BurstPipeline:
                         "goodness_of_fit": {},  # Populated later
                         "dm_init": self.dm_init,
                         "loop_stats": {},
+                        "chain_stats": {
+                            "burn_in": burn,
+                            "thin": thin,
+                            "convergence": convergence_info,
+                        },
+                        "flat_chain": chain,
+                        "sampler": sampler,
+                        "model_instance": self.dataset.model,
+                        "is_multi": False,
                     }
 
             elif ncomp == 1:

@@ -86,8 +86,18 @@ def estimate_dm_from_waterfall(
     dt_sec = dt_ms * 1e-3
     
     # Initialize estimator
+    # DMPhaseEstimator expects waterfall in (time, freq) shape if following its internal logic,
+    # or at least consistent with how it applies FFT.
+    # Based on DMPhaseEstimator implementation:
+    #   self.n_t, self.n_ch = self.wf.shape
+    #   self.fft_wf = fft(self.wf, axis=0) -> FFT along time axis
+    #   phase ... self.freq_axis (from fftfreq(n_t))
+    # This implies the first axis MUST be time.
+    # But input 'waterfall' is typically (freq, time).
+    # So we must transpose it.
+    
     estimator = DMPhaseEstimator(
-        waterfall=waterfall,
+        waterfall=waterfall.T, # Transpose to (time, freq)
         freqs=freqs,
         dt=dt_sec,
         dm_grid=dm_grid,

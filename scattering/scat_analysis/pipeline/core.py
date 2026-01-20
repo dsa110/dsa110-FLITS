@@ -301,7 +301,16 @@ class BurstPipeline:
                     
                     # Better estimate than crude median of raw chain
                     best_idx = np.argmax(sampler.get_log_prob(discard=burn, thin=thin, flat=True))
-                    best_params_vec = chain[best_idx]
+                    best_params_vec = chain[best_idx].copy() # Ensure copy
+
+                    # Handle log parameters conversion
+                    if sample_log_params:
+                         log_params = {"c0", "zeta", "tau_1ghz"}
+                         for i, pname in enumerate(param_names):
+                             # Check base name (e.g. c0_1 -> c0)
+                             base = pname.split("_")[0]
+                             if pname in log_params or base in log_params:
+                                 best_params_vec[i] = np.exp(best_params_vec[i])
 
                     results = {
                         "best_key": best_key,
@@ -514,6 +523,11 @@ class BurstPipeline:
                         "goodness_of_fit": gof,
                         "dm_init": self.dm_init,
                         "loop_stats": loop_stats,
+                        "chain_stats": {
+                            "burn_in": burn,
+                            "thin": thin,
+                            "convergence": convergence_info,
+                        },
                         "flat_chain": flat_chain,
                         "sampler": sampler,
                         "model_instance": self.dataset.model,
@@ -638,11 +652,28 @@ class BurstPipeline:
                     from ..visualization import plot_scattering_diagnostic
 
                     log.info("Generating publication-quality diagnostic plot...")
+                    
+                    # Prepare arguments for visualization
+                    # Generate model array
+                    best_params = results["best_params"]
+                    best_key = results["best_key"]
+                    if results.get("is_multi"):
+                        model_arr = self._build_multi_model(results)
+                    else:
+                        model_arr = self.dataset.model(best_params, best_key)
+                        
+                    output_plot_path = self.outpath / f"{self.name}_diagnostic.png"
+                    
                     plot_scattering_diagnostic(
-                        dataset=self.dataset,
+                        data=self.dataset.data,
+                        model=model_arr,
+                        freq=self.dataset.freq,
+                        time=self.dataset.time,
+                        params=best_params,
                         results=results,
-                        save=save,
-                        telescope=self.telescope_orig,  # Use original telescope name
+                        output_path=output_plot_path,
+                        burst_name=self.name,
+                        telescope=getattr(self.dataset.telescope, "name", "Unknown"),
                     )
                 except Exception as e:
                     log.warning(

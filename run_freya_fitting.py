@@ -37,12 +37,15 @@ def run_fitting():
             dm_init=dm_init,
             telescope=dsa_config,
             # Pipeline options
-            steps=500,          # Short run for testing
+            steps=1000,          # Longer run
             f_factor=16,        # Downsample freq (DSA has high res)
             t_factor=16,        # Downsample time
             nproc=4,            # Use 4 cores
             model_scan=True,    # Scan M0-M3
             refine_dm=True,     # Enable DM refinement
+            dm_search_window=10.0, # Wider window
+            dm_n_bootstrap=50,   # Faster
+            walker_width_frac=0.1, # Help walkers expand
             yes=True,           # Skip confirmation
             plot=True
         )
@@ -77,12 +80,13 @@ def run_fitting():
             dm_init=dm_init,
             telescope=chime_config,
             # Pipeline options
-            steps=500,          # Short run for testing
+            steps=1000,          # Longer run
             f_factor=1,         # CHIME data usually already downsampled or low res
             t_factor=8,         # Downsample time (0.00256ms is very fine)
             nproc=4,
             model_scan=True,
-            refine_dm=True,
+            refine_dm=False,    # Disable DM refinement for speed
+            walker_width_frac=0.1,
             yes=True,
             plot=True
         )

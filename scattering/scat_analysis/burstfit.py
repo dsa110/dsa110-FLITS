@@ -123,8 +123,37 @@ def analytic_gaussian_exp_convolution(t, mu, sig, tau):
         
         b = (sig_m / (np.sqrt(2.0) * tau[mask])) - (t_m / (np.sqrt(2.0) * sig_m))
         
-        # In-place update for non-gaussian channels
-        res_m = (0.5 * inv_tau_m) * gauss_exp[mask] * erfcx(b)
+        # --- NUMERICAL STABILITY FIX ---
+        # When b is large negative (deep tail or tiny sigma), erfcx(b) overflows
+        # and gauss_exp underflows. The product should be finite.
+        # Use asymptotic form: gauss_exp * erfcx(b) ~= 2 * exp(k^2 - 2kx)
+        # where k = sig/(sqrt(2)*tau) and x = (t-mu)/(sqrt(2)*sig)
+        # k^2 - 2kx = 0.5*(sig/tau)^2 - (t-mu)/tau
+        
+        # Threshold for erfcx overflow (approx -26 for float64)
+        safe_mask = b > -25.0
+        
+        res_m = np.zeros_like(b)
+        inv_tau_expanded = np.broadcast_to(inv_tau_m, b.shape)
+        
+        # Safe region: use standard formula
+        if np.any(safe_mask):
+            g_exp = gauss_exp[mask]
+            res_m[safe_mask] = (0.5 * inv_tau_expanded[safe_mask]) * \
+                               g_exp[safe_mask] * erfcx(b[safe_mask])
+            
+        # Overflow region: use asymptotic approximation
+        # res_m = (1/tau) * exp(0.5*(sig/tau)^2 - (t-mu)/tau)
+        overflow_mask = ~safe_mask
+        if np.any(overflow_mask):
+            # k^2 term: 0.5 * (sig/tau)^2
+            k2 = 0.5 * (sig_m / tau[mask])**2
+            # -2kx term: -(t-mu)/tau
+            minus_2kx = -t_m / tau[mask]
+            exponent = k2 + minus_2kx
+            
+            res_m[overflow_mask] = inv_tau_expanded[overflow_mask] * \
+                                   np.exp(exponent[overflow_mask])
         
         # Replace NaNs (if any remain in deep tails) with 0
         np.nan_to_num(res_m, copy=False, nan=0.0, posinf=0.0, neginf=0.0)

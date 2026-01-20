@@ -40,7 +40,7 @@ def generate_model_examples():
     # Shared basics
     c0 = 10.0
     t0 = 2.0
-    gamma = 0.0 # Flat spectrum for clarity
+    gamma = -1.5 # Typical astrophysical spectral index
     
     # M0: Unresolved (Pure Smearing)
     # zeta=0, tau=0

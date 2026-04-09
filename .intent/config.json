@@ -1,0 +1,10 @@
+{
+  "scripts": [
+    {
+      "name": "test",
+      "command": "pytest",
+      "mode": "command",
+      "category": "test"
+    }
+  ]
+}

@@ -1,0 +1,91 @@
+# codetections_manifest.yaml
+# Generated UTC: 2026-04-24T02:29:51.071693Z
+# Host        : Iacobuss-MacBook-Pro.local
+# Base        : /Users/iacobus/Research/CHIME_DSA_Codetections
+schema: 1
+generated_utc: 2026-04-24T02:29:51.071693Z
+host: Iacobuss-MacBook-Pro.local
+base: /Users/iacobus/Research/CHIME_DSA_Codetections
+canonical_target: "iCloud ~/Library/Mobile Documents/com~apple~CloudDocs/Research/CHIME_DSA_Codetections"
+note: "Data currently staged on iacobus (500GB host) due to local disk constraints. iCloud is the long-term canonical root; migration deferred."
+subdirs:
+  archive:
+    present: true
+    file_count: 401
+    bytes: 107995482148
+    size_gib: 100.579
+    source: "h23:/media/ubuntu/ssd/jfaber (burstprop_paper + OLD_CHIME_DSA_Codetections)"
+    sentinel_path: "archive/OLD_CHIME_DSA_Codetections/polcal_fils/freya_230325aaag_fullstokes_interp.pkl"
+    sentinel_bytes: 1842217388
+    sentinel_sha256_prefix_bytes: 67108864
+    sentinel_sha256: 8a451073de0a1270201cfd65a27a62a6c905aa107eabfeb72694aad32e093888
+  burst_npys:
+    present: true
+    file_count: 52
+    bytes: 22108988985
+    size_gib: 20.591
+    source: "h23:/media/ubuntu/ssd/jfaber/burst_npys"
+    sentinel_path: "burst_npys/I_240224aaad_mayra.npy"
+    sentinel_bytes: 516096128
+    sentinel_sha256_prefix_bytes: 67108864
+    sentinel_sha256: 4eb8cebcb247f7aec53f74e645a2dfc40a12d418b6d24684754d2f27d0a9e811
+  burst_pickles:
+    present: true
+    file_count: 24
+    bytes: 65272614077
+    size_gib: 60.790
+    source: "Dropbox CHIME_DSA_Codetections (24 Stokes pickles)"
+    sentinel_path: "burst_pickles/oran_224263996_fullstokes_interp.pkl"
+    sentinel_bytes: 3924182311
+    sentinel_sha256_prefix_bytes: 67108864
+    sentinel_sha256: 2cd6aee9c74592334c0c289d882434f3043e81b3e1007db77f2acf6af440ae16
+  dm_budget:
+    present: true
+    file_count: 1654
+    bytes: 473853273
+    size_gib: 0.441
+    source: "h23:/media/ubuntu/ssd/jfaber/chime_dsa_codetections/dm_budget (+ pre-existing local)"
+    sentinel_path: "dm_budget/h23_dm_budget/FRB/.git/objects/pack/pack-7372f57fdb32caa7efdc88fb4c2b96e2ea53f653.pack"
+    sentinel_bytes: 199506483
+    sentinel_sha256_prefix_bytes: 67108864
+    sentinel_sha256: 81a4712cebb0045fb4d4ead87040a23d7a9b6eccb2f0be4426e03d3199d25c3d
+  dsa_fullstokes_waterfalls:
+    present: true
+    file_count: 58
+    bytes: 6530489600
+    size_gib: 6.082
+    source: "h23:/media/ubuntu/ssd/jfaber/chime_dsa_codetections/data/dsa_fullstokes_waterfalls"
+    sentinel_path: "dsa_fullstokes_waterfalls/phineas_U_610_274_0_5121.npy"
+    sentinel_bytes: 251707520
+    sentinel_sha256_prefix_bytes: 67108864
+    sentinel_sha256: 7b516188e67d3d1b6d7ae53c620bfc4a0bff6bfbd04f574a650ef7deaff91f19
+  metadata:
+    present: true
+    file_count: 7
+    bytes: 581790
+    size_gib: 0.001
+    source: "h23:/media/ubuntu/ssd/jfaber/chime_dsa_codetections/localizations"
+    sentinel_path: "metadata/interveners.ipynb"
+    sentinel_bytes: 560828
+    sentinel_sha256_prefix_bytes: 560828
+    sentinel_sha256: 74e0ab3b67a0ed682670fbb88ee8c7d69f0a8e46db365f7bf4a84f2ee2b5e680
+  presentations:
+    present: true
+    file_count: 2
+    bytes: 33119860
+    size_gib: 0.031
+    source: "local Mac (hand-curated)"
+    sentinel_path: "presentations/DSA_DM_phase.pptx"
+    sentinel_bytes: 26655150
+    sentinel_sha256_prefix_bytes: 26655150
+    sentinel_sha256: eb1ea4b97f2e2fd32dd912d8d185fbf802db95be2f5ffab1c98a58ac72646a6a
+  scattering_results:
+    present: true
+    file_count: 115
+    bytes: 89876550
+    size_gib: 0.084
+    source: "h23:/media/ubuntu/ssd/jfaber/chime_dsa_codetections/scattering"
+    sentinel_path: "scattering_results/hamilton_518_799_15000_15500.npy"
+    sentinel_bytes: 24576128
+    sentinel_sha256_prefix_bytes: 24576128
+    sentinel_sha256: f2f1b4eebb96e2da180b4ba42fb57e16ec61407f7bf353c5619e437690caf55b

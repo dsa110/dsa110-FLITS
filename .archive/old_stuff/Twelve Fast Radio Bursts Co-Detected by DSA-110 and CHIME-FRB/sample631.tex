@@ -1,0 +1,382 @@
+\documentclass[linenumbers]{aastex631}
+\usepackage{graphicx} % For including images
+\usepackage{subcaption} % For subfigures
+
+\newcommand{\vdag}{(v)^\dagger}
+\newcommand\aastex{AAS\TeX}
+\newcommand\latex{La\TeX}
+
+\begin{document}
+
+\title{Twelve Fast Radio Bursts Co-Detected by DSA-110 and CHIME/FRB}
+
+\author[0000-0001-9855-5781]{Jakob T. Faber}
+\affiliation{Cahill Center for Astronomy and Astrophysics, MC 249-17 California Institute of Technology, Pasadena CA 91125, USA.}
+\collaboration{1}{DSA-110 Collaboration \& CHIME/FRB Collaboration}
+
+\begin{abstract}
+
+
+
+\end{abstract}
+
+\section{Waterfalls}
+
+\begin{table}[ht]
+    \centering
+    \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}} c c c c c }
+    \hline
+        Name & $\tau_{\mathrm{1.4GHz}, \alpha = 4}$ (ms) & $\Delta \nu_{\mathrm{1.4GHz, \alpha = 4}}$ (MHz) & $\Delta \nu_{\mathrm{1.4GHz, NE2001}}$ (MHz) & $L_X$ \\
+    \hline
+        Casey (DSA) & 0.03(3) & 7.1(3) & 4.709 & 20.52 \mathrm{Mpc} \\
+        Casey (CHIME) & 0.0520(1) & 8.8(2) & ... & 13.72 \mathrm{Mpc} \\
+        Casey (DSA/CHIME) & 0.0520(1) & 7.1(3) & ... & 12.178 \mathrm{Mpc} \\
+    \hline
+        Freya (DSA) & 0.05(1) & 0.03(5) & 1.26 & 42.35 \mathrm{kpc} \\
+        Freya (CHIME) & 0.45(3) & 7.4(5) & ... & 1416.10 \mathrm{kpc} \\
+        Freya (CHIME) & 0.45(3) & 0.03(5) & ... & 6.4 \mathrm{kpc} \\
+    \hline
+        Chromatica (DSA) & 0.12(1) & 1.0(2) & 0.900 & 61.43 \mathrm{kpc} \\
+        Chromatica (CHIME) & 0.19(3) & 8.2(2) & ... & 3516.44 \mathrm{kpc} \\
+        Chromatica (CHIME) & 0.19(3) & 1.0(2) & ... & 451.4 \mathrm{kpc} \\
+    \hline
+        Wilhelm (DSA) & 0.10(1) & 0.17(3) & 0.730 & 334.87 \mathrm{kpc} \\
+        Wilhelm (CHIME) & 0.44(4) & 7.4(6) & ... & 1456.09 \mathrm{kpc} \\
+        Wilhelm (CHIME) & 0.44(4) & 0.17(3) & ... & 33.13 \mathrm{kpc} \\
+    \hline
+    \end{tabular*}
+    \caption{Scattering timescales, scintillation bandwidths, NE2001 predictions}
+    \label{tab:my_label}
+\end{table}
+
+\begin{figure}[ht]
+    \centering
+    % Column 1
+    \begin{subfigure}[t]{0.35\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{waterfalls/DSA_CHIME_Zach_wfall.pdf} % Replace with your image
+        \label{fig:a1}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.35\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{waterfalls/DSA_CHIME_Whitney_wfall.pdf}
+        \label{fig:b1}
+    \end{subfigure}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \begin{subfigure}[t]{0.35\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{waterfalls/DSA_CHIME_Oran_wfall.pdf}
+        \label{fig:d1}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.35\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{waterfalls/DSA_CHIME_Isha_wfall.pdf}
+        \label{fig:e1}
+    \end{subfigure}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    % Column 1
+    \begin{subfigure}[t]{0.35\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{waterfalls/DSA_CHIME_Wilhelm_wfall.pdf} % Replace with your image
+        \label{fig:a1}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.35\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{waterfalls/DSA_CHIME_Phineas_wfall.pdf}
+        \label{fig:b1}
+    \end{subfigure}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \begin{subfigure}[t]{0.35\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{waterfalls/DSA_CHIME_Freya_wfall.pdf}
+        \label{fig:d1}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.35\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{waterfalls/DSA_CHIME_Mahi_wfall.pdf}
+        \label{fig:e1}
+    \end{subfigure}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    % Column 1
+    \begin{subfigure}[t]{0.35\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{waterfalls/DSA_CHIME_Chromatica_wfall.pdf} % Replace with your image
+        \label{fig:a1}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.35\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{waterfalls/DSA_CHIME_Casey_wfall.pdf}
+        \label{fig:b1}
+    \end{subfigure}
+\end{figure}
+
+\section{Constraining Dispersion Measure}
+
+\begin{figure}[ht]
+    \centering
+    % Column 1
+    \begin{subfigure}[t]{0.35\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{dm_time/zach_DM_t_SNR.pdf} % Replace with your image
+        \label{fig:a1}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.35\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{dm_time/zach_DM_t_ddt.pdf}
+        \label{fig:b1}
+    \end{subfigure}
+    \vspace{-0.3cm}
+    \begin{subfigure}[t]{0.35\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{dm_time/whitney_DM_t_SNR.pdf}
+        \label{fig:c1}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.35\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{dm_time/whitney_DM_t_ddt.pdf}
+        \label{fig:d1}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.35\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{dm_time/oran_DM_t_SNR.pdf}
+        \label{fig:e1}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.35\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{dm_time/oran_DM_t_ddt.pdf}
+        \label{fig:a2}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.35\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{dm_time/isha_DM_t_SNR.pdf}
+        \label{fig:b2}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.35\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{dm_time/isha_DM_t_ddt.pdf}
+        \label{fig:c2}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.35\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{dm_time/wilhelm_DM_t_SNR.pdf}
+        \label{fig:d2}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.35\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{dm_time/wilhelm_DM_t_ddt.pdf}
+        \label{fig:e2}
+    \end{subfigure}
+
+    \caption{S/N-maximizing and forward-derivative-maximizing DMs.}
+    \label{fig:5x2panel}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    % Column 1
+    \begin{subfigure}[t]{0.35\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{dm_time/phineas_DM_t_SNR.pdf} % Replace with your image
+        \label{fig:a1}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.35\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{dm_time/phineas_DM_t_ddt.pdf}
+        \label{fig:b1}
+    \end{subfigure}
+    \vspace{-0.3cm}
+    \begin{subfigure}[t]{0.35\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{dm_time/freya_DM_t_SNR.pdf}
+        \label{fig:c1}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.35\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{dm_time/freya_DM_t_ddt.pdf}
+        \label{fig:d1}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.35\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{dm_time/mahi_DM_t_SNR.pdf}
+        \label{fig:e1}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.35\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{dm_time/mahi_DM_t_ddt.pdf}
+        \label{fig:a2}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.35\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{dm_time/chromatica_DM_t_SNR.pdf}
+        \label{fig:b2}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.35\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{dm_time/chromatica_DM_t_ddt.pdf}
+        \label{fig:c2}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.35\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{dm_time/casey_DM_t_SNR.pdf}
+        \label{fig:d2}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.35\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{dm_time/casey_DM_t_ddt.pdf}
+        \label{fig:e2}
+    \end{subfigure}
+
+    \caption{S/N-maximizing and forward-derivative-maximizing DMs.}
+    \label{fig:5x2panel}
+\end{figure}
+
+\section{Constraining Phase Offsets}
+
+\begin{figure}[ht]
+    \centering
+    % Column 1
+    \begin{subfigure}[t]{0.35\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{delay_heatmap/zach_tdelay_heatmap.pdf} % Replace with your image
+        \label{fig:a1}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.35\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{delay_heatmap/whitney_tdelay_heatmap.pdf}
+        \label{fig:b1}
+    \end{subfigure}
+    \vspace{-0.3cm}
+    \begin{subfigure}[t]{0.35\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{delay_heatmap/oran_tdelay_heatmap.pdf}
+        \label{fig:c1}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.35\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{delay_heatmap/isha_tdelay_heatmap.pdf}
+        \label{fig:d1}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.35\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{delay_heatmap/wilhelm_tdelay_heatmap.pdf}
+        \label{fig:e1}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.35\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{delay_heatmap/phineas_tdelay_heatmap.pdf}
+        \label{fig:a2}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.35\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{delay_heatmap/freya_tdelay_heatmap.pdf}
+        \label{fig:b2}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.35\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{delay_heatmap/mahi_tdelay_heatmap.pdf}
+        \label{fig:c2}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.35\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{delay_heatmap/chromatica_tdelay_heatmap.pdf}
+        \label{fig:d2}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.35\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{delay_heatmap/casey_tdelay_heatmap.pdf}
+        \label{fig:e2}
+    \end{subfigure}
+
+    \caption{Arrival Time-Delay Heat Map: Predicted phase offsets between the DSA-110 and CHIME, based on voltage localization, observatory location, and local detection time at DSA-110.}
+    \label{fig:5x2panel}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\linewidth]{chimedsa_phaseoffsets.pdf}
+    \caption{Phase offsets as currently measured with topocentric ToAs.}
+    \label{fig:enter-label}
+\end{figure}
+
+
+\begin{figure}[ht]
+    \centering
+    % Column 1
+    \begin{subfigure}[t]{0.33\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{ground_local_az/zach_localaz.pdf} % Replace with your image
+        \label{fig:a1}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.33\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{ground_local_az/whitney_localaz.pdf}
+        \label{fig:b1}
+    \end{subfigure}
+    \vspace{-0.3cm}
+    \begin{subfigure}[t]{0.33\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{ground_local_az/oran_localaz.pdf}
+        \label{fig:c1}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.33\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{ground_local_az/isha_localaz.pdf}
+        \label{fig:d1}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.33\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{ground_local_az/wilhelm_localaz.pdf}
+        \label{fig:e1}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.33\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{ground_local_az/phineas_localaz.pdf}
+        \label{fig:a2}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.33\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{ground_local_az/freya_localaz.pdf}
+        \label{fig:b2}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.33\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{ground_local_az/mahi_localaz.pdf}
+        \label{fig:c2}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.33\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{ground_local_az/chromatica_localaz.pdf}
+        \label{fig:d2}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.33\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{ground_local_az/casey_localaz.pdf}
+        \label{fig:e2}
+    \end{subfigure}
+
+    \caption{2D ground-based projection of the local azimuth for each source.}
+    \label{fig:5x2panel}
+\end{figure}
+
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{casey_3D_earthposition.pdf}
+    \caption{3D Visualization of CHIME and DSA-110 positions on Earth, surrounded by the celestial sphere on which the sky position of Casey is marked.}
+    \label{fig:enter-label}
+\end{figure}
+
+
+\end{document}

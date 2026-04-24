@@ -41,8 +41,7 @@ file  ───────▶ │ pre‑processing   │──┐
 
 ## One‑liner quick start
 
-```
-bash
+```bash
 # fit a burst with down‑sampling (e.g., 384×2) and run model selection
 python burstfit_casey_analysis.py casey.npy \
        --downsample-f 384 --downsample-t 2 \

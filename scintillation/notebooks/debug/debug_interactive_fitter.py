@@ -1,7 +1,7 @@
 # Set path for module imports
 import sys
 # replace the path below with the absolute path to your `scattering/` folder
-pkg_root = "/Users/jakobfaber/Documents/research/caltech/ovro/dsa110/chime_dsa_codetections/FLITS/scintillation"
+pkg_root = "/Users/jakobfaber/Documents/research/caltech/ovro/dsa110/dsa110-FLITS/scintillation"
 sys.path.insert(0, pkg_root)
 
 #%load_ext autoreload
@@ -61,7 +61,7 @@ except ImportError as e:
 
 # Run this cell to load the data for one sub-band
 SUBBAND_INDEX = 0 # Choose which sub-band to analyze (0, 1, 2...)
-ACF_RESULTS_PATH = "/Users/jakobfaber/Documents/research/caltech/ovro/dsa110/chime_dsa_codetections/FLITS/scintillation/data/cache/casey/casey_acf_results.pkl" # Adjust path if needed
+ACF_RESULTS_PATH = "/Users/jakobfaber/Documents/research/caltech/ovro/dsa110/dsa110-FLITS/scintillation/data/cache/casey/casey_acf_results.pkl" # Adjust path if needed
 
 try:
     with open(ACF_RESULTS_PATH, 'rb') as f:

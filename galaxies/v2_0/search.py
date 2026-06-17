@@ -1,12 +1,120 @@
 """Main pipeline for finding foreground galaxies."""
 
 import os
+import math
 import pandas as pd
 from astropy.coordinates import SkyCoord
 import astropy.units as u
 from .config import TARGETS, DEFAULT_IMPACT_KPC, VIZIER_CATALOGS, DEFAULT_Z_EPS, MIN_Z_SEARCH
 from .utils import parse_coord, get_angular_radius, calculate_impact_parameter
 from .engines import NedEngine, VizierEngine
+
+PHOTO_Z_ERROR_COLUMNS = ("z_phot_err", "e_zphot", "z_best_err")
+DUPLICATE_SEPARATION = 10.0 * u.arcsec
+DUPLICATE_REDSHIFT_TOLERANCE = 0.02
+
+
+def _first_available_numeric(df: pd.DataFrame, columns: tuple[str, ...]) -> pd.Series:
+    values = pd.Series(math.nan, index=df.index, dtype="float64")
+    for column in columns:
+        if column not in df.columns:
+            continue
+        candidate = pd.to_numeric(df[column], errors="coerce")
+        values = values.where(values.notna(), candidate)
+    return values
+
+
+def _foreground_mask(
+    df: pd.DataFrame,
+    z_frb: float,
+    z_eps: float,
+    impact_kpc: float,
+    n_sigma: float = 2.0,
+) -> pd.Series:
+    z = pd.to_numeric(df["z"], errors="coerce")
+    impact = pd.to_numeric(df["impact_kpc"], errors="coerce")
+    z_err = _first_available_numeric(df, PHOTO_Z_ERROR_COLUMNS)
+    has_z_err = z_err.notna() & (z_err > 0.0)
+    z_limit = z_frb + z_eps
+
+    foreground = (z < z_limit) | (has_z_err & ((z - n_sigma * z_err) < z_limit))
+    return foreground & (impact <= impact_kpc)
+
+
+def _redshift_error(row: pd.Series) -> float:
+    for column in PHOTO_Z_ERROR_COLUMNS:
+        if column not in row.index:
+            continue
+        value = pd.to_numeric(pd.Series([row[column]]), errors="coerce").iloc[0]
+        if pd.notna(value) and value > 0.0:
+            return float(value)
+    return math.inf
+
+
+def _catalog_rank(catalog: object) -> int:
+    catalog_text = str(catalog).lower()
+    if "ned" in catalog_text or "sdss" in catalog_text:
+        return 0
+    if "glade" in catalog_text or "vii/291" in catalog_text:
+        return 1
+    if "desi" in catalog_text or "vii/292" in catalog_text:
+        return 2
+    return 3
+
+
+def _is_duplicate(row_a: pd.Series, row_b: pd.Series, coord_a: SkyCoord, coord_b: SkyCoord) -> bool:
+    sep = coord_a.separation(coord_b)
+    if sep >= DUPLICATE_SEPARATION:
+        return False
+
+    z_a = float(row_a["z"])
+    z_b = float(row_b["z"])
+    scaled_delta_z = abs(z_a - z_b) / (1.0 + min(z_a, z_b))
+    return scaled_delta_z < DUPLICATE_REDSHIFT_TOLERANCE
+
+
+def _best_duplicate_position(matches: pd.DataFrame, positions: list[int]) -> int:
+    rows = [matches.iloc[pos] for pos in positions]
+    finite_error_positions = [
+        pos for pos, row in zip(positions, rows) if math.isfinite(_redshift_error(row))
+    ]
+    if len(finite_error_positions) >= 2:
+        return min(finite_error_positions, key=lambda pos: _redshift_error(matches.iloc[pos]))
+    return min(positions, key=lambda pos: _catalog_rank(matches.iloc[pos].get("catalog")))
+
+
+def _deduplicate_matches(all_matches: pd.DataFrame) -> pd.DataFrame:
+    if len(all_matches) <= 1:
+        return all_matches
+
+    coords = SkyCoord(ra=all_matches["ra"].values * u.deg, dec=all_matches["dec"].values * u.deg)
+    kept_positions: list[int] = []
+
+    for candidate_pos in range(len(all_matches)):
+        candidate_row = all_matches.iloc[candidate_pos]
+        duplicate_positions = [
+            kept_pos
+            for kept_pos in kept_positions
+            if _is_duplicate(
+                all_matches.iloc[kept_pos],
+                candidate_row,
+                coords[kept_pos],
+                coords[candidate_pos],
+            )
+        ]
+
+        if not duplicate_positions:
+            kept_positions.append(candidate_pos)
+            continue
+
+        group_positions = duplicate_positions + [candidate_pos]
+        best_pos = _best_duplicate_position(all_matches, group_positions)
+        kept_positions = [pos for pos in kept_positions if pos not in duplicate_positions]
+        kept_positions.append(best_pos)
+
+    kept_positions.sort()
+    return all_matches.iloc[kept_positions].reset_index(drop=True)
+
 
 def run_search(impact_kpc: float = DEFAULT_IMPACT_KPC, output_dir: str = "results", z_eps: float = DEFAULT_Z_EPS):
     """Run the galaxy search for all targets."""
@@ -62,8 +170,8 @@ def run_search(impact_kpc: float = DEFAULT_IMPACT_KPC, output_dir: str = "result
                             row['ra'], row['dec'], row['z'], coord.ra.deg, coord.dec.deg
                         ), axis=1
                     )
-                    # Filter for foreground (with buffer) and impact parameter
-                    df_filtered = df[(df['z'] < (z_frb + z_eps)) & (df['impact_kpc'] <= impact_kpc)]
+                    # Filter for foreground (with buffer) and impact parameter.
+                    df_filtered = df[_foreground_mask(df, z_frb, z_eps, impact_kpc)]
                     if not df_filtered.empty:
                         target_matches.append(df_filtered)
                         print(f"      {engine_name}: Found {len(df_filtered)} matches (from {with_z_count} with z).")
@@ -75,19 +183,7 @@ def run_search(impact_kpc: float = DEFAULT_IMPACT_KPC, output_dir: str = "result
         if target_matches:
             all_matches = pd.concat(target_matches, ignore_index=True)
             
-            # De-duplicate: keep the first occurrence when two entries
-            # are within 10 arcsec on the sky (cross-catalog matches)
-            if len(all_matches) > 1:
-                coords = SkyCoord(ra=all_matches['ra'].values*u.deg,
-                                  dec=all_matches['dec'].values*u.deg)
-                keep = [True] * len(all_matches)
-                for j in range(1, len(all_matches)):
-                    if not keep[j]:
-                        continue
-                    seps = coords[j].separation(coords[:j])
-                    if any(seps < 10.0 * u.arcsec):
-                        keep[j] = False
-                all_matches = all_matches.iloc[[k for k, v in enumerate(keep) if v]]
+            all_matches = _deduplicate_matches(all_matches)
 
             out_path = os.path.abspath(os.path.join(output_dir, f"{name.lower()}_galaxies.csv"))
             all_matches.to_csv(out_path, index=False)

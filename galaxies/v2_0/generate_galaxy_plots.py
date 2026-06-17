@@ -18,6 +18,9 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib.patches import Patch
+from matplotlib.colors import Normalize
+from scipy.optimize import brentq
+from adjustText import adjust_text
 from astropy.cosmology import Planck18 as cosmo
 from astropy import units as u
 from astropy import constants as const
@@ -33,11 +36,30 @@ BG_LIGHT = '#FAFBFC'
 
 # --------------- physics helpers ---------------
 
+# Moster+2013 (MNRAS 428, 3121), Eq. 2 + Table 1, z=0 free parameters.
+# M*/M_h = 2 N [ (M_h/M1)^-beta + (M_h/M1)^gamma ]^-1
+_MOSTER_LOG_M1 = 11.590
+_MOSTER_N = 0.0351
+_MOSTER_BETA = 1.376
+_MOSTER_GAMMA = 0.608
+
+
+def _moster_log_mstar(log_mh):
+    """log10 M* predicted by Moster+2013 Eq. 2 for a given log10 M_halo (both Msun)."""
+    x = 10 ** (log_mh - _MOSTER_LOG_M1)  # M_h / M1
+    ratio = 2.0 * _MOSTER_N / (x ** (-_MOSTER_BETA) + x ** _MOSTER_GAMMA)
+    return log_mh + np.log10(ratio)
+
+
 def estimate_halo_mass(log_mstar):
-    """Stellar-to-halo mass (Moster+2013 / Behroozi+2019 approx)."""
-    y = log_mstar
-    log_mh = 12.0 + 0.45 * (y - 10.3) + 0.85 * np.sinh(0.9 * (y - 10.3))
-    return 10**log_mh
+    """Halo mass from stellar mass via the Moster+2013 (Eq. 2) SMHM relation.
+
+    M*(M_h) is monotonic in M_h over the plotted range, so we invert Eq. 2
+    numerically with brentq rather than using a sinh fitting form. Bracket
+    spans dwarf to cluster halos (log M_h in [9.5, 15.5]).
+    """
+    log_mh = brentq(lambda lmh: _moster_log_mstar(lmh) - log_mstar, 9.5, 15.5)
+    return 10 ** log_mh
 
 
 def get_rvir_and_rs(m_halo_msun, z):
@@ -46,10 +68,40 @@ def get_rvir_and_rs(m_halo_msun, z):
     H_z = cosmo.H(z)
     G = const.G
     r_vir = ((G * M_h / (100 * H_z**2))**(1/3)).to(u.kpc).value
+    # Dutton & Maccio 2014 (MNRAS 441, 3359) c-M relation at z=0.
     log_c = 0.905 - 0.101 * np.log10(m_halo_msun / 1e12)
+    # First-order redshift evolution (concentration declines with z); D&M14
+    # give d(log c)/dz ~ -0.08 over the low-z regime probed here.
+    log_c *= (1.0 - 0.08 * z)
     c = 10**log_c
     r_s = r_vir / c
     return r_vir, r_s, c
+
+
+def estimate_logmstar_from_photometry(row, z_gal):
+    """Taylor+2011 (MNRAS 418, 1587, Eq. 8) color-mass estimate.
+
+        log(M*/Msun) = 1.15 + 0.70 (g - i) - 0.4 M_i
+
+    DESI Legacy imaging provides g, r, z; the Taylor calibration is in g-i and
+    M_i, so this only fires when an i-band magnitude is also present. Returns
+    None when the required bands are missing (caller falls back to 'assumed').
+    """
+    g = _get_mag(row, 'g')
+    i = _get_mag(row, 'i')
+    if g is None or i is None:
+        return None
+    dist_mod = cosmo.distmod(z_gal).value
+    M_i = i - dist_mod  # absolute i-band (rest-frame k-correction neglected)
+    return 1.15 + 0.70 * (g - i) - 0.4 * M_i
+
+
+def _get_mag(row, band):
+    """Return an apparent magnitude for ``band`` from common column spellings, or None."""
+    for col in (band, f'{band}mag', f'mag_{band}', f'{band}_mag', f'{band}MAG'):
+        if col in row and pd.notna(row[col]):
+            return float(row[col])
+    return None
 
 
 def nfw_enclosed_mass(r, m_halo, r_vir, r_s, c):
@@ -72,13 +124,31 @@ def make_sightline_fig(target_name, z_frb, gal_rows):
     # Comoving distance to the FRB itself
     d_frb = cosmo.comoving_distance(z_frb).to(u.Mpc).value
 
-    colors = plt.cm.Set2(np.linspace(0, 1, max(len(gal_rows), 1)))
+    # Data-bracketed x-limits: zoom onto where the galaxies actually sit,
+    # not the full 0->d_frb path (most foreground galaxies cluster well short
+    # of the FRB, so the old 0..1.1*d_frb window left them crowded at the edge).
+    d_coms = [g['d_com'] for g in gal_rows]
+    d_min = min(d_coms)
+    x_range = max(d_frb - d_min, 1.0)  # guard against a single galaxy at ~d_frb
+    x_min = d_min - 0.15 * x_range
+    x_max = d_frb + 0.05 * x_range
+    x_span = x_max - x_min
+    halo_half_w = 0.015 * x_span  # halo shading width scales with the view, not a fixed ±6 Mpc
 
+    # z-ordered continuous colormap: galaxy colour encodes redshift.
+    z_vals = [g['z_gal'] for g in gal_rows]
+    z_lo, z_hi = min(z_vals), max(z_vals)
+    if z_hi <= z_lo:
+        z_lo, z_hi = z_lo - 0.01, z_hi + 0.01
+    norm = Normalize(vmin=z_lo, vmax=z_hi)
+    cmap = plt.cm.plasma
+
+    texts = []
     for idx, g in enumerate(gal_rows):
-        c = colors[idx]
-        # Virial halo shading
+        c = cmap(norm(g['z_gal']))
+        # Virial halo shading (width proportional to the data x-range)
         ax.fill_between(
-            [g['d_com'] - 6, g['d_com'] + 6],
+            [g['d_com'] - halo_half_w, g['d_com'] + halo_half_w],
             [g['impact'] - g['r_vir']] * 2,
             [g['impact'] + g['r_vir']] * 2,
             color=c, alpha=0.18, zorder=2,
@@ -89,10 +159,16 @@ def make_sightline_fig(target_name, z_frb, gal_rows):
         # Impact parameter connector
         ax.plot([g['d_com'], g['d_com']], [0, g['impact']],
                 color=ACCENT_ORANGE, linestyle='--', linewidth=1.5, zorder=3)
-        # Label
+        # Annotate the R_200 extent next to the first shaded halo
+        if idx == 0:
+            ax.annotate(r'$R_{200}$',
+                        xy=(g['d_com'] + halo_half_w, g['impact'] + g['r_vir']),
+                        xytext=(4, 2), textcoords='offset points',
+                        fontsize=8, color=DARK_BLUE, fontweight='bold', zorder=6)
+        # Label (positions deconflicted below via adjustText)
         label = f"z={g['z_gal']:.4f}  b={g['impact']:.0f} kpc"
-        ax.text(g['d_com'] + 8, g['impact'] + 3, label,
-                fontsize=8.5, color=TEXT_DARK, fontweight='bold')
+        texts.append(ax.text(g['d_com'], g['impact'], label,
+                             fontsize=8.5, color=TEXT_DARK, fontweight='bold', zorder=6))
 
     # Mark FRB endpoint
     ax.axvline(d_frb, color=ACCENT_RED, linestyle=':', linewidth=1, alpha=0.6)
@@ -104,9 +180,20 @@ def make_sightline_fig(target_name, z_frb, gal_rows):
     ax.set_title(f'{target_name} — Intervening Galaxies & $R_{{200}}$ Halos',
                  fontsize=13, fontweight='bold', color=DARK_BLUE, pad=12)
     ax.grid(True, linestyle=':', color=GRID_COLOR, alpha=0.7)
-    ax.set_xlim(0, max(d_frb * 1.1, 100))
+    ax.set_xlim(x_min, x_max)
     y_max = max((g['impact'] + g['r_vir'] for g in gal_rows), default=100) * 1.3
     ax.set_ylim(-30, max(y_max, 100))
+
+    # Resolve label collisions
+    adjust_text(texts, ax=ax,
+                arrowprops=dict(arrowstyle='-', color='#999999', lw=0.5))
+
+    # Redshift colorbar
+    sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
+    sm.set_array([])
+    cbar = fig.colorbar(sm, ax=ax, fraction=0.035, pad=0.02)
+    cbar.set_label('Redshift  z', fontsize=8, color=TEXT_DARK)
+    cbar.ax.tick_params(labelsize=7)
 
     legend_elements = [
         plt.Line2D([0], [0], color=DARK_BLUE, linewidth=2, label='FRB Sightline'),
@@ -134,11 +221,22 @@ def make_mass_profile_fig(target_name, z_frb, gal_rows):
     fig, ax = plt.subplots(figsize=(10, 5.5), dpi=150, facecolor=BG_LIGHT)
     ax.set_facecolor(BG_LIGHT)
 
-    r_arr = np.linspace(0.1, 350, 500)
-    colors = plt.cm.Set2(np.linspace(0, 1, max(len(gal_rows), 1)))
+    # Extend the radial grid (and x-limit) to enclose the largest halo so big
+    # halos are not clipped at the old fixed 350 kpc edge.
+    max_rvir = max((g['r_vir'] for g in gal_rows), default=350)
+    x_upper = max(max_rvir * 1.3, 350)
+    r_arr = np.linspace(0.1, x_upper, 500)
+
+    # z-ordered continuous colormap matching the sightline figure.
+    z_vals = [g['z_gal'] for g in gal_rows]
+    z_lo, z_hi = min(z_vals), max(z_vals)
+    if z_hi <= z_lo:
+        z_lo, z_hi = z_lo - 0.01, z_hi + 0.01
+    norm = Normalize(vmin=z_lo, vmax=z_hi)
+    cmap = plt.cm.plasma
 
     for idx, g in enumerate(gal_rows):
-        c = colors[idx]
+        c = cmap(norm(g['z_gal']))
         m_enc = nfw_enclosed_mass(r_arr, g['m_halo'], g['r_vir'], g['r_s'], g['c'])
         label = f"z={g['z_gal']:.4f}  log M★={g['log_mstar']:.1f}"
         ax.plot(r_arr, m_enc / 1e11, color=c, linewidth=2.2, label=label)
@@ -157,7 +255,7 @@ def make_mass_profile_fig(target_name, z_frb, gal_rows):
     ax.set_title(f'{target_name} — Enclosed DM Halo Mass Profiles',
                  fontsize=13, fontweight='bold', color=DARK_BLUE, pad=12)
     ax.grid(True, linestyle=':', color=GRID_COLOR, alpha=0.7)
-    ax.set_xlim(0, 350)
+    ax.set_xlim(0, x_upper)
     ax.legend(loc='upper left', frameon=True, facecolor='white',
               edgecolor=GRID_COLOR, fontsize=8.5, ncol=1)
     fig.tight_layout()
@@ -219,8 +317,8 @@ th{color:var(--text-muted);font-weight:600;text-transform:uppercase;font-size:.7
 tr:hover{background:rgba(255,255,255,.02)}
 .badge{display:inline-block;padding:.2rem .55rem;border-radius:50px;font-size:.72rem;
   font-weight:600;text-transform:uppercase;letter-spacing:.02em}
-.badge-high{background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.3)}
-.badge-low{background:rgba(16,185,129,.15);color:#34d399;border:1px solid rgba(16,185,129,.3)}
+.badge-yes{background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.3)}
+.badge-no{background:rgba(16,185,129,.15);color:#34d399;border:1px solid rgba(16,185,129,.3)}
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
 @media(max-width:1024px){.grid-2{grid-template-columns:1fr}}
 </style>
@@ -264,8 +362,9 @@ def build_html(target_sections):
         # table rows
         trows = ""
         for g in sec['gal_rows']:
-            intersect = "High Likelihood" if g['impact'] <= g['r_vir'] else "Low Likelihood"
-            badge = "badge-high" if "High" in intersect else "badge-low"
+            intersects = g['impact'] <= g['r_vir']
+            intersect = "Yes" if intersects else "No"
+            badge = "badge-yes" if intersects else "badge-no"
             x_val = g['impact'] / g['r_s']
             f_x = np.log(1 + x_val) - x_val / (1 + x_val)
             f_c = np.log(1 + g['c']) - g['c'] / (1 + g['c'])
@@ -300,7 +399,7 @@ def build_html(target_sections):
     <table>
       <thead><tr>
         <th>Galaxy</th><th>z (FRB)</th><th>Comoving Dist</th><th>Impact b</th>
-        <th>R_vir</th><th>Halo Mass</th><th>Encl. Mass %</th><th>CGM Intersection</th>
+        <th>R_vir</th><th>Halo Mass</th><th>Encl. Mass %</th><th>Intersects R₂₀₀</th>
       </tr></thead>
       <tbody>{trows}</tbody>
     </table>
@@ -350,8 +449,15 @@ def main():
 
             if 'M_star' in row and not np.isnan(row['M_star']) and row['M_star'] > 0:
                 log_mstar = row['M_star']
+                mass_source = 'catalog'
             else:
-                log_mstar = 9.5
+                phot = estimate_logmstar_from_photometry(row, z_gal)
+                if phot is not None:
+                    log_mstar, mass_source = phot, 'photometric'
+                else:
+                    # No catalog M* and no usable photometry (e.g. DESI grz
+                    # without i-band): assume a typical L* galaxy.
+                    log_mstar, mass_source = 10.0, 'assumed'
 
             m_halo = estimate_halo_mass(log_mstar)
             r_vir, r_s, c = get_rvir_and_rs(m_halo, z_gal)
@@ -362,6 +468,7 @@ def main():
                 'd_com': d_com,
                 'impact': impact,
                 'log_mstar': log_mstar,
+                'mass_source': mass_source,
                 'm_halo': m_halo,
                 'r_vir': r_vir,
                 'r_s': r_s,

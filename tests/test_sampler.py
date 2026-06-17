@@ -21,7 +21,7 @@ def test_fitter_improves_log_prob():
     initial = np.array([0.2, 0.5])
     initial_lp = _log_prob_wrapper(initial, t, freqs, data, noise_std)
     sampler, _ = fitter.sample(initial, nwalkers=8, nsteps=40)
-    final_lp = sampler.get_log_prob(flat=True)[-1]
+    final_lp = np.max(sampler.get_log_prob())
     assert final_lp > initial_lp
     chain = sampler.get_chain()
     assert chain.shape == (40, 8, 2)

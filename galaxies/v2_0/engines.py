@@ -65,6 +65,9 @@ class VizierEngine(BaseEngine):
                 'RAJ2000': 'ra',
                 'DEJ2000': 'dec',
                 'z': 'z',
+                'zphot': 'z',      # DESI DR8 North
+                'z_best': 'z',     # GLADE+ best redshift
+                'z_helio': 'z',    # GLADE+ heliocentric redshift
                 'z_phot': 'z',
                 'zph': 'z',
                 'z_cmb': 'z',

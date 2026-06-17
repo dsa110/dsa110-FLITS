@@ -1,0 +1,2 @@
+id,ra,dec,release,brickid,objid,type,pstar,gmmcomp,z,e_zphot,fclean,fqual,catalog,impact_kpc
+8001654316001077,88.196395568393,74.19890124403,8001,654316,1077,EXP,0.023,D7,0.767,0.057,1,1,VII/292/north,91.80231885448375

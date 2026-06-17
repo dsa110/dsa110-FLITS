@@ -4,7 +4,7 @@ import os
 import pandas as pd
 from astropy.coordinates import SkyCoord
 import astropy.units as u
-from .config import TARGETS, DEFAULT_IMPACT_KPC, VIZIER_CATALOGS, DEFAULT_Z_EPS
+from .config import TARGETS, DEFAULT_IMPACT_KPC, VIZIER_CATALOGS, DEFAULT_Z_EPS, MIN_Z_SEARCH
 from .utils import parse_coord, get_angular_radius, calculate_impact_parameter
 from .engines import NedEngine, VizierEngine
 
@@ -22,7 +22,8 @@ def run_search(impact_kpc: float = DEFAULT_IMPACT_KPC, output_dir: str = "result
     for i, (name, ra_str, dec_str, z_frb) in enumerate(TARGETS):
         print(f"Processing {name} (Target {i+1}): {ra_str}, {dec_str} (z={z_frb})")
         coord = parse_coord(ra_str, dec_str)
-        radius = get_angular_radius(z_frb, impact_kpc)
+        # Use MIN_Z_SEARCH to capture low-z foreground galaxies with larger angular separation
+        radius = get_angular_radius(min(z_frb, MIN_Z_SEARCH), impact_kpc)
         
         target_matches = []
         for engine in engines:
@@ -87,9 +88,9 @@ def run_search(impact_kpc: float = DEFAULT_IMPACT_KPC, output_dir: str = "result
                     all_matches = all_matches.drop_duplicates(subset=['ra_round', 'dec_round'])
                     all_matches = all_matches.drop(columns=['ra_round', 'dec_round'])
 
-            out_path = os.path.join(output_dir, f"{name.lower()}_galaxies.csv")
+            out_path = os.path.abspath(os.path.join(output_dir, f"{name.lower()}_galaxies.csv"))
             all_matches.to_csv(out_path, index=False)
-            print(f"  Found {len(all_matches)} unique foreground galaxies.")
+            print(f"  Found {len(all_matches)} unique foreground galaxies. Saved to {out_path}")
             summary_data.append({
                 'name': name,
                 'target_id': i+1,
@@ -109,9 +110,9 @@ def run_search(impact_kpc: float = DEFAULT_IMPACT_KPC, output_dir: str = "result
                 'num_galaxies': 0
             })
             
-    summary_df = pd.DataFrame(summary_data)
-    summary_df.to_csv(os.path.join(output_dir, "search_summary.csv"), index=False)
-    print("\nSearch complete. Summary saved to results/search_summary.csv")
+    summary_path = os.path.abspath(os.path.join(output_dir, "search_summary.csv"))
+    summary_df.to_csv(summary_path, index=False)
+    print(f"\nSearch complete. Summary saved to {summary_path}")
 
 if __name__ == "__main__":
     import argparse

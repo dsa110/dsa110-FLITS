@@ -9,6 +9,7 @@ COSMO = Planck18
 # Default search parameters
 DEFAULT_IMPACT_KPC = 100.0
 DEFAULT_Z_EPS = 0.01  # Redshift buffer for foreground search
+MIN_Z_SEARCH = 0.005  # Minimum redshift cutoff to avoid infinite search cone
 
 # The 12 FRB sightlines in our sample
 # Format: (name, RA, Dec, z_frb)
@@ -29,6 +30,7 @@ TARGETS: List[Tuple[str, str, str, float]] = [
 
 # Catalog identifiers for Vizier
 VIZIER_CATALOGS = {
-    "GLADE+": "VII/281/glade2", # Includes 2MPZ, 2MASS XSC, SDSS-DR16Q
-    "SDSS_DR12": "V/147/sdss12", # Stable spectroscopic/photometric catalog
+    "GLADE+": "VII/291/glade",          # Actual GLADE+ (2022)
+    "DESI_DR8_NORTH": "VII/292/north",  # High-Dec northern sky coverage
+    "SDSS_DR12": "V/147/sdss12",         # Stable spectroscopic/photometric catalog
 }

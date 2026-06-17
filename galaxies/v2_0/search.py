@@ -75,18 +75,19 @@ def run_search(impact_kpc: float = DEFAULT_IMPACT_KPC, output_dir: str = "result
         if target_matches:
             all_matches = pd.concat(target_matches, ignore_index=True)
             
-            # De-duplicate based on RA/Dec (within 2 arcsec)
+            # De-duplicate: keep the first occurrence when two entries
+            # are within 10 arcsec on the sky (cross-catalog matches)
             if len(all_matches) > 1:
-                coords = SkyCoord(ra=all_matches['ra'].values*u.deg, dec=all_matches['dec'].values*u.deg)
-                idx, d2d, _ = coords.match_to_catalog_sky(coords, nthneighbor=2)
-                duplicates = d2d < 2.0 * u.arcsec
-                if any(duplicates):
-                    # Keep the first occurrence
-                    # Simpler de-duplication: round to 4 decimal places (~0.3 arcsec)
-                    all_matches['ra_round'] = all_matches['ra'].round(4)
-                    all_matches['dec_round'] = all_matches['dec'].round(4)
-                    all_matches = all_matches.drop_duplicates(subset=['ra_round', 'dec_round'])
-                    all_matches = all_matches.drop(columns=['ra_round', 'dec_round'])
+                coords = SkyCoord(ra=all_matches['ra'].values*u.deg,
+                                  dec=all_matches['dec'].values*u.deg)
+                keep = [True] * len(all_matches)
+                for j in range(1, len(all_matches)):
+                    if not keep[j]:
+                        continue
+                    seps = coords[j].separation(coords[:j])
+                    if any(seps < 10.0 * u.arcsec):
+                        keep[j] = False
+                all_matches = all_matches.iloc[[k for k, v in enumerate(keep) if v]]
 
             out_path = os.path.abspath(os.path.join(output_dir, f"{name.lower()}_galaxies.csv"))
             all_matches.to_csv(out_path, index=False)
@@ -110,6 +111,7 @@ def run_search(impact_kpc: float = DEFAULT_IMPACT_KPC, output_dir: str = "result
                 'num_galaxies': 0
             })
             
+    summary_df = pd.DataFrame(summary_data)
     summary_path = os.path.abspath(os.path.join(output_dir, "search_summary.csv"))
     summary_df.to_csv(summary_path, index=False)
     print(f"\nSearch complete. Summary saved to {summary_path}")

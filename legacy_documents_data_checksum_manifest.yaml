@@ -1,0 +1,537 @@
+# legacy_documents_data_checksum_manifest.yaml
+# Generated UTC: 2026-06-17T20:37:57Z
+# Host        : jakob
+# Source      : /Users/jakobfaber/Library/Mobile Documents/com~apple~CloudDocs/_trash-git-repos-2026-06-17/Documents/Areas/research-holding/caltech/ovro/dsa110/dsa110-FLITS/data
+schema: 1
+generated_utc: "2026-06-17T20:37:57Z"
+host: "jakob"
+source_path: "/Users/jakobfaber/Library/Mobile Documents/com~apple~CloudDocs/_trash-git-repos-2026-06-17/Documents/Areas/research-holding/caltech/ovro/dsa110/dsa110-FLITS/data"
+source_role: "legacy Documents-area dsa110-FLITS data tree"
+note: "Checksum/inventory manifest. Dataless iCloud placeholders are listed but cannot be hashed until materialized."
+file_count: 104
+hashed_file_count: 61
+dataless_placeholder_count: 43
+bytes: 10425999308
+size_gib: 9.710
+hash_algorithm: "sha256"
+entries:
+  - path: ".DS_Store"
+    bytes: 8196
+    mtime_ns: 1773125506795962310
+    status: "hashed"
+    sha256: 716d2f6de80d316ca66b8b852f05f28dafc005c00b58355dab9e062f8afd064a
+  - path: "chime/FRB_comp_diagnostics.pdf"
+    bytes: 131603
+    mtime_ns: 1764183467000000000
+    status: "hashed"
+    sha256: f206540606d1c63dfc818199b350043d61dbfa5111ab4bdf0bbda5af51b6baa3
+  - path: "chime/FRB_four_panel.pdf"
+    bytes: 287328
+    mtime_ns: 1764183469000000000
+    status: "hashed"
+    sha256: 1c188f9a1b6fa1a1f9335d5d1c28e4be2d198540e1a073a6d9d32459851d233c
+  - path: "chime/backup_before_standardize/casey_chime_I_491_2085_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1751271357000000000
+    status: "hashed"
+    sha256: 79e9cba92716263d7644cafafe4d35a3ea646f18509be094033b67c6fc4440c4
+  - path: "chime/backup_before_standardize/chromatica_chime_I_272_6382_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1751271370000000000
+    status: "hashed"
+    sha256: 609a8751415323f3191ea2f45b07d6598c5336247f523eda887668f26b29b2b5
+  - path: "chime/backup_before_standardize/freya_chime_I_912_4067_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1751271378000000000
+    status: "hashed"
+    sha256: 55561c3d9daad2023f876d62e7579ecea987b214022882a6930fe8c242d59f80
+  - path: "chime/backup_before_standardize/isha_chime_I_411_4359_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1751271397000000000
+    status: "hashed"
+    sha256: c372d6cb2ef62c1ceca28fb6f130cc6fac253bcf97087c3f0555c3f4580b9c2c
+  - path: "chime/backup_before_standardize/johndoeII_chime_I_696_5184_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1751271405000000000
+    status: "hashed"
+    sha256: d5f35c8b94de82dbc080938bf8e2ce4b725d189d8e5c66ef83b3ca6c84edede6
+  - path: "chime/backup_before_standardize/mahi_chime_I_960_1316_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1751271413000000000
+    status: "hashed"
+    sha256: be722c48157beb989c53b209f0842e5445f08d7695cba49f23593c6b5d06d61f
+  - path: "chime/backup_before_standardize/oran_chime_I_397_0153_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1751271420000000000
+    status: "hashed"
+    sha256: 73ca14a4d467e7a612cb5c8a9df5d1b17e4dba448e23710663dd1195b0f12092
+  - path: "chime/backup_before_standardize/phineas_chime_I_610_2894_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1751271426000000000
+    status: "hashed"
+    sha256: 6f2e3f4c09c131af98dc061e3788fae6817406f4239e77e91dbe209631ebccd7
+  - path: "chime/backup_before_standardize/zach_chime_I_262_3621_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1751271439000000000
+    status: "hashed"
+    sha256: bf317648879936ce4d019f116c17e0c33a22042610e37bddceef0ba48fe40deb
+  - path: "chime/backup_original_freq_axis/casey_chime_I_491_2085_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1751271357000000000
+    status: "hashed"
+    sha256: 79e9cba92716263d7644cafafe4d35a3ea646f18509be094033b67c6fc4440c4
+  - path: "chime/backup_original_freq_axis/chromatica_chime_I_272_6382_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1751271370000000000
+    status: "hashed"
+    sha256: 609a8751415323f3191ea2f45b07d6598c5336247f523eda887668f26b29b2b5
+  - path: "chime/backup_original_freq_axis/freya_chime_I_912_4067_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1751271378000000000
+    status: "hashed"
+    sha256: 55561c3d9daad2023f876d62e7579ecea987b214022882a6930fe8c242d59f80
+  - path: "chime/backup_original_freq_axis/hamilton_chime_I_518_8007_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1751271387000000000
+    status: "hashed"
+    sha256: 86be9081500950735bd3f5d5cdd3370f101c260501f56001bb9cc9ce439652cb
+  - path: "chime/backup_original_freq_axis/isha_chime_I_411_4359_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1751271397000000000
+    status: "hashed"
+    sha256: c372d6cb2ef62c1ceca28fb6f130cc6fac253bcf97087c3f0555c3f4580b9c2c
+  - path: "chime/backup_original_freq_axis/johndoeII_chime_I_696_5184_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1751271405000000000
+    status: "hashed"
+    sha256: d5f35c8b94de82dbc080938bf8e2ce4b725d189d8e5c66ef83b3ca6c84edede6
+  - path: "chime/backup_original_freq_axis/mahi_chime_I_960_1316_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1751271413000000000
+    status: "hashed"
+    sha256: be722c48157beb989c53b209f0842e5445f08d7695cba49f23593c6b5d06d61f
+  - path: "chime/backup_original_freq_axis/oran_chime_I_397_0153_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1751271420000000000
+    status: "hashed"
+    sha256: 73ca14a4d467e7a612cb5c8a9df5d1b17e4dba448e23710663dd1195b0f12092
+  - path: "chime/backup_original_freq_axis/phineas_chime_I_610_2894_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1751271426000000000
+    status: "hashed"
+    sha256: 6f2e3f4c09c131af98dc061e3788fae6817406f4239e77e91dbe209631ebccd7
+  - path: "chime/backup_original_freq_axis/whitney_chime_I_462_1891_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1751271432000000000
+    status: "hashed"
+    sha256: fb1e5c93291cf35d0b269ebfa6a63409954b4da0aac097b404b926c380f24959
+  - path: "chime/backup_original_freq_axis/wilhelm_chime_I_602_3809_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1751271436000000000
+    status: "hashed"
+    sha256: fe64e87f4a0e33b73572ea498a1b6ba2405d38a979a15dc858647b33357e7c65
+  - path: "chime/backup_original_freq_axis/zach_chime_I_262_3621_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1751271439000000000
+    status: "hashed"
+    sha256: bf317648879936ce4d019f116c17e0c33a22042610e37bddceef0ba48fe40deb
+  - path: "chime/casey_chime_I_491_2085_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1766072579508686780
+    status: "hashed"
+    sha256: ad11d45ada76e3f64618ad121ce747f7c593749b75fa28c1918d050d8dfc7745
+  - path: "chime/casey_chime_I_491_2085_32000b_cntr_bpc_corner.png"
+    bytes: 579241
+    mtime_ns: 1764183881000000000
+    status: "hashed"
+    sha256: 3bf46f9343acd12d8245b28ca56e8f45eeda179dc08d1dde71e8d87d8db30536
+  - path: "chime/casey_enhanced_diagnostics.png"
+    bytes: 587249
+    mtime_ns: 1766074604353700876
+    status: "hashed"
+    sha256: b82d019d146080e2b753b5c3fa6df48bfa51d672eb76d02dcb11843877af78c5
+  - path: "chime/chromatica_chime_I_272_6382_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1766072580936331783
+    status: "dataless_placeholder"
+    sha256: null
+  - path: "chime/freya_chime_I_912_4067_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1766072582293943839
+    status: "dataless_placeholder"
+    sha256: null
+  - path: "chime/hamilton_chime_I_518_8007_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1766072965650319383
+    status: "dataless_placeholder"
+    sha256: null
+  - path: "chime/isha_chime_I_411_4359_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1766072583701654795
+    status: "dataless_placeholder"
+    sha256: null
+  - path: "chime/johndoeII_chime_I_696_5184_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1766072585243289957
+    status: "dataless_placeholder"
+    sha256: null
+  - path: "chime/mahi_chime_I_960_1316_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1766072586715836683
+    status: "dataless_placeholder"
+    sha256: null
+  - path: "chime/oran_chime_I_397_0153_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1766072588092298065
+    status: "dataless_placeholder"
+    sha256: null
+  - path: "chime/phineas_chime_I_610_2894_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1766072589484740901
+    status: "dataless_placeholder"
+    sha256: null
+  - path: "chime/whitney_chime_I_462_1891_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1766072968177357022
+    status: "dataless_placeholder"
+    sha256: null
+  - path: "chime/wilhelm_chime_I_602_3809_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1766072966919089548
+    status: "dataless_placeholder"
+    sha256: null
+  - path: "chime/zach_chime_I_262_3621_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1766072591013670400
+    status: "dataless_placeholder"
+    sha256: null
+  - path: "chime_backup_standardization/FRB_comp_diagnostics.pdf"
+    bytes: 131603
+    mtime_ns: 1766003093412036657
+    status: "dataless_placeholder"
+    sha256: null
+  - path: "chime_backup_standardization/FRB_four_panel.pdf"
+    bytes: 287328
+    mtime_ns: 1766003093688976287
+    status: "dataless_placeholder"
+    sha256: null
+  - path: "chime_backup_standardization/backup_original_freq_axis/casey_chime_I_491_2085_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1766003093022225829
+    status: "hashed"
+    sha256: 79e9cba92716263d7644cafafe4d35a3ea646f18509be094033b67c6fc4440c4
+  - path: "chime_backup_standardization/backup_original_freq_axis/chromatica_chime_I_272_6382_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1766003092282633604
+    status: "hashed"
+    sha256: 609a8751415323f3191ea2f45b07d6598c5336247f523eda887668f26b29b2b5
+  - path: "chime_backup_standardization/backup_original_freq_axis/freya_chime_I_912_4067_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1766003092954077926
+    status: "hashed"
+    sha256: 55561c3d9daad2023f876d62e7579ecea987b214022882a6930fe8c242d59f80
+  - path: "chime_backup_standardization/backup_original_freq_axis/hamilton_chime_I_518_8007_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1766003092053587394
+    status: "hashed"
+    sha256: 86be9081500950735bd3f5d5cdd3370f101c260501f56001bb9cc9ce439652cb
+  - path: "chime_backup_standardization/backup_original_freq_axis/isha_chime_I_411_4359_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1766003092881946927
+    status: "hashed"
+    sha256: c372d6cb2ef62c1ceca28fb6f130cc6fac253bcf97087c3f0555c3f4580b9c2c
+  - path: "chime_backup_standardization/backup_original_freq_axis/johndoeII_chime_I_696_5184_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1766003092551596450
+    status: "hashed"
+    sha256: d5f35c8b94de82dbc080938bf8e2ce4b725d189d8e5c66ef83b3ca6c84edede6
+  - path: "chime_backup_standardization/backup_original_freq_axis/mahi_chime_I_960_1316_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1766003092413512931
+    status: "hashed"
+    sha256: be722c48157beb989c53b209f0842e5445f08d7695cba49f23593c6b5d06d61f
+  - path: "chime_backup_standardization/backup_original_freq_axis/oran_chime_I_397_0153_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1766003093124707975
+    status: "hashed"
+    sha256: 73ca14a4d467e7a612cb5c8a9df5d1b17e4dba448e23710663dd1195b0f12092
+  - path: "chime_backup_standardization/backup_original_freq_axis/phineas_chime_I_610_2894_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1766003092481983501
+    status: "hashed"
+    sha256: 6f2e3f4c09c131af98dc061e3788fae6817406f4239e77e91dbe209631ebccd7
+  - path: "chime_backup_standardization/backup_original_freq_axis/whitney_chime_I_462_1891_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1766003092635158614
+    status: "hashed"
+    sha256: fb1e5c93291cf35d0b269ebfa6a63409954b4da0aac097b404b926c380f24959
+  - path: "chime_backup_standardization/backup_original_freq_axis/wilhelm_chime_I_602_3809_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1766003092183180677
+    status: "hashed"
+    sha256: fe64e87f4a0e33b73572ea498a1b6ba2405d38a979a15dc858647b33357e7c65
+  - path: "chime_backup_standardization/backup_original_freq_axis/zach_chime_I_262_3621_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1766003091924968283
+    status: "hashed"
+    sha256: bf317648879936ce4d019f116c17e0c33a22042610e37bddceef0ba48fe40deb
+  - path: "chime_backup_standardization/casey_chime_I_491_2085_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1766003093759077420
+    status: "dataless_placeholder"
+    sha256: null
+  - path: "chime_backup_standardization/casey_chime_I_491_2085_32000b_cntr_bpc_corner.png"
+    bytes: 579241
+    mtime_ns: 1766003093395249453
+    status: "dataless_placeholder"
+    sha256: null
+  - path: "chime_backup_standardization/chromatica_chime_I_272_6382_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1766003091459043004
+    status: "dataless_placeholder"
+    sha256: null
+  - path: "chime_backup_standardization/freya_chime_I_912_4067_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1766003093561171444
+    status: "dataless_placeholder"
+    sha256: null
+  - path: "chime_backup_standardization/hamilton_chime_I_518_8007_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1766003091187773483
+    status: "dataless_placeholder"
+    sha256: null
+  - path: "chime_backup_standardization/isha_chime_I_411_4359_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1766003093481971128
+    status: "dataless_placeholder"
+    sha256: null
+  - path: "chime_backup_standardization/johndoeII_chime_I_696_5184_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1766003093293030058
+    status: "dataless_placeholder"
+    sha256: null
+  - path: "chime_backup_standardization/mahi_chime_I_960_1316_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1766003091579252295
+    status: "dataless_placeholder"
+    sha256: null
+  - path: "chime_backup_standardization/oran_chime_I_397_0153_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1766003093827094114
+    status: "dataless_placeholder"
+    sha256: null
+  - path: "chime_backup_standardization/phineas_chime_I_610_2894_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1766003093191944208
+    status: "dataless_placeholder"
+    sha256: null
+  - path: "chime_backup_standardization/whitney_chime_I_462_1891_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1766003093377303766
+    status: "dataless_placeholder"
+    sha256: null
+  - path: "chime_backup_standardization/wilhelm_chime_I_602_3809_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1766003091355502062
+    status: "dataless_placeholder"
+    sha256: null
+  - path: "chime_backup_standardization/zach_chime_I_262_3621_32000b_cntr_bpc.npy"
+    bytes: 131072128
+    mtime_ns: 1766003090829835952
+    status: "dataless_placeholder"
+    sha256: null
+  - path: "dsa/FRB_comp_diagnostics.pdf"
+    bytes: 94067
+    mtime_ns: 1765786030876787900
+    status: "dataless_placeholder"
+    sha256: null
+  - path: "dsa/FRB_fit_summary.png"
+    bytes: 378981
+    mtime_ns: 1766078768799894895
+    status: "dataless_placeholder"
+    sha256: null
+  - path: "dsa/FRB_four_panel.pdf"
+    bytes: 315986
+    mtime_ns: 1765786032807286024
+    status: "dataless_placeholder"
+    sha256: null
+  - path: "dsa/analysis_20251126_100312/01_data_overview.pdf"
+    bytes: 26952
+    mtime_ns: 1764180193000000000
+    status: "hashed"
+    sha256: 4518e49c9acf0c63cccb4a42a69d44e60ff3460c85170b6695da9cb3dcfa9155
+  - path: "dsa/analysis_20251126_100312/02_initial_guess.pdf"
+    bytes: 63891
+    mtime_ns: 1764180194000000000
+    status: "hashed"
+    sha256: b9e22be34d46e43fb9046fbab04c243ed03fa6bca1708c04e8f8c0141ded65ec
+  - path: "dsa/analysis_20251126_100312/03_results_summary.pdf"
+    bytes: 86380
+    mtime_ns: 1764180272000000000
+    status: "hashed"
+    sha256: 4fcaf893fc56f6ccff302d35dd92d1cb5945681cf5bbccc445eb6644d05c58c2
+  - path: "dsa/analysis_20251126_100312/FRB_comp_diagnostics.pdf"
+    bytes: 198474
+    mtime_ns: 1764180270000000000
+    status: "hashed"
+    sha256: d306cc833e0068d53c23e717a143384cce1c7e2afd1bd107ae210115cdb9a404
+  - path: "dsa/analysis_20251126_100312/FRB_four_panel.pdf"
+    bytes: 307224
+    mtime_ns: 1764180270000000000
+    status: "hashed"
+    sha256: 5f86423d62c6d93c9e3c0a2e8f82b15e2411015edcd207eae7e415a58f8803e9
+  - path: "dsa/analysis_20251126_100642/01_data_overview.pdf"
+    bytes: 40435
+    mtime_ns: 1764180403000000000
+    status: "hashed"
+    sha256: a6b301d724fe5a1806d57e42f0b5a74a7a22d29d9e063cd0db6954056fe6a239
+  - path: "dsa/analysis_20251126_100642/02_initial_guess.pdf"
+    bytes: 70158
+    mtime_ns: 1764180404000000000
+    status: "hashed"
+    sha256: 174682f8451d16ff0f44669422455b0003ebd869b83d5b537571d4a60f92ac40
+  - path: "dsa/analysis_20251126_100642/03_results_summary.pdf"
+    bytes: 93402
+    mtime_ns: 1764180489000000000
+    status: "hashed"
+    sha256: f46c19e44021df34c1f9383df11122aa2af4bd4a8dbd426a264418b6667f76fe
+  - path: "dsa/analysis_20251126_100642/FRB_comp_diagnostics.pdf"
+    bytes: 147551
+    mtime_ns: 1764180487000000000
+    status: "hashed"
+    sha256: 12a19606125fc0a4dadc70cddf87b0ae940d984d9ac48a77074ee67bc201dca9
+  - path: "dsa/analysis_20251126_100642/FRB_four_panel.pdf"
+    bytes: 304086
+    mtime_ns: 1764180487000000000
+    status: "hashed"
+    sha256: b7568aa0c2ba3c199d438b70eb39af5a497ca31ff8512b3c70f5f78948ef5a6d
+  - path: "dsa/backup_before_standardize/casey_dsa_I_491_211_2500b_cntr_bpc.npy"
+    bytes: 122880128
+    mtime_ns: 1751271703000000000
+    status: "hashed"
+    sha256: 5ec04b0d83f66b67209e1539a37e5b917c294784ac85ae6572116fbd319bc4df
+  - path: "dsa/backup_before_standardize/chromatica_dsa_I_272_368_2500b_cntr_bpc.npy"
+    bytes: 122880128
+    mtime_ns: 1766042160650756056
+    status: "hashed"
+    sha256: 93658a33b0facbc3f753480ea48d216b572cc2e0f8b7adaf7f61b92fdd7fe533
+  - path: "dsa/backup_before_standardize/freya_dsa_I_912_4_2500b_cntr_bpc.npy"
+    bytes: 122880128
+    mtime_ns: 1766071824014297785
+    status: "hashed"
+    sha256: f01a33531fffd14ac86c9ae1e824b7487df5929b7a4ed735df9e496d41cae705
+  - path: "dsa/backup_before_standardize/hamilton_dsa_I_518_799_2500b_cntr_bpc.npy"
+    bytes: 122880128
+    mtime_ns: 1766071824894080955
+    status: "hashed"
+    sha256: be814bc9430b148e61c1d8ddbfc701c902334d7a3e672c621a0e1d664af11378
+  - path: "dsa/backup_before_standardize/isha_dsa_I_411_568_2500b_cntr_bpc.npy"
+    bytes: 122880128
+    mtime_ns: 1766042162680824636
+    status: "hashed"
+    sha256: 32499c0e11bed7dc774c02461c1241b5c394cd0d21d79f4bbfaebfda32b57f36
+  - path: "dsa/backup_before_standardize/johndoeII_dsa_I_696_506_2500b_cntr_bpc.npy"
+    bytes: 122880128
+    mtime_ns: 1766071825733708597
+    status: "hashed"
+    sha256: 92279ca8d987e5b3b93582caf2f7116c2ac1ac4a265483b9f483aadbc53f1051
+  - path: "dsa/backup_before_standardize/mahi_dsa_I_960_128_2500b_cntr_bpc.npy"
+    bytes: 122880128
+    mtime_ns: 1766042164433694238
+    status: "hashed"
+    sha256: eb2e3345e0d334ea87d92d17196a96ae56345833ed4e95c2b4cc30a9d159bbf3
+  - path: "dsa/backup_before_standardize/oran_dsa_I_396_882_2500b_cntr_bpc.npy"
+    bytes: 122880128
+    mtime_ns: 1766071826575711737
+    status: "hashed"
+    sha256: 09ae92f6434da213487ffc5f97ff22109fd883b0297b495c593334933e6fb3d0
+  - path: "dsa/backup_before_standardize/phineas_dsa_I_610_274_2500b_cntr_bpc.npy"
+    bytes: 122880128
+    mtime_ns: 1766071827310482580
+    status: "hashed"
+    sha256: 33e939485a48af97e87a410e60b3a9ddcc2ff4cd3ce25e7e03aeee6937c72f05
+  - path: "dsa/backup_before_standardize/whitney_dsa_I_462_174_2500b_cntr_bpc.npy"
+    bytes: 122880128
+    mtime_ns: 1766071828056740586
+    status: "hashed"
+    sha256: 9a65a7ccb211f9d2ca46ea9ef84d817f4efb307606fe76bd5817ebcb8b981af8
+  - path: "dsa/backup_before_standardize/wilhelm_dsa_I_602_346_2500b_cntr_bpc.npy"
+    bytes: 122880128
+    mtime_ns: 1766042163567799429
+    status: "hashed"
+    sha256: 50b8a981bd49730d61939c1cb19f3dfa30fa12256587b6354f4a05e17476fbf3
+  - path: "dsa/backup_before_standardize/zach_dsa_I_262_368_2500b_cntr_bpc.npy"
+    bytes: 122880128
+    mtime_ns: 1766042161651514536
+    status: "hashed"
+    sha256: be917e94d89134f699c456b9185422e8cfdbf3d935bbcf4d8b2e798d0ea12b01
+  - path: "dsa/casey_dsa_I_491_211_2500b_cntr_bpc.npy"
+    bytes: 122880128
+    mtime_ns: 1766072725057262137
+    status: "dataless_placeholder"
+    sha256: null
+  - path: "dsa/casey_dsa_I_491_211_2500b_cntr_bpc_fit_results.json"
+    bytes: 1020988
+    mtime_ns: 1766078767101832151
+    status: "dataless_placeholder"
+    sha256: null
+  - path: "dsa/chromatica_dsa_I_272_368_2500b_cntr_bpc.npy"
+    bytes: 122880128
+    mtime_ns: 1766072970225072667
+    status: "dataless_placeholder"
+    sha256: null
+  - path: "dsa/freya_dsa_I_912_4_2500b_cntr_bpc.npy"
+    bytes: 122880128
+    mtime_ns: 1766072726574318390
+    status: "dataless_placeholder"
+    sha256: null
+  - path: "dsa/hamilton_dsa_I_518_799_2500b_cntr_bpc.npy"
+    bytes: 122880128
+    mtime_ns: 1766072969473724394
+    status: "dataless_placeholder"
+    sha256: null
+  - path: "dsa/isha_dsa_I_411_568_2500b_cntr_bpc.npy"
+    bytes: 122880128
+    mtime_ns: 1766072728035657245
+    status: "dataless_placeholder"
+    sha256: null
+  - path: "dsa/johndoeII_dsa_I_696_506_2500b_cntr_bpc.npy"
+    bytes: 122880128
+    mtime_ns: 1766072968819432093
+    status: "dataless_placeholder"
+    sha256: null
+  - path: "dsa/mahi_dsa_I_960_128_2500b_cntr_bpc.npy"
+    bytes: 122880128
+    mtime_ns: 1766072971502386485
+    status: "dataless_placeholder"
+    sha256: null
+  - path: "dsa/oran_dsa_I_396_882_2500b_cntr_bpc.npy"
+    bytes: 122880128
+    mtime_ns: 1766072730190764539
+    status: "dataless_placeholder"
+    sha256: null
+  - path: "dsa/phineas_dsa_I_610_274_2500b_cntr_bpc.npy"
+    bytes: 122880128
+    mtime_ns: 1766072730919255759
+    status: "dataless_placeholder"
+    sha256: null
+  - path: "dsa/whitney_dsa_I_462_174_2500b_cntr_bpc.npy"
+    bytes: 122880128
+    mtime_ns: 1766072731635310483
+    status: "dataless_placeholder"
+    sha256: null
+  - path: "dsa/wilhelm_dsa_I_602_346_2500b_cntr_bpc.npy"
+    bytes: 122880128
+    mtime_ns: 1766072970868043028
+    status: "dataless_placeholder"
+    sha256: null
+  - path: "dsa/zach_dsa_I_262_368_2500b_cntr_bpc.npy"
+    bytes: 122880128
+    mtime_ns: 1766072733273805696
+    status: "dataless_placeholder"
+    sha256: null
+  - path: "flits_results.db"
+    bytes: 24576
+    mtime_ns: 1764597236310522556
+    status: "dataless_placeholder"
+    sha256: null

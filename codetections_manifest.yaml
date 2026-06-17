@@ -5,9 +5,17 @@
 schema: 1
 generated_utc: 2026-04-24T02:29:51.071693Z
 host: Iacobuss-MacBook-Pro.local
-base: /Users/iacobus/Research/CHIME_DSA_Codetections
-canonical_target: "iCloud ~/Library/Mobile Documents/com~apple~CloudDocs/Research/CHIME_DSA_Codetections"
-note: "Data currently staged on iacobus (500GB host) due to local disk constraints. iCloud is the long-term canonical root; migration deferred."
+base: "/Users/iacobus/Research/CHIME_DSA_Codetections"
+canonical_target: "iacobus:/Users/iacobus/Research/CHIME_DSA_Codetections"
+cloud_docs_mirror: "iacobus:/Users/iacobus/Library/Mobile Documents/com~apple~CloudDocs/Research/CHIME_DSA_Codetections"
+note: "Data should remain materialized on iacobus (500GB host) for storage. The CloudDocs tree is mirrored into the real data root; other iCloud views may be placeholders and are not sufficient proof of local availability."
+mirror_created_utc: "2026-06-17T21:18:36Z"
+mirror_method: "APFS clonefile copy via cp -cRp from iacobus CloudDocs to /Users/iacobus/Research"
+live_verified_utc: "2026-06-17T21:20:00Z"
+live_verified_method: "ssh iacobus metadata-only stat/find check of source and mirror"
+live_verified_file_count: 1546
+live_verified_bytes: 234392304408
+live_verified_size_gib: 218.295
 subdirs:
   archive:
     present: true

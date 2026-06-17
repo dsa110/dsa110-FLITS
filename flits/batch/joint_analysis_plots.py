@@ -66,7 +66,7 @@ def generate_summary_plots(
         plots.append(path)
         
         if show:
-            # plt.show()
+            pass # plt.show()
         else:
             plt.close(fig)
             

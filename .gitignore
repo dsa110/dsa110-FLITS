@@ -43,6 +43,8 @@ Thumbs.db
 # CSV, TSV, and other tabular dumps
 *.csv
 *.tsv
+# ...except the tracked data-source manifest (reproducibility, not a data dump)
+!/data-manifest.csv
 # FITS (astronomy images)
 *.fits
 *.fit

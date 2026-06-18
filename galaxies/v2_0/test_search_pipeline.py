@@ -1,10 +1,16 @@
 import math
 
+import numpy as np
 import pandas as pd
 
+from galaxies.v2_0 import search as search_mod
 from galaxies.v2_0.config import COSMO
 from galaxies.v2_0.engines import _add_desi_stellar_mass
-from galaxies.v2_0.search import _deduplicate_matches, _foreground_mask
+from galaxies.v2_0.search import (
+    _deduplicate_matches,
+    _enrich_with_ps1_photometry,
+    _foreground_mask,
+)
 
 
 def test_foreground_mask_uses_two_sigma_photo_z_error():
@@ -100,3 +106,49 @@ def test_glade_mass_source_is_catalog_when_mass_present():
     result = _add_desi_stellar_mass(df.copy(), "VII/291/glade")
 
     assert result.loc[0, "mass_source"] == "catalog"
+
+
+def test_enrich_with_ps1_only_fills_rows_missing_catalog_mass(monkeypatch):
+    # Row 0: DESI-style, no catalog mass -> should be PS1-queried and filled.
+    # Row 1: GLADE-style, has a catalog mass -> must be skipped (not queried).
+    matches = pd.DataFrame(
+        {
+            "ra": [177.78, 310.20],
+            "dec": [71.70, 72.87],
+            "z": [0.241, 0.043],
+            "M_star": [math.nan, 9.51],
+        }
+    )
+
+    queried = []
+
+    def fake_ps1(coord, match_radius=None):
+        queried.append((float(coord.ra.deg), float(coord.dec.deg)))
+        return 20.18, 18.84, 0.01  # g_Kron, i_Kron, sep_arcsec
+
+    monkeypatch.setattr(search_mod, "query_ps1_gi_mags", fake_ps1)
+
+    result = _enrich_with_ps1_photometry(matches)
+
+    # Only the mass-less DESI row triggered a PS1 query.
+    assert len(queried) == 1
+    assert queried[0][0] == 177.78
+    # DESI row got photometry; GLADE row stayed NaN.
+    assert math.isclose(result.loc[0, "gmag"], 20.18)
+    assert math.isclose(result.loc[0, "imag"], 18.84)
+    assert math.isclose(result.loc[0, "ps1_sep_arcsec"], 0.01)
+    assert np.isnan(result.loc[1, "gmag"])
+    assert np.isnan(result.loc[1, "ps1_sep_arcsec"])
+
+
+def test_enrich_with_ps1_handles_no_match(monkeypatch):
+    # Faint high-z galaxy below PS1 depth -> no match -> columns stay NaN.
+    matches = pd.DataFrame({"ra": [88.20], "dec": [74.20], "z": [0.965]})
+
+    monkeypatch.setattr(search_mod, "query_ps1_gi_mags", lambda coord, match_radius=None: (None, None, None))
+
+    result = _enrich_with_ps1_photometry(matches)
+
+    assert np.isnan(result.loc[0, "gmag"])
+    assert np.isnan(result.loc[0, "imag"])
+    assert np.isnan(result.loc[0, "ps1_sep_arcsec"])

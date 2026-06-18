@@ -7,7 +7,7 @@ from astropy.coordinates import SkyCoord
 import astropy.units as u
 from .config import TARGETS, DEFAULT_IMPACT_KPC, VIZIER_CATALOGS, DEFAULT_Z_EPS, MIN_Z_SEARCH
 from .utils import parse_coord, get_angular_radius, calculate_impact_parameter
-from .engines import NedEngine, VizierEngine
+from .engines import NedEngine, VizierEngine, query_ps1_gi_mags
 
 PHOTO_Z_ERROR_COLUMNS = ("z_phot_err", "e_zphot", "z_best_err")
 DUPLICATE_SEPARATION = 10.0 * u.arcsec
@@ -116,6 +116,56 @@ def _deduplicate_matches(all_matches: pd.DataFrame) -> pd.DataFrame:
     return all_matches.iloc[kept_positions].reset_index(drop=True)
 
 
+def _needs_photometry(row: pd.Series) -> bool:
+    """True when a row has no usable catalog stellar mass (so PS1 should fill it)."""
+    mstar = pd.to_numeric(pd.Series([row.get("M_star")]), errors="coerce").iloc[0]
+    return not (pd.notna(mstar) and mstar > 0.0)
+
+
+def _enrich_with_ps1_photometry(matches: pd.DataFrame) -> pd.DataFrame:
+    """Attach PS1 g & i magnitudes to rows lacking a catalog stellar mass.
+
+    Writes standardized ``gmag``/``imag`` columns (Kron-preferred, see
+    ``query_ps1_gi_mags``) plus a ``ps1_sep_arcsec`` provenance column. These are
+    consumed downstream by the Taylor+2011 g-i/M_i estimator in
+    ``generate_galaxy_plots``. Without this, DESI VII/292 galaxies (which carry no
+    photometry) would every one fall back to an assumed L* mass. Rows that
+    already have a catalog mass (e.g. GLADE+) are left untouched and not queried.
+    """
+    if matches.empty:
+        return matches
+
+    g_out = pd.to_numeric(matches.get("gmag", pd.Series(index=matches.index, dtype="float64")),
+                          errors="coerce").to_numpy(dtype="float64", copy=True)
+    i_out = pd.to_numeric(matches.get("imag", pd.Series(index=matches.index, dtype="float64")),
+                          errors="coerce").to_numpy(dtype="float64", copy=True)
+    sep_out = pd.Series(math.nan, index=matches.index, dtype="float64").to_numpy(copy=True)
+
+    n_filled = 0
+    for pos in range(len(matches)):
+        row = matches.iloc[pos]
+        if not _needs_photometry(row):
+            continue
+        coord = SkyCoord(ra=float(row["ra"]) * u.deg, dec=float(row["dec"]) * u.deg)
+        g_mag, i_mag, sep = query_ps1_gi_mags(coord)
+        if g_mag is not None:
+            g_out[pos] = g_mag
+        if i_mag is not None:
+            i_out[pos] = i_mag
+        if sep is not None:
+            sep_out[pos] = sep
+        if g_mag is not None and i_mag is not None:
+            n_filled += 1
+
+    matches = matches.copy()
+    matches["gmag"] = g_out
+    matches["imag"] = i_out
+    matches["ps1_sep_arcsec"] = sep_out
+    if n_filled:
+        print(f"    PS1 cross-match: filled g+i photometry for {n_filled} galaxy(ies).")
+    return matches
+
+
 def run_search(impact_kpc: float = DEFAULT_IMPACT_KPC, output_dir: str = "results", z_eps: float = DEFAULT_Z_EPS):
     """Run the galaxy search for all targets."""
     if not os.path.exists(output_dir):
@@ -184,6 +234,10 @@ def run_search(impact_kpc: float = DEFAULT_IMPACT_KPC, output_dir: str = "result
             all_matches = pd.concat(target_matches, ignore_index=True)
             
             all_matches = _deduplicate_matches(all_matches)
+
+            # Backfill stellar-mass photometry from PS1 for catalogs that lack it
+            # (notably DESI VII/292, which provides only photo-z).
+            all_matches = _enrich_with_ps1_photometry(all_matches)
 
             out_path = os.path.abspath(os.path.join(output_dir, f"{name.lower()}_galaxies.csv"))
             all_matches.to_csv(out_path, index=False)

@@ -90,6 +90,52 @@ class VizierEngine(BaseEngine):
             return pd.DataFrame()
 
 
+PS1_CATALOG = "II/349/ps1"
+PS1_MATCH_RADIUS = 3.0 * u.arcsec
+
+
+def query_ps1_gi_mags(coord: SkyCoord, match_radius: u.Quantity = PS1_MATCH_RADIUS):
+    """Nearest Pan-STARRS1 (II/349/ps1) source to ``coord`` within ``match_radius``.
+
+    Returns ``(g_mag, i_mag, sep_arcsec)``. Kron magnitudes are preferred over
+    mean-PSF mags: Taylor+2011 (the g-i/M_i estimator these feed) was calibrated
+    on Kron-like GAMA total magnitudes, and Kron better captures extended-source
+    flux. PS1 AB mags are used directly; the small PS1->SDSS color terms are
+    neglected at the order-of-magnitude precision of these halo-mass estimates.
+
+    The DESI VII/292 photo-z catalog carries no photometry, so this PS1 match is
+    the only route to a measured stellar mass for DESI-only sightlines. Faint,
+    high-z galaxies fall below the shallow PS1 3pi depth and simply will not
+    match; callers then fall back to an assumed mass. Either of ``g_mag`` /
+    ``i_mag`` may be ``None`` if not finite, and the result is
+    ``(None, None, None)`` on no match or query failure.
+    """
+    try:
+        v = Vizier(columns=["RAJ2000", "DEJ2000", "gmag", "imag", "gKmag", "iKmag"], row_limit=50)
+        res = v.query_region(coord, radius=match_radius, catalog=PS1_CATALOG)
+    except Exception as e:
+        print(f"PS1 query failed: {e}")
+        return None, None, None
+
+    if not res or len(res[0]) == 0:
+        return None, None, None
+
+    t = res[0]
+    matches = SkyCoord(t["RAJ2000"], t["DEJ2000"], unit="deg")
+    seps = coord.separation(matches).arcsec
+    j = int(np.argmin(seps))
+
+    def _pick(kron_col: str, psf_col: str):
+        for col in (kron_col, psf_col):
+            if col in t.colnames:
+                val = t[col][j]
+                if val is not None and np.isfinite(val):
+                    return float(val)
+        return None
+
+    return _pick("gKmag", "gmag"), _pick("iKmag", "imag"), float(seps[j])
+
+
 def _is_desi_dr8_north(catalog_id: str) -> bool:
     return catalog_id.lower() == "vii/292/north"
 

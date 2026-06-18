@@ -1,2 +1,2 @@
-id,ra,dec,release,brickid,objid,type,pstar,gmmcomp,z,e_zphot,fclean,fqual,catalog,impact_kpc
-8001633333002621,71.428678070868,70.305018698017,8001,633333,2621,REX,0.023,E4,0.222,0.057,1,1,VII/292/north,60.87103507567883
+id,ra,dec,release,brickid,objid,type,pstar,gmmcomp,z,e_zphot,fclean,fqual,catalog,impact_kpc,gmag,imag,ps1_sep_arcsec
+8001633333002621,71.428678070868,70.305018698017,8001,633333,2621,REX,0.023,E4,0.222,0.057,1,1,VII/292/north,60.87103507567883,,,

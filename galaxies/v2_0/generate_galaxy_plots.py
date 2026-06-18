@@ -319,6 +319,9 @@ tr:hover{background:rgba(255,255,255,.02)}
   font-weight:600;text-transform:uppercase;letter-spacing:.02em}
 .badge-yes{background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.3)}
 .badge-no{background:rgba(16,185,129,.15);color:#34d399;border:1px solid rgba(16,185,129,.3)}
+.badge-catalog{background:rgba(16,185,129,.15);color:#34d399;border:1px solid rgba(16,185,129,.3)}
+.badge-photometric{background:rgba(59,130,246,.15);color:#60a5fa;border:1px solid rgba(59,130,246,.3)}
+.badge-assumed{background:rgba(245,166,35,.15);color:#fbbf24;border:1px solid rgba(245,166,35,.3)}
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
 @media(max-width:1024px){.grid-2{grid-template-columns:1fr}}
 </style>
@@ -327,7 +330,7 @@ tr:hover{background:rgba(255,255,255,.02)}
 <div class="container">
 <header>
   <h1>FRB Sightline Galaxy Intersection Dashboard</h1>
-  <p class="subtitle">Per-target intervening galaxies &amp; virial halo calculations &mdash; 12 northern-cap sightlines</p>
+  <p class="subtitle">Per-target intervening galaxies &amp; virial halo calculations &mdash; __N_SIGHTLINES__ northern-cap sightlines</p>
 </header>
 <div class="tabs" id="tabs"></div>
 <div id="panels"></div>
@@ -369,12 +372,15 @@ def build_html(target_sections):
             f_x = np.log(1 + x_val) - x_val / (1 + x_val)
             f_c = np.log(1 + g['c']) - g['c'] / (1 + g['c'])
             mass_frac = f_x / f_c
+            src = g.get('mass_source', 'assumed')
+            src_badge = f"badge-{src}" if src in ('catalog', 'photometric', 'assumed') else 'badge-assumed'
             trows += f"""<tr>
               <td style="font-weight:bold;color:#f1f5f9">z={g['z_gal']:.4f}</td>
               <td>{sec['z_frb']:.3f}</td>
               <td>{g['d_com']:.1f} Mpc</td>
               <td style="font-weight:bold;color:#f5a623">{g['impact']:.1f} kpc</td>
               <td>{g['r_vir']:.1f} kpc</td>
+              <td>log M★={g['log_mstar']:.2f} <span class="badge {src_badge}">{src}</span></td>
               <td>10<sup>{np.log10(g['m_halo']):.2f}</sup> M<sub>☉</sub></td>
               <td>{mass_frac*100:.1f}%</td>
               <td><span class="badge {badge}">{intersect}</span></td>
@@ -399,7 +405,7 @@ def build_html(target_sections):
     <table>
       <thead><tr>
         <th>Galaxy</th><th>z (FRB)</th><th>Comoving Dist</th><th>Impact b</th>
-        <th>R_vir</th><th>Halo Mass</th><th>Encl. Mass %</th><th>Intersects R₂₀₀</th>
+        <th>R_vir</th><th>Stellar Mass (source)</th><th>Halo Mass</th><th>Encl. Mass %</th><th>Intersects R₂₀₀</th>
       </tr></thead>
       <tbody>{trows}</tbody>
     </table>
@@ -407,6 +413,8 @@ def build_html(target_sections):
 </div>"""
 
     html = _HTML_HEAD.replace(
+        '__N_SIGHTLINES__', str(len(target_sections))
+    ).replace(
         '<div class="tabs" id="tabs"></div>',
         f'<div class="tabs" id="tabs">{tabs_html}</div>'
     ).replace(

@@ -75,6 +75,7 @@ dependencies:
 
     # Plotting Styles
     - scienceplots>=2.0  # Matplotlib publication styles (used in galaxies/ figures); needs matplotlib<3.11
+    - adjustText>=0.8  # Deconflict overlapping labels in galaxies/ sightline figures
 
     # Fitting and Optimization
     - lmfit>=1.0.0  # Non-linear least-squares minimization

@@ -63,7 +63,7 @@ dependencies:
   
   # ===== Package Management =====
   - pip
-  - setuptools>=65
+  - setuptools>=65,<81  # <81: pygedm imports pkg_resources, removed in setuptools 81
   - wheel
   
   # ===== Pip-only Packages =====
@@ -83,3 +83,12 @@ dependencies:
     
     # Galactic Models
     - mwprop>=0.1.0  # Milky Way electron density models (NE2001)
+    # pygedm: NE2001/YMW16 Galactic DM+scattering for the FRB DM budget
+    # (galaxies/v2_0/sightline_budget.py). Optional; the module degrades to
+    # DM_MW=NaN if absent. macOS arm64 has no wheel and the pip build needs
+    # netlib libf2c: build libf2c.a from netlib.org/f2c/libf2c.zip (make -f
+    # makefile.u), copy its f2c.h into the pygedm sdist ne21c/ dir, then
+    # `LIBRARY_PATH=<libf2c_dir> pip install .`. Runtime also needs the
+    # setuptools<81 pin above; the scipy>=1.14 integrate.simps removal is
+    # shimmed in sightline_budget._load_pygedm.
+    - pygedm>=3.3.0  # offline NE2001/YMW16/YT2020 (see build note above)

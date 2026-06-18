@@ -46,3 +46,11 @@ dynesty>=2.1.0  # Optional, for evidence-based model selection
 
 # Galactic electron density models for physical priors
 mwprop>=0.1.0  # Optional, for NE2001 scattering predictions
+
+# Galactic DM + scattering for the FRB DM budget (galaxies/v2_0/sightline_budget.py).
+# Optional; the module degrades to DM_MW=NaN if absent. macOS arm64 has no wheel
+# and the pip build needs netlib libf2c (build libf2c.a from netlib.org/f2c/libf2c.zip,
+# copy f2c.h into the pygedm sdist ne21c/, then LIBRARY_PATH=<libf2c_dir> pip install .).
+# Requires setuptools<81 (pkg_resources); scipy>=1.14 integrate.simps is shimmed in-code.
+setuptools<81  # pygedm imports pkg_resources, removed in setuptools 81
+pygedm>=3.3.0  # offline NE2001/YMW16/YT2020 (see build note above)

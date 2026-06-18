@@ -34,3 +34,18 @@ VIZIER_CATALOGS = {
     "DESI_DR8_NORTH": "VII/292/north",  # High-Dec northern sky coverage
     "SDSS_DR12": "V/147/sdss12",         # Stable spectroscopic/photometric catalog
 }
+
+# Opt-in extra search engines (TAP-backed). Disabled by default so run_search()
+# output is byte-for-byte unchanged unless explicitly enabled.
+EXTRA_SEARCH_ENGINES = {"DESI_DR1": "desi_dr1.zpix"}
+
+# Opt-in enricher catalogs (cross-matched photometry, not foreground search).
+ENRICHER_CATALOGS = {
+    "DESI_LS_DR10": "ls_dr10.tractor",
+    "ALLWISE": "II/328/allwise",
+    "GALEX_AIS": "II/335/galex_ais",
+    "2MASS_XSC": "VII/233/xsc",
+}
+
+ENABLE_EXTRA_ENGINES = False
+ENABLE_ENRICHERS = False

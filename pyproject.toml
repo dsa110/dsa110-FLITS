@@ -13,7 +13,8 @@ authors = [{ name = "Jakob Faber" }]
 dependencies = [
   "numpy>=1.20",
   "scipy>=1.7",
-  "matplotlib>=3.4",
+  "matplotlib>=3.4,<3.11",
+  "SciencePlots>=2.0",
   "pandas>=1.3",
   "emcee>=3.1",
   "lmfit>=1.0",
@@ -41,4 +42,3 @@ testpaths = ["tests", "scattering/scripts", "scattering/scat_analysis/tests", "s
 filterwarnings = [
     "ignore::DeprecationWarning",
 ]
-

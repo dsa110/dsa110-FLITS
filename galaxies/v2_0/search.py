@@ -5,9 +5,11 @@ import math
 import pandas as pd
 from astropy.coordinates import SkyCoord
 import astropy.units as u
-from .config import TARGETS, DEFAULT_IMPACT_KPC, VIZIER_CATALOGS, DEFAULT_Z_EPS, MIN_Z_SEARCH
+from .config import TARGETS, DEFAULT_IMPACT_KPC, VIZIER_CATALOGS, DEFAULT_Z_EPS, MIN_Z_SEARCH, ENABLE_EXTRA_ENGINES
 from .utils import parse_coord, get_angular_radius, calculate_impact_parameter
 from .engines import NedEngine, VizierEngine, query_ps1_gi_mags
+from .engines_extra import DesiDr1Engine
+from .build_unified import build_for_target
 
 PHOTO_Z_ERROR_COLUMNS = ("z_phot_err", "e_zphot", "z_best_err")
 DUPLICATE_SEPARATION = 10.0 * u.arcsec
@@ -166,7 +168,7 @@ def _enrich_with_ps1_photometry(matches: pd.DataFrame) -> pd.DataFrame:
     return matches
 
 
-def run_search(impact_kpc: float = DEFAULT_IMPACT_KPC, output_dir: str = "results", z_eps: float = DEFAULT_Z_EPS):
+def run_search(impact_kpc: float = DEFAULT_IMPACT_KPC, output_dir: str = "results", z_eps: float = DEFAULT_Z_EPS, build_unified: bool = False):
     """Run the galaxy search for all targets."""
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
@@ -174,6 +176,10 @@ def run_search(impact_kpc: float = DEFAULT_IMPACT_KPC, output_dir: str = "result
     engines = [NedEngine()]
     for cat_name, cat_id in VIZIER_CATALOGS.items():
         engines.append(VizierEngine(cat_id))
+    if ENABLE_EXTRA_ENGINES:
+        # Opt-in DESI DR1 zpix spec-z engine. Covers only 3/12 targets
+        # (Whitney/Phineas/Casey); returns empty elsewhere and degrades gracefully.
+        engines.append(DesiDr1Engine())
     
     summary_data = []
     
@@ -242,6 +248,9 @@ def run_search(impact_kpc: float = DEFAULT_IMPACT_KPC, output_dir: str = "result
             out_path = os.path.abspath(os.path.join(output_dir, f"{name.lower()}_galaxies.csv"))
             all_matches.to_csv(out_path, index=False)
             print(f"  Found {len(all_matches)} unique foreground galaxies. Saved to {out_path}")
+            if build_unified:
+                # Opt-in: derive the {name.lower()}_unified.csv alongside the galaxies CSV.
+                build_for_target(name, ra_str, dec_str, z_frb, results_dir=output_dir)
             summary_data.append({
                 'name': name,
                 'target_id': i+1,

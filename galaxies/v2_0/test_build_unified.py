@@ -1,0 +1,168 @@
+import math
+import os
+
+import numpy as np
+import pandas as pd
+from astropy.coordinates import SkyCoord
+import astropy.units as u
+
+from galaxies.v2_0.build_unified import build_for_target, build_unified_records
+
+
+RESULTS_DIR = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+    "results",
+)
+
+
+def _sightline(ra_str, dec_str):
+    coord = SkyCoord(ra_str, dec_str, unit=(u.hourangle, u.deg))
+    return coord.ra.deg, coord.dec.deg
+
+
+def test_zach_unified_columns_and_glade_mass():
+    sight_ra, sight_dec = _sightline("20h40m47.886s", "+72d52m56.378s")
+    matches = pd.read_csv(os.path.join(RESULTS_DIR, "zach_galaxies.csv"))
+
+    df = build_unified_records(matches, 0.043, sight_ra, sight_dec, enrich=False)
+
+    expected_columns = {
+        "logM_best",
+        "mass_source",
+        "mass_method",
+        "M_halo",
+        "logM_halo",
+        "R_vir_kpc",
+        "r_s",
+        "c",
+        "b_over_rvir",
+        "intersects_rvir",
+        "pred_tau_scat_ms_1GHz",
+        "pred_scint_bw_khz",
+        "scattering_rank",
+        "dm_halo",
+        "dm_cool",
+        "cool_fc",
+        "pred_mgii_wr",
+        "cgm_extractable_flags",
+        "is_star_forming",
+        "metallicity_12logOH",
+    }
+    assert expected_columns.issubset(df.columns)
+    assert list(df["mass_source"]) == ["glade_catalog", "glade_catalog"]
+    np.testing.assert_allclose(df["logM_best"], matches["M_star"])
+    assert (df["intersects_rvir"] == (df["impact_kpc"] <= df["R_vir_kpc"])).all()
+
+    for flags in df["cgm_extractable_flags"]:
+        assert isinstance(flags, dict)
+        assert flags["stellar_mass"] == "MEASURED"
+        assert flags["dm_halo"] == "PREDICTED"
+        assert flags["desi_spectro"] == "NOT_AVAILABLE"
+
+    assert np.isfinite(df["pred_tau_scat_ms_1GHz"]).any()
+    assert (df["pred_tau_scat_ms_1GHz"].dropna() >= 0).all()
+    assert int(df["scattering_rank"].min()) == 1
+
+
+def test_phineas_unified_mass_sources_and_predictions():
+    sight_ra, sight_dec = _sightline("11h51m07.52s", "+71d41m44.3s")
+    matches = pd.read_csv(os.path.join(RESULTS_DIR, "phineas_galaxies.csv"))
+
+    df = build_unified_records(matches, 0.271, sight_ra, sight_dec, enrich=False)
+
+    assert df.loc[0, "mass_source"] == "ps1_taylor"
+    assert "taylor" in df.loc[0, "mass_method"]
+    assert math.isfinite(df.loc[0, "logM_best"])
+    assert list(df.loc[1:, "mass_source"]) == ["assumed", "assumed"]
+    assert list(df.loc[1:, "logM_best"]) == [10.0, 10.0]
+    assert df.loc[1, "cgm_extractable_flags"]["stellar_mass"] == "PREDICTED"
+    assert df.loc[2, "cgm_extractable_flags"]["stellar_mass"] == "PREDICTED"
+
+    assert df["dm_halo"].map(math.isfinite).all()
+    assert df["pred_tau_scat_ms_1GHz"].map(math.isfinite).all()
+    assert ((df["cool_fc"] >= 0.0) & (df["cool_fc"] <= 1.0)).all()
+    for flags in df["cgm_extractable_flags"]:
+        assert flags["desi_spectro"] == "NOT_AVAILABLE"
+        assert flags["wise"] == "NOT_AVAILABLE"
+
+
+def test_build_for_target_uses_name_lower_path(tmp_path):
+    results_dir = tmp_path / "results"
+    results_dir.mkdir()
+    pd.DataFrame(
+        [
+            {
+                "ra": 310.2033,
+                "dec": 72.8711,
+                "z": 0.04068,
+                "impact_kpc": 19.4,
+                "catalog": "VII/291/glade",
+                "M_star": 10.0,
+            }
+        ]
+    ).to_csv(results_dir / "zach_galaxies.csv", index=False)
+
+    df = build_for_target(
+        "Zach",
+        "20h40m47.886s",
+        "+72d52m56.378s",
+        0.043,
+        results_dir=str(results_dir),
+        enrich=False,
+    )
+
+    assert (results_dir / "zach_unified.csv").exists()
+    assert len(df) == 1
+    assert df.loc[0, "mass_source"] == "glade_catalog"
+
+    missing = build_for_target(
+        "Missing",
+        "20h40m47.886s",
+        "+72d52m56.378s",
+        0.043,
+        results_dir=str(results_dir),
+        enrich=False,
+    )
+    assert missing.empty
+    assert not (results_dir / "missing_unified.csv").exists()
+
+
+def test_empty_input_returns_empty():
+    df = build_unified_records(
+        pd.DataFrame(columns=["ra", "dec", "z", "impact_kpc", "catalog"]),
+        0.5,
+        100.0,
+        70.0,
+        enrich=False,
+    )
+
+    assert df.empty
+
+
+def test_intersects_rvir_logic():
+    matches = pd.DataFrame(
+        [
+            {
+                "ra": 10.0,
+                "dec": 10.0,
+                "z": 0.05,
+                "impact_kpc": 10.0,
+                "catalog": "VII/291/glade",
+                "M_star": 11.0,
+            },
+            {
+                "ra": 10.1,
+                "dec": 10.1,
+                "z": 0.05,
+                "impact_kpc": 5000.0,
+                "catalog": "VII/291/glade",
+                "M_star": 9.0,
+            },
+        ]
+    )
+
+    df = build_unified_records(matches, 0.5, 10.0, 10.0, enrich=False)
+
+    assert bool(df.loc[0, "intersects_rvir"])
+    assert not bool(df.loc[1, "intersects_rvir"])
+    assert (df["intersects_rvir"] == (df["impact_kpc"] <= df["R_vir_kpc"])).all()

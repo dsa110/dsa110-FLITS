@@ -42,6 +42,7 @@ dependencies:
   
   # ===== Astronomy-Specific Packages =====
   - astroquery  # Query astronomical databases (NED, SDSS, etc.)
+  - pyvo  # IVOA TAP/VO client (NOIRLab Astro Data Lab: DESI Legacy DR10, DESI DR1 spectroscopy)
   - healpy  # HEALPix for all-sky maps
   - regions  # Astronomical region handling
   
@@ -74,7 +75,7 @@ dependencies:
     - chainconsumer>=0.34.0  # MCMC chain analysis and visualization
 
     # Plotting Styles
-    - scienceplots>=2.0  # Matplotlib publication styles (used in galaxies/ figures); needs matplotlib<3.11
+    - SciencePlots>=2.0  # Matplotlib publication styles (used in galaxies/ figures); needs matplotlib<3.11
     - adjustText>=0.8  # Deconflict overlapping labels in galaxies/ sightline figures
 
     # Fitting and Optimization

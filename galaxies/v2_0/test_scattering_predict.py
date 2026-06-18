@@ -122,3 +122,31 @@ def test_cool_covering_fraction_returns_ordered_priors_and_expected_trends():
         assert 0.0 <= value <= 1.0
     assert inner_lo <= inner_fc <= inner_hi
     assert outer_lo <= outer_fc <= outer_hi
+
+
+def test_tau_scat_two_phase_adds_clumpy_cool_component():
+    # Hot-only baseline.
+    base = sp.tau_scat_ms(0.1, 5.0, 100.0, 0.3)
+    assert base is not None and base > 0.0
+
+    # Adding a clumpy cool column increases the predicted scattering.
+    two = sp.tau_scat_two_phase(0.1, 5.0, 100.0, 30.0, 0.3, cool_clump_boost=10.0)
+    assert two > base
+
+    # Zero cool DM -> reduces exactly to the hot-only screen.
+    no_cool = sp.tau_scat_two_phase(0.1, 5.0, 100.0, 0.0, 0.3, cool_clump_boost=10.0)
+    assert no_cool == pytest.approx(base)
+
+    # A larger clumpiness boost (F_cool/F_hot) raises the cool contribution.
+    more = sp.tau_scat_two_phase(0.1, 5.0, 100.0, 30.0, 0.3, cool_clump_boost=30.0)
+    assert more > two
+
+    # A missing/NaN cool column degrades to hot-only, not NaN.
+    deg = sp.tau_scat_two_phase(0.1, 5.0, 100.0, float("nan"), 0.3, cool_clump_boost=10.0)
+    assert deg == pytest.approx(base)
+
+    # Both columns bad -> None.
+    assert sp.tau_scat_two_phase(0.1, 5.0, float("nan"), float("nan"), 0.3) is None
+
+    # No geometric leverage -> 0 from each kernel (build_unified maps this to NaN).
+    assert sp.tau_scat_two_phase(0.1, 0.0, 100.0, 30.0, 0.3) == 0.0

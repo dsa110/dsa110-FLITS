@@ -235,6 +235,8 @@ _UNIFIED_COLUMNS = (
     "pred_tau_scat_ms_1GHz",
     "pred_tau_scat_ms_1GHz_lo",
     "pred_tau_scat_ms_1GHz_hi",
+    "pred_tau_hot_ms_1GHz",
+    "pred_tau_cool_ms_1GHz",
     "pred_scint_bw_khz",
     "scattering_rank",
     "cgm_extractable_flags",
@@ -361,12 +363,31 @@ def build_unified_records(matches, z_frb, sight_ra, sight_dec, enrich=True, enri
         # prediction even when the stellar mass is an assumed default.
         screen_predictable = _finite(g_scatt) and float(g_scatt) > 0.0
         if screen_predictable:
-            tau = _or_nan(scat.tau_scat_ms(f_tilde, g_scatt, dm_halo, z_gal, nu_ghz=1.0))
-            tau_lo = _or_nan(scat.tau_scat_ms(f_tilde_lo, g_scatt, dm_halo, z_gal, nu_ghz=1.0))
-            tau_hi = _or_nan(scat.tau_scat_ms(f_tilde_hi, g_scatt, dm_halo, z_gal, nu_ghz=1.0))
+            # Two-phase intervening screen: smooth hot halo (dm_halo) plus the
+            # clumpy cool CGM (dm_cool, fed by covering fraction + MgII), the
+            # latter carrying a boosted turbulence parameter. Total tau is the
+            # sum; lo/hi additionally bracket the F_cool/F_hot prior.
+            f_cool = f_tilde * scat.COOL_CLUMP_BOOST if _finite(f_tilde) else f_tilde
+            tau_hot = _or_nan(scat.tau_scat_ms(f_tilde, g_scatt, dm_halo, z_gal, nu_ghz=1.0))
+            tau_cool = _or_nan(scat.tau_scat_ms(f_cool, g_scatt, dm_cool, z_gal, nu_ghz=1.0))
+            tau = _or_nan(
+                scat.tau_scat_two_phase(f_tilde, g_scatt, dm_halo, dm_cool, z_gal, nu_ghz=1.0)
+            )
+            tau_lo = _or_nan(
+                scat.tau_scat_two_phase(
+                    f_tilde_lo, g_scatt, dm_halo, dm_cool, z_gal, nu_ghz=1.0,
+                    cool_clump_boost=scat.COOL_CLUMP_BOOST_LO,
+                )
+            )
+            tau_hi = _or_nan(
+                scat.tau_scat_two_phase(
+                    f_tilde_hi, g_scatt, dm_halo, dm_cool, z_gal, nu_ghz=1.0,
+                    cool_clump_boost=scat.COOL_CLUMP_BOOST_HI,
+                )
+            )
             scint_bw = _or_nan(scat.scint_bandwidth_khz(tau))
         else:
-            tau = tau_lo = tau_hi = scint_bw = math.nan
+            tau = tau_hot = tau_cool = tau_lo = tau_hi = scint_bw = math.nan
 
         desi_emission_measured = _has(row, "desi_emission_matched") and _boolish(row["desi_emission_matched"])
         flags = {
@@ -438,6 +459,8 @@ def build_unified_records(matches, z_frb, sight_ra, sight_dec, enrich=True, enri
                 "pred_tau_scat_ms_1GHz": tau,
                 "pred_tau_scat_ms_1GHz_lo": tau_lo,
                 "pred_tau_scat_ms_1GHz_hi": tau_hi,
+                "pred_tau_hot_ms_1GHz": tau_hot,
+                "pred_tau_cool_ms_1GHz": tau_cool,
                 "pred_scint_bw_khz": scint_bw,
                 "cgm_extractable_flags": flags,
             }

@@ -251,6 +251,55 @@ def tau_scat_ms(
     return float(max(tau, 0.0))
 
 
+# Cool CGM enhances the turbulent fluctuation parameter F_tilde relative to the
+# smooth hot halo: the cool phase shatters to ~pc cloudlets (McCourt+2018 MNRAS
+# 473,5407), and such clumpy media can dominate radio scattering despite a
+# sub-dominant electron column (Vedantham & Phinney 2019 MNRAS 483,971;
+# Ocker+2021 ApJ 911,102). F_cool/F_hot is poorly constrained, so this is an
+# explicit order-of-magnitude prior with a ~1 dex bracket.
+COOL_CLUMP_BOOST = 10.0
+COOL_CLUMP_BOOST_LO = 3.0
+COOL_CLUMP_BOOST_HI = 30.0
+
+
+def tau_scat_two_phase(
+    f_tilde: float,
+    g_scatt_val: float,
+    dm_hot: float,
+    dm_cool: float,
+    z_lens: float,
+    nu_ghz: float = 1.0,
+    cool_clump_boost: float = COOL_CLUMP_BOOST,
+) -> float | None:
+    """Two-phase intervening-screen scattering: smooth hot halo + clumpy cool CGM.
+
+    Scattering measures of independent screens add, and tau is proportional to
+    SM, so the two phases combine linearly:
+
+        tau = tau(F_tilde, dm_hot) + tau(F_tilde * cool_clump_boost, dm_cool)
+
+    The cool phase carries a smaller electron column (``dm_cool``) but a much
+    larger fluctuation parameter because it is clumpy on ~pc scales (McCourt+2018;
+    Vedantham & Phinney 2019; Ocker+2021); ``cool_clump_boost`` = F_cool/F_hot is
+    an explicit order-of-magnitude prior. A missing/NaN cool column degrades to
+    the hot-only screen; if neither phase is usable, returns None.
+    """
+    hot = tau_scat_ms(f_tilde, g_scatt_val, dm_hot, z_lens, nu_ghz=nu_ghz)
+
+    if _is_bad(f_tilde) or _is_bad(cool_clump_boost) or float(cool_clump_boost) < 0.0:
+        f_tilde_cool: float | None = None
+    else:
+        f_tilde_cool = float(f_tilde) * float(cool_clump_boost)
+    cool = tau_scat_ms(f_tilde_cool, g_scatt_val, dm_cool, z_lens, nu_ghz=nu_ghz)
+
+    if hot is None and cool is None:
+        return None
+    total = (hot or 0.0) + (cool or 0.0)
+    if not math.isfinite(total):
+        return None
+    return float(max(total, 0.0))
+
+
 def scint_bandwidth_khz(tau_scat_ms: float) -> float | None:
     """Return scintillation decorrelation bandwidth from scattering time."""
     if _is_bad(tau_scat_ms):

@@ -3,6 +3,7 @@ import os
 
 import numpy as np
 import pandas as pd
+import pytest
 from astropy.coordinates import SkyCoord
 import astropy.units as u
 
@@ -208,3 +209,43 @@ def test_background_galaxy_tau_is_not_predictable_nan_not_zero():
     assert np.isnan(bg["pred_tau_scat_ms_1GHz_hi"])
     assert np.isnan(bg["pred_scint_bw_khz"])
     assert bg["cgm_extractable_flags"]["tau_scat"] == "NOT_PREDICTABLE"
+
+
+def test_unified_tau_is_two_phase_hot_plus_cool():
+    # Foreground star-forming galaxy at small impact -> both hot and cool
+    # scattering contributions; total tau = hot + cool, and the cool clumpy
+    # phase makes the total exceed the hot-only term.
+    matches = pd.DataFrame(
+        {
+            "ra": [150.0],
+            "dec": [2.0],
+            "z": [0.20],
+            "impact_kpc": [25.0],
+            "catalog": ["TEST"],
+        }
+    )
+    df = build_unified_records(matches, 0.45, sight_ra=150.0008, sight_dec=2.0, enrich=False)
+    r = df.iloc[0]
+
+    for col in ("pred_tau_hot_ms_1GHz", "pred_tau_cool_ms_1GHz", "pred_tau_scat_ms_1GHz"):
+        assert col in df.columns
+    assert np.isfinite(r["pred_tau_scat_ms_1GHz"]) and r["pred_tau_scat_ms_1GHz"] > 0.0
+    assert np.isfinite(r["pred_tau_hot_ms_1GHz"])
+    # Total is the sum of the two phases.
+    assert r["pred_tau_scat_ms_1GHz"] == pytest.approx(
+        r["pred_tau_hot_ms_1GHz"] + np.nan_to_num(r["pred_tau_cool_ms_1GHz"]), rel=1e-6
+    )
+    # Cool component is present (>=0) and pushes the total at/above hot-only.
+    assert r["pred_tau_scat_ms_1GHz"] >= r["pred_tau_hot_ms_1GHz"]
+
+
+def test_unified_background_two_phase_tau_is_nan():
+    matches = pd.DataFrame(
+        {"ra": [150.0], "dec": [2.0], "z": [0.60], "impact_kpc": [25.0], "catalog": ["TEST"]}
+    )
+    df = build_unified_records(matches, 0.45, sight_ra=150.0008, sight_dec=2.0, enrich=False)
+    r = df.iloc[0]
+    assert np.isnan(r["pred_tau_scat_ms_1GHz"])
+    assert np.isnan(r["pred_tau_hot_ms_1GHz"])
+    assert np.isnan(r["pred_tau_cool_ms_1GHz"])
+    assert r["cgm_extractable_flags"]["tau_scat"] == "NOT_PREDICTABLE"

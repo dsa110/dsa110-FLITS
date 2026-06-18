@@ -165,7 +165,11 @@ def parse_dm_obs(path_or_name: str | None) -> float | None:
 
 
 def read_measured_tau_ms(fit_json_path: str | None) -> float | None:
-    """Return tau_1ghz (ms) from a scat_analysis fit_results.json, else None."""
+    """Return tau_1ghz (ms) from a scat_analysis fit_results.json, else None.
+
+    This is a raw parser: it returns the best-fit tau regardless of fit quality.
+    Use read_tau_fit for the quality-gated value with uncertainties.
+    """
     if not fit_json_path or not os.path.exists(fit_json_path):
         return None
     try:
@@ -179,6 +183,49 @@ def read_measured_tau_ms(fit_json_path: str | None) -> float | None:
     if not math.isfinite(tau_f) or tau_f <= 0.0:
         return None
     return float(tau_f)
+
+
+def read_tau_fit(fit_json_path: str | None) -> dict | None:
+    """Read tau_1ghz with uncertainty and quality flag from a fit_results.json.
+
+    Prefers the posterior median + 16/84 from best_params_percentiles (the
+    uncertainty-bearing summary); falls back to the best_params point estimate.
+    Returns {tau, err_minus, err_plus, quality_flag, chi2_reduced} or None when no
+    usable tau is present. The quality_flag is the pipeline's recalibrated
+    chi2-driven gate (PASS/MARGINAL/FAIL); callers decide whether to ingest.
+    """
+    if not fit_json_path or not os.path.exists(fit_json_path):
+        return None
+    try:
+        with open(fit_json_path) as fh:
+            data = json.load(fh)
+    except (OSError, ValueError):
+        return None
+    if not isinstance(data, dict):
+        return None
+
+    err_minus = err_plus = math.nan
+    tau_f = math.nan
+    pct = data.get("best_params_percentiles")
+    if isinstance(pct, dict) and isinstance(pct.get("tau_1ghz"), dict):
+        tau_pct = pct["tau_1ghz"]
+        tau_f = _f(tau_pct.get("median"))
+        err_minus = _f(tau_pct.get("err_minus"))
+        err_plus = _f(tau_pct.get("err_plus"))
+    if not math.isfinite(tau_f):
+        params = data.get("best_params", {}) or {}
+        tau_f = _f(params.get("tau_1ghz"))
+    if not math.isfinite(tau_f) or tau_f <= 0.0:
+        return None
+
+    gof = data.get("goodness_of_fit", {}) or {}
+    return {
+        "tau": float(tau_f),
+        "err_minus": err_minus,
+        "err_plus": err_plus,
+        "quality_flag": gof.get("quality_flag"),
+        "chi2_reduced": _f(gof.get("chi2_reduced")),
+    }
 
 
 _PYGEDM: Any = None
@@ -256,8 +303,13 @@ def _lookup_dm_obs(name: str, configs_dir: str | None) -> float | None:
     return parse_dm_obs(_find_burst_config_path(name, configs_dir))
 
 
-def _lookup_tau_obs(name: str, bursts_dir: str | None) -> float | None:
-    """Find a measured CHIME tau for a target across known result locations."""
+def _lookup_tau_fit(name: str, bursts_dir: str | None) -> dict | None:
+    """Find the best CHIME scattering fit for a target across result locations.
+
+    Returns the read_tau_fit dict, preferring a quality-PASS fit when several are
+    present (so a re-run that supersedes an old FAIL is picked up). Returns None
+    if no fit_results.json with a usable tau exists.
+    """
     target = name.lower()
     candidates: list[str] = []
     search_dirs = []
@@ -265,14 +317,24 @@ def _lookup_tau_obs(name: str, bursts_dir: str | None) -> float | None:
         search_dirs.append(os.path.join(bursts_dir, target))
         search_dirs.append(bursts_dir)
     search_dirs.append(os.path.join("scattering", "scat_process"))
+    seen = set()
     for d in search_dirs:
-        candidates.extend(sorted(glob.glob(os.path.join(d, f"{target}*chime*fit_results.json"))))
-        candidates.extend(sorted(glob.glob(os.path.join(d, f"{target}*fit_results.json"))))
+        for pat in (f"{target}*chime*fit_results.json", f"{target}*fit_results.json"):
+            for path in sorted(glob.glob(os.path.join(d, pat))):
+                if path not in seen:
+                    seen.add(path)
+                    candidates.append(path)
+
+    best = None
     for path in candidates:
-        tau = read_measured_tau_ms(path)
-        if tau is not None:
-            return tau
-    return None
+        fit = read_tau_fit(path)
+        if fit is None:
+            continue
+        if fit.get("quality_flag") == "PASS":
+            return fit
+        if best is None:
+            best = fit
+    return best
 
 
 def _scattering_verdict(tau_obs: float, tau_interv: float, tau_interv_hi: float, n_fg: int) -> str:
@@ -337,8 +399,27 @@ def build_sightline_budget(
 
     if dm_obs is None:
         dm_obs = _lookup_dm_obs(name, configs_dir)
-    if tau_obs is None:
-        tau_obs = _lookup_tau_obs(name, bursts_dir)
+
+    # Scattering measurement: gate ingestion on the recalibrated quality flag.
+    # An injected tau_obs (tests / manual override) is trusted as-is; otherwise a
+    # fit_results.json is ingested ONLY when quality_flag == "PASS". A present but
+    # non-PASS fit is recorded (so the verdict can say "fit present but not
+    # locked in") but its tau is withheld from the budget.
+    tau_obs_err_minus = tau_obs_err_plus = math.nan
+    tau_obs_chi2 = math.nan
+    if tau_obs is not None:
+        tau_obs_quality = "INJECTED"
+    else:
+        tau_obs_quality = None
+        fit = _lookup_tau_fit(name, bursts_dir)
+        if fit is not None:
+            tau_obs_quality = fit.get("quality_flag") or "UNKNOWN"
+            tau_obs_chi2 = _f(fit.get("chi2_reduced"))
+            if fit.get("quality_flag") == "PASS":
+                tau_obs = fit.get("tau")
+                tau_obs_err_minus = _f(fit.get("err_minus"))
+                tau_obs_err_plus = _f(fit.get("err_plus"))
+            # non-PASS: tau_obs stays None (withheld), quality recorded above
 
     dm_hot = dm_cool = 0.0
     dm_hot_cap = dm_cool_cap = 0.0
@@ -443,7 +524,16 @@ def build_sightline_budget(
         intervening_mass_confidence = "assumed"
 
     tau_obs_f = _f(tau_obs)
-    verdict_scat = _scattering_verdict(tau_obs_f, tau_int, tau_int_hi, n_fg)
+    if not math.isfinite(tau_obs_f) and tau_obs_quality not in (None, "PASS", "INJECTED"):
+        # A fit exists but failed the quality gate -> its tau is withheld.
+        verdict_scat = (
+            f"scattering fit present but quality_flag={tau_obs_quality} "
+            f"(chi2_red={tau_obs_chi2:.1f}); tau not locked in"
+            if math.isfinite(tau_obs_chi2)
+            else f"scattering fit present but quality_flag={tau_obs_quality}; tau not locked in"
+        )
+    else:
+        verdict_scat = _scattering_verdict(tau_obs_f, tau_int, tau_int_hi, n_fg)
     if z_is_placeholder:
         verdict_dm = "z_frb is a placeholder (unknown host z); cosmic & host DM budget unavailable"
     else:
@@ -465,7 +555,11 @@ def build_sightline_budget(
         "dm_intervening": f"PREDICTED ({intervening_mass_confidence} mass)",
         "dm_intervening_capped": f"PREDICTED ({dm_regime})",
         "dm_host": "RESIDUAL" if math.isfinite(dm_host) else "NOT_AVAILABLE",
-        "tau_obs": "MEASURED" if math.isfinite(tau_obs_f) else "NOT_AVAILABLE",
+        "tau_obs": (
+            f"MEASURED ({tau_obs_quality})" if math.isfinite(tau_obs_f)
+            else (f"WITHHELD ({tau_obs_quality})" if tau_obs_quality not in (None, "PASS", "INJECTED")
+                  else "NOT_AVAILABLE")
+        ),
         "tau_mw": "MODEL" if math.isfinite(_f(tau_mw_ms)) else "NOT_AVAILABLE",
         "tau_intervening": "PREDICTED",
     }
@@ -496,6 +590,10 @@ def build_sightline_budget(
         "dm_host_rest": dm_host_rest,
         "dm_host_rest_capped": dm_host_rest_capped,
         "tau_obs_ms": tau_obs_f if math.isfinite(tau_obs_f) else math.nan,
+        "tau_obs_err_minus": tau_obs_err_minus,
+        "tau_obs_err_plus": tau_obs_err_plus,
+        "tau_obs_quality": tau_obs_quality,
+        "tau_obs_chi2_reduced": tau_obs_chi2,
         "tau_mw_ms": _f(tau_mw_ms),
         "tau_intervening_ms": tau_int,
         "tau_intervening_lo": tau_int_lo,
@@ -658,8 +756,24 @@ def make_budget_figure(df: pd.DataFrame):
             ax_tau.scatter([ti], [yi], color=INTERV_COLOR, s=45, zorder=3,
                            label="predicted intervening" if yi == y[0] else None)
         if to > 0:
-            ax_tau.scatter([to], [yi], marker="D", color=TEXT_DARK, s=55, zorder=4,
-                           label="measured burst" if yi == y[0] else None)
+            tlo = _f(d["tau_obs_err_minus"].iloc[list(y).index(yi)]) if "tau_obs_err_minus" in d.columns else math.nan
+            thi = _f(d["tau_obs_err_plus"].iloc[list(y).index(yi)]) if "tau_obs_err_plus" in d.columns else math.nan
+            if math.isfinite(tlo) and math.isfinite(thi) and (tlo > 0 or thi > 0):
+                ax_tau.errorbar([to], [yi], xerr=[[max(tlo, 0)], [max(thi, 0)]], fmt="none",
+                                ecolor=TEXT_DARK, elinewidth=1.2, capsize=3, zorder=4)
+            ax_tau.scatter([to], [yi], marker="D", color=TEXT_DARK, s=55, zorder=5,
+                           label="measured burst (PASS)" if yi == y[0] else None)
+
+    # Mark sightlines with a fit present but withheld by the quality gate.
+    quality = [str(v) for v in d.get("tau_obs_quality", pd.Series([""] * len(d)))]
+    withheld_labeled = False
+    for yi, q, ti in zip(y, quality, tau_int):
+        if q in ("FAIL", "MARGINAL", "UNKNOWN"):
+            x_at = max(ti, 1e-6)
+            ax_tau.scatter([x_at], [yi], marker="x", color=HOST_COLOR, s=50, zorder=4,
+                           label="fit withheld (failed gate)" if not withheld_labeled else None)
+            withheld_labeled = True
+
     ax_tau.set_yticks(y)
     ax_tau.set_yticklabels([])
     positive = np.concatenate([tau_obs[tau_obs > 0], tau_int[tau_int > 0]]) if len(d) else np.array([])

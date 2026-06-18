@@ -62,6 +62,8 @@ ALPHA_GOOD_MIN = 3.0
 ALPHA_MARGINAL_MAX = 6.0
 CHI_SQ_RED_MARGINAL_MAX = 3.0
 CHI_SQ_RED_SUSPICIOUSLY_LOW = 0.3
+CHI_SQ_RED_GOOD_MAX = 1.5  # PASS ceiling: model fits to within the noise
+CHI_SQ_RED_FAIL_MAX = 10.0  # above this the fit is rejected outright
 R_SQ_POOR_MIN = 0.50
 R_SQ_MARGINAL_MIN = 0.70
 RESIDUAL_NORMALITY_PVALUE = 0.05
@@ -1018,6 +1020,53 @@ def downsample(data: NDArray[np.floating], f_factor=1, t_factor=1):
     return d.mean(axis=(1, 3))
 
 
+def classify_fit_quality(
+    chi2_reduced: float,
+    r_squared: float | None = None,
+    normality_pvalue: float | None = None,
+) -> tuple[str, list]:
+    """Classify fit quality from chi2_reduced (PASS / MARGINAL / FAIL).
+
+    The reduced chi-squared is the primary, trustworthy gate when the noise is
+    well estimated: a value near 1 means the model fits to within the noise. The
+    noise-weighted R^2 is deliberately NOT a gate here -- for faint (low-S/N)
+    bursts the signal variance is small relative to the noise, so R^2 is low even
+    for a correct model (a fit at chi2_red ~ 1 can have R^2 well below 0.5).
+    Treating R^2 < 0.5 as a hard failure (the previous behavior) spuriously
+    rejected good faint-burst fits. R^2 and the residual-normality p-value are
+    reported as informational notes only; note that at the ~10^4-pixel sample
+    sizes here the Shapiro normality p-value is ~0 even for excellent fits.
+
+    Returns (flag, notes) where flag is "PASS", "MARGINAL", or "FAIL".
+    """
+    notes: list = []
+    if chi2_reduced is None or not np.isfinite(chi2_reduced):
+        return "FAIL", ["Non-finite chi2_red"]
+
+    if chi2_reduced > CHI_SQ_RED_FAIL_MAX:
+        flag = "FAIL"
+        notes.append(f"Catastrophic chi2_red ({chi2_reduced:.1f})")
+    elif chi2_reduced > CHI_SQ_RED_GOOD_MAX:
+        flag = "MARGINAL"
+        notes.append(f"Elevated chi2_red ({chi2_reduced:.2f})")
+    elif chi2_reduced < CHI_SQ_RED_SUSPICIOUSLY_LOW:
+        flag = "MARGINAL"
+        notes.append(f"Suspiciously low chi2_red ({chi2_reduced:.2f}); noise may be overestimated")
+    else:
+        flag = "PASS"
+
+    # Informational only -- these do NOT change the flag.
+    if r_squared is not None and np.isfinite(r_squared) and r_squared < R_SQ_MARGINAL_MIN:
+        notes.append(f"Low weighted R2 ({r_squared:.3f}) [informational; expected for low-S/N bursts]")
+    if (
+        normality_pvalue is not None
+        and np.isfinite(normality_pvalue)
+        and normality_pvalue < RESIDUAL_NORMALITY_PVALUE
+    ):
+        notes.append(f"Non-normal residuals (p={normality_pvalue:.1e}) [informational at large N]")
+    return flag, notes
+
+
 def goodness_of_fit(
     data: NDArray[np.floating],
     model: NDArray[np.floating],
@@ -1084,30 +1133,11 @@ def goodness_of_fit(
     dw_stat = np.sum(diffs ** 2) / np.sum(data_flat ** 2)
     # autocorr_pass = RESIDUAL_AUTOCORR_DW_MIN <= dw_stat <= RESIDUAL_AUTOCORR_DW_MAX
     
-    # 6. Quality Flag
-    quality = "PASS"
-    notes = []
-    
-    if chi2_reduced > 10.0:
-        quality = "FAIL"
-        notes.append(f"Catastrophic chi2_red ({chi2_reduced:.1f})")
-    elif chi2_reduced > CHI_SQ_RED_MARGINAL_MAX:
-        quality = "FAIL" # Strict failure per guide
-        notes.append(f"High chi2_red ({chi2_reduced:.2f})")
-    elif chi2_reduced < CHI_SQ_RED_SUSPICIOUSLY_LOW:
-        quality = "MARGINAL"
-        notes.append(f"Low chi2_red ({chi2_reduced:.2f})")
-        
-    if r_squared < R_SQ_POOR_MIN:
-        quality = "FAIL"
-        notes.append(f"Poor R2 ({r_squared:.3f})")
-    elif r_squared < R_SQ_MARGINAL_MIN:
-        if quality == "PASS": quality = "MARGINAL"
-        notes.append(f"Marginal R2 ({r_squared:.3f})")
-        
-    if not normality_pass:
-        if quality == "PASS": quality = "MARGINAL"
-        notes.append(f"Non-normal residuals (p={normality_pvalue:.1e})")
+    # 6. Quality Flag -- driven by reduced chi-squared (the trustworthy gate when
+    # noise is well estimated). R^2 and normality are informational only; see
+    # classify_fit_quality for why noise-weighted R^2 is not a gate for faint
+    # bursts.
+    quality, notes = classify_fit_quality(chi2_reduced, r_squared, normality_pvalue)
 
     # Autocorrelation of profile
     residual_profile = np.sum(residual, axis=0)

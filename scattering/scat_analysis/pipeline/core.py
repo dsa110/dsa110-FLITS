@@ -35,6 +35,51 @@ from .diagnostics import BurstDiagnostics, create_fit_summary_plot, create_four_
 
 log = logging.getLogger(__name__)
 
+
+def build_safe_results(results: Dict[str, Any]) -> Dict[str, Any]:
+    """Assemble the JSON-serializable fit-results dict, including posterior errors.
+
+    Crucially this persists per-parameter posterior percentiles (median, 16/84,
+    err_minus/err_plus) for both the best model and every scanned model -- the
+    nested sampler computes them but the earlier save path discarded them, so no
+    fit (even a good one) yielded tau +/- sigma. ``best_params_percentiles`` is
+    the headline: it carries tau_1ghz with its uncertainty. Results without a
+    ``percentiles`` attribute (e.g. the emcee/BIC branch) degrade to None.
+    """
+    best_params = results.get("best_params")
+    if dataclasses.is_dataclass(best_params) and not isinstance(best_params, type):
+        best_params = dataclasses.asdict(best_params)
+    elif hasattr(best_params, "__dict__"):
+        best_params = dict(best_params.__dict__)
+
+    all_results = results.get("all_results", {}) or {}
+    best_key = results.get("best_key")
+
+    all_res_summary: Dict[str, Any] = {}
+    for k, v in all_results.items():
+        if k == "bayes_factors":
+            continue
+        all_res_summary[k] = {
+            "log_evidence": getattr(v, "log_evidence", None),
+            "log_evidence_err": getattr(v, "log_evidence_err", None),
+            "percentiles": getattr(v, "percentiles", None),
+        }
+
+    best_res = all_results.get(best_key) if isinstance(all_results, dict) else None
+    best_percentiles = getattr(best_res, "percentiles", None)
+
+    return {
+        "best_model": best_key,
+        "best_params": best_params,
+        "best_params_percentiles": best_percentiles,
+        "param_names": results.get("param_names"),
+        "goodness_of_fit": results.get("goodness_of_fit"),
+        "dm_init": results.get("dm_init"),
+        "convergence": results.get("loop_stats"),
+        "all_results": all_res_summary,
+    }
+
+
 class BurstPipeline:
     """Main orchestrator for the fitting pipeline."""
 
@@ -614,33 +659,8 @@ class BurstPipeline:
                             return obj.tolist()
                         return super().default(obj)
 
-                # Prepare safe dict
-                best_params = results.get("best_params")
-                if dataclasses.is_dataclass(best_params):
-                    best_params = dataclasses.asdict(best_params)
-                elif hasattr(best_params, "__dict__"):
-                    best_params = best_params.__dict__
-
-                # Include a summary of all model results if present
-                all_res_summary = {}
-                if "all_results" in results:
-                    for k, v in results["all_results"].items():
-                        if k == "bayes_factors":
-                            continue
-                        all_res_summary[k] = {
-                            "log_evidence": getattr(v, "log_evidence", None),
-                            "log_evidence_err": getattr(v, "log_evidence_err", None),
-                        }
-
-                safe_results = {
-                    "best_model": results.get("best_key"),
-                    "best_params": best_params,
-                    "param_names": results.get("param_names"),
-                    "goodness_of_fit": results.get("goodness_of_fit"),
-                    "dm_init": results.get("dm_init"),
-                    "convergence": results.get("loop_stats"),
-                    "all_results": all_res_summary,
-                }
+                # Prepare safe dict (persists posterior percentiles -> tau +/- sigma)
+                safe_results = build_safe_results(results)
 
                 json_path = os.path.join(self.outpath, f"{self.name}_fit_results.json")
                 with open(json_path, "w") as f:

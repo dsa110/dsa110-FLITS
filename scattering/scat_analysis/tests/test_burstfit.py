@@ -18,6 +18,7 @@ from flits.scattering.scat_analysis.burstfit import (
     compute_bic,
     downsample,
     goodness_of_fit,
+    classify_fit_quality,
     gelman_rubin,
     _POSITIVE,
 )
@@ -466,14 +467,66 @@ class TestGoodnessOfFit:
         np.random.seed(42)
         n_freq, n_time = 64, 256
         noise_std = np.ones(n_freq) * 0.1
-        
+
         data = np.random.rand(n_freq, n_time) + 1.0  # Signal at ~1
         bad_model = np.zeros((n_freq, n_time))  # Model at 0
-        
+
         gof = goodness_of_fit(data, bad_model, noise_std, n_params=5)
-        
+
         # χ²/dof should be >> 1
         assert gof['chi2_reduced'] > 10
+        assert gof['quality_flag'] == "FAIL"
+
+    def test_faint_burst_good_chi2_low_r2_passes(self):
+        """A faint burst fit to within the noise (chi2~1) must PASS despite low R².
+
+        This is the wilhelm regression: noise-weighted R² is small for a faint
+        burst even when the model is correct, so R² < 0.5 must not force a FAIL.
+        """
+        np.random.seed(0)
+        n_freq, n_time = 64, 256
+        sigma = 0.1
+        noise_std = np.ones(n_freq) * sigma
+        # Weak signal (peak ~ 1 sigma) buried in noise.
+        t = np.linspace(-5, 5, n_time)
+        bump = 0.1 * np.exp(-0.5 * (t / 0.5) ** 2)
+        true_model = np.broadcast_to(bump, (n_freq, n_time)).copy()
+        data = true_model + np.random.normal(0, sigma, (n_freq, n_time))
+
+        gof = goodness_of_fit(data, true_model, noise_std, n_params=5)
+
+        assert 0.8 < gof['chi2_reduced'] < 1.5          # fits to within the noise
+        assert gof['r_squared'] < 0.5                   # faint -> low weighted R²
+        assert gof['quality_flag'] == "PASS"            # but NOT failed on R²
+
+
+class TestClassifyFitQuality:
+    """Tests for the chi2-driven fit-quality classifier."""
+
+    def test_good_chi2_passes(self):
+        flag, _ = classify_fit_quality(1.36, r_squared=0.28)
+        assert flag == "PASS"          # wilhelm: good chi2, low R² -> PASS
+
+    def test_elevated_chi2_marginal(self):
+        flag, _ = classify_fit_quality(3.9, r_squared=0.68)
+        assert flag == "MARGINAL"      # freya
+
+    def test_catastrophic_chi2_fails(self):
+        flag, _ = classify_fit_quality(69.0, r_squared=-0.18)
+        assert flag == "FAIL"          # casey
+
+    def test_suspiciously_low_chi2_marginal(self):
+        flag, notes = classify_fit_quality(0.1)
+        assert flag == "MARGINAL"
+        assert any("low" in n.lower() for n in notes)
+
+    def test_low_r2_never_forces_fail(self):
+        # R² well below 0.5 with a healthy chi2 must not fail.
+        flag, _ = classify_fit_quality(1.0, r_squared=0.05)
+        assert flag == "PASS"
+
+    def test_nonfinite_chi2_fails(self):
+        assert classify_fit_quality(float("nan"))[0] == "FAIL"
 
 
 # ============================================================================

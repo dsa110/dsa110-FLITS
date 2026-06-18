@@ -47,6 +47,57 @@ def test_read_measured_tau_ms(tmp_path):
     assert sb.read_measured_tau_ms(str(tmp_path / "missing.json")) is None
 
 
+def test_read_tau_fit_prefers_percentiles_and_reads_quality(tmp_path):
+    p = tmp_path / "x_fit_results.json"
+    p.write_text(json.dumps({
+        "best_model": "M3",
+        "best_params": {"tau_1ghz": 0.20},
+        "best_params_percentiles": {"tau_1ghz": {"median": 0.194, "err_minus": 0.02, "err_plus": 0.03}},
+        "goodness_of_fit": {"chi2_reduced": 1.36, "quality_flag": "PASS"},
+    }))
+    fit = sb.read_tau_fit(str(p))
+    assert fit["tau"] == pytest.approx(0.194)        # median preferred over point estimate
+    assert fit["err_minus"] == pytest.approx(0.02)
+    assert fit["err_plus"] == pytest.approx(0.03)
+    assert fit["quality_flag"] == "PASS"
+    assert fit["chi2_reduced"] == pytest.approx(1.36)
+
+
+def test_budget_withholds_tau_when_fit_quality_fails(tmp_path):
+    # A FAIL fit on disk -> tau is withheld from the budget, with the reason.
+    (tmp_path / "ggg").mkdir()
+    (tmp_path / "ggg" / "ggg_chime_fit_results.json").write_text(json.dumps({
+        "best_params": {"tau_1ghz": 0.019},
+        "goodness_of_fit": {"chi2_reduced": 69.0, "quality_flag": "FAIL"},
+    }))
+    b = sb.build_sightline_budget(
+        "Ggg", "20h40m47.886s", "+72d52m56.378s", 0.30,
+        results_dir=str(tmp_path), bursts_dir=str(tmp_path),
+        dm_mw_fn=_stub_dm_mw(), dm_obs=400.0, enrich=False,
+    )
+    assert math.isnan(b["tau_obs_ms"])               # withheld, not ingested
+    assert b["tau_obs_quality"] == "FAIL"
+    assert "not locked in" in b["verdict_scattering"].lower()
+
+
+def test_budget_ingests_passing_fit_with_uncertainty(tmp_path):
+    (tmp_path / "hhh").mkdir()
+    (tmp_path / "hhh" / "hhh_chime_fit_results.json").write_text(json.dumps({
+        "best_params": {"tau_1ghz": 0.20},
+        "best_params_percentiles": {"tau_1ghz": {"median": 0.194, "err_minus": 0.02, "err_plus": 0.03}},
+        "goodness_of_fit": {"chi2_reduced": 1.36, "quality_flag": "PASS"},
+    }))
+    b = sb.build_sightline_budget(
+        "Hhh", "20h40m47.886s", "+72d52m56.378s", 0.30,
+        results_dir=str(tmp_path), bursts_dir=str(tmp_path),
+        dm_mw_fn=_stub_dm_mw(), dm_obs=400.0, enrich=False,
+    )
+    assert b["tau_obs_ms"] == pytest.approx(0.194)
+    assert b["tau_obs_err_minus"] == pytest.approx(0.02)
+    assert b["tau_obs_err_plus"] == pytest.approx(0.03)
+    assert b["tau_obs_quality"] == "PASS"
+
+
 def _write_glade_csv(path, z=0.10, impact_kpc=20.0, mstar=10.8):
     pd.DataFrame(
         [{"ra": 310.20, "dec": 72.87, "z": z, "impact_kpc": impact_kpc,

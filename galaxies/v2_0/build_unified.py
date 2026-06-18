@@ -353,10 +353,20 @@ def build_unified_records(matches, z_frb, sight_ra, sight_dec, enrich=True, enri
             agn=agn_for_scattering,
         )
         g_scatt = scat.g_scatt(z_gal, z_frb)
-        tau = _or_nan(scat.tau_scat_ms(f_tilde, g_scatt, dm_halo, z_gal, nu_ghz=1.0))
-        tau_lo = _or_nan(scat.tau_scat_ms(f_tilde_lo, g_scatt, dm_halo, z_gal, nu_ghz=1.0))
-        tau_hi = _or_nan(scat.tau_scat_ms(f_tilde_hi, g_scatt, dm_halo, z_gal, nu_ghz=1.0))
-        scint_bw = _or_nan(scat.scint_bandwidth_khz(tau))
+        # g_scatt == 0 means the intervening-screen geometry has no leverage:
+        # the galaxy is at/behind the FRB (z_gal >= z_frb) or its redshift is
+        # invalid. In that case the screen model cannot predict burst scattering,
+        # so tau is reported as "not predictable" (NaN) rather than a literal 0
+        # ("no scattering"). Foreground galaxies (g_scatt > 0) keep a finite
+        # prediction even when the stellar mass is an assumed default.
+        screen_predictable = _finite(g_scatt) and float(g_scatt) > 0.0
+        if screen_predictable:
+            tau = _or_nan(scat.tau_scat_ms(f_tilde, g_scatt, dm_halo, z_gal, nu_ghz=1.0))
+            tau_lo = _or_nan(scat.tau_scat_ms(f_tilde_lo, g_scatt, dm_halo, z_gal, nu_ghz=1.0))
+            tau_hi = _or_nan(scat.tau_scat_ms(f_tilde_hi, g_scatt, dm_halo, z_gal, nu_ghz=1.0))
+            scint_bw = _or_nan(scat.scint_bandwidth_khz(tau))
+        else:
+            tau = tau_lo = tau_hi = scint_bw = math.nan
 
         desi_emission_measured = _has(row, "desi_emission_matched") and _boolish(row["desi_emission_matched"])
         flags = {
@@ -367,7 +377,7 @@ def build_unified_records(matches, z_frb, sight_ra, sight_dec, enrich=True, enri
             "desi_spectro": "MEASURED" if desi_emission_measured else "NOT_AVAILABLE",
             "dm_halo": "PREDICTED",
             "dm_cool": "PREDICTED",
-            "tau_scat": "PREDICTED",
+            "tau_scat": "PREDICTED" if screen_predictable else "NOT_PREDICTABLE",
             "cool_covering": "PREDICTED",
         }
 

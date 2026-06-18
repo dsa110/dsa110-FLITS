@@ -124,3 +124,28 @@ def test_wise_agn_stern2012_uses_vega_color_cut_and_rejects_bad_inputs():
     assert cgm.wise_agn_stern2012(0.9) is True
     assert cgm.wise_agn_stern2012(0.5) is False
     assert cgm.wise_agn_stern2012(math.nan) is False
+
+
+def test_azimuthal_angle_phi_deg_folds_to_first_quadrant_and_known_geometry():
+    # Galaxy on the equator; major-axis PA=0 (North-South).
+    g_ra, g_dec = 150.0, 0.0
+    # Sightline due North -> bearing ~0 -> aligned with major axis -> phi ~0.
+    north = cgm.azimuthal_angle_phi_deg(g_ra, g_dec, 0.0, g_ra, g_dec + 0.01)
+    # Sightline due South -> bearing ~180 -> still along major axis -> phi ~0
+    # (exercises the 180 deg wrap that the fold must collapse).
+    south = cgm.azimuthal_angle_phi_deg(g_ra, g_dec, 0.0, g_ra, g_dec - 0.01)
+    # Sightline due East -> bearing ~90 -> perpendicular (minor axis) -> phi ~90.
+    east = cgm.azimuthal_angle_phi_deg(g_ra, g_dec, 0.0, g_ra + 0.01, g_dec)
+
+    assert north == pytest.approx(0.0, abs=1e-3)
+    assert south == pytest.approx(0.0, abs=1e-3)
+    assert east == pytest.approx(90.0, abs=1e-3)
+
+    # Always folded into [0, 90] for a range of PAs and offsets.
+    for pa in (0.0, 30.0, 75.0, 120.0, 179.0):
+        for dra, ddec in ((0.02, 0.01), (-0.03, 0.02), (0.01, -0.04)):
+            phi = cgm.azimuthal_angle_phi_deg(g_ra, g_dec, pa, g_ra + dra, g_dec + ddec)
+            assert phi is not None
+            assert 0.0 <= phi <= 90.0
+
+    assert cgm.azimuthal_angle_phi_deg(math.nan, 0.0, 0.0, 1.0, 1.0) is None

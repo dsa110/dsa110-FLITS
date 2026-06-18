@@ -79,7 +79,14 @@ def test_phineas_unified_mass_sources_and_predictions():
     assert df.loc[2, "cgm_extractable_flags"]["stellar_mass"] == "PREDICTED"
 
     assert df["dm_halo"].map(math.isfinite).all()
-    assert df["pred_tau_scat_ms_1GHz"].map(math.isfinite).all()
+    # Row 0 (z=0.241) is foreground -> finite tau prediction. Rows 1-2
+    # (z=0.519, 0.965) are background to z_frb=0.271, so the intervening-screen
+    # model has no leverage and tau is "not predictable" (NaN), not a literal 0.
+    assert math.isfinite(df.loc[0, "pred_tau_scat_ms_1GHz"])
+    assert df.loc[0, "cgm_extractable_flags"]["tau_scat"] == "PREDICTED"
+    assert df.loc[1:, "pred_tau_scat_ms_1GHz"].isna().all()
+    for idx in (1, 2):
+        assert df.loc[idx, "cgm_extractable_flags"]["tau_scat"] == "NOT_PREDICTABLE"
     assert ((df["cool_fc"] >= 0.0) & (df["cool_fc"] <= 1.0)).all()
     for flags in df["cgm_extractable_flags"]:
         assert flags["desi_spectro"] == "NOT_AVAILABLE"
@@ -166,3 +173,38 @@ def test_intersects_rvir_logic():
     assert bool(df.loc[0, "intersects_rvir"])
     assert not bool(df.loc[1, "intersects_rvir"])
     assert (df["intersects_rvir"] == (df["impact_kpc"] <= df["R_vir_kpc"])).all()
+
+
+def test_background_galaxy_tau_is_not_predictable_nan_not_zero():
+    # Two galaxies on one sightline: one foreground (z < z_frb) and one
+    # background (z >= z_frb). The intervening-screen model has no leverage for
+    # a background galaxy (g_scatt == 0), so its predicted scattering must be
+    # NaN ("not predictable"), NOT 0.0 ("no scattering"). The foreground galaxy
+    # keeps a finite prediction even with an assumed stellar mass.
+    z_frb = 0.40
+    matches = pd.DataFrame(
+        {
+            "ra": [150.0, 150.0],
+            "dec": [2.0, 2.0],
+            "z": [0.20, 0.50],          # foreground, background
+            "impact_kpc": [30.0, 30.0],
+            "catalog": ["TEST", "TEST"],
+        }
+    )
+
+    df = build_unified_records(matches, z_frb, sight_ra=150.001, sight_dec=2.0, enrich=False)
+    fg, bg = df.iloc[0], df.iloc[1]
+
+    # Foreground: real intervening screen -> finite, positive tau, flagged PREDICTED.
+    assert fg["g_scatt"] > 0.0
+    assert np.isfinite(fg["pred_tau_scat_ms_1GHz"])
+    assert fg["pred_tau_scat_ms_1GHz"] > 0.0
+    assert fg["cgm_extractable_flags"]["tau_scat"] == "PREDICTED"
+
+    # Background: no leverage -> tau (and band + scint bw) are NaN, flagged NOT_PREDICTABLE.
+    assert bg["g_scatt"] == 0.0
+    assert np.isnan(bg["pred_tau_scat_ms_1GHz"])
+    assert np.isnan(bg["pred_tau_scat_ms_1GHz_lo"])
+    assert np.isnan(bg["pred_tau_scat_ms_1GHz_hi"])
+    assert np.isnan(bg["pred_scint_bw_khz"])
+    assert bg["cgm_extractable_flags"]["tau_scat"] == "NOT_PREDICTABLE"

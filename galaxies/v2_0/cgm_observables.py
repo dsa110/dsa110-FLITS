@@ -100,7 +100,6 @@ def azimuthal_angle_phi_deg(
     )
     diff = abs((bearing - float(pa_deg)) % 180.0)
     phi = min(diff, 180.0 - diff)
-    phi = min(phi, 180.0 - phi)
     return float(min(90.0, max(0.0, phi)))
 
 

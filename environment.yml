@@ -15,7 +15,7 @@ dependencies:
   - h5py>=3.0
   
   # ===== Plotting and Visualization =====
-  - matplotlib>=3.4.0
+  - matplotlib>=3.4.0,<3.11  # <3.11: scienceplots 2.2.1 uses matplotlib.style.core, removed in mpl 3.11
   - seaborn  # For enhanced statistical visualizations
   
   # ===== Interactive Computing =====
@@ -72,8 +72,11 @@ dependencies:
     - dynesty>=2.1.0  # Nested sampling for Bayesian evidence
     - corner>=2.2.0  # Corner plots for MCMC diagnostics
     - chainconsumer>=0.34.0  # MCMC chain analysis and visualization
-    
-    # Fitting and Optimization  
+
+    # Plotting Styles
+    - scienceplots>=2.0  # Matplotlib publication styles (used in galaxies/ figures); needs matplotlib<3.11
+
+    # Fitting and Optimization
     - lmfit>=1.0.0  # Non-linear least-squares minimization
     
     # Galactic Models

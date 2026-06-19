@@ -34,13 +34,11 @@ except ImportError:
     pq = None
     HAS_PYARROW = False
 
-# Add parent directory to path for shared config import
-sys.path.insert(0, str(pathlib.Path(__file__).parent.parent / "v1_0"))
-from config import (
-    TARGETS_TUPLE as TARGETS,
-    angular_diameter_distance_fast,
-    R_PHYS_KPC,
-)
+# Shared sightline list + cosmology from the canonical v2.0 config module.
+# TARGETS is (name, ra, dec, z_max); D_A is computed directly from COSMO
+# (called once on the 12 sightlines, so the v1.0 interpolation table is moot).
+sys.path.insert(0, str(pathlib.Path(__file__).parent.parent / "v2_0"))
+from config import TARGETS, COSMO, DEFAULT_IMPACT_KPC
 
 # ───────────────────────────── CONFIGURATION ──────────────────────────────
 CSV_USECOLS = [1, 3, 205]            # 0-based indices: raMean, decMean, z_phot0
@@ -51,11 +49,11 @@ CHUNK_ROWS = 2_000_000               # rows to process at once
 
 def build_beam_metadata():
     """Build beam metadata using fast cosmology lookup."""
-    centres = [SkyCoord(ra, dec, frame="icrs") for ra, dec, _ in TARGETS]
-    # Use fast lookup: theta = impact_kpc / D_A(z)
-    z_arr = np.array([z for _, _, z in TARGETS])
-    d_a = angular_diameter_distance_fast(z_arr)  # Mpc
-    theta_max = (R_PHYS_KPC / 1000.0) / d_a  # radians
+    centres = [SkyCoord(ra, dec, frame="icrs") for _, ra, dec, _ in TARGETS]
+    # theta = impact_kpc / D_A(z)
+    z_arr = np.array([z for *_, z in TARGETS])
+    d_a = COSMO.angular_diameter_distance(z_arr).to(u.Mpc).value  # Mpc
+    theta_max = (DEFAULT_IMPACT_KPC / 1000.0) / d_a  # radians
     ra0 = np.array([c.ra.rad for c in centres])
     dec0 = np.array([c.dec.rad for c in centres])
     return centres, list(theta_max), ra0, dec0
@@ -112,7 +110,7 @@ def main(catalog_path: pathlib.Path, make_parquet: bool = False):
         z_arr = chunk["z_phot0"].values
         d_a = COSMO.angular_diameter_distance(z_arr)  # Quantity[Mpc]
 
-        for idx, (_, _, z_lim) in enumerate(TARGETS):
+        for idx, (_, _, _, z_lim) in enumerate(TARGETS):
             zmask = z_arr <= z_lim
             if not np.any(zmask):
                 continue
@@ -158,7 +156,7 @@ def to_parquet(csv_path: pathlib.Path, parquet_path: pathlib.Path):
 
 def write_results(matches: dict[int, list[pd.DataFrame]]):
     summary = []
-    for idx, (ra, dec, zmax) in enumerate(TARGETS):
+    for idx, (_, ra, dec, zmax) in enumerate(TARGETS):
         if matches[idx]:
             df = pd.concat(matches[idx], ignore_index=True)
             fname = f"beam_{idx+1:02d}_{ra}_{dec}_matches.csv".replace(" ", "")

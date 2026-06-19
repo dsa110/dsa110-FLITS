@@ -2,7 +2,7 @@
 # ==========================================================
 # Run Configuration for 'zach'
 # ==========================================================
-path: "/arc/home/jfaber/baseband_morphologies/chime_dsa_codetections/data/DSA_bursts/zach_dsa_l_262_368_2500b_cntr_bpc.npy"
+path: "/arc/home/jfaber/baseband_morphologies/chime_dsa_codetections/data/DSA_bursts/zach_dsa_I_262_368_2500b_cntr_bpc.npy"
 dm_init: 0.0
 telescope: "dsa"
 steps: 10000

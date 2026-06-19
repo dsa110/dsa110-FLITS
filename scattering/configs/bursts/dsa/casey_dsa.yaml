@@ -1,8 +1,8 @@
-# FILE: casey_config.yaml (#path: "/arc/home/jfaber/baseband_morphologies/chime_dsa_codetections/data/DSA_bursts/casey_dsa_I_491_211_2500b_cntr_bpc.npy")
+# FILE: casey_config.yaml
 # ==========================================================
 # Run Configuration for 'casey'
 # ==========================================================
-path: "data/dsa/casey_dsa_I_491_211_2500b_cntr_bpc.npy"
+path: "/arc/home/jfaber/baseband_morphologies/chime_dsa_codetections/data/DSA_bursts/casey_dsa_I_491_211_2500b_cntr_bpc.npy"
 telcfg_path: "../../telescopes.yaml"
 sampcfg_path: "../../sampler.yaml"
 dm_init: 0.0

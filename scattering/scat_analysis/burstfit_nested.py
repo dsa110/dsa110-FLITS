@@ -365,7 +365,11 @@ def fit_single_model_nested(
     
     # Build priors if not provided
     if priors is None:
-        full_priors, _ = build_priors(init, scale=6.0, log_weight_pos=True)
+        # Nested sampling explores the prior, so the prior must be init-independent
+        # (otherwise the evidence — and thus M0–M3 selection — depends on the init).
+        full_priors, _ = build_priors(
+            init, scale=6.0, log_weight_pos=True, absolute_bounds=True
+        )
         priors = {k: full_priors[k] for k in param_names if k in full_priors}
     
     # Build callable functions

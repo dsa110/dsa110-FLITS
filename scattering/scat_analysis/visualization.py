@@ -338,6 +338,99 @@ def plot_scattering_diagnostic(
     return fig
 
 
+def plot_fit_quality(
+    data: np.ndarray,
+    model: np.ndarray,
+    freq: np.ndarray,
+    time: np.ndarray,
+    noise: np.ndarray,
+    valid: np.ndarray,
+    params: FRBParams,
+    results: dict,
+    output_path: Path,
+    burst_name: str = "FRB",
+    telescope: str = None,
+):
+    """Fit-quality view: data-vs-model profile overlay + sigma-residual strip,
+    per-sub-band overlays, and a residual whiteness histogram.
+
+    The stock 4-panel figure shows data / model / residual as *separate*
+    waterfalls, so the eye cannot compare pulse shapes and there is no whiteness
+    test -- which makes chi2_red~1 with R^2~0.05 (faint burst) visually
+    ambiguous. A correct fit has residuals ~ N(0,1) and white; this surfaces
+    that directly. resid_sigma alone discriminates (~1 good, >>1 bad).
+    """
+    V = np.asarray(valid, bool)
+    resid = data - model
+    rn_map = resid / noise[:, None]
+    gof = results.get("goodness_of_fit", {})
+    p = params
+
+    prof_d = np.nansum(data[V], axis=0)
+    prof_m = np.nansum(model[V], axis=0)
+    prof_sig = np.sqrt(np.nansum(noise[V] ** 2))   # noise on the channel-summed profile
+    prof_res = (prof_d - prof_m) / prof_sig
+
+    fig = plt.figure(figsize=(16, 9))
+    gs = fig.add_gridspec(3, 4, height_ratios=[2.4, 1, 1.4], hspace=0.35, wspace=0.3)
+
+    ax = fig.add_subplot(gs[0, :2])
+    ax.step(time, prof_d, where="mid", color="0.3", lw=1, label="data")
+    best_key = results.get("best_model", results.get("best_key", "M3"))
+    ax.plot(time, prof_m, color="crimson", lw=2, label=f"model {best_key}")
+    chi2r = gof.get("chi2_reduced", float("nan"))
+    r2 = gof.get("r_squared", float("nan"))
+    ax.set_title(f"{burst_name.upper()}  freq-integrated  "
+                 f"τ={p.tau_1ghz:.3f} ζ={p.zeta:.3f} ms  χ²ᵣ={chi2r:.3f}  R²={r2:.3f}")
+    ax.legend(loc="upper right", fontsize=9); ax.set_ylabel("flux (Σ chan)")
+
+    axr = fig.add_subplot(gs[1, :2], sharex=ax)
+    axr.axhspan(-3, 3, color="0.85"); axr.axhspan(-1, 1, color="0.7")
+    axr.step(time, prof_res, where="mid", color="navy", lw=0.8)
+    axr.axhline(0, color="k", lw=0.5); axr.set_ylabel("resid (σ)"); axr.set_xlabel("time (ms)")
+
+    vmax = np.nanpercentile(data[V], 99)
+    for j, (arr, ttl, cmap, lo, hi) in enumerate([
+            (data, "data", "viridis", 0, vmax),
+            (model, "model", "viridis", 0, vmax),
+            (rn_map, "residual (σ)", "coolwarm", -3, 3)]):
+        a = fig.add_subplot(gs[2, j])
+        a.imshow(arr, aspect="auto", origin="lower", cmap=cmap, vmin=lo, vmax=hi,
+                 extent=[time[0], time[-1], freq[0], freq[-1]])
+        a.set_title(ttl, fontsize=10); a.set_xlabel("time (ms)")
+        if j == 0:
+            a.set_ylabel("freq (GHz)")
+
+    ax_h = fig.add_subplot(gs[2, 3])
+    rn = rn_map[V].ravel(); rn = rn[np.isfinite(rn)]
+    ax_h.hist(rn, bins=60, density=True, color="navy", alpha=0.6)
+    xx = np.linspace(-4, 4, 200)
+    ax_h.plot(xx, np.exp(-xx**2 / 2) / np.sqrt(2 * np.pi), "crimson", lw=2)
+    ax_h.set_title(f"resid hist  μ={rn.mean():.2f} σ={rn.std():.2f}", fontsize=10)
+    ax_h.set_xlabel("residual (σ)")
+
+    nsub = 4
+    vidx = np.where(V)[0]
+    edges = np.linspace(0, vidx.size, nsub + 1).astype(int)
+    ax_sb = fig.add_subplot(gs[0:2, 2:])
+    off = 0.0
+    for k in range(nsub):
+        chans = vidx[edges[k]:edges[k + 1]]
+        if chans.size == 0:
+            continue
+        pd = np.nansum(data[chans], axis=0); pm = np.nansum(model[chans], axis=0)
+        sc = np.nanmax(pm) if np.nanmax(pm) > 0 else 1.0
+        ax_sb.step(time, pd / sc + off, where="mid", color="0.4", lw=0.8)
+        ax_sb.plot(time, pm / sc + off, color="crimson", lw=1.5)
+        ax_sb.text(time[0], off + 0.6, f"{freq[chans].mean():.2f} GHz", fontsize=8, color="navy")
+        off += 1.3
+    ax_sb.set_title("per-sub-band profile (data vs model) — scattering tail vs ν", fontsize=10)
+    ax_sb.set_xlabel("time (ms)"); ax_sb.set_yticks([])
+
+    fig.savefig(output_path, dpi=110, bbox_inches="tight")
+    plt.close(fig)
+    return fig
+
 
 def main():
     parser = argparse.ArgumentParser(

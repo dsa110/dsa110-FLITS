@@ -697,6 +697,25 @@ class BurstPipeline:
                         burst_name=self.name,
                         telescope=getattr(self.dataset.telescope, "name", "Unknown"),
                     )
+
+                    # Fit-quality view: profile overlay + sigma-residual whiteness,
+                    # which the stock waterfalls cannot show (resid_sigma ~1 good).
+                    if not results.get("is_multi"):
+                        from ..visualization import plot_fit_quality
+
+                        plot_fit_quality(
+                            data=self.dataset.data,
+                            model=model_arr,
+                            freq=self.dataset.freq,
+                            time=self.dataset.time,
+                            noise=self.dataset.model.noise_std,
+                            valid=self.dataset.model.valid,
+                            params=best_params,
+                            results=results,
+                            output_path=self.outpath / f"{self.name}_fitquality.png",
+                            burst_name=self.name,
+                            telescope=getattr(self.dataset.telescope, "name", "Unknown"),
+                        )
                 except Exception as e:
                     log.warning(
                         f"Modular plotting failed: {e}. Falling back to legacy plots."

@@ -92,6 +92,10 @@ class TelescopeConfig:
     f_min_GHz: float
     f_max_GHz: float
     n_ch_raw: Optional[int] = None
+    # True => the raw .npy is stored highest-freq-first (row 0 = f_max), as CHIME
+    # baseband_analysis delivers it. The loader flips it to ascending so data row i
+    # matches freq[i] = linspace(f_min, f_max)[i]; otherwise tau(nu) fits backwards.
+    freq_descending: bool = False
 
 
 @dataclass
@@ -120,6 +124,21 @@ class PipelineOptions:
     model_scan: bool = True
     diagnostics: bool = True
     plot: bool = True
+    # Sampler backend: "emcee" (MCMC + BIC selection) or "nested" (dynesty +
+    # Bayesian-evidence selection). The prior published fits used "nested".
+    fitting_method: str = "emcee"
+    # Fraction trimmed from EACH end of the time axis before downsampling
+    # (BurstDataset._trim_buffer). 0.45 keeps only the central 10%, which can
+    # crop the scattering tail; the prior fits used ~0.14 (keep ~70%).
+    outer_trim: float = 0.45
+    # Nested-sampling controls (used when fitting_method == "nested").
+    nlive: int = 400
+    dlogz: float = 0.5
+    nlive_walks: int = 15
+    # Fix the scattering index alpha to this value (e.g. 4.0 = Kolmogorov) instead
+    # of sampling it. Low per-channel SNR rarely constrains alpha, so fixing it
+    # breaks the tau-alpha degeneracy (CHIME fitburst convention). None = sample it.
+    alpha_fixed: Optional[float] = None
 
 
 @dataclass
@@ -171,6 +190,8 @@ def load_telescope_block(
     params = {k: float(entry[k]) for k in required}
     if "n_ch_raw" in entry and entry["n_ch_raw"] is not None:
         params["n_ch_raw"] = int(entry["n_ch_raw"])
+    if "freq_descending" in entry and entry["freq_descending"] is not None:
+        params["freq_descending"] = bool(entry["freq_descending"])
 
     return TelescopeConfig(name=telescope, **params)
 
@@ -277,6 +298,12 @@ def load_config(path: str | Path, workspace_root: Optional[Path] = None) -> Conf
         model_scan=bool(cfg.get("model_scan", True)),
         diagnostics=bool(cfg.get("diagnostics", True)),
         plot=bool(cfg.get("plot", True)),
+        fitting_method=str(cfg.get("fitting_method", "emcee")),
+        outer_trim=float(cfg.get("outer_trim", 0.45)),
+        nlive=int(cfg.get("nlive", 400)),
+        dlogz=float(cfg.get("dlogz", 0.5)),
+        nlive_walks=int(cfg.get("nlive_walks", 15)),
+        alpha_fixed=(None if cfg.get("alpha_fixed") is None else float(cfg.get("alpha_fixed"))),
     )
 
     return Config(

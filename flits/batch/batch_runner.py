@@ -66,8 +66,8 @@ def _run_scattering_analysis(
     if str(flits_root) not in sys.path:
         sys.path.insert(0, str(flits_root))
     
-    from scat_analysis.pipeline import BurstPipeline
-    from scat_analysis.config_utils import load_config
+    from flits.scattering.scat_analysis.pipeline import BurstPipeline
+    from flits.scattering.scat_analysis.config_utils import load_config
     
     try:
         config = load_config(str(config_path))

@@ -279,13 +279,16 @@ class BurstPipeline:
                         init=init_guess,
                         model_keys=model_keys,
                         priors=None,  # Will use defaults in nested module
-                        nlive=n_steps // 4,  # Heuristic mapping steps -> nlive
+                        nlive=int(self.pipeline_kwargs.get("nlive", 400)),
+                        dlogz=float(self.pipeline_kwargs.get("dlogz", 0.5)),
                         alpha_prior=(alpha_mu, alpha_sigma)
                         if alpha_fixed is None
                         else None,
                         alpha_fixed=alpha_fixed,
                         likelihood_kind=likelihood_kind,
                         student_nu=studentt_nu,
+                        walks=int(self.pipeline_kwargs.get("nlive_walks", 15)),
+                        nproc=int(self.pipeline_kwargs.get("nproc") or 1),
                     )
 
                     # Convert NS result to pipeline format
@@ -694,6 +697,25 @@ class BurstPipeline:
                         burst_name=self.name,
                         telescope=getattr(self.dataset.telescope, "name", "Unknown"),
                     )
+
+                    # Fit-quality view: profile overlay + sigma-residual whiteness,
+                    # which the stock waterfalls cannot show (resid_sigma ~1 good).
+                    if not results.get("is_multi"):
+                        from ..visualization import plot_fit_quality
+
+                        plot_fit_quality(
+                            data=self.dataset.data,
+                            model=model_arr,
+                            freq=self.dataset.freq,
+                            time=self.dataset.time,
+                            noise=self.dataset.model.noise_std,
+                            valid=self.dataset.model.valid,
+                            params=best_params,
+                            results=results,
+                            output_path=self.outpath / f"{self.name}_fitquality.png",
+                            burst_name=self.name,
+                            telescope=getattr(self.dataset.telescope, "name", "Unknown"),
+                        )
                 except Exception as e:
                     log.warning(
                         f"Modular plotting failed: {e}. Falling back to legacy plots."

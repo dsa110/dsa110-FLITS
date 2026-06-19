@@ -22,8 +22,8 @@ warnings.filterwarnings('ignore')
 # Add scattering to path
 sys.path.insert(0, str(Path(__file__).parent / "scattering"))
 
-from scat_analysis.pipeline import BurstPipeline
-from scat_analysis.config_utils import load_config
+from flits.scattering.scat_analysis.pipeline import BurstPipeline
+from flits.scattering.scat_analysis.config_utils import load_config
 from flits.batch import ResultsDatabase, ScatteringResult
 from flits.batch.config_generator import ConfigGenerator
 
@@ -149,7 +149,7 @@ def run_single_burst(
     rhat_max = None
     if sampler is not None:
         try:
-            from scat_analysis.burstfit import gelman_rubin
+            from flits.scattering.scat_analysis.burstfit import gelman_rubin
             chain = sampler.get_chain(flat=False)
             rhat = gelman_rubin(chain)
             rhat_max = float(max(rhat))

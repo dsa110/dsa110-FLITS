@@ -586,7 +586,7 @@ class FRBModel:
         # Calculate model only for valid channels
         model_valid = self(p, model, freq_subset=self.valid)
         
-        resid = (data_valid - model_valid) / noise_valid[:, None]
+        resid = (data_valid - model_valid) / noise_valid
         return -0.5 * np.sum(resid**2)
 
     def log_likelihood_student_t(
@@ -607,7 +607,7 @@ class FRBModel:
         data_valid = self.data[self.valid]
         model_valid = self(p, model, freq_subset=self.valid)
         
-        resid = (data_valid - model_valid) / noise_valid[:, None]
+        resid = (data_valid - model_valid) / noise_valid
         
         # Student-t log-pdf up to constant per element
         # logL = sum( - (nu+1)/2 * log(1 + r^2/nu) ) - N * 0.5*log(nu*pi) - sum(log(sigma))
@@ -945,6 +945,7 @@ def build_priors(
     abs_min: float = _MIN_POS,  # floor for positive parameters
     abs_max: dict[str, float] | None = None,  # optional hard ceilings
     log_weight_pos: bool = False,  # True → Jeffreys p(x)∝1/x   (still linear sampling)
+    absolute_bounds: bool = False,  # True → init-independent physical priors (for nested sampling)
 ) -> tuple[dict[str, tuple[float, float]], bool]:
     """
     Build simple linear-space top-hat priors that *won’t* strangle the chain.
@@ -986,11 +987,24 @@ def build_priors(
         else:
              hard_min, hard_max = abs_min, 1e6
 
-        # Calculate dynamic window around init, but clamp to hard bounds
-        w = max(scale * max(abs(val), 1e-3), 0.5)
-        lower = max(val - w, hard_min)
-        upper = min(val + w, hard_max)
-        
+        if absolute_bounds and name != "t0":
+            # Init-independent physical prior: use the hard bounds directly.
+            # The init-anchored val ± scale·|val| window collapses to ~0 half-width
+            # when val ≈ 0 (e.g. gamma=0 → [-0.5, 0.5]), which can exclude the true
+            # value and trap a global sampler in a wrong mode (observed: a trivial
+            # init railed M3 to τ→0, ΔlnZ≈320 vs a data-driven init, purely because
+            # its gamma=0 window excluded the true γ≈-2.6). For evidence-based model
+            # selection the prior MUST NOT depend on the init at all. t0 is excluded:
+            # its window is anchored on init.t0, which is the data profile-peak
+            # estimate (not a fit value), so it is already init-robust.
+            lower, upper = hard_min, hard_max
+        else:
+            # Calculate dynamic window around init, but clamp to hard bounds
+            # (appropriate for walker-based methods that start near init).
+            w = max(scale * max(abs(val), 1e-3), 0.5)
+            lower = max(val - w, hard_min)
+            upper = min(val + w, hard_max)
+
         # Override with explicit ceiling if provided
         if name in ceiling:
             upper = min(upper, ceiling[name])

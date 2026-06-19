@@ -46,7 +46,7 @@ Why L-BFGS-B works well here:
 
 Example Usage
 -------------
->>> from scat_analysis.burstfit_interactive import InitialGuessWidget
+>>> from flits.scattering.scat_analysis.burstfit_interactive import InitialGuessWidget
 >>> widget = InitialGuessWidget(dataset, model_key="M3")
 >>> display(widget.create_widget())
 >>> # ... user adjusts sliders, clicks Auto-Optimize, clicks Accept ...
@@ -98,8 +98,8 @@ class InitialGuessWidget:
     --------
     Basic usage in a Jupyter notebook:
     
-    >>> from scat_analysis.burstfit_interactive import InitialGuessWidget
-    >>> from scat_analysis.pipeline import BurstDataset
+    >>> from flits.scattering.scat_analysis.burstfit_interactive import InitialGuessWidget
+    >>> from flits.scattering.scat_analysis.pipeline import BurstDataset
     >>> 
     >>> # Load your data
     >>> dataset = BurstDataset("burst.npy", "output/", telescope=telcfg, ...)
@@ -710,7 +710,7 @@ class InitialGuessWidget:
         -----
         To use these parameters in MCMC fitting:
         
-        >>> from scat_analysis.burstfit import FRBFitter
+        >>> from flits.scattering.scat_analysis.burstfit import FRBFitter
         >>> fitter = FRBFitter(model, model_key="M3", initial_guess=widget.get_params())
         >>> fitter.run_mcmc(...)
         """

@@ -65,8 +65,19 @@ for burst in $BURSTS; do
   fi
 
   tmp_cfg="$OUT_DIR/${burst}_chime.runtime.yaml"
-  # Rewrite only the path: line; keep every other config field intact.
-  sed -E "s#^([[:space:]]*path:[[:space:]]*).*#\1$data_path#" "$cfg" > "$tmp_cfg"
+  # The runtime config is written to OUT_DIR, so the source config's relative
+  # telcfg_path/sampcfg_path (../../telescopes.yaml) no longer resolve. Rewrite
+  # the data path AND pin telcfg/sampcfg to absolute repo paths; append them if
+  # the source config omitted them (some configs rely on the loader default).
+  telcfg="$CONFIG_DIR/../../telescopes.yaml"; telcfg="$(cd "$(dirname "$telcfg")" && pwd)/$(basename "$telcfg")"
+  sampcfg="$CONFIG_DIR/../../sampler.yaml";   sampcfg="$(cd "$(dirname "$sampcfg")" && pwd)/$(basename "$sampcfg")"
+  sed -E \
+    -e "s#^([[:space:]]*path:[[:space:]]*).*#\1$data_path#" \
+    -e "s#^([[:space:]]*telcfg_path:[[:space:]]*).*#\1$telcfg#" \
+    -e "s#^([[:space:]]*sampcfg_path:[[:space:]]*).*#\1$sampcfg#" \
+    "$cfg" > "$tmp_cfg"
+  grep -qE '^[[:space:]]*telcfg_path:'  "$tmp_cfg" || echo "telcfg_path: $telcfg"   >> "$tmp_cfg"
+  grep -qE '^[[:space:]]*sampcfg_path:' "$tmp_cfg" || echo "sampcfg_path: $sampcfg" >> "$tmp_cfg"
 
   echo "[$burst] running -> $data_path"
   log="$OUT_DIR/${burst}.log"

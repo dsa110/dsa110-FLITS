@@ -51,7 +51,11 @@ class BurstDataset:
         if self.data is not None:
             return
         raw = self._load_raw()
-        if self.flip_freq:
+        # Standardize to ascending frequency (row 0 = f_min), which the freq axis,
+        # model and plots all assume. CHIME .npy arrive descending (row 0 = f_max);
+        # the telescope declares this via freq_descending. flip_freq is a manual
+        # override for one-off cases.
+        if self.flip_freq or getattr(self.telescope, "freq_descending", False):
             raw = np.flipud(raw)
 
         # Build axes for the raw data to use in preprocessing

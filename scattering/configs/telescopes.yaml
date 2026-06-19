@@ -18,6 +18,7 @@ dsa:
   dt_ms_raw: 32.768e-3 # float, ms
   f_min_GHz: 1.31125 # float, GHz
   f_max_GHz: 1.49875 # float, GHz
+  freq_descending: true # DSA .npy stored row 0 = f_max: dsa110-scat dedisperses with fch1=1498.75 (ch0=high) and its fitter flips the model (burstfittools.py:160) to match descending data; loader flips to ascending
 
 chime:
   df_MHz_raw: 0.390625 # float, MHz

@@ -1,7 +1,9 @@
 import numpy as np
-from flits.scintillation.physics import (
+from scintillation.scint_analysis.physics import (
     scintillation_bandwidth_to_timescale,
     screen_distance_from_curvature,
+)
+from scintillation.scint_analysis.analysis import (
     interpret_modulation_index,
     estimate_emission_region_size,
     two_screen_coherence_constraint,

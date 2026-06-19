@@ -20,7 +20,7 @@ set -uo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$REPO_ROOT"
 
-DATA_DIR="${DATA_DIR:-/arc/home/jfaber/baseband_morphologies/chime_dsa_codetections/data/DSA_bursts}"
+DATA_DIR="${DATA_DIR:-/arc/home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts/dmphase}"
 OUT_DIR="${OUT_DIR:-$REPO_ROOT/results/scattering_runs/$(date +%Y%m%d_%H%M%S)}"
 CONFIG_DIR="$REPO_ROOT/scattering/configs/bursts/chime"
 PYTHON="${PYTHON:-python}"

@@ -1,6 +1,6 @@
 # Casey CHIME Configuration
 burst_name: casey
-path: /arc/home/jfaber/baseband_morphologies/chime_dsa_codetections/data/DSA_bursts/casey_chime_I_491_2085_32000b_cntr_bpc.npy
+path: /arc/home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts/dmphase/casey_chime_I_491_2085_32000b_cntr_bpc.npy
 telcfg_path: ../../telescopes.yaml
 sampcfg_path: ../../sampler.yaml
 dm_init: 0.0

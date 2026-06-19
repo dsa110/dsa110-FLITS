@@ -36,13 +36,13 @@ except Exception:
     # add this directory to sys.path and import again
     sys.path.insert(0, str(Path(__file__).parent))
     try:
-        from scat_analysis.pipeline import BurstPipeline
-        from scat_analysis.burstfit_corner import (
+        from flits.scattering.scat_analysis.pipeline import BurstPipeline
+        from flits.scattering.scat_analysis.burstfit_corner import (
             quick_chain_check,
             get_clean_samples,
             make_beautiful_corner,
         )
-        from scat_analysis.config_utils import load_config
+        from flits.scattering.scat_analysis.config_utils import load_config
     except Exception as e:
         print("Error: Could not import 'scat_analysis'.")
         print("Try installing the package (pip install -e .) and using 'flits-scat',")

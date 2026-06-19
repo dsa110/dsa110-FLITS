@@ -11,8 +11,8 @@ import numpy as np
 # Add scattering to path
 sys.path.insert(0, str(Path(__file__).parent / "scattering"))
 
-from scat_analysis.pipeline import BurstPipeline, BurstDataset
-from scat_analysis.config_utils import load_config
+from flits.scattering.scat_analysis.pipeline import BurstPipeline, BurstDataset
+from flits.scattering.scat_analysis.config_utils import load_config
 from flits.batch import ResultsDatabase, ScatteringResult
 
 if __name__ == "__main__":

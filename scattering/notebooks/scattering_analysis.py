@@ -51,14 +51,14 @@ except ImportError:
     os.system("pip install seaborn emcee chainconsumer arviz")
 
 # Import pipeline components
-from scat_analysis.pipeline import BurstPipeline
-from scat_analysis.burstfit_corner import (
+from flits.scattering.scat_analysis.pipeline import BurstPipeline
+from flits.scattering.scat_analysis.burstfit_corner import (
     quick_chain_check,
     get_clean_samples,
     make_beautiful_corner,
     make_beautiful_corner_wide,
 )
-from scat_analysis.burstfit import FRBParams
+from flits.scattering.scat_analysis.burstfit import FRBParams
 
 
 # =============================================================================
@@ -180,7 +180,7 @@ def interactive_initial_guess(pipe: BurstPipeline, model_key: str = "M3"):
     InitialGuessWidget
         The widget instance for further interaction.
     """
-    from scat_analysis.burstfit_interactive import InitialGuessWidget
+    from flits.scattering.scat_analysis.burstfit_interactive import InitialGuessWidget
 
     guess_widget = InitialGuessWidget(dataset=pipe.dataset, model_key=model_key)
 

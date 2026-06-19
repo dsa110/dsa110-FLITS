@@ -288,6 +288,7 @@ class BurstPipeline:
                         likelihood_kind=likelihood_kind,
                         student_nu=studentt_nu,
                         walks=int(self.pipeline_kwargs.get("nlive_walks", 15)),
+                        nproc=int(self.pipeline_kwargs.get("nproc") or 1),
                     )
 
                     # Convert NS result to pipeline format

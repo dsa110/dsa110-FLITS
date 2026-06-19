@@ -732,6 +732,10 @@ def main(config_file: str | None = None):
             nproc=config.pipeline.nproc or 4,
             fitting_method=config.pipeline.fitting_method,
             outer_trim=config.pipeline.outer_trim,
+            nlive=config.pipeline.nlive,
+            dlogz=config.pipeline.dlogz,
+            nlive_walks=config.pipeline.nlive_walks,
+            alpha_fixed=config.pipeline.alpha_fixed,
         )
 
         # Create dataset manually (for initial guess visualization). Mirror the

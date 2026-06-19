@@ -163,30 +163,111 @@ def interpret_bayes_factor(ln_bf: float, model1: str = "first model", model2: st
     return f"{strength} evidence {direction} (ln(BF) = {ln_bf:.2f})"
 
 
+class _PriorTransform:
+    """Picklable prior transform (unit cube -> parameter space) for dynesty.
+
+    A module-level callable instance, not a closure, so it can be pickled to
+    multiprocessing/dynesty.pool workers.
+    """
+
+    def __init__(
+        self,
+        priors: Dict[str, Tuple[float, float]],
+        param_names: Tuple[str, ...],
+        log_params: Tuple[str, ...] = ("c0", "tau_1ghz", "zeta"),
+    ):
+        self.priors = priors
+        self.param_names = param_names
+        self.log_params = log_params
+
+    def __call__(self, u: NDArray[np.floating]) -> NDArray[np.floating]:
+        theta = np.zeros_like(u)
+        for i, name in enumerate(self.param_names):
+            lo, hi = self.priors[name]
+            if name in self.log_params and lo > 0 and hi > 0:
+                log_lo, log_hi = np.log(lo), np.log(hi)
+                theta[i] = np.exp(log_lo + u[i] * (log_hi - log_lo))
+            else:
+                theta[i] = lo + u[i] * (hi - lo)
+        return theta
+
+
 def _build_prior_transform(
     priors: Dict[str, Tuple[float, float]],
     param_names: Tuple[str, ...],
     log_params: Tuple[str, ...] = ("c0", "tau_1ghz", "zeta"),
 ):
-    """Build prior transform function for dynesty.
-    
-    Maps unit cube [0,1]^D to parameter space.
-    For log-scale parameters, uses log-uniform prior.
+    """Return a picklable prior-transform callable for dynesty."""
+    return _PriorTransform(priors, param_names, log_params)
+
+
+class _LogLikelihood:
+    """Picklable log-likelihood callable for dynesty.
+
+    Module-level callable (not a closure) so dynesty.pool can ship it to
+    worker processes; FRBModel holds only numpy arrays + scalars and pickles.
+    Optional Gaussian priors on alpha / log10(tau) are folded into the
+    log-likelihood (dynesty's prior_transform handles the rest).
     """
-    def prior_transform(u: NDArray[np.floating]) -> NDArray[np.floating]:
-        theta = np.zeros_like(u)
-        for i, name in enumerate(param_names):
-            lo, hi = priors[name]
-            if name in log_params and lo > 0 and hi > 0:
-                # Log-uniform prior
-                log_lo, log_hi = np.log(lo), np.log(hi)
-                theta[i] = np.exp(log_lo + u[i] * (log_hi - log_lo))
+
+    def __init__(
+        self,
+        model: FRBModel,
+        model_key: str,
+        param_names: Tuple[str, ...],
+        alpha_prior: Optional[Tuple[float, float]] = None,
+        tau_prior: Optional[Tuple[float, float]] = None,
+        likelihood_kind: str = "gaussian",
+        student_nu: float = 5.0,
+        fixed_params: Optional[Dict[str, float]] = None,
+    ):
+        self.model = model
+        self.model_key = model_key
+        self.param_names = param_names
+        self.full_param_names = _PARAM_KEYS[model_key]
+        self.alpha_prior = alpha_prior
+        self.tau_prior = tau_prior
+        self.likelihood_kind = likelihood_kind
+        self.student_nu = student_nu
+        self.fixed_params = fixed_params
+
+    def __call__(self, theta: NDArray[np.floating]) -> float:
+        if self.fixed_params:
+            full_theta = []
+            theta_ptr = 0
+            for name in self.full_param_names:
+                if name in self.fixed_params:
+                    full_theta.append(self.fixed_params[name])
+                else:
+                    full_theta.append(theta[theta_ptr])
+                    theta_ptr += 1
+            params = FRBParams.from_sequence(full_theta, self.model_key)
+        else:
+            params = FRBParams.from_sequence(theta, self.model_key)
+
+        if self.likelihood_kind == "gaussian":
+            ll = self.model.log_likelihood(params, self.model_key)
+        else:
+            ll = self.model.log_likelihood_student_t(
+                params, self.model_key, nu=self.student_nu
+            )
+
+        if not np.isfinite(ll):
+            return -1e100
+
+        if self.alpha_prior is not None and "alpha" in self.param_names:
+            mu, sigma = self.alpha_prior
+            ll += -0.5 * ((params.alpha - mu) / sigma) ** 2
+
+        if self.tau_prior is not None and "tau_1ghz" in self.param_names:
+            mu_log10, sigma_log10 = self.tau_prior
+            tau = params.tau_1ghz
+            if tau > 0:
+                ll += -0.5 * ((np.log10(tau) - mu_log10) / sigma_log10) ** 2
             else:
-                # Uniform prior
-                theta[i] = lo + u[i] * (hi - lo)
-        return theta
-    
-    return prior_transform
+                ll = -1e100
+
+        return ll
 
 
 def _build_log_likelihood(
@@ -199,68 +280,11 @@ def _build_log_likelihood(
     student_nu: float = 5.0,
     fixed_params: Optional[Dict[str, float]] = None,
 ):
-    """Build log-likelihood function for dynesty.
-    
-    Optionally includes priors on alpha and tau (as part of log-likelihood
-    to avoid issues with nested sampling prior volume calculation).
-    
-    Parameters
-    ----------
-    alpha_prior : tuple, optional
-        (mu, sigma) for Gaussian prior on α
-    tau_prior : tuple, optional
-        (mu, sigma) for log-normal prior on τ (in log10 space)
-    """
-    full_param_names = _PARAM_KEYS[model_key]
-
-    def log_likelihood(theta: NDArray[np.floating]) -> float:
-        # Reconstruct full theta vector if we have fixed params
-        if fixed_params:
-            full_theta = []
-            # We need to map the current sub-theta to names
-            # But theta only has values. We assume theta follows 'param_names' order.
-            # param_names is the REDUCED list.
-            theta_ptr = 0
-            for name in full_param_names:
-                if name in fixed_params:
-                    full_theta.append(fixed_params[name])
-                else:
-                    full_theta.append(theta[theta_ptr])
-                    theta_ptr += 1
-            params = FRBParams.from_sequence(full_theta, model_key)
-        else:
-            # Standard path
-            params = FRBParams.from_sequence(theta, model_key)
-        
-        # Base likelihood
-        if likelihood_kind == "gaussian":
-            ll = model.log_likelihood(params, model_key)
-        else:
-            ll = model.log_likelihood_student_t(params, model_key, nu=student_nu)
-        
-        # Guard against NaN/Inf likelihoods
-        if not np.isfinite(ll):
-            return -1e100  # Very negative but finite
-        
-        # Add Gaussian prior on alpha if specified
-        if alpha_prior is not None and "alpha" in param_names:
-            mu, sigma = alpha_prior
-            alpha = params.alpha
-            ll += -0.5 * ((alpha - mu) / sigma) ** 2
-        
-        # Add log-normal prior on tau if specified (in log10 space)
-        if tau_prior is not None and "tau_1ghz" in param_names:
-            mu_log10, sigma_log10 = tau_prior
-            tau = params.tau_1ghz
-            if tau > 0:
-                log10_tau = np.log10(tau)
-                ll += -0.5 * ((log10_tau - mu_log10) / sigma_log10) ** 2
-            else:
-                ll = -1e100
-        
-        return ll
-    
-    return log_likelihood
+    """Return a picklable log-likelihood callable for dynesty."""
+    return _LogLikelihood(
+        model, model_key, param_names, alpha_prior, tau_prior,
+        likelihood_kind, student_nu, fixed_params,
+    )
 
 
 def fit_single_model_nested(
@@ -277,6 +301,7 @@ def fit_single_model_nested(
     likelihood_kind: str = "gaussian",
     student_nu: float = 5.0,
     sample: str = "rwalk",
+    nproc: Optional[int] = None,
     verbose: bool = True,
     **dynesty_kwargs,
 ) -> NestedSamplingResult:
@@ -354,17 +379,42 @@ def fit_single_model_nested(
     if verbose:
         log.info(f"Running nested sampling for {model_key} with nlive={nlive}")
     
-    sampler = NestedSampler(
-        log_likelihood,
-        prior_transform,
-        ndim,
-        nlive=nlive,
-        sample=sample,
-        **dynesty_kwargs,
-    )
-    
-    sampler.run_nested(dlogz=dlogz, print_progress=verbose)
-    results = sampler.results
+    if nproc is not None and nproc > 1:
+        # Parallel: dynesty.pool.Pool ships the (picklable) loglike/ptform to
+        # workers once, then evaluates queue_size live-point proposals at a time.
+        # Force 'fork' so workers inherit memory instead of re-importing __main__
+        # (the 'spawn' default re-imports the entry script and crashes).
+        import multiprocessing as _mp
+        try:
+            _mp.set_start_method("fork", force=True)
+        except RuntimeError:
+            pass
+        from dynesty import pool as dypool
+
+        with dypool.Pool(int(nproc), log_likelihood, prior_transform) as pool:
+            sampler = NestedSampler(
+                pool.loglike,
+                pool.prior_transform,
+                ndim,
+                nlive=nlive,
+                sample=sample,
+                pool=pool,
+                queue_size=int(nproc),
+                **dynesty_kwargs,
+            )
+            sampler.run_nested(dlogz=dlogz, print_progress=verbose)
+            results = sampler.results
+    else:
+        sampler = NestedSampler(
+            log_likelihood,
+            prior_transform,
+            ndim,
+            nlive=nlive,
+            sample=sample,
+            **dynesty_kwargs,
+        )
+        sampler.run_nested(dlogz=dlogz, print_progress=verbose)
+        results = sampler.results
     
     # Extract weights
     weights = np.exp(results.logwt - results.logz[-1])

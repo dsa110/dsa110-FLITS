@@ -127,6 +127,14 @@ class PipelineOptions:
     # (BurstDataset._trim_buffer). 0.45 keeps only the central 10%, which can
     # crop the scattering tail; the prior fits used ~0.14 (keep ~70%).
     outer_trim: float = 0.45
+    # Nested-sampling controls (used when fitting_method == "nested").
+    nlive: int = 400
+    dlogz: float = 0.5
+    nlive_walks: int = 15
+    # Fix the scattering index alpha to this value (e.g. 4.0 = Kolmogorov) instead
+    # of sampling it. Low per-channel SNR rarely constrains alpha, so fixing it
+    # breaks the tau-alpha degeneracy (CHIME fitburst convention). None = sample it.
+    alpha_fixed: Optional[float] = None
 
 
 @dataclass
@@ -286,6 +294,10 @@ def load_config(path: str | Path, workspace_root: Optional[Path] = None) -> Conf
         plot=bool(cfg.get("plot", True)),
         fitting_method=str(cfg.get("fitting_method", "emcee")),
         outer_trim=float(cfg.get("outer_trim", 0.45)),
+        nlive=int(cfg.get("nlive", 400)),
+        dlogz=float(cfg.get("dlogz", 0.5)),
+        nlive_walks=int(cfg.get("nlive_walks", 15)),
+        alpha_fixed=(None if cfg.get("alpha_fixed") is None else float(cfg.get("alpha_fixed"))),
     )
 
     return Config(

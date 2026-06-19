@@ -2,11 +2,9 @@
 # ==========================================================
 # Run Configuration for 'oran'
 # ==========================================================
-# FIXME: this config was a copy of hamilton_dsa and pointed at hamilton's data
-# file (oran DM is 397, hamilton is 518). Placeholder below is intentionally
-# non-resolving so a run fails loudly instead of silently fitting hamilton's
-# burst as oran. Locate the real oran DSA file on arc and fill it in.
-path: "/arc/home/jfaber/baseband_morphologies/chime_dsa_codetections/data/DSA_bursts/oran_dsa_FIXME_VERIFY_ON_ARC_2500b_cntr_bpc.npy"
+# Was a copy of hamilton_dsa pointing at hamilton's data file (oran DM is 397,
+# hamilton is 518). Real oran DSA file verified on arc 2026-06-18.
+path: "/arc/home/jfaber/baseband_morphologies/chime_dsa_codetections/data/DSA_bursts/oran_dsa_I_396_882_2500b_cntr_bpc.npy"
 dm_init: 0.0
 telescope: "dsa"
 steps: 10000

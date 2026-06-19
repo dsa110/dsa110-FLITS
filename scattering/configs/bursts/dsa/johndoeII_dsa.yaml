@@ -1,8 +1,10 @@
-# FILE: johndoell_config.yaml
+# FILE: johndoeII_config.yaml
 # ==========================================================
-# Run Configuration for 'johndoell'
+# Run Configuration for 'johndoeII'
 # ==========================================================
-path: "/arc/home/jfaber/baseband_morphologies/chime_dsa_codetections/data/DSA_bursts/johndoell_dsa_l_696_506_2500b_cntr_bpc.npy"
+# Verified on arc 2026-06-18: real file is johndoeII (Roman II) with Stokes-I
+# tag "_dsa_I_" (the prior "johndoell_dsa_l_" used lowercase L's in both spots).
+path: "/arc/home/jfaber/baseband_morphologies/chime_dsa_codetections/data/DSA_bursts/johndoeII_dsa_I_696_506_2500b_cntr_bpc.npy"
 dm_init: 0.0
 telescope: "dsa"
 steps: 10000

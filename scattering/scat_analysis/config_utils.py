@@ -92,6 +92,10 @@ class TelescopeConfig:
     f_min_GHz: float
     f_max_GHz: float
     n_ch_raw: Optional[int] = None
+    # True => the raw .npy is stored highest-freq-first (row 0 = f_max), as CHIME
+    # baseband_analysis delivers it. The loader flips it to ascending so data row i
+    # matches freq[i] = linspace(f_min, f_max)[i]; otherwise tau(nu) fits backwards.
+    freq_descending: bool = False
 
 
 @dataclass
@@ -186,6 +190,8 @@ def load_telescope_block(
     params = {k: float(entry[k]) for k in required}
     if "n_ch_raw" in entry and entry["n_ch_raw"] is not None:
         params["n_ch_raw"] = int(entry["n_ch_raw"])
+    if "freq_descending" in entry and entry["freq_descending"] is not None:
+        params["freq_descending"] = bool(entry["freq_descending"])
 
     return TelescopeConfig(name=telescope, **params)
 

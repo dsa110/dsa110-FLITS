@@ -11,7 +11,7 @@ Always reference these instructions first and fallback to search or bash command
   ```bash
   export PYTHONPATH=/home/runner/work/FLITS/FLITS:/home/runner/work/FLITS/FLITS/scattering:/home/runner/work/FLITS/FLITS/simulation
   ```
-- Install dependencies: `pip install -r requirements.txt` -- takes 3-5 minutes. NEVER CANCEL.
+- Install dependencies: `pip install -e .` -- takes 3-5 minutes. NEVER CANCEL. Optional features: `pip install -e ".[nested,galactic,perf]"`.
 - Python 3.8+ required. Uses scientific stack: numpy, scipy, matplotlib, emcee, astropy.
 
 ### Build and Test
@@ -137,7 +137,7 @@ FLITS/
 ```
 
 ### Critical Files
-- `requirements.txt` -- Install with `pip install -r requirements.txt`
+- `pyproject.toml` -- Install with `pip install -e .` (dependency source of truth; `environment.yml` for a full conda env)
 - `flits/__init__.py` -- Main package exports
 - `tests/test_*.py` -- Basic validation tests
 - `scattering/configs/telescopes.yaml` -- Telescope parameters
@@ -147,19 +147,19 @@ FLITS/
 - **PYTHONPATH**: Always set before importing. Missing PYTHONPATH causes "No module named 'flits'" errors.
 - **Data Files**: Many examples reference .npy files that don't exist. Use synthetic data for testing.
 - **MCMC Patience**: Never cancel MCMC operations. They legitimately take minutes to hours.
-- **Module Dependencies**: Some modules require external packages not in requirements.txt.
+- **Module Dependencies**: Optional features live in extras (`nested`, `galactic`, `perf`); install via `pip install -e ".[nested,galactic,perf]"` if needed.
 
 ## Timing Reference
 | Operation | Time | Notes |
 |-----------|------|-------|
-| `pip install -r requirements.txt` | 3-5 min | NEVER CANCEL |
+| `pip install -e .` | 3-5 min | NEVER CANCEL |
 | Core tests | < 5 sec | Quick validation |
 | MCMC (100 steps) | ~10 sec | Development testing |
 | MCMC (1000 steps) | ~100 sec | NEVER CANCEL. Set 200s timeout |
 | Full analysis | 10-30 min | NEVER CANCEL. Set 60+ min timeout |
 
 ## Quick Start Checklist
-- [ ] `pip install -r requirements.txt`
+- [ ] `pip install -e .`
 - [ ] `export PYTHONPATH=/home/runner/work/FLITS/FLITS:/home/runner/work/FLITS/FLITS/scattering:/home/runner/work/FLITS/FLITS/simulation`
 - [ ] Run core functionality test
 - [ ] Run MCMC validation test

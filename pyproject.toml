@@ -23,15 +23,17 @@ dependencies = [
   "corner>=2.2",
   "chainconsumer>=0.34",
   "astropy>=5.0",
+  "astroquery",
+  "pyvo",
+  "adjustText>=0.8",
 ]
 
 [project.optional-dependencies]
-extra = [
-  "numba>=0.54.0",
-  "joblib>=1.1.0",
-  "dynesty>=2.1.0",
-]
-
+# Guarded/function-level imports: core code runs without these and degrades
+# (slower, or feature unavailable) only when the relevant path is exercised.
+nested = ["dynesty>=2.1"]                                   # nested sampling / Bayesian evidence (burstfit_nested.py)
+galactic = ["mwprop>=0.1.0", "pygedm>=3.3.0", "setuptools<81"]  # NE2001/YMW16 Galactic DM; pygedm needs pkg_resources (setuptools<81) + a manual macOS build, see environment.yml
+perf = ["numba>=0.54.0", "joblib>=1.1.0"]                   # optional JIT + parallelism (analysis.py, simulation/engine.py)
 
 [project.scripts]
 flits-scat = "scattering.run_scat_analysis:main"

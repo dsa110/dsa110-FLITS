@@ -1,6 +1,0 @@
-telescopes:
-  freya:
-    df_MHz_raw: 0.03052254598719628
-    dt_ms_raw: 0.0327811124449795
-    f_min_GHz: 1.31125
-    f_max_GHz: 1.49875

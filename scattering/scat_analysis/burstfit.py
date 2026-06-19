@@ -48,11 +48,15 @@ __all__ = [
 # Cold-plasma dispersion delay in ms GHz^2 (pc cm^-3)^-1
 DM_DELAY_MS = 4.148808
 
-DM_SMEAR_MS = 8.3e-6  # intra-channel smearing, ms GHz⁻³ MHz⁻¹
+DM_SMEAR_MS = 8.3e-3  # intra-channel smearing, ms GHz⁻³ MHz⁻¹ (= 2*DM_DELAY_MS/1000; was 8.3e-6, a µs-in-s value mislabelled ms)
 
 # Validation Thresholds
 DM_MIN = 1e-3
 DM_MAX = 3000
+# delta_dm is a RESIDUAL DM error around the (catalog) dm_init the data was dedispersed
+# at, so it is small -- not the full DM_MAX. A wide ±DM_MAX prior lets a broad (e.g.
+# DM-smeared DSA) model escape into an unphysical huge-delta_dm degeneracy; bound it.
+DM_RESID_MAX = 50.0
 AMP_MIN = 0.01
 AMP_MAX = 10000
 WIDTH_MIN = 1e-4
@@ -475,11 +479,19 @@ class FRBModel:
 
     # ## REFACTOR ##: Smearing calculation is now more explicit.
     def _smearing_sigma(self, dm: float, zeta: float) -> NDArray[np.floating]:
-        """Calculates total Gaussian width from intrinsic pulse width (zeta)
-        and intra-channel DM smearing."""
-        # DM smearing time (ms) = 8.3e-6 * DM * df_MHz / nu_GHz^3
-        sig_dm = DM_SMEAR_MS * dm * self.df_MHz * (self.freq**-3.0)
-        # Add in quadrature with intrinsic width
+        """Total Gaussian width from intrinsic pulse width (zeta) and
+        intra-channel DM smearing.
+
+        Intra-channel smearing is the dispersive delay across ONE *native* channel
+        at the dedispersion DM, so self.df_MHz must be the NATIVE channel width
+        (io.py sets it from telescope.df_MHz_raw, not the downsampled width). It is
+        a boxcar of full width dt_DM; modelled as a Gaussian its variance-matched
+        sigma is dt_DM/sqrt(12). Pass dm=0 for coherently-dedispersed data (CHIME,
+        smearing removed) and the catalog DM for incoherently-dedispersed data (DSA).
+        """
+        # dt_DM (ms) = 8.3e-3 * DM(pc cm^-3) * df_MHz(native) * nu_GHz^-3  (Lorimer & Kramer 2005)
+        dt_dm = DM_SMEAR_MS * dm * self.df_MHz * (self.freq**-3.0)
+        sig_dm = dt_dm / np.sqrt(12.0)  # uniform (boxcar) -> Gaussian-equivalent sigma
         return np.hypot(sig_dm, zeta)
 
     def _estimate_noise(self, off_pulse):
@@ -972,7 +984,7 @@ def build_priors(
         "c0": (AMP_MIN, AMP_MAX),
         "tau_1ghz": (WIDTH_MIN, WIDTH_MAX),
         "zeta": (WIDTH_MIN, WIDTH_MAX),
-        "delta_dm": (-DM_MAX, DM_MAX), # Delta DM can be negative but bounded
+        "delta_dm": (-DM_RESID_MAX, DM_RESID_MAX), # residual DM around dm_init (small), not full DM_MAX
         "gamma": (-5.0, 5.0), # Spectral index bounds
         "t0": (init.t0 - 2*max(init.tau_1ghz, 10.0), init.t0 + 2*max(init.tau_1ghz, 10.0)), # Dynamic t0 window
         "alpha": (ALPHA_GOOD_MIN, ALPHA_MARGINAL_MAX) # Scattering index

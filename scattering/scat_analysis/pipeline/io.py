@@ -73,7 +73,10 @@ class BurstDataset:
             self._centre_burst()
 
         self.model = FRBModel(
-            time=self.time, freq=self.freq, data=self.data, df_MHz=self.df_MHz
+            time=self.time, freq=self.freq, data=self.data,
+            # NATIVE channel width: intra-channel DM smearing is set at the native
+            # dedispersion resolution, not the downsampled width (df_MHz_raw*f_factor).
+            df_MHz=self.telescope.df_MHz_raw,
         )
 
     def _load_raw(self):

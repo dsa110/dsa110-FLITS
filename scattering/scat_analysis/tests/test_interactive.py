@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 from flits.scattering.scat_analysis.burstfit_interactive import InitialGuessWidget
 from flits.scattering.scat_analysis.burstfit import FRBParams
 

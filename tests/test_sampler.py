@@ -1,5 +1,3 @@
-import sys
-import pathlib
 import numpy as np
 
 from flits.params import FRBParams

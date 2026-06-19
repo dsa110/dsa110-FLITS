@@ -30,7 +30,6 @@ from __future__ import annotations
 import argparse
 import multiprocessing as mp
 from pathlib import Path
-from typing import Optional
 
 __all__ = ["build_pool"]
 

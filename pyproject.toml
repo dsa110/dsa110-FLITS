@@ -22,7 +22,16 @@ dependencies = [
   "tqdm>=4.62",
   "corner>=2.2",
   "chainconsumer>=0.34",
+  "astropy>=5.0",
 ]
+
+[project.optional-dependencies]
+extra = [
+  "numba>=0.54.0",
+  "joblib>=1.1.0",
+  "dynesty>=2.1.0",
+]
+
 
 [project.scripts]
 flits-scat = "scattering.run_scat_analysis:main"

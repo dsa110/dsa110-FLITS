@@ -22,7 +22,6 @@ import argparse
 import json
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
 import matplotlib.patches as mpatches
 import yaml
 from pathlib import Path
@@ -32,7 +31,7 @@ from .burst_metadata import load_tns_name
 
 
 from scattering.scat_analysis.burstfit import FRBModel, FRBParams, downsample
-from flits.utils.reporting import print_fit_summary, get_fit_summary_lines
+from flits.utils.reporting import print_fit_summary
 
 
 def load_telescope_config(telescope_name: str, config_path: Path = None) -> dict:

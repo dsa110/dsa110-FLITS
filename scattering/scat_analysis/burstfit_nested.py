@@ -42,7 +42,7 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass, field
 from itertools import combinations
-from typing import Dict, List, Optional, Sequence, Tuple, Any
+from typing import Dict, Optional, Sequence, Tuple, Any
 
 import numpy as np
 from numpy.typing import NDArray

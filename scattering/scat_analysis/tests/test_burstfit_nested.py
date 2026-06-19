@@ -16,7 +16,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_allclose
 
-from scattering.scat_analysis.burstfit import FRBModel, FRBParams, build_priors
+from scattering.scat_analysis.burstfit import FRBModel, FRBParams
 
 # Try to import nested sampling module
 try:

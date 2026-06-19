@@ -26,7 +26,6 @@ from typing import Dict, Sequence, Tuple, Any
 import emcee
 import numpy as np
 from numpy.typing import NDArray
-from scipy.signal import fftconvolve
 from scipy import stats
 from scipy.special import erfcx
 
@@ -1110,9 +1109,11 @@ def goodness_of_fit(
     r_squared = 1 - (ss_res / ss_tot) if ss_tot > 0 else -np.inf
 
     # 3. Normality Test (Shapiro-Wilk)
-    # Downsample for speed if needed
+    # SciPy stats.shapiro warns when N > 5000 as the p-value computation becomes
+    # inaccurate. We calculate a slice step to strictly cap the sample size at 5000.
     data_flat = resid_valid.flatten()
-    test_resids = data_flat[::max(1, len(data_flat)//5000)]
+    step = max(1, int(np.ceil(len(data_flat) / 5000)))
+    test_resids = data_flat[::step]
     try:
         _, normality_pvalue = stats.shapiro(test_resids)
         normality_pass = normality_pvalue > RESIDUAL_NORMALITY_PVALUE

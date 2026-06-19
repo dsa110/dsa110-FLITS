@@ -16,12 +16,10 @@ import argparse
 import inspect
 import contextlib
 from pathlib import Path
-from typing import Any, Dict, Sequence
+from typing import Any, Dict
 
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
-from numpy.typing import NDArray
 import scipy as sp
 import matplotlib.gridspec as gridspec
 from scipy.ndimage import gaussian_filter1d
@@ -43,15 +41,10 @@ from .burstfit_robust import (
     leave_one_out_influence,
     plot_influence,
     fit_subband_profiles,
-    plot_subband_profiles,
-    plot_subband_profiles,
-    plot_subband_profiles,
-    plot_subband_profiles,
     dm_optimization_check,
 )
 from flits.utils.reporting import print_fit_summary
-from flits.fitting.diagnostics import analyze_residuals, ResidualDiagnostics
-from flits.sampler import MCMCDiagnostics
+from flits.fitting.diagnostics import analyze_residuals
 from .burstfit_nested import fit_models_evidence
 from .config_utils import SamplerConfig, TelescopeConfig, load_telescope_block
 from .pool_utils import build_pool
@@ -1439,7 +1432,7 @@ class BurstPipeline:
             )
 
             init_guess = result.params
-            log.info(f"Data-driven initial guess:")
+            log.info("Data-driven initial guess:")
             log.info(f"  c0      = {init_guess.c0:.2f}")
             log.info(f"  t0      = {init_guess.t0:.3f} ms")
             log.info(f"  gamma   = {init_guess.gamma:.2f}")

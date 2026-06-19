@@ -41,7 +41,6 @@ print(init_params)
 from __future__ import annotations
 
 import logging
-import warnings
 from dataclasses import dataclass
 from typing import Optional, Tuple, Dict, Any
 
@@ -914,7 +913,7 @@ def data_driven_initial_guess(
     )
     
     if verbose:
-        log.info(f"\n=== Data-Driven Initial Guess ===")
+        log.info("\n=== Data-Driven Initial Guess ===")
         log.info(f"  c0      = {params.c0:.2f}")
         log.info(f"  t0      = {params.t0:.3f} ms")
         log.info(f"  γ       = {params.gamma:.2f}")

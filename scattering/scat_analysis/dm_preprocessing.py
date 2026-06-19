@@ -10,7 +10,6 @@ the main scattering MCMC analysis.
 from __future__ import annotations
 
 import logging
-from pathlib import Path
 from typing import Tuple
 
 import numpy as np

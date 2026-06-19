@@ -1,6 +1,5 @@
 """Network-free tests for the DM/scattering-budget Maistro sidecar."""
 
-import math
 
 import pandas as pd
 

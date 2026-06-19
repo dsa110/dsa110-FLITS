@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import Tuple
 import numpy as np
 from numpy.typing import NDArray
 from scipy import stats
@@ -36,7 +35,7 @@ class ResidualDiagnostics:
             "=" * 80,
             f"χ²_red = {self.chi_sq_red:.2f}",
             f"R² = {self.r_squared:.3f}",
-            f"",
+            "",
             f"Normality: {'PASS' if self.normality_pass else 'FAIL'} (p={self.normality_pvalue:.4f})",
             f"Bias: {'PASS' if self.bias_pass else 'FAIL'} (mean={self.bias_mean:.4f}, σ={self.bias_num_sigma:.2f})",
             f"Autocorr: {'PASS' if self.autocorr_pass else 'FAIL'} (DW={self.durbin_watson:.2f})",
@@ -96,7 +95,10 @@ def analyze_residuals(
     r_squared = 1 - (ss_res / ss_tot)
 
     # Normality test
-    test_residuals = residuals[::max(1, len(residuals)//5000)]
+    # SciPy stats.shapiro warns when N > 5000 as the p-value computation becomes
+    # inaccurate. We calculate a slice step to strictly cap the sample size at 5000.
+    step = max(1, int(np.ceil(len(residuals) / 5000)))
+    test_residuals = residuals[::step]
     try:
         shapiro_stat, normality_pvalue = stats.shapiro(test_residuals)
         normality_pass = normality_pvalue > normality_threshold

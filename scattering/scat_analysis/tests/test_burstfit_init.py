@@ -14,7 +14,6 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
-from numpy.testing import assert_allclose
 
 from scattering.scat_analysis.burstfit import FRBModel, FRBParams
 from scattering.scat_analysis.burstfit_init import (
@@ -23,7 +22,6 @@ from scattering.scat_analysis.burstfit_init import (
     estimate_spectral_index,
     estimate_pulse_width,
     estimate_scattering_from_tail,
-    estimate_scattering_frequency_scaling,
     InitialGuessResult,
 )
 

@@ -2,18 +2,15 @@
 Unit tests for the FLITS batch processing module.
 """
 
-import json
-import tempfile
 from pathlib import Path
-from datetime import datetime
 
 import numpy as np
 import pandas as pd
 import pytest
 
-from ..config_generator import BurstInfo, ConfigGenerator, TELESCOPE_DEFAULTS
+from ..config_generator import BurstInfo, ConfigGenerator
 from ..results_db import ResultsDatabase, ScatteringResult, ScintillationResult
-from ..joint_analysis import JointAnalysis, ConsistencyResult, FrequencyScalingResult
+from ..joint_analysis import JointAnalysis, ConsistencyResult
 
 
 # =============================================================================

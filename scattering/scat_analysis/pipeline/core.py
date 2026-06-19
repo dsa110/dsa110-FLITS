@@ -14,7 +14,6 @@ import warnings
 from pathlib import Path
 from typing import Any, Dict
 
-import matplotlib.pyplot as plt
 import numpy as np
 
 from ..burstfit import (
@@ -727,7 +726,7 @@ class BurstPipeline:
             )
 
             init_guess = result.params
-            log.info(f"Data-driven initial guess:")
+            log.info("Data-driven initial guess:")
             log.info(f"  c0      = {init_guess.c0:.2f}")
             log.info(f"  t0      = {init_guess.t0:.3f} ms")
             log.info(f"  gamma   = {init_guess.gamma:.2f}")

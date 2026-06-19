@@ -1,5 +1,4 @@
 
-import pytest
 import numpy as np
 import tempfile
 import os
@@ -10,7 +9,6 @@ from scattering.scat_analysis.pipeline.core import BurstPipeline
 from scattering.scat_analysis.pipeline.io import BurstDataset
 from scattering.scat_analysis.pipeline.optimization import refine_initial_guess_mle
 from scattering.scat_analysis.pipeline.diagnostics import BurstDiagnostics
-from scattering.scat_analysis.burstfit import FRBParams
 from scattering.scat_analysis.config_utils import TelescopeConfig
 
 def test_pipeline_imports():

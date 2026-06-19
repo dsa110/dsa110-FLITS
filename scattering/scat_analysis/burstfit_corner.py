@@ -8,18 +8,11 @@ plots with posterior distributions.
 
 from __future__ import annotations
 
-import logging
-import pickle
-import contextlib
-from pathlib import Path
-from typing import Any, Dict, Sequence
 
 import corner
 import matplotlib.pyplot as plt
 import numpy as np
-from numpy.typing import NDArray
 
-from typing import List, Tuple, Dict, Any
 
 from chainconsumer import ChainConsumer
 

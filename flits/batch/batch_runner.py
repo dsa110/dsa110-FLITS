@@ -13,10 +13,8 @@ import traceback
 from pathlib import Path
 from datetime import datetime
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Any, Callable
-from concurrent.futures import ProcessPoolExecutor, as_completed
+from typing import Dict, List, Optional, Callable
 
-import yaml
 
 from .config_generator import ConfigGenerator, BurstInfo
 from .results_db import ResultsDatabase, ScatteringResult, ScintillationResult
@@ -62,8 +60,6 @@ def _run_scattering_analysis(
     telescope: str,
 ) -> Optional[ScatteringResult]:
     """Run scattering pipeline for a single burst (isolated function for multiprocessing)."""
-    import os
-    import sys
     
     # Ensure imports work
     flits_root = config_path.parent.parent.parent.parent
@@ -117,7 +113,6 @@ def _run_scintillation_analysis(
     telescope: str,
 ) -> Optional[ScintillationResult]:
     """Run scintillation pipeline for a single burst."""
-    import sys
     
     flits_root = config_path.parent.parent.parent.parent
     if str(flits_root) not in sys.path:

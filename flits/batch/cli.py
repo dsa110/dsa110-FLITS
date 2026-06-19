@@ -80,7 +80,7 @@ def cmd_joint_analysis(args):
         show_plots=not args.no_show,
     )
     
-    print(f"\n✅ Joint analysis complete.")
+    print("\n✅ Joint analysis complete.")
     if args.output:
         print(f"📊 Results saved to {args.output}")
 

@@ -20,7 +20,7 @@ from __future__ import annotations
 import re
 import logging
 from pathlib import Path
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Dict, List, Optional, Any
 
 import yaml

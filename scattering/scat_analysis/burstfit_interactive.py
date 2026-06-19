@@ -55,8 +55,6 @@ Example Usage
 
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.widgets import Slider, Button
-from IPython.display import display
 import ipywidgets as widgets
 from .burstfit import FRBModel, FRBParams
 

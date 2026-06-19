@@ -16,15 +16,13 @@ Smoke tests run quickly; integration tests are marked slow.
 
 from __future__ import annotations
 
-import os
 import tempfile
-from pathlib import Path
 
 import numpy as np
 import pytest
 
 from scattering.scat_analysis.burstfit import FRBModel, FRBParams, build_priors, FRBFitter
-from scattering.scat_analysis.burstfit_pipeline import BurstPipeline, BurstDataset, refine_initial_guess_mle
+from scattering.scat_analysis.burstfit_pipeline import BurstPipeline, refine_initial_guess_mle
 
 # Try imports for optional components
 try:

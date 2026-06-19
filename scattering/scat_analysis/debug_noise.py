@@ -1,7 +1,6 @@
 
 import sys
 import numpy as np
-import matplotlib.pyplot as plt
 from scattering.scat_analysis.burstfit_pipeline import BurstDataset
 from scattering.scat_analysis.burstfit import FRBModel
 
@@ -62,7 +61,7 @@ def diagnose_noise(inpath, frb_name="freya"):
     std_val = np.std(off_data)
     mad_std = 1.4826 * np.median(np.abs(off_data - median_val))
     
-    print(f"\n--- Off-Pulse Statistics ---")
+    print("\n--- Off-Pulse Statistics ---")
     print(f"Mean:   {mean_val:.4f}")
     print(f"Median: {median_val:.4f}")
     print(f"Std (Classic): {std_val:.4f}")
@@ -80,7 +79,7 @@ def diagnose_noise(inpath, frb_name="freya"):
     )
     noise_est = model.noise_std
     
-    print(f"\n--- Pipeline Noise Model ---")
+    print("\n--- Pipeline Noise Model ---")
     if isinstance(noise_est, np.ndarray):
         print(f"Model noise_std mean:  {np.mean(noise_est):.4f}")
     else:

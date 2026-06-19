@@ -40,7 +40,6 @@ from __future__ import annotations
 from typing import Dict, Sequence, Tuple
 
 import numpy as np
-from numpy.typing import NDArray
 
 from .burstfit import (
     FRBModel,

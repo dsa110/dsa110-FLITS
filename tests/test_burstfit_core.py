@@ -1,5 +1,4 @@
 
-import pytest
 import numpy as np
 from scattering.scat_analysis.burstfit import FRBParams, FRBModel, analytic_gaussian_exp_convolution
 

@@ -127,7 +127,7 @@ class FRBFitter:
         converged = np.all(tau < nsteps / VT.MCMC_AUTOCORR_NSTEPS_FACTOR)
 
         if not converged:
-            print(f"⚠️ WARNING: Chains may not be fully converged")
+            print("⚠️ WARNING: Chains may not be fully converged")
             print(f"   Max autocorr time: {np.max(tau):.1f}")
             print(f"   Recommend: nsteps >= {int(np.max(tau) * VT.MCMC_AUTOCORR_NSTEPS_FACTOR)}")
 

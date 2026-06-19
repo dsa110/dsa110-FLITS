@@ -8,7 +8,7 @@ Diagnostic helpers to check the robustness of a scattering fit.
 from __future__ import annotations
 
 import warnings
-from typing import List, Tuple, Dict, Any
+from typing import List, Tuple, Any
 
 import numpy as np
 from numpy.typing import NDArray

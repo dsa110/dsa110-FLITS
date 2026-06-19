@@ -1,9 +1,7 @@
 import numpy as np
-import pytest
 from flits.scintillation.physics import (
     scintillation_bandwidth_to_timescale,
     screen_distance_from_curvature,
-    effective_velocity,
     interpret_modulation_index,
     estimate_emission_region_size,
     two_screen_coherence_constraint,

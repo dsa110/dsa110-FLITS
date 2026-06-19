@@ -48,7 +48,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from typing import Dict, Optional, Tuple, Any
+from typing import Dict, Tuple
 
 import numpy as np
 
@@ -359,7 +359,6 @@ def get_burst_priors_from_catalog(
     # Handle sexagesimal if needed
     if isinstance(ra, str):
         from astropy.coordinates import SkyCoord
-        import astropy.units as u
         coord = SkyCoord(ra, dec, frame='icrs')
         ra = coord.ra.deg
         dec = coord.dec.deg

@@ -279,13 +279,15 @@ class BurstPipeline:
                         init=init_guess,
                         model_keys=model_keys,
                         priors=None,  # Will use defaults in nested module
-                        nlive=n_steps // 4,  # Heuristic mapping steps -> nlive
+                        nlive=int(self.pipeline_kwargs.get("nlive", 400)),
+                        dlogz=float(self.pipeline_kwargs.get("dlogz", 0.5)),
                         alpha_prior=(alpha_mu, alpha_sigma)
                         if alpha_fixed is None
                         else None,
                         alpha_fixed=alpha_fixed,
                         likelihood_kind=likelihood_kind,
                         student_nu=studentt_nu,
+                        walks=int(self.pipeline_kwargs.get("nlive_walks", 15)),
                     )
 
                     # Convert NS result to pipeline format

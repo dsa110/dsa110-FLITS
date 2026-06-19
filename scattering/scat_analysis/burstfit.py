@@ -586,7 +586,7 @@ class FRBModel:
         # Calculate model only for valid channels
         model_valid = self(p, model, freq_subset=self.valid)
         
-        resid = (data_valid - model_valid) / noise_valid[:, None]
+        resid = (data_valid - model_valid) / noise_valid
         return -0.5 * np.sum(resid**2)
 
     def log_likelihood_student_t(
@@ -607,7 +607,7 @@ class FRBModel:
         data_valid = self.data[self.valid]
         model_valid = self(p, model, freq_subset=self.valid)
         
-        resid = (data_valid - model_valid) / noise_valid[:, None]
+        resid = (data_valid - model_valid) / noise_valid
         
         # Student-t log-pdf up to constant per element
         # logL = sum( - (nu+1)/2 * log(1 + r^2/nu) ) - N * 0.5*log(nu*pi) - sum(log(sigma))

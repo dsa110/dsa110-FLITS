@@ -120,6 +120,13 @@ class PipelineOptions:
     model_scan: bool = True
     diagnostics: bool = True
     plot: bool = True
+    # Sampler backend: "emcee" (MCMC + BIC selection) or "nested" (dynesty +
+    # Bayesian-evidence selection). The prior published fits used "nested".
+    fitting_method: str = "emcee"
+    # Fraction trimmed from EACH end of the time axis before downsampling
+    # (BurstDataset._trim_buffer). 0.45 keeps only the central 10%, which can
+    # crop the scattering tail; the prior fits used ~0.14 (keep ~70%).
+    outer_trim: float = 0.45
 
 
 @dataclass
@@ -277,6 +284,8 @@ def load_config(path: str | Path, workspace_root: Optional[Path] = None) -> Conf
         model_scan=bool(cfg.get("model_scan", True)),
         diagnostics=bool(cfg.get("diagnostics", True)),
         plot=bool(cfg.get("plot", True)),
+        fitting_method=str(cfg.get("fitting_method", "emcee")),
+        outer_trim=float(cfg.get("outer_trim", 0.45)),
     )
 
     return Config(

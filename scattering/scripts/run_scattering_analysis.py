@@ -18,6 +18,7 @@ Usage:
     python run_scattering_analysis.py scattering/configs/bursts/dsa/casey_dsa.yaml
 """
 
+import sys
 import warnings
 from pathlib import Path
 from dataclasses import asdict
@@ -728,10 +729,13 @@ def main(config_file: str | None = None):
             f_factor=config.pipeline.f_factor,
             t_factor=config.pipeline.t_factor,
             steps=config.pipeline.steps,
-            nproc=4,
+            nproc=config.pipeline.nproc or 4,
+            fitting_method=config.pipeline.fitting_method,
+            outer_trim=config.pipeline.outer_trim,
         )
 
-        # Create dataset manually (for initial guess visualization)
+        # Create dataset manually (for initial guess visualization). Mirror the
+        # trim window so the guess matches the data the pipeline actually fits.
         pipe.dataset = BurstDataset(
             inpath=pipe.inpath,
             outpath=pipe.outpath,
@@ -740,6 +744,7 @@ def main(config_file: str | None = None):
             sampler=config.sampler,
             f_factor=config.pipeline.f_factor,
             t_factor=config.pipeline.t_factor,
+            outer_trim=config.pipeline.outer_trim,
         )
         pipe.dataset.dm_init = pipe.dm_init
         pipe.dataset.model.dm_init = pipe.dm_init

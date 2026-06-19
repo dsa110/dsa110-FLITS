@@ -34,9 +34,11 @@ def refine_initial_guess_mle(model, init_guess: FRBParams) -> FRBParams:
         ln_tau, alpha, t0, ln_c0 = theta
 
         # Constraints
-        # Constrain alpha to physically reasonable range for thin screen
-        if not (0.1 < alpha < 5.0):
-            return 1e20 
+        # Reasonable alpha bounds: allow up to 8 (steep/unresolved cases), not
+        # just the thin-screen Kolmogorov value ~4 (carried over from the
+        # monolith burstfit_pipeline at migration; see commit history).
+        if not (0.1 < alpha < 8.0):
+            return 1e20
 
         tau_val = np.exp(ln_tau)
         c0_val = np.exp(ln_c0)

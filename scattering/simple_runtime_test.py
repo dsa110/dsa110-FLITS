@@ -16,7 +16,7 @@ import numpy as np
 # Add to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from scattering.scat_analysis.burstfit_pipeline import BurstPipeline
+from scattering.scat_analysis.pipeline import BurstPipeline
 
 def main():
     # Data path

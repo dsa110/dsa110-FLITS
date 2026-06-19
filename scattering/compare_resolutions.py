@@ -21,7 +21,7 @@ import matplotlib.pyplot as plt
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from scattering.scat_analysis.burstfit_pipeline import BurstDataset
+from scattering.scat_analysis.pipeline import BurstDataset
 from scattering.scat_analysis.burstfit import FRBModel, FRBParams
 from scattering.scat_analysis.config_utils import load_telescope_block
 

@@ -34,7 +34,7 @@ import matplotlib.pyplot as plt
 # IMPORTS
 # =============================================================================
 
-from flits.scattering.scat_analysis.burstfit_pipeline import BurstPipeline, BurstDataset
+from flits.scattering.scat_analysis.pipeline import BurstPipeline, BurstDataset
 from flits.scattering.scat_analysis.burstfit_interactive import InitialGuessWidget
 from flits.scattering.scat_analysis.config_utils import load_config
 from flits.scattering.scat_analysis.burstfit import FRBParams

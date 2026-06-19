@@ -51,7 +51,7 @@ except ImportError:
     os.system("pip install seaborn emcee chainconsumer arviz")
 
 # Import pipeline components
-from scat_analysis.burstfit_pipeline import BurstPipeline
+from scat_analysis.pipeline import BurstPipeline
 from scat_analysis.burstfit_corner import (
     quick_chain_check,
     get_clean_samples,

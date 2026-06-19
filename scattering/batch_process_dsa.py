@@ -24,7 +24,7 @@ from tqdm import tqdm
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from scattering.scat_analysis.burstfit_pipeline import BurstPipeline, BurstDataset
+from scattering.scat_analysis.pipeline import BurstPipeline, BurstDataset
 from scattering.scat_analysis.burstfit import FRBModel, FRBParams, goodness_of_fit
 from scattering.scat_analysis.config_utils import load_telescope_block
 from scattering.scat_analysis.visualization import plot_scattering_diagnostic

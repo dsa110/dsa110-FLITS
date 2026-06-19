@@ -23,7 +23,7 @@ import csv
 
 # --- Package-relative imports (work via console-script entry point) ---
 try:
-    from .scat_analysis.burstfit_pipeline import BurstPipeline
+    from .scat_analysis.pipeline import BurstPipeline
     from flits.utils.reporting import print_fit_summary
     from .scat_analysis.burstfit_corner import (
         quick_chain_check,
@@ -36,7 +36,7 @@ except Exception:
     # add this directory to sys.path and import again
     sys.path.insert(0, str(Path(__file__).parent))
     try:
-        from scat_analysis.burstfit_pipeline import BurstPipeline
+        from scat_analysis.pipeline import BurstPipeline
         from scat_analysis.burstfit_corner import (
             quick_chain_check,
             get_clean_samples,

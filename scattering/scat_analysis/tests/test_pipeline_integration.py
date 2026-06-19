@@ -22,7 +22,7 @@ import numpy as np
 import pytest
 
 from scattering.scat_analysis.burstfit import FRBModel, FRBParams, build_priors, FRBFitter
-from scattering.scat_analysis.burstfit_pipeline import BurstPipeline, refine_initial_guess_mle
+from scattering.scat_analysis.pipeline import BurstPipeline, refine_initial_guess_mle
 
 # Try imports for optional components
 try:

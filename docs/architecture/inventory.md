@@ -14,7 +14,7 @@ This document catalogs all the various analyses performed within the FLITS repos
 
 **Key Components:**
 
-- `burstfit_pipeline.py` - OO orchestrator for end-to-end analysis
+- `pipeline/` - OO orchestrator package (core/io/optimization/diagnostics) for end-to-end analysis
 - `burstfit.py` - Physics kernel (dispersion, scattering, smearing) + likelihood
 - `burstfit_modelselect.py` - Sequential model comparison (M0→M1→M2→M3) via BIC
 - `burstfit_robust.py` - Robustness diagnostics (sub-band consistency, leave-one-out)

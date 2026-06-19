@@ -27,7 +27,7 @@ file  ───────▶ │ pre‑processing   │──┐
 FLITS
 ├── scattering/
 │   ├── scat_analysis/
-│   │   ├── burstfit_pipeline.py    # OO pipeline orchestrator
+│   │   ├── pipeline/               # OO pipeline orchestrator (core/io/optimization/diagnostics)
 │   │   ├── burstfit.py             # Core physics + MCMC wrappers
 │   │   ├── burstfit_modelselect.py # Model comparison via BIC
 │   │   └── burstfit_robust.py      # Robustness diagnostics

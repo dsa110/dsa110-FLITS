@@ -25,7 +25,7 @@ import matplotlib.pyplot as plt
 import astropy.units as u
 
 # Import FLITS Scattering modules
-from scattering.scat_analysis.burstfit_pipeline import BurstDataset
+from scattering.scat_analysis.pipeline import BurstDataset
 from scattering.scat_analysis.burstfit import FRBModel
 from scattering.scat_analysis.dm_preprocessing import refine_dm_init
 from scattering.scat_analysis.burstfit import downsample

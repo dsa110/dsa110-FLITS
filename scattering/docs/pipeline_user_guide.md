@@ -24,7 +24,7 @@ conda activate flits
 cd /path/to/FLITS
 
 # Run the pipeline
-python3 -m scattering.scat_analysis.burstfit_pipeline \
+python3 -m scattering.scat_analysis.pipeline \
     data/chime/freya_chime_I_912_4067_32000b_cntr_bpc.npy \
     --outpath ./scattering/scat_process/ \
     --telescope chime \

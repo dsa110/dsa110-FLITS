@@ -99,7 +99,7 @@ class InitialGuessWidget:
     Basic usage in a Jupyter notebook:
     
     >>> from scat_analysis.burstfit_interactive import InitialGuessWidget
-    >>> from scat_analysis.burstfit_pipeline import BurstDataset
+    >>> from scat_analysis.pipeline import BurstDataset
     >>> 
     >>> # Load your data
     >>> dataset = BurstDataset("burst.npy", "output/", telescope=telcfg, ...)

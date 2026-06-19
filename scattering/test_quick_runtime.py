@@ -21,7 +21,7 @@ import numpy as np
 # Add project to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from scattering.scat_analysis.burstfit_pipeline import BurstPipeline
+from scattering.scat_analysis.pipeline import BurstPipeline
 from scattering.scat_analysis.config_utils import load_telescope_block
 
 logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s')

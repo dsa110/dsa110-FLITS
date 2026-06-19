@@ -1,7 +1,7 @@
 
 import sys
 import numpy as np
-from scattering.scat_analysis.burstfit_pipeline import BurstDataset
+from scattering.scat_analysis.pipeline import BurstDataset
 from scattering.scat_analysis.burstfit import FRBModel
 
 # Mock TelescopeConfig

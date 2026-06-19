@@ -327,7 +327,7 @@ def create_initial_guess_figure(
     """
     print("\n[FIGURE] Creating initial guess comparison...")
 
-    from scat_analysis.burstfit import FRBModel
+    from flits.scattering.scat_analysis.burstfit import FRBModel
 
     # Create model
     model = FRBModel(

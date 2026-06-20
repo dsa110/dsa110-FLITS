@@ -49,6 +49,7 @@ from sim_fit_bridge import sim_grids_to_fitter  # noqa: E402
 from scattering.scat_analysis.burstfit import (  # noqa: E402
     FRBModel, FRBParams, FRBFitter, build_priors, gelman_rubin,
 )
+from tools.figure_manifest import write_manifest  # noqa: E402
 
 M2_ORDER = ("c0", "t0", "gamma", "tau_1ghz")
 LOG_COLS = {"c0", "tau_1ghz"}  # fitter samples these in log-space
@@ -308,6 +309,34 @@ def main():
         fig.tight_layout()
         fig.savefig(os.path.join(args.out, "ensemble_recovery.png"), dpi=130)
         plt.close(fig)
+
+    # ----- figure manifest (drives the figure-review gate) -------------------
+    figs = [
+        ("sim_dynamic_spectrum.png",
+         "Simulated burst: waterfall shows a pulse + decaying tail; band-integrated "
+         "profile peaks then decays; time-integrated spectrum should be NEAR-SMOOTH "
+         "(low modulation index, many scintles/channel); spectral ACF should decorrelate "
+         "near nu_s_host (~sub-kHz to kHz), i.e. a narrow spike, NOT a band-wide envelope."),
+        ("fit_data_model_residual.png",
+         "data | best-fit M2 model | residual; model tracks the gross pulse, residual holds "
+         "leftover scintillation, no gross spatial misfit; colour ranges comparable."),
+        ("fit_corner.png",
+         "Posterior corner for c0,t0,gamma,tau_1ghz in physical units; well-formed contours; "
+         "tau column finite and bounded."),
+        ("fit_chains.png",
+         "Walker traces per parameter + log-prob vs step; chains stationary/mixed after burn-in "
+         "(no permanent drift or stuck walkers)."),
+        ("recovered_vs_true.png",
+         "tau(nu0) posterior histogram with the injected tau_s as a vertical line; posterior "
+         "should be a sensible distribution (ideally near the line)."),
+    ]
+    if args.ensemble > 0:
+        figs.append(("ensemble_recovery.png",
+                     "Left: ensemble-mean waterfall with scintillation visibly suppressed and a "
+                     "clear pulse. Right (log y): normalised PBF tail with fit, empirical-efold, "
+                     "and nominal-tau_s exponentials; fit and empirical curves should track the "
+                     "data tail, nominal tau_s should be steeper."))
+    write_manifest(args.out, figs)
 
     # ----- summary -----------------------------------------------------------
     with open(os.path.join(args.out, "summary.json"), "w") as fh:

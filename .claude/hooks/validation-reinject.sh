@@ -3,6 +3,8 @@
 # can't silently drop "don't rationalize fits" after compaction.
 # Reads PostCompact stdin (ignored), emits additionalContext JSON on stdout.
 cat >/dev/null
+# ponytail: self-proving trace — next real compaction proves the hook fired (*.log gitignored)
+printf '%s PostCompact fired\n' "$(date -u +%FT%TZ)" >> "${CLAUDE_PROJECT_DIR:-$PWD}/.claude/hooks/postcompact.log"
 exec python3 - <<'PY'
 import json, sys
 

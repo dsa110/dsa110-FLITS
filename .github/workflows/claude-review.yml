@@ -43,6 +43,9 @@ jobs:
         if: steps.gate.outputs.ok == 'true'
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # Use the built-in Actions token to post; skips OIDC (no id-token: write,
+          # no Claude GitHub App install needed). pull-requests: write covers posting.
+          github_token: ${{ github.token }}
           prompt: |
             Review this pull request as a careful reviewer for FLITS, an FRB
             scattering/scintillation analysis pipeline. Post concise inline

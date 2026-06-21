@@ -53,7 +53,10 @@ from .burstfit import FRBModel, FRBParams, build_priors
 
 log = logging.getLogger(__name__)
 
-__all__ = ["fit_joint_scattering", "JOINT_PARAM_NAMES"]
+__all__ = [
+    "fit_joint_scattering", "JOINT_PARAM_NAMES", "JOINT_PARAM_NAMES_GAIN",
+    "JOINT_PARAM_NAMES_GAIN_GP",
+]
 
 # Joint 12-vector layout. First two are the shared sightline params; the rest
 # are per-telescope (suffix _C = CHIME, _D = DSA).
@@ -64,6 +67,46 @@ JOINT_PARAM_NAMES: Tuple[str, ...] = (
 )
 # Positive params sampled log-uniform (Jeffreys), mirroring burstfit_nested.
 _LOG_NAMES = frozenset({"tau_1ghz", "c0_C", "zeta_C", "c0_D", "zeta_D"})
+
+# Gain-marginalized 8-vector layout: the per-channel amplitude (gain) is
+# integrated analytically (matched-filter likelihood), so c0 and gamma drop out
+# of the sampled vector -- the gain absorbs the burst spectrum AND scintillation.
+# Only the temporal/scattering params remain. Lower-dim => easier sampling, and
+# the 2D residual whitens so chi2 becomes a valid goodness-of-fit gate.
+JOINT_PARAM_NAMES_GAIN: Tuple[str, ...] = (
+    "tau_1ghz", "alpha",
+    "t0_C", "zeta_C", "delta_dm_C",
+    "t0_D", "zeta_D", "delta_dm_D",
+)
+_LOG_NAMES_GAIN = frozenset({"tau_1ghz", "zeta_C", "zeta_D"})
+
+# Gain-marginalized + scintillation-GP 10-vector layout. Adds a per-band
+# scintillation bandwidth Delta_nu_d (MHz). The flat per-channel gain prior is
+# replaced by a Lorentzian-ACF Gaussian process (see
+# FRBModel.log_likelihood_gain_marginal_gp); the smooth spectral envelope (mu)
+# and the GP amplitude (sigma_g) are profiled analytically, so ONLY Delta_nu_d
+# is added to the sampled vector (8 -> 10 dim).
+JOINT_PARAM_NAMES_GAIN_GP: Tuple[str, ...] = (
+    "tau_1ghz", "alpha",
+    "t0_C", "zeta_C", "delta_dm_C", "Delta_nu_d_C",
+    "t0_D", "zeta_D", "delta_dm_D", "Delta_nu_d_D",
+)
+_LOG_NAMES_GAIN_GP = frozenset(
+    {"tau_1ghz", "zeta_C", "zeta_D", "Delta_nu_d_C", "Delta_nu_d_D"}
+)
+
+
+def _dnu_d_bounds(freq_GHz: NDArray[np.floating]) -> Tuple[float, float]:
+    """Log-uniform Delta_nu_d prior bounds (MHz) from a band's freq axis.
+
+    Resolvable range: lower = 0.3 * channel width (below this the GP is
+    unresolved and degrades to a flat upper limit); upper = band / 3 (a few
+    scintles minimum). Derived per band from the data, not hardcoded.
+    """
+    nu = np.asarray(freq_GHz, dtype=float)
+    chan_w_MHz = float(np.median(np.abs(np.diff(nu)))) * 1.0e3
+    band_MHz = float(nu.max() - nu.min()) * 1.0e3
+    return (0.3 * chan_w_MHz, band_MHz / 3.0)
 
 
 def _joint_prior_spec(
@@ -89,6 +132,46 @@ def _joint_prior_spec(
         "zeta_D": pD["zeta"], "delta_dm_D": pD["delta_dm"],
     }
     return [(n, by_name[n], n in _LOG_NAMES) for n in JOINT_PARAM_NAMES]
+
+
+def _joint_prior_spec_gain(
+    init_C: FRBParams,
+    init_D: FRBParams,
+    alpha_bounds: Tuple[float, float],
+) -> List[Tuple[str, Tuple[float, float], bool]]:
+    """Prior spec for the 8-vector gain-marginalized fit (no c0, gamma)."""
+    pC, _ = build_priors(init_C, absolute_bounds=True)
+    pD, _ = build_priors(init_D, absolute_bounds=True)
+    by_name = {
+        "tau_1ghz": pC["tau_1ghz"], "alpha": tuple(alpha_bounds),
+        "t0_C": pC["t0"], "zeta_C": pC["zeta"], "delta_dm_C": pC["delta_dm"],
+        "t0_D": pD["t0"], "zeta_D": pD["zeta"], "delta_dm_D": pD["delta_dm"],
+    }
+    return [(n, by_name[n], n in _LOG_NAMES_GAIN) for n in JOINT_PARAM_NAMES_GAIN]
+
+
+def _joint_prior_spec_gain_gp(
+    init_C: FRBParams,
+    init_D: FRBParams,
+    alpha_bounds: Tuple[float, float],
+    model_C: FRBModel,
+    model_D: FRBModel,
+) -> List[Tuple[str, Tuple[float, float], bool]]:
+    """Prior spec for the 10-vector gain+scintillation-GP fit.
+
+    Reuses the 8 temporal entries from `_joint_prior_spec_gain`, then appends a
+    per-band log-uniform Delta_nu_d with bounds [0.3*chan_width, band/3] computed
+    from each model's freq axis (data-derived, not hardcoded).
+    """
+    base = {n: (b, lg) for n, b, lg in
+            _joint_prior_spec_gain(init_C, init_D, alpha_bounds)}
+    dnu_C = _dnu_d_bounds(model_C.freq)
+    dnu_D = _dnu_d_bounds(model_D.freq)
+    by_name = dict(base)
+    by_name["Delta_nu_d_C"] = (dnu_C, True)
+    by_name["Delta_nu_d_D"] = (dnu_D, True)
+    return [(n, by_name[n][0], n in _LOG_NAMES_GAIN_GP)
+            for n in JOINT_PARAM_NAMES_GAIN_GP]
 
 
 class _JointPriorTransform:
@@ -143,12 +226,68 @@ class _JointLogLikelihood:
         return ll if np.isfinite(ll) else -1e100
 
 
+class _JointLogLikelihoodGain:
+    """Joint gain-marginalized log-L: matched-filter L over both bands.
+
+    8-vector theta = [tau, alpha, t0_C, zeta_C, ddm_C, t0_D, zeta_D, ddm_D]. Per
+    band the per-channel amplitude is integrated out analytically
+    (FRBModel.log_likelihood_gain_marginal), so c0/gamma are not sampled.
+    """
+
+    def __init__(self, model_C: FRBModel, model_D: FRBModel):
+        self.model_C = model_C
+        self.model_D = model_D
+
+    def __call__(self, theta: NDArray[np.floating]) -> float:
+        tau, alpha = float(theta[0]), float(theta[1])
+        pC = FRBParams(c0=1.0, t0=theta[2], gamma=0.0, zeta=theta[3],
+                       tau_1ghz=tau, alpha=alpha, delta_dm=theta[4])
+        pD = FRBParams(c0=1.0, t0=theta[5], gamma=0.0, zeta=theta[6],
+                       tau_1ghz=tau, alpha=alpha, delta_dm=theta[7])
+        ll = (self.model_C.log_likelihood_gain_marginal(pC, "M3")
+              + self.model_D.log_likelihood_gain_marginal(pD, "M3"))
+        return ll if np.isfinite(ll) else -1e100
+
+
+class _JointLogLikelihoodGainGP:
+    """Joint gain-marginal log-L with a scintillation GP prior on the gains.
+
+    10-vector theta layout (JOINT_PARAM_NAMES_GAIN_GP):
+      [0] tau_1ghz  [1] alpha
+      [2] t0_C  [3] zeta_C  [4] delta_dm_C  [5] Delta_nu_d_C
+      [6] t0_D  [7] zeta_D  [8] delta_dm_D  [9] Delta_nu_d_D
+
+    Per band the per-channel gains are integrated analytically under a Lorentzian
+    Gaussian-process prior (FRBModel.log_likelihood_gain_marginal_gp), profiling
+    the smooth envelope (GLS) and GP amplitude (ML); c0/gamma are not sampled.
+    Independent noise -> the joint logL is additive, exactly as the flat path.
+    """
+
+    def __init__(self, model_C: FRBModel, model_D: FRBModel, mu_degree: int = 1):
+        self.model_C = model_C
+        self.model_D = model_D
+        self.mu_degree = int(mu_degree)
+
+    def __call__(self, theta: NDArray[np.floating]) -> float:
+        tau, alpha = float(theta[0]), float(theta[1])
+        pC = FRBParams(c0=1.0, t0=theta[2], gamma=0.0, zeta=theta[3],
+                       tau_1ghz=tau, alpha=alpha, delta_dm=theta[4])
+        pD = FRBParams(c0=1.0, t0=theta[6], gamma=0.0, zeta=theta[7],
+                       tau_1ghz=tau, alpha=alpha, delta_dm=theta[8])
+        ll = (self.model_C.log_likelihood_gain_marginal_gp(
+                  pC, "M3", delta_nu_d_MHz=float(theta[5]), mu_degree=self.mu_degree)
+              + self.model_D.log_likelihood_gain_marginal_gp(
+                  pD, "M3", delta_nu_d_MHz=float(theta[9]), mu_degree=self.mu_degree))
+        return ll if np.isfinite(ll) else -1e100
+
+
 def _weighted_percentiles(
-    samples: NDArray[np.floating], weights: NDArray[np.floating]
+    samples: NDArray[np.floating], weights: NDArray[np.floating],
+    names: Tuple[str, ...] = JOINT_PARAM_NAMES,
 ) -> Dict[str, Dict[str, float]]:
     """Weighted 16/50/84 percentiles per column (mirror NestedSamplingResult)."""
     out: Dict[str, Dict[str, float]] = {}
-    for i, name in enumerate(JOINT_PARAM_NAMES):
+    for i, name in enumerate(names):
         s = samples[:, i]
         idx = np.argsort(s)
         ss, sw = s[idx], weights[idx]
@@ -174,6 +313,9 @@ def fit_joint_scattering(
     nproc: Optional[int] = None,
     sample: str = "rwalk",
     verbose: bool = True,
+    marginalize_gain: bool = False,
+    marginalize_gain_gp: bool = False,
+    mu_degree: int = 1,
     **dynesty_kwargs,
 ) -> Dict[str, Any]:
     """Run the joint CHIME+DSA nested fit; return posterior summary.
@@ -201,13 +343,26 @@ def fit_joint_scattering(
     if model_C.data is None or model_D.data is None:
         raise ValueError("both FRBModels must have data loaded")
 
-    spec = _joint_prior_spec(init_C, init_D, alpha_bounds)
+    if marginalize_gain_gp:
+        names = JOINT_PARAM_NAMES_GAIN_GP
+        spec = _joint_prior_spec_gain_gp(init_C, init_D, alpha_bounds,
+                                         model_C, model_D)
+        loglike = _JointLogLikelihoodGainGP(model_C, model_D, mu_degree=mu_degree)
+    elif marginalize_gain:
+        names = JOINT_PARAM_NAMES_GAIN
+        spec = _joint_prior_spec_gain(init_C, init_D, alpha_bounds)
+        loglike = _JointLogLikelihoodGain(model_C, model_D)
+    else:
+        names = JOINT_PARAM_NAMES
+        spec = _joint_prior_spec(init_C, init_D, alpha_bounds)
+        loglike = _JointLogLikelihood(model_C, model_D)
     ndim = len(spec)
     ptform = _JointPriorTransform(spec)
-    loglike = _JointLogLikelihood(model_C, model_D)
 
     if verbose:
-        log.info(f"Joint CHIME+DSA fit: ndim={ndim}, nlive={nlive}, alpha~U{alpha_bounds}")
+        log.info(f"Joint CHIME+DSA fit: ndim={ndim}, nlive={nlive}, "
+                 f"alpha~U{alpha_bounds}, marginalize_gain={marginalize_gain}, "
+                 f"marginalize_gain_gp={marginalize_gain_gp}")
 
     if nproc is not None and nproc > 1:
         # fork so workers inherit memory instead of re-importing __main__ (spawn
@@ -238,8 +393,8 @@ def fit_joint_scattering(
     weights /= weights.sum()
 
     return {
-        "param_names": list(JOINT_PARAM_NAMES),
-        "percentiles": _weighted_percentiles(results.samples, weights),
+        "param_names": list(names),
+        "percentiles": _weighted_percentiles(results.samples, weights, names),
         "log_evidence": float(results.logz[-1]),
         "log_evidence_err": float(results.logzerr[-1]),
         "samples": results.samples,

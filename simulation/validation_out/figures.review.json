@@ -1,0 +1,62 @@
+{
+  "reviewed_by": "claude (inline; figure-reviewer subagent pending session reload)",
+  "verdicts": [
+    {
+      "path": "sim_dynamic_spectrum.png",
+      "verdict": "anomaly",
+      "panels": {
+        "waterfall": "pulse near t~0.5 ms with a spiky multipath tail extending to ~2-3 ms - physically reasonable",
+        "band_integrated_profile": "sharp peak then spiky decaying tail (discrete IRF) - reasonable",
+        "time_integrated_spectrum": "BROAD U-shaped band-wide envelope, modulation index 0.38 - NOT the expected near-smooth spectrum",
+        "spectral_acf": "decorrelates over the ENTIRE 8 MHz band, not a narrow spike near nu_s_host~0.6 kHz"
+      },
+      "notes": "The spectrum/ACF are dominated by a band-scale envelope, not the screen scintillation (nu_s~0.6 kHz would be sub-channel fuzz). Almost certainly an STFT artifact of the off-centre (n_t//8) delta pulse imprinting a slow spectral ripple. Benign for the temporal tau validation but would mislead any gamma / nu_s readout. FIX: centre or window the intrinsic pulse, re-check the ACF shows the kHz scale."
+    },
+    {
+      "path": "fit_data_model_residual.png",
+      "verdict": "match",
+      "panels": {
+        "data": "scintillated burst with pulse + streaks",
+        "model": "smooth pulse+tail; faint vs data (colour ranges differ) but tracks the gross pulse",
+        "residual": "leftover scintillation structure - expected, smooth M2 cannot fit it"
+      },
+      "notes": "Structurally as expected for a smooth-spectrum model on a scintillated burst. red.chi2 ~300 is consistent with the residual scintillation."
+    },
+    {
+      "path": "fit_corner.png",
+      "verdict": "anomaly",
+      "panels": {
+        "marginals": "c0/t0/gamma/tau tight central clump; t0 and gamma report +0.000/-0.000 (under-dispersed)",
+        "joints": "outlier walkers strung along c0-tau and gamma-tau correlations; a secondary locus visible"
+      },
+      "notes": "Not cleanly unimodal; under-dispersed marginals + stuck-walker outliers reflect the poor mixing (see chains). Quoted uncertainties are not trustworthy."
+    },
+    {
+      "path": "fit_chains.png",
+      "verdict": "anomaly",
+      "panels": {
+        "c0_t0_gamma_tau": "after burn-in (~100 steps) MULTIPLE persistent bands - walkers stuck in distinct modes (t0 at ~0.5/1.05/1.3; gamma at 0.30 and 0.50; tau at ~-0.5/-1 and outliers at -4.5)",
+        "log_prob": "burn-in spike from ~-2.5e12 to ~0; flat after. 1e12 scale is large but expected given pixel count"
+      },
+      "notes": "Multimodal / poorly mixed, consistent with gelman-rubin ~3.2. Single scintillated realization, not the sampler, is the limit."
+    },
+    {
+      "path": "recovered_vs_true.png",
+      "verdict": "anomaly",
+      "panels": {
+        "posterior": "tau(nu0) is BIMODAL (~1.1 ms and ~2.55 ms), both far above the injected tau_s line at 288 us"
+      },
+      "notes": "Expected single-burst limitation (documented), but flagged: a single scintillated realization does not pin tau. Clean recovery is in the ensemble panel."
+    },
+    {
+      "path": "ensemble_recovery.png",
+      "verdict": "match",
+      "panels": {
+        "ensemble_waterfall": "scintillation visibly suppressed, clear pulse present",
+        "pbf_tail_log": "fit and empirical-efold exponentials track the data tail; nominal tau_s is steeper; data profile noisy and plateaus at the floor (only 16 realizations)"
+      },
+      "notes": "Supports the validation claim (fit ~ empirical PBF e-folding, both > nominal tau_s). Plateau/noise would clean up with more realizations."
+    }
+  ],
+  "summary": "Most important discrepancy: sim_dynamic_spectrum.png - the time-integrated spectrum and spectral ACF are dominated by a broad band-wide envelope (mod index 0.38, ACF decorrelating over the whole band) instead of the kHz-scale screen scintillation. Likely an STFT artifact of the off-centre delta pulse, not physics. The fit-stage figures (corner, chains, recovered_vs_true) are visibly multimodal/under-mixed on the single realization - expected, with clean recovery only in the ensemble panel."
+}

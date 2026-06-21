@@ -1,0 +1,29 @@
+{
+  "created": 1781917212.448094,
+  "figures": [
+    {
+      "path": "sim_dynamic_spectrum.png",
+      "expect": "near-smooth spectrum; ACF decorrelates near nu_s_host (~kHz spike), not band-wide"
+    },
+    {
+      "path": "fit_data_model_residual.png",
+      "expect": "model tracks gross pulse; residual holds scintillation"
+    },
+    {
+      "path": "fit_corner.png",
+      "expect": "well-formed posterior; tau bounded"
+    },
+    {
+      "path": "fit_chains.png",
+      "expect": "chains stationary/mixed after burn-in"
+    },
+    {
+      "path": "recovered_vs_true.png",
+      "expect": "tau posterior vs injected tau_s line"
+    },
+    {
+      "path": "ensemble_recovery.png",
+      "expect": "scintillation suppressed; fit & empirical track tail; nominal steeper"
+    }
+  ]
+}

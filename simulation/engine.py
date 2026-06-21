@@ -165,27 +165,34 @@ class FRBScintillator:
         """
         self._tau_static = (self._tau_mw0[:, None] + self._tau_host0[None, :] + self._tau_cross0)
 
+        # Delay time-evolution enters through the angular drift of each screen's
+        # scattering angle, NOT the linear velocity directly. Pradeep+2025
+        # (arXiv:2505.04576) Eq. A.2: dtheta_n/dt = V_n / [D_n (1+z_n)], with V_n a
+        # *physical* transverse velocity. The Galactic screen is local (z_mw ~ 0).
         v_mw_mps = self.cfg.mw.v_perp * 1000
         v_host_mps = self.cfg.host.v_perp * 1000
-        
+        omega_mw = v_mw_mps / self.D_mw_m
+        omega_host = v_host_mps / (self.D_host_m * (1.0 + self.cfg.z_host))
+
         # --- FIX #4: Anisotropy Implementation ---
-        # Apply anisotropy scaling to both theta and velocity vectors
+        # Apply anisotropy scaling to both theta and the angular drift rate.
         theta_mw_scaled = self.mw_screen.theta * self.mw_screen.anisotropy_scaling
-        v_mw_scaled = v_mw_mps * self.mw_screen.anisotropy_scaling
-        
+        omega_mw_scaled = omega_mw * self.mw_screen.anisotropy_scaling
+
         theta_host_scaled = self.host_screen.theta * self.host_screen.anisotropy_scaling
-        v_host_scaled = v_host_mps * self.host_screen.anisotropy_scaling
-        
-        # B term: The linear (Doppler) coefficient
-        dtau_dv_mw = (self.deff_mw_m / self.C_M_PER_S) * (theta_mw_scaled @ v_mw_scaled.T)
-        dtau_dv_host = (self.deff_host_m / self.C_M_PER_S) * (theta_host_scaled @ v_host_scaled.T)
-        dtau_dv_cross = -(self.deff_mw_m / self.C_M_PER_S) * (v_mw_mps @ self.host_screen.theta.T + self.mw_screen.theta @ v_host_mps.T)
+        omega_host_scaled = omega_host * self.host_screen.anisotropy_scaling
+
+        # B term: linear (Doppler) coefficient = d/dt[(deff/2c)|theta + omega t|^2]|_0
+        #         = (deff/c)(theta . omega)
+        dtau_dv_mw = (self.deff_mw_m / self.C_M_PER_S) * (theta_mw_scaled @ omega_mw_scaled.T)
+        dtau_dv_host = (self.deff_host_m / self.C_M_PER_S) * (theta_host_scaled @ omega_host_scaled.T)
+        dtau_dv_cross = -(self.deff_mw_m / self.C_M_PER_S) * (omega_mw @ self.host_screen.theta.T + self.mw_screen.theta @ omega_host.T)
         self._tau_linear_coeff = dtau_dv_mw[:, None] + dtau_dv_host[None, :] + dtau_dv_cross
 
-        # A term: The quadratic (fringe acceleration) coefficient
-        d2tau_dv2_mw = (self.deff_mw_m / (2 * self.C_M_PER_S)) * np.sum(v_mw_scaled**2)
-        d2tau_dv2_host = (self.deff_host_m / (2 * self.C_M_PER_S)) * np.sum(v_host_scaled**2)
-        d2tau_dv2_cross = -(self.deff_mw_m / self.C_M_PER_S) * np.sum(v_mw_mps * v_host_mps)
+        # A term: quadratic (fringe acceleration) coefficient = (deff/2c)|omega|^2
+        d2tau_dv2_mw = (self.deff_mw_m / (2 * self.C_M_PER_S)) * np.sum(omega_mw_scaled**2)
+        d2tau_dv2_host = (self.deff_host_m / (2 * self.C_M_PER_S)) * np.sum(omega_host_scaled**2)
+        d2tau_dv2_cross = -(self.deff_mw_m / self.C_M_PER_S) * np.sum(omega_mw * omega_host)
         self._tau_quad_coeff = d2tau_dv2_mw + d2tau_dv2_host + d2tau_dv2_cross
         
     def _prepare_frequency_grid(self):
@@ -210,35 +217,44 @@ class FRBScintillator:
 
         Returns
         -------
-        tau_mw, tau_host, tau_cross : ndarray
-            Delay components in seconds
+        total_delay : ndarray, shape (N_mw, N_host)
+            Combined geometric path delay for every MW-host path pair, in seconds.
+            (All branches return this same shape; callers ravel as needed.)
         """
         if dt_s == 0.0:
-            return self._tau_mw0, self._tau_host0, self._tau_cross0
-        
+            return self._tau_static
+
         if speed == 'fast':
             return self._tau_static + self._tau_linear_coeff * dt_s + self._tau_quad_coeff * dt_s**2
 
         else:
-            # Update angular positions based on transverse velocities
-            theta_mw_t = self.mw_screen.theta + (self.cfg.mw.v_perp * dt_s) / self.D_mw_m
-            theta_host_t = self.host_screen.theta + (self.cfg.host.v_perp * dt_s) / self.D_host_m
+            # Update angular positions via the drift rate dtheta/dt = V/[D(1+z)]
+            # (Pradeep+2025 Eq. A.2). v_perp is km/s -> m/s; z_mw ~ 0 (Galactic).
+            v_mw_mps = self.cfg.mw.v_perp * 1000.0
+            v_host_mps = self.cfg.host.v_perp * 1000.0
+            theta_mw_t = self.mw_screen.theta + (v_mw_mps * dt_s) / self.D_mw_m
+            theta_host_t = self.host_screen.theta + (v_host_mps * dt_s) / (self.D_host_m * (1.0 + self.cfg.z_host))
 
             # Recalculate delay terms with new positions
             tau_mw = (self.deff_mw_m / (2 * C_M_PER_S)) * np.sum(theta_mw_t**2, axis=1)
             tau_host = (self.deff_host_m / (2 * C_M_PER_S)) * np.sum(theta_host_t**2, axis=1)
             tau_cross = -(self.deff_mw_m / C_M_PER_S) * (theta_mw_t @ theta_host_t.T)
-            return tau_mw, tau_host, tau_cross
-    
-    def _irf_coherent_vs_freq(self, tau_mw, tau_host, tau_cross) -> np.ndarray:
+            return tau_mw[:, None] + tau_host[None, :] + tau_cross
+
+    def _irf_coherent_vs_freq(self, total_delay) -> np.ndarray:
         """
         Calculates the Impulse Response Function R(ν) by performing the coherent
         sum over all N_mw * N_host propagation paths (Eq. 3.3).
+
+        Parameters
+        ----------
+        total_delay : ndarray, shape (N_mw, N_host)
+            Combined path delays, as returned by :meth:`_delays`.
         """
         # Pre-calculate product of field amplitudes for all paths
         field_products = (self.mw_screen.field[:, None] * self.host_screen.field[None, :]).ravel()
-        # Calculate total delay for all paths
-        total_delay = (tau_mw[:, None] + tau_host[None, :] + tau_cross).ravel()
+        # Flatten the combined per-path delays
+        total_delay = np.asarray(total_delay).ravel()
         
         if _NUMBA:
             return _irf_coherent_numba_loop(field_products, total_delay, self.freqs_hz)
@@ -311,9 +327,7 @@ class FRBScintillator:
         """
         Constructs the time-domain impulse response function R(t).
         """
-        tau_mw, tau_host, tau_cross = self._delays(dt_s)
-        
-        all_delays = (tau_mw[:, None] + tau_host[None, :] + tau_cross).ravel()
+        all_delays = self._delays(dt_s).ravel()
         all_amps = (self.mw_screen.field[:, None] * self.host_screen.field[None, :]).ravel()
         
         irf_t = np.zeros(n_t, dtype=np.complex128)
@@ -405,13 +419,15 @@ class FRBScintillator:
         Simulates a time-integrated spectrum |R(ν)|² for a delta-function pulse.
         This is the fundamental observable for analyzing scintillation.
         """
-        tau_mw, tau_host, tau_cross = self._delays(dt_epoch.to_value(u.s))
-        irf_freq = self._irf_coherent_vs_freq(tau_mw, tau_host, tau_cross)
+        total_delay = self._delays(dt_epoch.to_value(u.s))
+        irf_freq = self._irf_coherent_vs_freq(total_delay)
 
         # For noise-free case, return |R(ν)|²
         spectrum = np.abs(irf_freq)**2
 
         # Add noise if instrumental parameters are specified
+        # (_add_spectral_noise self-guards: returns spectrum unchanged when SEFD is None)
+        spectrum = self._add_spectral_noise(spectrum, rng)
         return spectrum
 
 
@@ -551,9 +567,9 @@ class FRBScintillator:
         for i in trange(num_time_steps, desc="Calculating spectra per time step"):
             dt_s = time_axis[i]
             # Calculate delays for this specific time step (includes velocity effects)
-            tau_mw, tau_host, tau_cross = self._delays(dt_s)
+            total_delay = self._delays(dt_s)
             # Calculate the IRF spectrum R(ν) for this time step
-            R_nu = self._irf_coherent_vs_freq(tau_mw, tau_host, tau_cross)
+            R_nu = self._irf_coherent_vs_freq(total_delay)
             # Convolve in the frequency domain (i.e., multiply)
             E_signal_t_nu[i, :] = R_nu * E_int_nu
 
@@ -805,4 +821,5 @@ class FRBScintillator:
         
         for key in results:
             results[key] = np.array(results[key])
-            
+
+        return results

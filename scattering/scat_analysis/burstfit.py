@@ -20,13 +20,14 @@ Public API
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, replace
 from typing import Dict, Sequence, Tuple, Any
 
 import emcee
 import numpy as np
 from numpy.typing import NDArray
 from scipy import stats
+from scipy.linalg import eigh
 from scipy.special import erfcx
 
 __all__ = [
@@ -422,6 +423,124 @@ class FRBParams:
 
 
 # ----------------------------------------------------------------------
+# Gaussian-process spectral marginal (diffractive scintillation)
+# ----------------------------------------------------------------------
+def _gp_amplitude_logL(
+    ahat: NDArray[np.floating],
+    v: NDArray[np.floating],
+    freq_MHz: NDArray[np.floating],
+    delta_nu_d_MHz: float,
+    mu_degree: int = 1,
+    sigma_g2: float | None = None,
+) -> Tuple[float, float, NDArray[np.floating], float]:
+    """Spectral GP marginal over the matched-filter gain estimates `ahat`.
+
+    Diffractive scintillation makes the per-channel gain estimates correlated in
+    frequency with a Lorentzian ACF of half-width `delta_nu_d` (the scintillation
+    bandwidth). We model the gain-estimate vector as
+
+        ahat ~ N(mu, Sigma),  Sigma = sigma_g^2 C(delta_nu_d) + diag(v)
+        C[f,f'] = 1 / (1 + ((nu_f - nu_f') / delta_nu_d)^2)   (unit-amplitude Lorentzian)
+        mu = X beta  (smooth intrinsic envelope, Vandermonde of centred+scaled freq)
+
+    mu is profiled by generalized least squares (flat prior on beta -> the
+    +0.5 ln|X^T Sigma^-1 X| Jacobian term), and sigma_g^2 by 1-D maximum
+    likelihood unless overridden via `sigma_g2`.
+
+    Returns ``(logL_amp, sigma_g2_ml, mu, modulation_index)`` where ``logL_amp``
+    is the SPECTRAL block only (the temporal -0.5 sum chi2min is added by the
+    caller). It comprises
+
+        -0.5 (ahat-mu)^T Sigma^-1 (ahat-mu)      [GP residual]
+        -0.5 ln|Sigma|                            [GP Occam, generalizes -0.5 ln S_kk]
+        +0.5 ln|X^T Sigma^-1 X|                   [GLS mu-profiling Jacobian]
+        -0.5 sum_f ln(2 pi v_f)                   [ahat|g white-noise normalizer]
+
+    Numerics: whiten the correlation by the diagonal, M = D^{-1/2} C D^{-1/2}
+    = Q L Q^T (one symmetric eigendecomposition per call), then for any sigma_g^2
+    both ln|Sigma| = sum ln v + sum ln(sigma_g^2 L_k + 1) and the quadratic /
+    GLS forms are O(n) in the rotated basis. The sigma_g^2 sweep therefore costs
+    one O(n^3) eigendecomposition + O(n) per inner evaluation (cf. derivation
+    notes / SPEC.profile_strategy).
+    """
+    ahat = np.asarray(ahat, dtype=float)
+    v = np.clip(np.asarray(v, dtype=float), 1e-30, None)
+    nu = np.asarray(freq_MHz, dtype=float)
+    n = ahat.size
+
+    # Lorentzian correlation on live channels (unit amplitude).
+    dnu = nu[:, None] - nu[None, :]
+    C = 1.0 / (1.0 + (dnu / float(delta_nu_d_MHz)) ** 2)
+
+    # Whiten by the noise diagonal: M = D^{-1/2} C D^{-1/2} = Q L Q^T.
+    dinv_sqrt = 1.0 / np.sqrt(v)
+    M = (dinv_sqrt[:, None] * C) * dinv_sqrt[None, :]
+    M = 0.5 * (M + M.T)  # symmetrize against round-off before eigh
+    L, Q = eigh(M)
+    L = np.clip(L, 0.0, None)  # C is PSD; clip tiny negative round-off
+
+    # Rotate the data and the design matrix into the eigenbasis ONCE.
+    # Vandermonde of centred+scaled freq keeps X^T Sigma^-1 X well-conditioned.
+    span = float(nu.max() - nu.min())
+    nu_c = (nu - nu.mean()) / (span if span > 0 else 1.0)
+    X = np.vander(nu_c, N=int(mu_degree) + 1, increasing=True)  # (n, p+1)
+    a_w = Q.T @ (dinv_sqrt * ahat)          # Q^T D^{-1/2} ahat
+    X_w = Q.T @ (dinv_sqrt[:, None] * X)    # Q^T D^{-1/2} X   (n, p+1)
+    logdet_v = float(np.sum(np.log(v)))
+
+    def _profile_mu(s2: float) -> Tuple[NDArray[np.floating], NDArray[np.floating]]:
+        """GLS beta and rotated residual z = Q^T D^{-1/2} (ahat - mu) at sigma_g^2=s2."""
+        d_eig = s2 * L + 1.0                 # eigenvalues of D^{-1/2} Sigma D^{-1/2}
+        inv_d = 1.0 / d_eig
+        # X^T Sigma^-1 X = X_w^T diag(inv_d) X_w ; X^T Sigma^-1 ahat = X_w^T diag(inv_d) a_w
+        XtSiX = (X_w * inv_d[:, None]).T @ X_w
+        XtSia = (X_w * inv_d[:, None]).T @ a_w
+        beta = np.linalg.solve(XtSiX, XtSia)
+        z = a_w - X_w @ beta                 # rotated residual
+        return beta, z
+
+    def _neglogL_s2(log_s2: float, return_full: bool = False):
+        s2 = float(np.exp(log_s2))
+        beta, z = _profile_mu(s2)
+        d_eig = s2 * L + 1.0
+        quad = float(np.sum(z * z / d_eig))
+        logdet_sigma = logdet_v + float(np.sum(np.log(d_eig)))
+        # GLS Jacobian (flat prior on beta): +0.5 ln|X^T Sigma^-1 X|
+        inv_d = 1.0 / d_eig
+        XtSiX = (X_w * inv_d[:, None]).T @ X_w
+        sgn, logdet_XtSiX = np.linalg.slogdet(XtSiX)
+        jac = 0.5 * logdet_XtSiX if sgn > 0 else -1e30
+        logL = (-0.5 * quad - 0.5 * logdet_sigma + jac
+                - 0.5 * (n * np.log(2.0 * np.pi) + logdet_v))
+        if return_full:
+            return logL, beta, s2
+        return -logL
+
+    if sigma_g2 is not None:
+        # Caller-forced amplitude (used by the decorrelated-wide flat-limit test).
+        logL, beta, s2_ml = _neglogL_s2(np.log(float(sigma_g2)), return_full=True)
+    else:
+        # Bounded 1-D ML over log(sigma_g^2). Golden-section cannot diverge near
+        # the (non-convex) unresolved boundary, unlike Newton. Range anchored on
+        # the data scale: median(v) sets the noise floor, var(ahat) the ceiling.
+        from scipy.optimize import minimize_scalar
+        med_v = float(np.median(v))
+        scale = max(med_v, float(np.var(ahat)), 1e-30)
+        lo, hi = np.log(scale) - 18.0, np.log(scale) + 18.0
+        res = minimize_scalar(_neglogL_s2, bounds=(lo, hi), method="bounded",
+                              options={"xatol": 1e-3})
+        logL, beta, s2_ml = _neglogL_s2(res.x, return_full=True)
+
+    mu = X @ beta
+    # Modulation index of the (envelope-removed) gain estimates: std of the
+    # fractional residual. Independent sub-resolution scintillation probe.
+    with np.errstate(divide="ignore", invalid="ignore"):
+        frac = (ahat - mu) / np.where(np.abs(mu) > 1e-30, mu, np.nan)
+    mod_index = float(np.nanstd(frac)) if np.any(np.isfinite(frac)) else float("nan")
+    return float(logL), float(s2_ml), mu, mod_index
+
+
+# ----------------------------------------------------------------------
 # Forward model
 # ----------------------------------------------------------------------
 class FRBModel:
@@ -600,6 +719,181 @@ class FRBModel:
         
         resid = (data_valid - model_valid) / noise_valid
         return -0.5 * np.sum(resid**2)
+
+    def log_likelihood_gain_marginal(self, p: FRBParams, model: str = "M3") -> float:
+        """Gaussian log-L with a per-channel amplitude (gain) marginalized analytically.
+
+        The model factorizes as g_f * K_f(t): K_f is the UNIT-amplitude scattering
+        kernel (evaluated with c0=1, gamma=0) carrying the per-channel temporal
+        shape tau(f), and g_f is a free per-channel gain that absorbs the burst
+        spectrum AND diffractive scintillation. With a flat prior on g_f, the gain
+        integral is the matched-filter (F-statistic) marginal likelihood per channel
+
+            ln L_f = -0.5 (S_dd - S_dk^2/S_kk)/sig_f^2 - 0.5 ln(S_kk) + 0.5 ln(2 pi sig_f^2)
+
+        with S_dd=sum_t d^2, S_dk=sum_t d K, S_kk=sum_t K^2 over the on-pulse window.
+        This whitens AMPLITUDE residuals (scintillation no longer inflates chi2) so
+        the per-channel chi2 is a valid scattering goodness-of-fit gate; the profiled
+        g_f (see gain_spectrum) is the scintillation/Delta-nu_d probe. A purely
+        temporal (shape) misfit -- e.g. a model that cannot reach the burst peak --
+        is NOT absorbed by g_f and remains visible.
+        """
+        if self.data is None or self.noise_std is None:
+            raise RuntimeError("need observed data + noise_std for likelihood")
+        if self.valid is None or not np.any(self.valid):
+            return -np.inf
+
+        K = self(replace(p, c0=1.0, gamma=0.0), model, freq_subset=self.valid)
+        d = self.data[self.valid]
+        sig = np.clip(self.noise_std[self.valid], 1e-9, None)
+        var = sig**2
+        S_dd = np.einsum("ij,ij->i", d, d)
+        S_dk = np.einsum("ij,ij->i", d, K)
+        S_kk = np.einsum("ij,ij->i", K, K)
+        ok = S_kk > 1e-30
+        S_kk_safe = np.where(ok, S_kk, 1.0)
+        # gain=0 baseline (S_dd/var) where the model has no support in a channel
+        chi2min = np.where(ok, (S_dd - S_dk**2 / S_kk_safe) / var, S_dd / var)
+        occam = np.where(ok, -0.5 * np.log(S_kk_safe), 0.0)
+        const = 0.5 * np.log(2.0 * np.pi * var)
+        ll = float(np.sum(-0.5 * chi2min + occam + const))
+        return ll if np.isfinite(ll) else -np.inf
+
+    def gain_spectrum(self, p: FRBParams, model: str = "M3") -> NDArray[np.floating]:
+        """Profiled per-channel gain g_f = S_dk/S_kk at parameters *p* (all channels).
+
+        g_f is the matched-filter amplitude of the unit kernel K_f in each channel:
+        the burst spectrum modulated by diffractive scintillation. Autocorrelating
+        g_f over frequency yields the scintillation bandwidth Delta-nu_d (the second
+        scattering probe). Channels with no model support return 0.
+        """
+        K = self(replace(p, c0=1.0, gamma=0.0), model)
+        d = self.data
+        S_dk = np.einsum("ij,ij->i", d, K)
+        S_kk = np.einsum("ij,ij->i", K, K)
+        return np.where(S_kk > 1e-30, S_dk / np.where(S_kk > 1e-30, S_kk, 1.0), 0.0)
+
+    def log_likelihood_gain_marginal_gp(
+        self,
+        p: FRBParams,
+        model: str = "M3",
+        delta_nu_d_MHz: float | None = None,
+        mu_degree: int = 1,
+        sigma_g2: float | None = None,
+    ) -> float:
+        """Gain-marginal log-L with a frequency-correlated (scintillation) GP prior.
+
+        Generalizes :meth:`log_likelihood_gain_marginal`: the per-channel gains
+        g_f are no longer independent with a flat prior but a Gaussian process
+        whose Lorentzian frequency ACF has half-width ``delta_nu_d_MHz`` (the
+        diffractive scintillation bandwidth). The temporal matched-filter
+        statistics are IDENTICAL to the flat path; only the amplitude block
+        changes (see :func:`_gp_amplitude_logL`).
+
+        Per consensus_logL the per-band marginal is
+
+            logL = -0.5 sum_f chi2min_f                          [temporal, shared with flat]
+                   + 0.5 sum_f ln(2 pi sig_f^2)                  [data/MF normalization const]
+                   + logL_amp(ahat, v, nu, delta_nu_d)          [spectral GP block]
+
+        where ahat_f = S_dk,f/S_kk,f, v_f = sig_f^2/S_kk,f and
+        chi2min_f = (S_dd - S_dk^2/S_kk)/sig_f^2.
+
+        Dispatch / fallback:
+        * ``delta_nu_d_MHz is None`` -> returns ``log_likelihood_gain_marginal``
+          VERBATIM (exact flat-prior regression anchor; the GP math is never
+          duplicated).
+        * fewer than ``mu_degree + 2`` live, model-supported channels -> same
+          flat fallback (cannot profile mu + the GP simultaneously).
+        """
+        if delta_nu_d_MHz is None:
+            return self.log_likelihood_gain_marginal(p, model)
+        if self.data is None or self.noise_std is None:
+            raise RuntimeError("need observed data + noise_std for likelihood")
+        if self.valid is None or not np.any(self.valid):
+            return -np.inf
+
+        # --- temporal matched-filter statistics (identical to the flat path) ---
+        K = self(replace(p, c0=1.0, gamma=0.0), model, freq_subset=self.valid)
+        d = self.data[self.valid]
+        sig = np.clip(self.noise_std[self.valid], 1e-9, None)
+        var = sig**2
+        S_dd = np.einsum("ij,ij->i", d, d)
+        S_dk = np.einsum("ij,ij->i", d, K)
+        S_kk = np.einsum("ij,ij->i", K, K)
+        ok = S_kk > 1e-30  # channels with model support; GP runs on these
+        n_supported = int(np.count_nonzero(ok))
+
+        # Temporal residual is delta_nu_d-INDEPENDENT and shared with the flat path.
+        S_kk_safe = np.where(ok, S_kk, 1.0)
+        chi2min = np.where(ok, (S_dd - S_dk**2 / S_kk_safe) / var, S_dd / var)
+        temporal = float(np.sum(-0.5 * chi2min))
+        # data/MF normalization const (matches the flat code's +0.5 ln 2pi sig^2).
+        const = float(np.sum(0.5 * np.log(2.0 * np.pi * var)))
+
+        if n_supported < int(mu_degree) + 2:
+            # Cannot profile mu + GP; fall back to the flat marginal (regression-safe).
+            return self.log_likelihood_gain_marginal(p, model)
+
+        # --- spectral GP block on the supported channels ---
+        ahat = S_dk[ok] / S_kk[ok]
+        v = var[ok] / S_kk[ok]
+        nu_MHz = self.freq[self.valid][ok] * 1.0e3  # GHz -> MHz
+        try:
+            logL_amp, _s2, _mu, _m = _gp_amplitude_logL(
+                ahat, v, nu_MHz, float(delta_nu_d_MHz),
+                mu_degree=int(mu_degree), sigma_g2=sigma_g2,
+            )
+        except np.linalg.LinAlgError:
+            return -np.inf
+
+        ll = temporal + const + logL_amp
+        return ll if np.isfinite(ll) else -np.inf
+
+    def scint_gain_summary(
+        self,
+        p: FRBParams,
+        model: str = "M3",
+        delta_nu_d_MHz: float | None = None,
+        mu_degree: int = 1,
+    ) -> Dict[str, Any]:
+        """Recover the GLS smooth mean mu, residual gains, ML sigma_g^2 and the
+        modulation index at parameters *p* and a given ``delta_nu_d_MHz``.
+
+        Returns a dict over the LIVE+model-supported channels: ``freq_MHz``,
+        ``ahat`` (matched-filter gain estimates), ``mu`` (smooth GLS envelope),
+        ``resid`` (ahat - mu, the per-channel scintillation residual),
+        ``sigma_g2``, ``modulation_index``, ``delta_nu_d_MHz``.
+        """
+        if self.data is None or self.noise_std is None:
+            raise RuntimeError("need observed data + noise_std for likelihood")
+        K = self(replace(p, c0=1.0, gamma=0.0), model, freq_subset=self.valid)
+        d = self.data[self.valid]
+        sig = np.clip(self.noise_std[self.valid], 1e-9, None)
+        var = sig**2
+        S_dk = np.einsum("ij,ij->i", d, K)
+        S_kk = np.einsum("ij,ij->i", K, K)
+        ok = S_kk > 1e-30
+        ahat = S_dk[ok] / S_kk[ok]
+        v = var[ok] / S_kk[ok]
+        nu_MHz = self.freq[self.valid][ok] * 1.0e3
+        if delta_nu_d_MHz is None or int(np.count_nonzero(ok)) < int(mu_degree) + 2:
+            # No GP -> smooth mean is the flat-weighted polynomial, residual=ahat-mu.
+            span = float(nu_MHz.max() - nu_MHz.min()) if nu_MHz.size else 1.0
+            nu_c = (nu_MHz - nu_MHz.mean()) / (span if span > 0 else 1.0)
+            X = np.vander(nu_c, N=int(mu_degree) + 1, increasing=True)
+            beta, *_ = np.linalg.lstsq(X, ahat, rcond=None)
+            mu = X @ beta
+            return dict(freq_MHz=nu_MHz, ahat=ahat, mu=mu, resid=ahat - mu,
+                        sigma_g2=float("nan"),
+                        modulation_index=float(np.nanstd((ahat - mu) /
+                                              np.where(np.abs(mu) > 1e-30, mu, np.nan))),
+                        delta_nu_d_MHz=delta_nu_d_MHz)
+        _ll, s2, mu, mod = _gp_amplitude_logL(
+            ahat, v, nu_MHz, float(delta_nu_d_MHz), mu_degree=int(mu_degree))
+        return dict(freq_MHz=nu_MHz, ahat=ahat, mu=mu, resid=ahat - mu,
+                    sigma_g2=s2, modulation_index=mod,
+                    delta_nu_d_MHz=float(delta_nu_d_MHz))
 
     def log_likelihood_student_t(
         self, p: FRBParams, model: str = "M3", nu: float = 5.0

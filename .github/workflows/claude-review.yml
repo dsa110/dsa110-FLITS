@@ -43,6 +43,12 @@ jobs:
         if: steps.gate.outputs.ok == 'true'
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # Use the built-in Actions token to post; skips OIDC (no id-token: write,
+          # no Claude GitHub App install needed). pull-requests: write covers posting.
+          github_token: ${{ github.token }}
+          # Canonical auto-review mode: pre-enables the inline-comment tool and adds
+          # a tracking comment. Without it the post tool is denied and nothing posts.
+          track_progress: true
           prompt: |
             Review this pull request as a careful reviewer for FLITS, an FRB
             scattering/scintillation analysis pipeline. Post concise inline
@@ -62,4 +68,4 @@ jobs:
               correct diff, but never relax scientific rigor for brevity.
             Do not nitpick style that ruff already enforces. Ignore base64 image
             payloads embedded in docs/*.html.
-          claude_args: "--max-turns 8"
+          claude_args: "--model claude-opus-4-8 --max-turns 8"

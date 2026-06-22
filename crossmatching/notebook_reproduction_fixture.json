@@ -1,0 +1,307 @@
+{
+  "source": "CANFAR toa_crossmatch.ipynb distilled from notebook outputs; no raw data required",
+  "reference_frequency_mhz": 400.0,
+  "dsa_native_frequency_mhz": 1530.0,
+  "bursts": [
+    {
+      "name": "zach",
+      "chime_id": "210456524",
+      "dm": 262.368,
+      "source_coord": "20h40m47.886s +72d52m56.378s",
+      "dm_uncertainty": 0.1,
+      "error_chime_ms": 0.005057053891731173,
+      "error_dsa_ms": 2.4157736787133155,
+      "fwhm_ms": 0.9640310519211329,
+      "chime": {
+        "toa_utc_400": "2022-02-07 19:24:21.052",
+        "toa_unix_400": 1644261861.0520418
+      },
+      "dsa": {
+        "dsa_mjd": 59617.80850364017,
+        "native_frequency_mhz": 1530.0,
+        "reference_frequency_mhz": 400.0,
+        "filterbank_path": "iacobus:/Users/iacobus/Library/Mobile Documents/com~apple~CloudDocs/Archives/Migrations/Dropbox-Migration/Codetections_DSA_Filterbanks/zach_240203aacl_210456524/220207aabh_dev_polcal_I.fil",
+        "filterbank_tstart_mjd": 59617.808504,
+        "tsamp_s": 3.2768e-05,
+        "nchans": 6144,
+        "fch1_mhz": 1498.75,
+        "foff_mhz": -0.03051757812
+      }
+    },
+    {
+      "name": "whitney",
+      "chime_id": "215063905",
+      "dm": 462.174,
+      "source_coord": "08h58m52.92s +73d29m27.0s",
+      "dm_uncertainty": 0.1,
+      "error_chime_ms": 0.005057053891731173,
+      "error_dsa_ms": 2.4157736787133155,
+      "fwhm_ms": 0.4865476390232406,
+      "chime": {
+        "toa_utc_400": "2022-03-10 05:48:15.837",
+        "toa_unix_400": 1646891295.837386
+      },
+      "dsa": {
+        "dsa_mjd": 59648.24172074433,
+        "native_frequency_mhz": 1530.0,
+        "reference_frequency_mhz": 400.0,
+        "filterbank_path": "iacobus:/Users/iacobus/Library/Mobile Documents/com~apple~CloudDocs/Archives/Migrations/Dropbox-Migration/Codetections_DSA_Filterbanks/whitney_220310aaam_215063905/220310aaam_dev_polcal_I.fil",
+        "filterbank_tstart_mjd": 59648.241721,
+        "tsamp_s": 3.2768e-05,
+        "nchans": 6144,
+        "fch1_mhz": 1498.75,
+        "foff_mhz": -0.03051757812
+      }
+    },
+    {
+      "name": "oran",
+      "chime_id": "224263996",
+      "dm": 396.882,
+      "source_coord": "21h12m10.760s +72d49m38.20s",
+      "dm_uncertainty": 0.1,
+      "error_chime_ms": 0.005057053891731173,
+      "error_dsa_ms": 2.4157736787133155,
+      "fwhm_ms": 74.20172254439144,
+      "chime": {
+        "toa_utc_400": "2022-05-06 14:19:51.511",
+        "toa_unix_400": 1651846791.5105588
+      },
+      "dsa": {
+        "dsa_mjd": 59705.59701292354,
+        "native_frequency_mhz": 1530.0,
+        "reference_frequency_mhz": 400.0,
+        "filterbank_path": "iacobus:/Users/iacobus/Library/Mobile Documents/com~apple~CloudDocs/Archives/Migrations/Dropbox-Migration/Codetections_DSA_Filterbanks/oran_220506aabd_224263996/220506aabd_dev_polcal_I.fil",
+        "filterbank_tstart_mjd": 59705.597013,
+        "tsamp_s": 3.2768e-05,
+        "nchans": 6144,
+        "fch1_mhz": 1498.75,
+        "foff_mhz": -0.03051757812
+      }
+    },
+    {
+      "name": "isha",
+      "chime_id": "252069198",
+      "dm": 411.568,
+      "source_coord": "04h45m38.64s +70d18m26.6s",
+      "dm_uncertainty": 0.1,
+      "error_chime_ms": 0.005057053891731173,
+      "error_dsa_ms": 2.4157736787133155,
+      "fwhm_ms": 1.8052781950282417,
+      "chime": {
+        "toa_utc_400": "2022-11-13 09:16:44.489",
+        "toa_unix_400": 1668331004.4894774
+      },
+      "dsa": {
+        "dsa_mjd": 59896.386510976576,
+        "native_frequency_mhz": 1530.0,
+        "reference_frequency_mhz": 400.0,
+        "filterbank_path": "iacobus:/Users/iacobus/Library/Mobile Documents/com~apple~CloudDocs/Archives/Migrations/Dropbox-Migration/Codetections_DSA_Filterbanks/isha_221113aaao_252069198/221113aaao_dev_polcal_I.fil",
+        "filterbank_tstart_mjd": 59896.3865109765,
+        "tsamp_s": 3.2768e-05,
+        "nchans": 6144,
+        "fch1_mhz": 1498.75,
+        "foff_mhz": -0.03051757812
+      }
+    },
+    {
+      "name": "wilhelm",
+      "chime_id": "253635173",
+      "dm": 602.346,
+      "source_coord": "21h00m31.09s +72d02m15.22s",
+      "dm_uncertainty": 0.1,
+      "error_chime_ms": 0.005057053891731173,
+      "error_dsa_ms": 2.4157736787133155,
+      "fwhm_ms": 0.388705087251503,
+      "chime": {
+        "toa_utc_400": "2022-12-03 00:02:45.833",
+        "toa_unix_400": 1670025765.8333871
+      },
+      "dsa": {
+        "dsa_mjd": 59916.00175089585,
+        "native_frequency_mhz": 1530.0,
+        "reference_frequency_mhz": 400.0,
+        "filterbank_path": "iacobus:/Users/iacobus/Library/Mobile Documents/com~apple~CloudDocs/Archives/Migrations/Dropbox-Migration/Codetections_DSA_Filterbanks/wilhelm_221203aaaa_253635173/221203aaaa_dev_polcal_I.fil",
+        "filterbank_tstart_mjd": 59916.0017508958,
+        "tsamp_s": 3.2768e-05,
+        "nchans": 6144,
+        "fch1_mhz": 1498.75,
+        "foff_mhz": -0.03051757812
+      }
+    },
+    {
+      "name": "phineas",
+      "chime_id": "274819243",
+      "dm": 610.274,
+      "source_coord": "11h51m07.52s +71d41m44.3s",
+      "dm_uncertainty": 0.1,
+      "error_chime_ms": 0.005057053891731173,
+      "error_dsa_ms": 2.4157736787133155,
+      "fwhm_ms": 2.988627467948008,
+      "chime": {
+        "toa_utc_400": "2023-03-07 09:05:48.051",
+        "toa_unix_400": 1678179948.0510373
+      },
+      "dsa": {
+        "dsa_mjd": 60010.37885771851,
+        "native_frequency_mhz": 1530.0,
+        "reference_frequency_mhz": 400.0,
+        "filterbank_path": "iacobus:/Users/iacobus/Library/Mobile Documents/com~apple~CloudDocs/Archives/Migrations/Dropbox-Migration/Codetections_DSA_Filterbanks/phineas_230307aaao_274819243/230307aaao_dev_polcal_I.fil",
+        "filterbank_tstart_mjd": 60010.378858,
+        "tsamp_s": 3.2768e-05,
+        "nchans": 6144,
+        "fch1_mhz": 1498.75,
+        "foff_mhz": -0.03051757812
+      }
+    },
+    {
+      "name": "freya",
+      "chime_id": "278720455",
+      "dm": 912.4,
+      "source_coord": "05h52m45.12s +74d12m01.7s",
+      "dm_uncertainty": 0.1,
+      "error_chime_ms": 0.005057053891731173,
+      "error_dsa_ms": 2.4157736787133155,
+      "fwhm_ms": 0.40065937342767416,
+      "chime": {
+        "toa_utc_400": "2023-03-25 01:43:36.109",
+        "toa_unix_400": 1679708616.1086352
+      },
+      "dsa": {
+        "dsa_mjd": 60028.071690572535,
+        "native_frequency_mhz": 1530.0,
+        "reference_frequency_mhz": 400.0,
+        "filterbank_path": "iacobus:/Users/iacobus/Library/Mobile Documents/com~apple~CloudDocs/Archives/Migrations/Dropbox-Migration/Codetections_DSA_Filterbanks/freya_230325aaag_278720455/230325aaag_dev_polcal_I.fil",
+        "filterbank_tstart_mjd": 60028.071691,
+        "tsamp_s": 3.2768e-05,
+        "nchans": 6144,
+        "fch1_mhz": 1498.75,
+        "foff_mhz": -0.03051757812
+      }
+    },
+    {
+      "name": "johndoeII",
+      "chime_id": "311723353",
+      "dm": 696.506,
+      "source_coord": "22h23m53.94s +73d01m33.26s",
+      "dm_uncertainty": 0.1,
+      "error_chime_ms": 0.005057053891731173,
+      "error_dsa_ms": 2.4157736787133155,
+      "fwhm_ms": 0.6957157720124573,
+      "chime": {
+        "toa_utc_400": "2023-08-14 08:40:00.900",
+        "toa_unix_400": 1692002400.900019
+      },
+      "dsa": {
+        "dsa_mjd": 60170.36092675556,
+        "native_frequency_mhz": 1530.0,
+        "reference_frequency_mhz": 400.0,
+        "filterbank_path": "iacobus:/Users/iacobus/Library/Mobile Documents/com~apple~CloudDocs/Archives/Migrations/Dropbox-Migration/Codetections_DSA_Filterbanks/johndoeII_230814aaas_311723353/230814aaas_dev_polcal_I.fil",
+        "filterbank_tstart_mjd": 60170.360927,
+        "tsamp_s": 3.2768e-05,
+        "nchans": 6144,
+        "fch1_mhz": 1498.75,
+        "foff_mhz": -0.03051757812
+      }
+    },
+    {
+      "name": "hamilton",
+      "chime_id": "318353610",
+      "dm": 518.799,
+      "source_coord": "20h20m08.92s +70d47m33.96s",
+      "dm_uncertainty": 0.1,
+      "error_chime_ms": 0.010099328283346426,
+      "error_dsa_ms": 2.4157736787133155,
+      "fwhm_ms": 0.20177869209009036,
+      "chime": {
+        "toa_utc_400": "2023-09-13 04:58:30.991",
+        "toa_unix_400": 1694581110.9905326
+      },
+      "dsa": {
+        "dsa_mjd": 60200.20715808301,
+        "native_frequency_mhz": 1530.0,
+        "reference_frequency_mhz": 400.0,
+        "filterbank_path": "iacobus:/Users/iacobus/Library/Mobile Documents/com~apple~CloudDocs/Archives/Migrations/Dropbox-Migration/Codetections_DSA_Filterbanks/hamilton_230913aaao_318353610/230913aaao_dev_polcal_I.fil",
+        "filterbank_tstart_mjd": 60200.20716,
+        "tsamp_s": 3.2768e-05,
+        "nchans": 6144,
+        "fch1_mhz": 1498.75,
+        "foff_mhz": -0.03051757812
+      }
+    },
+    {
+      "name": "mahi",
+      "chime_id": "354049284",
+      "dm": 960.128,
+      "source_coord": "02h39m03.96s +71d01m04.3s",
+      "dm_uncertainty": 0.1,
+      "error_chime_ms": 0.010099328283346426,
+      "error_dsa_ms": 2.4157736787133155,
+      "fwhm_ms": 24.286026730538882,
+      "chime": {
+        "toa_utc_400": "2024-01-22 02:30:32.985",
+        "toa_unix_400": 1705890632.9847796
+      },
+      "dsa": {
+        "dsa_mjd": 60331.10428001275,
+        "native_frequency_mhz": 1530.0,
+        "reference_frequency_mhz": 400.0,
+        "filterbank_path": "iacobus:/Users/iacobus/Library/Mobile Documents/com~apple~CloudDocs/Archives/Migrations/Dropbox-Migration/Codetections_DSA_Filterbanks/mahi_240122aaag_354049284/240122aaag_dev_polcal_I.fil",
+        "filterbank_tstart_mjd": 60331.10428,
+        "tsamp_s": 3.2768e-05,
+        "nchans": 6144,
+        "fch1_mhz": 1498.75,
+        "foff_mhz": -0.03051757812
+      }
+    },
+    {
+      "name": "chromatica",
+      "chime_id": "356959136",
+      "dm": 272.664,
+      "source_coord": "20h50m28.59s +73d54m00.0s",
+      "dm_uncertainty": 0.1,
+      "error_chime_ms": 0.010099328283346426,
+      "error_dsa_ms": 2.4157736787133155,
+      "fwhm_ms": 0.8209283218365907,
+      "chime": {
+        "toa_utc_400": "2024-02-03 19:57:55.998",
+        "toa_unix_400": 1706990275.9983277
+      },
+      "dsa": {
+        "dsa_mjd": 60343.83182194854,
+        "native_frequency_mhz": 1530.0,
+        "reference_frequency_mhz": 400.0,
+        "filterbank_path": "iacobus:/Users/iacobus/Library/Mobile Documents/com~apple~CloudDocs/Archives/Migrations/Dropbox-Migration/Codetections_DSA_Filterbanks/chromatica_240203aacl_356959136/240203aacl_dev_polcal_I.fil",
+        "filterbank_tstart_mjd": 60343.83182,
+        "tsamp_s": 3.2768e-05,
+        "nchans": 6144,
+        "fch1_mhz": 1498.75,
+        "foff_mhz": -0.03051757812
+      }
+    },
+    {
+      "name": "casey",
+      "chime_id": "362593221",
+      "dm": 491.207,
+      "source_coord": "11h19m56.05s +70d40m34.4s",
+      "dm_uncertainty": 0.1,
+      "error_chime_ms": 0.010099328283346426,
+      "error_dsa_ms": 2.4157736787133155,
+      "fwhm_ms": 0.1798378111997433,
+      "chime": {
+        "toa_utc_400": "2024-02-29 08:54:22.138",
+        "toa_unix_400": 1709196862.1378725
+      },
+      "dsa": {
+        "dsa_mjd": 60369.37095224303,
+        "native_frequency_mhz": 1530.0,
+        "reference_frequency_mhz": 400.0,
+        "filterbank_path": "iacobus:/Users/iacobus/Library/Mobile Documents/com~apple~CloudDocs/Archives/Migrations/Dropbox-Migration/Codetections_DSA_Filterbanks/casey_240229aaad_362593221/240229aaad_dev_polcal_I.fil",
+        "filterbank_tstart_mjd": 60369.37095,
+        "tsamp_s": 3.2768e-05,
+        "nchans": 6144,
+        "fch1_mhz": 1498.75,
+        "foff_mhz": -0.03051757812
+      }
+    }
+  ]
+}

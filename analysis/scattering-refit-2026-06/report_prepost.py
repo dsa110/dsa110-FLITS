@@ -1,0 +1,24 @@
+#!/usr/bin/env python
+"""Pre/post-crop param + chi2 comparison for given bursts."""
+import json, os, sys
+RUNS = os.environ.get("FLITS_RUNS", "/central/scratch/jfaber/flits-runs")
+J = f"{RUNS}/data/joint"
+for b in sys.argv[1:]:
+    n = json.load(open(f"{J}/{b}_joint_fit.json"))
+    o = json.load(open(f"{J}/precrop_backup/{b}_joint_fit.json"))
+    pn, po = n["percentiles"], o["percentiles"]
+    ppc = {}
+    pf = f"{J}/{b}_joint_ppc.json"
+    if os.path.exists(pf):
+        ppc = json.load(open(pf))
+    def row(k, key="median", f="{:.2f}"):
+        return f"  {k:9s} PRE {f.format(po[k][key]):>8s} -> POST {f.format(pn[k][key]):>8s}"
+    print(f"=== {b} ===")
+    print(row("alpha"))
+    print(row("tau_1ghz", f="{:.3f}"))
+    print(row("zeta_C"))
+    print(row("zeta_D"))
+    print(f"  lnZ       PRE {o.get('log_evidence',0):8.0f} -> POST {n.get('log_evidence',0):8.0f}")
+    if ppc:
+        print(f"  POST chi2/dof  CHIME {ppc.get('chi2_chime',float('nan')):.2f}  DSA {ppc.get('chi2_dsa',float('nan')):.2f}")
+    print()

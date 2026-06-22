@@ -1,0 +1,28 @@
+# Wilhelm CHIME re-fit — post nch^2-bugfix validation run.
+# Corrects the broken defaults the original wilhelm_chime.yaml inherited:
+#   fitting_method: nested  (was -> emcee default = MCMC+BIC, not evidence)
+#   outer_trim: 0.15        (was -> 0.45 default, cropped scattering tail, ndof 10x low)
+#   nlive: 400 + nproc pool (lean nlive=100 caused the spurious tau->0 sampling failure)
+#   alpha_fixed: 4.0        (Kolmogorov; breaks tau-alpha degeneracy, CHIME fitburst convention)
+# Reference to validate against: profile likelihood -> tau ~ 0.4 ms, disfavors tau->0 by dlnL~544.
+path: /Users/jakobfaber/Developer/scratch/2026-06/flits-refit/wilhelm_chime_I_602_3809_32000b_cntr_bpc.npy
+telcfg_path: /Users/jakobfaber/Developer/repos/github.com/dsa110/dsa110-FLITS/scattering/configs/telescopes.yaml
+sampcfg_path: /Users/jakobfaber/Developer/repos/github.com/dsa110/dsa110-FLITS/scattering/configs/sampler.yaml
+telescope: chime
+dm_init: 0.0
+f_factor: 64
+t_factor: 24
+chunk_size: 2000
+max_chunks: 5
+extend_chain: true
+model_scan: true
+diagnostics: true
+plot: true
+steps: 10000
+nproc: 8
+fitting_method: nested
+outer_trim: 0.15
+nlive: 400
+dlogz: 0.5
+nlive_walks: 15
+alpha_fixed: 4.0

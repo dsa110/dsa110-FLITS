@@ -56,3 +56,21 @@ def test_dsa_filterbank_header_is_provenance_not_curated_time():
     assert dsa.curated_time.mjd == pytest.approx(60369.37095224303)
     assert dsa.filterbank_tstart_mjd == pytest.approx(60369.37095)
     assert abs((dsa.curated_time.mjd - dsa.filterbank_tstart_mjd) * 86400) > dsa.tsamp_s
+
+
+def test_chime_baseband_paths_are_verified_vospace_locations():
+    fixture = _load_json(FIXTURE)
+    by_name = {row["name"]: row["chime"] for row in fixture["bursts"]}
+
+    for chime in by_name.values():
+        assert chime["baseband_verified_exists"] is True
+        assert chime["baseband_path"].startswith("/arc/projects/chime_frb/")
+        assert chime["baseband_vospace_uri"] == "arc:" + chime["baseband_path"].removeprefix(
+            "/arc/"
+        )
+        assert chime["baseband_path"].endswith(".h5")
+        assert "singlebeam_" in chime["baseband_vls_listing"]
+
+    assert "Run_UpdatedCalSep25" in by_name["oran"]["baseband_path"]
+    assert "Run_UpdatedCalSep25" in by_name["wilhelm"]["baseband_path"]
+    assert "old_processed_files" in by_name["chromatica"]["baseband_path"]

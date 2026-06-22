@@ -14,7 +14,11 @@
       "fwhm_ms": 0.9640310519211329,
       "chime": {
         "toa_utc_400": "2022-02-07 19:24:21.052",
-        "toa_unix_400": 1644261861.0520418
+        "toa_unix_400": 1644261861.0520418,
+        "baseband_path": "/arc/projects/chime_frb/data/chime/baseband/processed/2022/02/07/astro_210456524/run_pre_apr2025/singlebeam_210456524.h5",
+        "baseband_vospace_uri": "arc:projects/chime_frb/data/chime/baseband/processed/2022/02/07/astro_210456524/run_pre_apr2025/singlebeam_210456524.h5",
+        "baseband_verified_exists": true,
+        "baseband_vls_listing": "-rw-rw----  masonng              chime-frb-ro    chime-frb-rw                      1G May 06  2025 singlebeam_210456524.h5"
       },
       "dsa": {
         "dsa_mjd": 59617.80850364017,
@@ -39,7 +43,11 @@
       "fwhm_ms": 0.4865476390232406,
       "chime": {
         "toa_utc_400": "2022-03-10 05:48:15.837",
-        "toa_unix_400": 1646891295.837386
+        "toa_unix_400": 1646891295.837386,
+        "baseband_path": "/arc/projects/chime_frb/data/chime/baseband/processed/2022/03/10/astro_215063905/singlebeam_215063905.h5",
+        "baseband_vospace_uri": "arc:projects/chime_frb/data/chime/baseband/processed/2022/03/10/astro_215063905/singlebeam_215063905.h5",
+        "baseband_verified_exists": true,
+        "baseband_vls_listing": "-rw-rw----  masonng              chime-frb-ro    chime-frb-rw                      1G Oct 04  2025 singlebeam_215063905.h5"
       },
       "dsa": {
         "dsa_mjd": 59648.24172074433,
@@ -64,7 +72,11 @@
       "fwhm_ms": 74.20172254439144,
       "chime": {
         "toa_utc_400": "2022-05-06 14:19:51.511",
-        "toa_unix_400": 1651846791.5105588
+        "toa_unix_400": 1651846791.5105588,
+        "baseband_path": "/arc/projects/chime_frb/data/chime/baseband/processed/2022/05/06/astro_224263996/Run_UpdatedCalSep25/singlebeam_224263996.h5",
+        "baseband_vospace_uri": "arc:projects/chime_frb/data/chime/baseband/processed/2022/05/06/astro_224263996/Run_UpdatedCalSep25/singlebeam_224263996.h5",
+        "baseband_verified_exists": true,
+        "baseband_vls_listing": "-rw-rw----  masonng              chime-frb-ro    chime-frb-rw                      1G Dec 28  2024 singlebeam_224263996.h5"
       },
       "dsa": {
         "dsa_mjd": 59705.59701292354,
@@ -89,7 +101,11 @@
       "fwhm_ms": 1.8052781950282417,
       "chime": {
         "toa_utc_400": "2022-11-13 09:16:44.489",
-        "toa_unix_400": 1668331004.4894774
+        "toa_unix_400": 1668331004.4894774,
+        "baseband_path": "/arc/projects/chime_frb/data/chime/baseband/processed/2022/11/13/astro_252069198/singlebeam_252069198.h5",
+        "baseband_vospace_uri": "arc:projects/chime_frb/data/chime/baseband/processed/2022/11/13/astro_252069198/singlebeam_252069198.h5",
+        "baseband_verified_exists": true,
+        "baseband_vls_listing": "-rw-rw----  masonng              chime-frb-ro    chime-frb-rw                      1G Oct 10  2025 singlebeam_252069198.h5"
       },
       "dsa": {
         "dsa_mjd": 59896.386510976576,
@@ -114,7 +130,11 @@
       "fwhm_ms": 0.388705087251503,
       "chime": {
         "toa_utc_400": "2022-12-03 00:02:45.833",
-        "toa_unix_400": 1670025765.8333871
+        "toa_unix_400": 1670025765.8333871,
+        "baseband_path": "/arc/projects/chime_frb/data/chime/baseband/processed/2022/12/03/astro_253635173/Run_UpdatedCalSep25/singlebeam_253635173.h5",
+        "baseband_vospace_uri": "arc:projects/chime_frb/data/chime/baseband/processed/2022/12/03/astro_253635173/Run_UpdatedCalSep25/singlebeam_253635173.h5",
+        "baseband_verified_exists": true,
+        "baseband_vls_listing": "-rw-rw----  masonng              chime-frb-ro    chime-frb-rw                      1G Dec 30  2024 singlebeam_253635173.h5"
       },
       "dsa": {
         "dsa_mjd": 59916.00175089585,
@@ -139,7 +159,11 @@
       "fwhm_ms": 2.988627467948008,
       "chime": {
         "toa_utc_400": "2023-03-07 09:05:48.051",
-        "toa_unix_400": 1678179948.0510373
+        "toa_unix_400": 1678179948.0510373,
+        "baseband_path": "/arc/projects/chime_frb/data/chime/baseband/processed/2023/03/07/astro_274819243/singlebeam_274819243.h5",
+        "baseband_vospace_uri": "arc:projects/chime_frb/data/chime/baseband/processed/2023/03/07/astro_274819243/singlebeam_274819243.h5",
+        "baseband_verified_exists": true,
+        "baseband_vls_listing": "-rw-rw----  masonng              chime-frb-ro    chime-frb-rw                      1G Oct 08  2025 singlebeam_274819243.h5"
       },
       "dsa": {
         "dsa_mjd": 60010.37885771851,
@@ -164,7 +188,11 @@
       "fwhm_ms": 0.40065937342767416,
       "chime": {
         "toa_utc_400": "2023-03-25 01:43:36.109",
-        "toa_unix_400": 1679708616.1086352
+        "toa_unix_400": 1679708616.1086352,
+        "baseband_path": "/arc/projects/chime_frb/data/chime/baseband/processed/2023/03/25/astro_278720455/singlebeam_278720455.h5",
+        "baseband_vospace_uri": "arc:projects/chime_frb/data/chime/baseband/processed/2023/03/25/astro_278720455/singlebeam_278720455.h5",
+        "baseband_verified_exists": true,
+        "baseband_vls_listing": "-rw-rw----  masonng              chime-frb-ro    chime-frb-rw                      1G Oct 08  2025 singlebeam_278720455.h5"
       },
       "dsa": {
         "dsa_mjd": 60028.071690572535,
@@ -189,7 +217,11 @@
       "fwhm_ms": 0.6957157720124573,
       "chime": {
         "toa_utc_400": "2023-08-14 08:40:00.900",
-        "toa_unix_400": 1692002400.900019
+        "toa_unix_400": 1692002400.900019,
+        "baseband_path": "/arc/projects/chime_frb/data/chime/baseband/processed/2023/08/14/astro_311723353/singlebeam_311723353.h5",
+        "baseband_vospace_uri": "arc:projects/chime_frb/data/chime/baseband/processed/2023/08/14/astro_311723353/singlebeam_311723353.h5",
+        "baseband_verified_exists": true,
+        "baseband_vls_listing": "-rw-rw----  masonng              chime-frb-ro    chime-frb-rw                      1G Oct 10  2025 singlebeam_311723353.h5"
       },
       "dsa": {
         "dsa_mjd": 60170.36092675556,
@@ -214,7 +246,11 @@
       "fwhm_ms": 0.20177869209009036,
       "chime": {
         "toa_utc_400": "2023-09-13 04:58:30.991",
-        "toa_unix_400": 1694581110.9905326
+        "toa_unix_400": 1694581110.9905326,
+        "baseband_path": "/arc/projects/chime_frb/data/chime/baseband/processed/2023/09/13/astro_318353610/singlebeam_318353610.h5",
+        "baseband_vospace_uri": "arc:projects/chime_frb/data/chime/baseband/processed/2023/09/13/astro_318353610/singlebeam_318353610.h5",
+        "baseband_verified_exists": true,
+        "baseband_vls_listing": "-rw-rw----  masonng              chime-frb-ro    chime-frb-rw                      1G Oct 10  2025 singlebeam_318353610.h5"
       },
       "dsa": {
         "dsa_mjd": 60200.20715808301,
@@ -239,7 +275,11 @@
       "fwhm_ms": 24.286026730538882,
       "chime": {
         "toa_utc_400": "2024-01-22 02:30:32.985",
-        "toa_unix_400": 1705890632.9847796
+        "toa_unix_400": 1705890632.9847796,
+        "baseband_path": "/arc/projects/chime_frb/data/chime/baseband/processed/2024/01/22/astro_354049284/singlebeam_354049284.h5",
+        "baseband_vospace_uri": "arc:projects/chime_frb/data/chime/baseband/processed/2024/01/22/astro_354049284/singlebeam_354049284.h5",
+        "baseband_verified_exists": true,
+        "baseband_vls_listing": "-rw-rw----  kshin                chime-frb-ro    chime-frb-rw                    970M May 02  2024 singlebeam_354049284.h5"
       },
       "dsa": {
         "dsa_mjd": 60331.10428001275,
@@ -264,7 +304,11 @@
       "fwhm_ms": 0.8209283218365907,
       "chime": {
         "toa_utc_400": "2024-02-03 19:57:55.998",
-        "toa_unix_400": 1706990275.9983277
+        "toa_unix_400": 1706990275.9983277,
+        "baseband_path": "/arc/projects/chime_frb/data/chime/baseband/processed/2024/02/03/astro_356959136/old_processed_files/singlebeam_356959136.h5",
+        "baseband_vospace_uri": "arc:projects/chime_frb/data/chime/baseband/processed/2024/02/03/astro_356959136/old_processed_files/singlebeam_356959136.h5",
+        "baseband_verified_exists": true,
+        "baseband_vls_listing": "-rw-rw----  kshin                chime-frb-ro    chime-frb-rw                    984M May 12  2024 singlebeam_356959136.h5"
       },
       "dsa": {
         "dsa_mjd": 60343.83182194854,
@@ -289,7 +333,11 @@
       "fwhm_ms": 0.1798378111997433,
       "chime": {
         "toa_utc_400": "2024-02-29 08:54:22.138",
-        "toa_unix_400": 1709196862.1378725
+        "toa_unix_400": 1709196862.1378725,
+        "baseband_path": "/arc/projects/chime_frb/data/chime/baseband/processed/2024/02/29/astro_362593221/singlebeam_362593221.h5",
+        "baseband_vospace_uri": "arc:projects/chime_frb/data/chime/baseband/processed/2024/02/29/astro_362593221/singlebeam_362593221.h5",
+        "baseband_verified_exists": true,
+        "baseband_vls_listing": "-rw-rw----  kshin                chime-frb-ro    chime-frb-rw                    989M Mar 04  2024 singlebeam_362593221.h5"
       },
       "dsa": {
         "dsa_mjd": 60369.37095224303,
@@ -303,5 +351,10 @@
         "foff_mhz": -0.03051757812
       }
     }
-  ]
+  ],
+  "chime_baseband_verification": {
+    "verified_at": "2026-06-22",
+    "method": "vls -lh against arc:projects/chime_frb/data/chime/baseband/processed/... VOSpace URIs",
+    "meaning": "Each listed CHIME baseband path returned a file listing, not NodeNotFound; HDF5 contents were not opened."
+  }
 }

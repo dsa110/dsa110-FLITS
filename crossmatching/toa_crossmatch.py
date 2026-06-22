@@ -25,6 +25,9 @@ class ChimeTimingProvenance:
     toa_utc_400: str
     toa_unix_400: float | None = None
     baseband_path: str | None = None
+    baseband_vospace_uri: str | None = None
+    baseband_verified_exists: bool | None = None
+    baseband_vls_listing: str | None = None
     peak_index: int | None = None
     delta_time_s: float | None = None
     center_frequency_mhz: float | None = None

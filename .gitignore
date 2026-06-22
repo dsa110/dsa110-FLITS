@@ -7,6 +7,12 @@
 Thumbs.db
 
 # ------------------------------
+# Personal Claude Code config (not shared)
+# ------------------------------
+.claude/settings.local.json
+.claude/hooks/commit-claude-md.sh
+
+# ------------------------------
 # Logs and databases
 # ------------------------------
 *.log

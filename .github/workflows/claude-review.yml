@@ -68,4 +68,4 @@ jobs:
               correct diff, but never relax scientific rigor for brevity.
             Do not nitpick style that ruff already enforces. Ignore base64 image
             payloads embedded in docs/*.html.
-          claude_args: "--model claude-opus-4-8 --max-turns 8"
+          claude_args: "--model claude-opus-4-8 --max-turns 20"

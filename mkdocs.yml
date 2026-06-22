@@ -1,0 +1,43 @@
+site_name: FLITS Joint Scattering Analysis
+site_description: >-
+  Multi-component gain-marginal CHIME+DSA joint scattering model selection —
+  how the dsa110-FLITS pipeline measures the scattering index and detects
+  hidden temporal components.
+docs_dir: docs-analysis
+
+theme:
+  name: material
+  features:
+    - navigation.top
+    - navigation.tracking
+    - content.code.copy
+    - toc.follow
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+
+markdown_extensions:
+  - admonition
+  - tables
+  - footnotes
+  - attr_list
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.superfences
+  - toc:
+      permalink: true
+
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+
+nav:
+  - Overview: index.md
+  - The joint likelihood: likelihood.md
+  - Model selection (the grid): model-selection.md
+  - "Case study: zach & the alpha bias": zach-case-study.md
+  - Adversarial verification: verification.md

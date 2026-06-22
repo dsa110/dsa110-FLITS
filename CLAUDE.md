@@ -67,6 +67,16 @@ Ponytail governs STRUCTURE and SIZE, not scientific rigor — the two are orthog
 On demand: `/ponytail-audit` (whole-repo bloat scan) · `/ponytail-review` (over-engineering review of a diff).
 </important>
 
+## Tackling larger work
+
+<important if="you are starting a substantial or multi-step task here — a fit campaign, a refactor, a new analysis surface — before you start editing">
+Plan the approach before editing: name the target, the files in play, and how you'll prove it worked (which gate or diagnostic). Then execute end-to-end. Commit to one approach rather than narrating alternatives, and keep the diff minimal (the `ponytail` block governs size).
+</important>
+
+<important if="a task spans many bursts, many files, or many fits — a batch fit campaign, a cross-file refactor or migration, or a sweep over the results tree">
+Use a dynamic workflow (say "use a workflow") instead of a serial pass, and pair it with the verification already built here. `.claude/workflows/fit-verify.js` adversarially re-checks every `*_fit_results.json` against the runtime gate with a *separate* judge agent (so a fit can't pass its own work). Pattern: `flits-batch` fans out the fits → the workflow verifies them in parallel. Set a completion condition with `/goal` so coverage is every burst, not a partial set, and run auto mode so it doesn't stall on permission prompts.
+</important>
+
 ## Figure-review Stop gate (will block you)
 
 `.claude/settings.json` registers a `Stop` hook (`.claude/hooks/figure-review-gate.sh`). Any dir with a `figures.manifest.json` newer than its `figures.review.json` blocks end-of-turn. To clear: actually **Read** each PNG (so it renders) and visually compare it to the manifest's stated expectation, then write `figures.review.json` with per-figure verdicts (`match` / `anomaly` / `skipped:<why>`). Fastest path: dispatch the `figure-reviewer` subagent on each unreviewed dir. A produced plot is never "validated" until it has been looked at.

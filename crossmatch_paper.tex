@@ -121,4 +121,10 @@ Table \ref{tab:results} summarizes the properties of the bursts included in this
     \label{tab:results}
 \end{table}
 
+\section{Intervening Foreground Catalog} \label{sec:foreground}
+
+As a companion to the timing analysis, we catalog the intervening foreground halos and galaxy clusters along the sightlines to the 12 co-detected FRBs. Each candidate was independently validated against public catalogs --- the DESI Legacy Imaging Survey DR9 with Zhou et al.\ (2021) photometric redshifts, DESI DR1 spectroscopic redshifts, the NASA/IPAC Extragalactic Database (NED), and PS1-STRM \citep{Beck2021} --- by coordinate cross-match (object morphology and redshift) and, for the PS1-classified halos, by direct \texttt{objID} lookup. Table \ref{tab:foreground} lists all 49 candidates with their final disposition: a candidate is \emph{confirmed} foreground when its best catalog redshift (spectroscopic, or photometric with error) lies below the FRB host redshift, \emph{refuted} when it lies at or above the host (i.e.\ background), and \emph{inconclusive} when the redshift straddles the host within $1\sigma$, the host lacks a spectroscopic redshift, or no trustworthy redshift exists (PS1-STRM \texttt{UNSURE} classification or extrapolated photo-z). Of the 49 candidates, 29 are confirmed foreground, 7 are background, and 13 remain inconclusive. We caution that 14 of the 15 clusters lie outside their own $R_{500}$ (the sightline does not pierce them), and that the photometric redshifts in the source compilation are superseded by the catalog values reported here.
+
+\input{foreground_table.tex}
+
 \end{document}

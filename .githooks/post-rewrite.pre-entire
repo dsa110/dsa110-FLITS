@@ -1,0 +1,8 @@
+#!/bin/sh
+set -eu
+
+repo_dir=$(git rev-parse --show-toplevel)
+
+if [ -x "$repo_dir/scripts/entire_checkpoint.py" ]; then
+	"$repo_dir/scripts/entire_checkpoint.py" --auto || true
+fi

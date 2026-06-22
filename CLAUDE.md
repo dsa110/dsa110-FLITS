@@ -74,7 +74,7 @@ On demand: `/ponytail-audit` (whole-repo bloat scan) · `/ponytail-review` (over
 </important>
 
 <important if="you are adding an import, fixture, or any new symbol in an Edit/Write">
-A `PostToolUse` hook runs `ruff` with autofix (`F401`/`F841`) after every edit, so any import/variable/symbol that is unused *at the moment the formatter runs* is silently stripped — a later reference then fails with `NameError`. Add an import or definition in the SAME edit as its first consumer (or add the consumer first); never land an import-only edit ahead of the code that uses it. The verify-gate's mandatory test is the backstop that catches a strip before it ships.
+A post-edit autoformatter reformats files after every Edit/Write (observed: it removed an import that was unused at edit-time, then it stayed once a consumer referenced it). So any import/symbol unused *at the moment that reformat runs* can be silently stripped — a later reference then fails with `NameError`. Add an import or definition in the SAME edit as its first consumer (or add the consumer first); never land an import-only edit ahead of the code that uses it. The verify-gate's mandatory test is the backstop that catches a strip before it ships.
 </important>
 
 ## Tackling larger work

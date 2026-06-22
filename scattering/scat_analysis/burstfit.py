@@ -663,10 +663,18 @@ class FRBModel:
         else:
             mu = p.t0 + dd_full[freq_subset, None]
 
+        # Intra-channel smearing scales with the TRUE DM offset from the de-smear
+        # baseline: dm_init (the DM the data was dedispersed at) plus the fitted
+        # residual delta_dm. With dm_init=0 in the configs, omitting delta_dm here
+        # left a fitted residual DM (e.g. CHIME delta_dm~4.7) with zero modelled
+        # smearing, so its real smearing leaked into zeta/tau and biased alpha
+        # (Codex review, 2026-06). hypot() squares sig_dm, so a negative residual
+        # gives the same |ΔDM| smearing magnitude.
+        dm_smear = self.dm_init + p.delta_dm
         if model_key in {"M1", "M3"}:
-            sig_full = self._smearing_sigma(self.dm_init, p.zeta)
+            sig_full = self._smearing_sigma(dm_smear, p.zeta)
         else:
-            sig_full = self._smearing_sigma(self.dm_init, 0.0)
+            sig_full = self._smearing_sigma(dm_smear, 0.0)
 
         if freq_subset is None:
             sig = sig_full[:, None]

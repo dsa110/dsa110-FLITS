@@ -141,3 +141,24 @@ def test_frbmodel_smearing():
     max2 = np.max(spec2)
 
     assert max2 < max1
+
+
+def test_frbmodel_delta_dm_smears():
+    """Regression (Codex review 2026-06): a fitted residual delta_dm must drive
+    intra-channel smearing, not only the arrival-time delay. Previously delta_dm
+    fed _dispersion_delay alone while _smearing_sigma used dm_init only, so with
+    dm_init=0 a residual DM produced zero modelled smearing and was absorbed by
+    zeta/tau, biasing alpha."""
+    time = np.linspace(0, 20, 400)
+    freq = np.array([1.0])  # single channel -> dispersion delay is zero (ref=freq)
+    model = FRBModel(time, freq, dm_init=0.0, df_MHz=10.0)  # wide channel: smearing visible
+
+    base = dict(c0=1.0, t0=10.0, gamma=0.0, zeta=0.1)
+    spec0 = model(FRBParams(**base, delta_dm=0.0), "M1")
+    spec1 = model(FRBParams(**base, delta_dm=40.0), "M1")
+
+    # Per-channel area is conserved, so added smearing lowers the peak.
+    assert np.max(spec1) < np.max(spec0)
+    # |ΔDM| smearing: sign of the residual must not matter (hypot squares sig_dm).
+    spec_neg = model(FRBParams(**base, delta_dm=-40.0), "M1")
+    assert np.isclose(np.max(spec_neg), np.max(spec1), rtol=1e-6)

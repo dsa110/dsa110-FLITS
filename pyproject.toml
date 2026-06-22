@@ -19,6 +19,7 @@ dependencies = [
   "emcee>=3.1",
   "lmfit>=1.0",
   "PyYAML>=5.4",
+  "h5py>=3.9",
   "tqdm>=4.62",
   "corner>=2.2",
   "chainconsumer>=0.34",

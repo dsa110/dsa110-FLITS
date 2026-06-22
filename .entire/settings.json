@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "strategy_options": {
+    "checkpoint_remote": {
+      "provider": "github",
+      "repo": "jakobtfaber/dsa110-FLITS"
+    }
+  },
+  "telemetry": true,
+  "summary_generation": {
+    "provider": "gemini"
+  }
+}

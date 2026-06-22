@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
-# PostCompact hook: re-inject the FLITS fit-validation contract so goal-drift
-# can't silently drop "don't rationalize fits" after compaction.
-# Reads PostCompact stdin (ignored), emits additionalContext JSON on stdout.
+# Re-inject the FLITS fit-validation contract so goal-drift can't silently drop
+# "don't rationalize fits". Event-agnostic: $1 is the hook event name, defaulting
+# to PostCompact (Claude Code). Codex passes UserPromptSubmit.
+# Reads hook stdin (ignored), emits additionalContext JSON on stdout.
+EVENT="${1:-PostCompact}"
 cat >/dev/null
-# ponytail: self-proving trace — next real compaction proves the hook fired (*.log gitignored).
+# ponytail: self-proving trace — next real event proves the hook fired (*.log gitignored).
 # Log path derives from the script's own dir (cwd-independent); write is best-effort.
-{ printf '%s PostCompact fired\n' "$(date -u +%FT%TZ)" >> "$(dirname "${BASH_SOURCE[0]}")/postcompact.log"; } 2>/dev/null || true
-exec python3 - <<'PY'
+{ printf '%s %s fired\n' "$(date -u +%FT%TZ)" "$EVENT" >> "$(dirname "${BASH_SOURCE[0]}")/postcompact.log"; } 2>/dev/null || true
+exec python3 - "$EVENT" <<'PY'
 import json, sys
 
 ctx = """FLITS FIT-QUALITY CONTRACT (burstfit.py classify_fit_quality, AUTHORITATIVE):
@@ -19,7 +21,7 @@ ctx = """FLITS FIT-QUALITY CONTRACT (burstfit.py classify_fit_quality, AUTHORITA
 - Do NOT rationalize a failing/marginal fit into a pass. Report the flag the contract gives."""
 
 print(json.dumps({"hookSpecificOutput": {
-    "hookEventName": "PostCompact",
+    "hookEventName": sys.argv[1] if len(sys.argv) > 1 else "PostCompact",
     "additionalContext": ctx,
 }}))
 PY

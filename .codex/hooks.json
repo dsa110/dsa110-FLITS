@@ -2,6 +2,16 @@
   "hooks": {
     "PostToolUse": [
       {
+        "matcher": "apply_patch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$(git rev-parse --show-toplevel)/.claude/hooks/ruff-fix.sh\"",
+            "timeout": 30
+          }
+        ]
+      },
+      {
         "matcher": null,
         "hooks": [
           {
@@ -30,6 +40,11 @@
         "hooks": [
           {
             "type": "command",
+            "command": "CLAUDE_PROJECT_DIR=\"$(git rev-parse --show-toplevel)\" bash \"$(git rev-parse --show-toplevel)/.claude/hooks/figure-review-gate.sh\"",
+            "timeout": 30
+          },
+          {
+            "type": "command",
             "command": "sh -c 'if ! command -v entire >/dev/null 2>&1; then exit 0; fi; exec entire hooks codex stop'",
             "timeout": 30
           }
@@ -40,6 +55,11 @@
       {
         "matcher": null,
         "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$(git rev-parse --show-toplevel)/.claude/hooks/validation-reinject.sh\" UserPromptSubmit",
+            "timeout": 30
+          },
           {
             "type": "command",
             "command": "sh -c 'if ! command -v entire >/dev/null 2>&1; then exit 0; fi; exec entire hooks codex user-prompt-submit'",

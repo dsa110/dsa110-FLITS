@@ -80,3 +80,17 @@ Use a dynamic workflow (say "use a workflow") instead of a serial pass, and pair
 ## Figure-review Stop gate (will block you)
 
 `.claude/settings.json` registers a `Stop` hook (`.claude/hooks/figure-review-gate.sh`). Any dir with a `figures.manifest.json` newer than its `figures.review.json` blocks end-of-turn. To clear: actually **Read** each PNG (so it renders) and visually compare it to the manifest's stated expectation, then write `figures.review.json` with per-figure verdicts (`match` / `anomaly` / `skipped:<why>`). Fastest path: dispatch the `figure-reviewer` subagent on each unreviewed dir. A produced plot is never "validated" until it has been looked at.
+
+## Agent skills
+
+### Issue tracker
+
+Issues live in GitHub Issues on the `origin` fork (`jakobtfaber/dsa110-FLITS`), via the `gh` CLI; external PRs are not a triage surface. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Canonical vocabulary: `needs-triage` / `needs-info` / `ready-for-agent` / `ready-for-human` / `wontfix`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: one `CONTEXT.md` + `docs/adr/` at the repo root (created lazily by `/domain-modeling`). See `docs/agents/domain.md`.

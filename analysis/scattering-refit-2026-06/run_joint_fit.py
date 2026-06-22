@@ -108,6 +108,14 @@ def main():
         help="run the multi-component likelihood even at C1D1, so its lnZ "
         "is normalization-matched to C2/D2 runs (model-selection baseline)",
     )
+    ap.add_argument(
+        "--shared-zeta",
+        dest="shared_zeta",
+        action="store_true",
+        help="ONE frequency-evolving intrinsic width zeta(nu)=zeta_1ghz*nu^x_zeta "
+        "shared across both bands (gain-marginal, 8-dim) instead of per-band zeta; "
+        "gives a single coherent burst across the full band",
+    )
     a = ap.parse_args()
     multi = a.components_C > 1 or a.components_D > 1 or a.force_multi
 
@@ -140,6 +148,7 @@ def main():
         nproc=a.nproc,
         marginalize_gain=a.marginalize_gain,
         marginalize_gain_gp=a.marginalize_gain_gp,
+        shared_zeta=a.shared_zeta,
         mu_degree=a.mu_degree,
         components_C=a.components_C,
         components_D=a.components_D,
@@ -159,6 +168,7 @@ def main():
         "burst": a.burst,
         "marginalize_gain": bool(a.marginalize_gain),
         "marginalize_gain_gp": bool(a.marginalize_gain_gp),
+        "shared_zeta": bool(a.shared_zeta),
         "alpha": {"median": a_m, "err_minus": a_lo, "err_plus": a_hi},
         "tau_1ghz": {"median": t_m, "err_minus": t_lo, "err_plus": t_hi},
         "log_evidence": res["log_evidence"],
@@ -173,13 +183,20 @@ def main():
     # Recover the per-channel gain spectra at the medians (scintillation probe).
     gain_C = gain_D = None
     scint = {}
-    if (a.marginalize_gain or a.marginalize_gain_gp) and not multi:
+    if (a.marginalize_gain or a.marginalize_gain_gp or a.shared_zeta) and not multi:
         p = {k: v["median"] for k, v in pct.items()}
+        if a.shared_zeta:
+            # ONE width law -> per-band zeta is the array zeta_1ghz*nu^x_zeta on
+            # that band's full channel axis (matches _JointLogLikelihoodGainSharedZeta).
+            zc = p["zeta_1ghz"] * np.asarray(model_C.freq, float) ** p["x_zeta"]
+            zd = p["zeta_1ghz"] * np.asarray(model_D.freq, float) ** p["x_zeta"]
+        else:
+            zc, zd = p["zeta_C"], p["zeta_D"]
         pC = FRBParams(
             c0=1.0,
             t0=p["t0_C"],
             gamma=0.0,
-            zeta=p["zeta_C"],
+            zeta=zc,
             tau_1ghz=t_m,
             alpha=a_m,
             delta_dm=p["delta_dm_C"],
@@ -188,7 +205,7 @@ def main():
             c0=1.0,
             t0=p["t0_D"],
             gamma=0.0,
-            zeta=p["zeta_D"],
+            zeta=zd,
             tau_1ghz=t_m,
             alpha=a_m,
             delta_dm=p["delta_dm_D"],
@@ -234,7 +251,12 @@ def main():
         }
         summary["scint"] = scint
 
-    tag = f"_C{a.components_C}D{a.components_D}" if multi else ""
+    if multi:
+        tag = f"_C{a.components_C}D{a.components_D}"
+    elif a.shared_zeta:
+        tag = "_sharedzeta"  # keep the per-band baseline json/npz for comparison
+    else:
+        tag = ""
     out = f"{out_dir}/{a.burst}_joint_fit{tag}.json"
     json.dump(summary, open(out, "w"), indent=2)
 

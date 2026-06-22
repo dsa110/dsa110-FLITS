@@ -23,10 +23,18 @@ the shared tau_1ghz pins the normalization at 1 GHz.
 Independent noise -> the joint log-likelihood is the sum of the two single-band
 Gaussian log-likelihoods (reuses the nch^2-fixed FRBModel.log_likelihood).
 
-zeta is kept per-telescope (not shared): intrinsic width is achromatic in
-principle, but the measured zeta also absorbs unmodelled per-band structure, so
-the conservative choice is to let each band fit its own. The alpha lever arm
-comes from the shared tau, independent of how zeta is treated.
+zeta is kept per-telescope (not shared) in the default paths: intrinsic width is
+achromatic in principle, but the measured zeta also absorbs unmodelled per-band
+structure, so the conservative choice is to let each band fit its own. The alpha
+lever arm comes from the shared tau, independent of how zeta is treated.
+
+The ``shared_zeta`` path replaces the two per-band widths with ONE source width
+law zeta(nu) = zeta_1ghz * nu^x_zeta evaluated per channel across the full band
+(physically: the emission width belongs to the source, not the telescope, and
+pulsars show it evolving with frequency -- radius-to-frequency mapping). This
+makes the joint model a single coherent burst from the DSA top to the CHIME
+bottom (used by the unified full-band figure) at the cost of an x_zeta-alpha
+degeneracy: validate the x_zeta-alpha posterior covariance before trusting alpha.
 
 Usage
 -----
@@ -61,6 +69,7 @@ __all__ = [
     "JOINT_PARAM_NAMES_GAIN",
     "JOINT_PARAM_NAMES_GAIN_GP",
     "JOINT_PARAM_NAMES_GAIN_MULTI",
+    "JOINT_PARAM_NAMES_GAIN_SHARED_ZETA",
     "_gain_marginal_multi_band",
 ]
 
@@ -119,6 +128,35 @@ JOINT_PARAM_NAMES_GAIN_GP: tuple[str, ...] = (
     "Delta_nu_d_D",
 )
 _LOG_NAMES_GAIN_GP = frozenset({"tau_1ghz", "zeta_C", "zeta_D", "Delta_nu_d_C", "Delta_nu_d_D"})
+
+# Gain-marginal + SHARED frequency-evolving intrinsic width 8-vector. The two
+# independent per-band widths (zeta_C, zeta_D) are replaced by ONE source law
+#
+#     zeta(nu) = zeta_1ghz * (nu / 1 GHz) ** x_zeta          (nu in GHz)
+#
+# evaluated per CHANNEL in each band. The width is a property of the source, not
+# the telescope; pulsars show it narrowing with frequency (radius-to-frequency
+# mapping, W ~ nu^-x, weak x ~ 0.1-0.4 -- Cordes 1978, Thorsett 1991), so the RFM
+# expectation is x_zeta < 0, with x_zeta = 0 the achromatic limit. Vector stays
+# 8-dim: (zeta_1ghz, x_zeta) replace (zeta_C, zeta_D); (t0, delta_dm) per band.
+#
+# CAVEAT (x_zeta-alpha degeneracy): a steeply negative x_zeta broadens low-freq
+# pulses the same way scattering (tau ~ nu^-alpha) does. The break is the tail
+# ASYMMETRY (one-sided exponential vs symmetric Gaussian) plus the ~1 GHz lever
+# arm; the wide x_zeta prior lets the data, not the prior, decide -- always check
+# the x_zeta-alpha posterior covariance before trusting alpha.
+JOINT_PARAM_NAMES_GAIN_SHARED_ZETA: tuple[str, ...] = (
+    "tau_1ghz",
+    "alpha",
+    "zeta_1ghz",
+    "x_zeta",
+    "t0_C",
+    "delta_dm_C",
+    "t0_D",
+    "delta_dm_D",
+)
+# x_zeta is a SIGNED power-law index -> uniform, not log. zeta_1ghz is log.
+_LOG_NAMES_GAIN_SZ = frozenset({"tau_1ghz", "zeta_1ghz"})
 
 
 # ----------------------------------------------------------------------
@@ -412,6 +450,36 @@ def _joint_prior_spec_gain_gp(
     return [(n, by_name[n][0], n in _LOG_NAMES_GAIN_GP) for n in JOINT_PARAM_NAMES_GAIN_GP]
 
 
+def _joint_prior_spec_gain_shared_zeta(
+    init_C: FRBParams,
+    init_D: FRBParams,
+    alpha_bounds: tuple[float, float],
+    x_bounds: tuple[float, float] = (-4.0, 2.0),
+) -> list[tuple[str, tuple[float, float], bool]]:
+    """Prior spec for the 8-vector shared-zeta(nu) gain-marginal fit.
+
+    zeta_1ghz reuses the UNION of both bands' absolute zeta bounds -- the width at
+    1 GHz sits in the inter-band gap, so neither band alone bounds it. x_zeta is a
+    SIGNED power-law index (uniform, not log); default (-4, 2) is deliberately wide
+    enough that intrinsic width CAN mimic scattering (the degeneracy the validation
+    probes) yet caps high-freq broadening at a physical limit.
+    """
+    pC, _ = build_priors(init_C, absolute_bounds=True)
+    pD, _ = build_priors(init_D, absolute_bounds=True)
+    z_union = (min(pC["zeta"][0], pD["zeta"][0]), max(pC["zeta"][1], pD["zeta"][1]))
+    by_name = {
+        "tau_1ghz": pC["tau_1ghz"],
+        "alpha": tuple(alpha_bounds),
+        "zeta_1ghz": z_union,
+        "x_zeta": tuple(x_bounds),
+        "t0_C": pC["t0"],
+        "delta_dm_C": pC["delta_dm"],
+        "t0_D": pD["t0"],
+        "delta_dm_D": pD["delta_dm"],
+    }
+    return [(n, by_name[n], n in _LOG_NAMES_GAIN_SZ) for n in JOINT_PARAM_NAMES_GAIN_SHARED_ZETA]
+
+
 def _joint_prior_spec_gain_multi(
     init_C: FRBParams,
     init_D: FRBParams,
@@ -582,6 +650,41 @@ class _JointLogLikelihoodGain:
         return ll if np.isfinite(ll) else -1e100
 
 
+class _JointLogLikelihoodGainSharedZeta:
+    """Joint gain-marginal log-L with ONE frequency-evolving intrinsic width.
+
+    8-vector theta = [tau, alpha, zeta_1ghz, x_zeta, t0_C, ddm_C, t0_D, ddm_D].
+    Per band zeta(nu) = zeta_1ghz * nu**x_zeta is evaluated on that band's FULL
+    channel axis (nu in GHz; model.freq ascending) and passed as a per-channel
+    ARRAY into FRBParams.zeta. The kernel builds sig = hypot(sig_dm, zeta) on the
+    same full axis before masking to self.valid, so the zeta array MUST be full
+    length (not pre-subset) -- it is, by construction. The per-channel amplitude
+    is still integrated out (log_likelihood_gain_marginal), so c0/gamma are not
+    sampled. One source width law spans both telescopes.
+    """
+
+    def __init__(self, model_C: FRBModel, model_D: FRBModel):
+        self.model_C = model_C
+        self.model_D = model_D
+
+    @staticmethod
+    def _band_ll(
+        model: FRBModel, tau: float, alpha: float, z1: float, x: float, t0: float, ddm: float
+    ) -> float:
+        zeta_nu = z1 * np.asarray(model.freq, dtype=float) ** x  # full channel axis
+        p = FRBParams(
+            c0=1.0, t0=t0, gamma=0.0, zeta=zeta_nu, tau_1ghz=tau, alpha=alpha, delta_dm=ddm
+        )
+        return model.log_likelihood_gain_marginal(p, "M3")
+
+    def __call__(self, theta: NDArray[np.floating]) -> float:
+        tau, alpha, z1, x = (float(theta[i]) for i in range(4))
+        ll = self._band_ll(
+            self.model_C, tau, alpha, z1, x, float(theta[4]), float(theta[5])
+        ) + self._band_ll(self.model_D, tau, alpha, z1, x, float(theta[6]), float(theta[7]))
+        return ll if np.isfinite(ll) else -1e100
+
+
 class _JointLogLikelihoodGainGP:
     """Joint gain-marginal log-L with a scintillation GP prior on the gains.
 
@@ -723,6 +826,8 @@ def fit_joint_scattering(
     verbose: bool = True,
     marginalize_gain: bool = False,
     marginalize_gain_gp: bool = False,
+    shared_zeta: bool = False,
+    x_zeta_bounds: tuple[float, float] = (-4.0, 2.0),
     mu_degree: int = 1,
     components_C: int = 1,
     components_D: int = 1,
@@ -779,6 +884,10 @@ def fit_joint_scattering(
         grp_C = [idx[f"t0_C{i}"] for i in range(1, int(components_C) + 1)]
         grp_D = [idx[f"t0_D{i}"] for i in range(1, int(components_D) + 1)]
         ptform = _JointPriorTransformOrdered(spec, [grp_C, grp_D], dt_min=dt_min)
+    elif shared_zeta:
+        names = JOINT_PARAM_NAMES_GAIN_SHARED_ZETA
+        spec = _joint_prior_spec_gain_shared_zeta(init_C, init_D, alpha_bounds, x_zeta_bounds)
+        loglike = _JointLogLikelihoodGainSharedZeta(model_C, model_D)
     elif marginalize_gain_gp:
         names = JOINT_PARAM_NAMES_GAIN_GP
         spec = _joint_prior_spec_gain_gp(init_C, init_D, alpha_bounds, model_C, model_D)
@@ -804,7 +913,7 @@ def fit_joint_scattering(
         log.info(
             f"Joint CHIME+DSA fit: ndim={ndim}, nlive={nlive}, "
             f"alpha~U{alpha_bounds}, marginalize_gain={marginalize_gain}, "
-            f"marginalize_gain_gp={marginalize_gain_gp}"
+            f"marginalize_gain_gp={marginalize_gain_gp}, shared_zeta={shared_zeta}"
         )
 
     if nproc is not None and nproc > 1:
@@ -908,5 +1017,54 @@ def demo() -> None:
     )
 
 
+def _demo_shared_zeta() -> None:
+    """Logic gate for the shared-zeta(nu) gain-marginal likelihood.
+
+    Inject two bands whose intrinsic width follows ONE law zeta(nu)=z1*nu^x, then
+    verify the shared-zeta log-L prefers the true (alpha, x_zeta) over a wrong
+    alpha AND over an achromatic x_zeta=0. No sampler -- a fast assert, not a fit.
+    """
+    rng = np.random.default_rng(1)
+    tau_true, alpha_true, z1_true, x_true = 0.8, 4.0, 0.30, -0.6
+
+    def make(fmin, fmax, nch):
+        freq = np.linspace(fmin, fmax, nch)
+        time = np.arange(240) * 0.05
+        zeta_nu = z1_true * freq**x_true  # per-channel intrinsic width
+        truth = FRBParams(
+            c0=1.0,
+            t0=time.mean(),
+            gamma=0.0,
+            zeta=zeta_nu,
+            tau_1ghz=tau_true,
+            alpha=alpha_true,
+            delta_dm=0.0,
+        )
+        m0 = FRBModel(time=time, freq=freq, data=np.zeros((nch, time.size)), dm_init=0.0)
+        clean = m0(truth, "M3")
+        noisy = clean + rng.normal(0, 0.04 * clean.max(), clean.shape)
+        m = FRBModel(time=time, freq=freq, data=noisy, dm_init=0.0)
+        return m
+
+    mC = make(0.40, 0.80, 16)
+    mD = make(1.31, 1.50, 16)
+    ll = _JointLogLikelihoodGainSharedZeta(mC, mD)
+
+    def vec(alpha, x):
+        # [tau, alpha, z1, x | t0_C, ddm_C | t0_D, ddm_D]
+        return np.array([tau_true, alpha, z1_true, x, mC.time.mean(), 0.0, mD.time.mean(), 0.0])
+
+    ll_true = ll(vec(alpha_true, x_true))
+    ll_bad_a = ll(vec(alpha_true + 1.5, x_true))
+    ll_achrom = ll(vec(alpha_true, 0.0))
+    assert ll_true > ll_bad_a, f"true alpha not preferred: {ll_true} <= {ll_bad_a}"
+    assert ll_true > ll_achrom, f"frequency-evolving zeta not preferred: {ll_true} <= {ll_achrom}"
+    print(
+        f"shared-zeta demo OK: ll(a={alpha_true},x={x_true})={ll_true:.0f} > "
+        f"ll(wrong a)={ll_bad_a:.0f}, ll(x=0)={ll_achrom:.0f}"
+    )
+
+
 if __name__ == "__main__":
     demo()
+    _demo_shared_zeta()

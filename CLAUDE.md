@@ -4,6 +4,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 FLITS (Fitting Likelihoods In Time-Frequency Spectra) fits pulse-broadening (scattering) and scintillation in FRB dynamic spectra. Telescope-agnostic; primary use is the CHIME–DSA co-detection analysis.
 
+### Long-View Science Goals
+- **Accurate Scattering (\(\alpha\)):** Simultaneously fit CHIME (400–800 MHz) and DSA-110 (1.2–1.5 GHz) to measure the shared scattering index \(\alpha\) using the \(\sim 1\) GHz lever arm.
+- **Profile Bias Mitigation:** Model hidden temporal sub-components. Left unmodeled, they bias \(\alpha\) high (e.g. \(\alpha \approx 3.3 \to 2.7\) for `zach`).
+- **Sightline Attribution:** Reconstruct DM and scattering budgets across the 12 co-detected sightlines, probing the CGM/groups/clusters of 49 candidate intervening systems.
+
+
 ## Commands
 
 Conda env is `flits` (Python 3.12). `pip install -e ".[nested,perf]"` for extras; `galactic` extra (pygedm/NE2001) needs a manual macOS build — see `environment.yml`.
@@ -65,6 +71,10 @@ Invoke the `ponytail` skill (level: full) and follow its ladder: does this need 
 Ponytail governs STRUCTURE and SIZE, not scientific rigor — the two are orthogonal. It does NOT relax the validation contract above: always run the PASS/MARGINAL/FAIL gates, generate diagnostic plots, keep calibration/physics knobs (the physical world needs tuning a minimal model can't see), and report failures explicitly. "Shortest diff" never means dropping a validation level or a diagnostic. In numerical code, derivation/"why" comments stay; only restate-what comments are cut.
 
 On demand: `/ponytail-audit` (whole-repo bloat scan) · `/ponytail-review` (over-engineering review of a diff).
+</important>
+
+<important if="you are adding an import, fixture, or any new symbol in an Edit/Write">
+A `PostToolUse` hook runs `ruff` with autofix (`F401`/`F841`) after every edit, so any import/variable/symbol that is unused *at the moment the formatter runs* is silently stripped — a later reference then fails with `NameError`. Add an import or definition in the SAME edit as its first consumer (or add the consumer first); never land an import-only edit ahead of the code that uses it. The verify-gate's mandatory test is the backstop that catches a strip before it ships.
 </important>
 
 ## Tackling larger work

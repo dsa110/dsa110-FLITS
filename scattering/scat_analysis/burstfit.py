@@ -20,8 +20,9 @@ Public API
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, asdict, replace
-from typing import Dict, Sequence, Tuple, Any
+from collections.abc import Sequence
+from dataclasses import asdict, dataclass, replace
+from typing import Any
 
 import emcee
 import numpy as np
@@ -99,35 +100,36 @@ if not log.handlers:
     log.addHandler(logging.StreamHandler())
 log.setLevel(logging.INFO)
 
+
 def analytic_gaussian_exp_convolution(t, mu, sig, tau):
     """
     Analytic convolution of a Gaussian G(t; mu, sig) and an exponential E(t; tau).
-    
+
     This uses the erfcx-based stable formulation:
     f(t) = (1/2*tau) * exp(-(t-mu)^2 / (2*sig^2)) * erfcx(sig/(sqrt(2)*tau) - (t-mu)/(sqrt(2)*sig))
-    
+
     Stability:
     If tau -> 0 (scattering is negligible compared to smearing), this returns G(t).
     If sig -> 0 (smearing is negligible compared to scattering), this returns E(t).
     """
     if t.ndim == 1:
         t = t[None, :]
-    
+
     # Pre-calculate common terms
     t_minus_mu = t - mu
-    
+
     # --- STABILITY GUARD: Gaussian Limit ---
     # If tau is extremely small relative to sig, convolution is just the Gaussian.
     # This prevents numerical overflow in erfcx(b) / inv_tau when tau -> 0.
     is_gauss = (tau < 1e-9) | (sig > 100 * tau)
-    
+
     # Standard Gaussian part (unnormalized)
-    gauss_exp = np.exp(-0.5 * (t_minus_mu / sig)**2)
-    
+    gauss_exp = np.exp(-0.5 * (t_minus_mu / sig) ** 2)
+
     # Initialize result with Gaussian limit
     # f(t) = (1/sqrt(2pi)sig) * exp(-0.5*(t-mu/sig)^2)
     res = (1.0 / (np.sqrt(2.0 * np.pi) * sig)) * gauss_exp
-    
+
     # Only evaluate the erfcx part where it is NOT a pure Gaussian
     # This avoids NaNs from inf * 0 in the deep tails.
     mask = ~is_gauss.squeeze()
@@ -137,47 +139,48 @@ def analytic_gaussian_exp_convolution(t, mu, sig, tau):
         inv_tau_m = 1.0 / tau[mask]
         t_m = t_minus_mu[mask]
         sig_m = sig[mask]
-        
+
         b = (sig_m / (np.sqrt(2.0) * tau[mask])) - (t_m / (np.sqrt(2.0) * sig_m))
-        
+
         # --- NUMERICAL STABILITY FIX ---
         # When b is large negative (deep tail or tiny sigma), erfcx(b) overflows
         # and gauss_exp underflows. The product should be finite.
         # Use asymptotic form: gauss_exp * erfcx(b) ~= 2 * exp(k^2 - 2kx)
         # where k = sig/(sqrt(2)*tau) and x = (t-mu)/(sqrt(2)*sig)
         # k^2 - 2kx = 0.5*(sig/tau)^2 - (t-mu)/tau
-        
+
         # Threshold for erfcx overflow (approx -26 for float64)
         safe_mask = b > -25.0
-        
+
         res_m = np.zeros_like(b)
         inv_tau_expanded = np.broadcast_to(inv_tau_m, b.shape)
-        
+
         # Safe region: use standard formula
         if np.any(safe_mask):
             g_exp = gauss_exp[mask]
-            res_m[safe_mask] = (0.5 * inv_tau_expanded[safe_mask]) * \
-                               g_exp[safe_mask] * erfcx(b[safe_mask])
-            
+            res_m[safe_mask] = (
+                (0.5 * inv_tau_expanded[safe_mask]) * g_exp[safe_mask] * erfcx(b[safe_mask])
+            )
+
         # Overflow region: use asymptotic approximation
         # res_m = (1/tau) * exp(0.5*(sig/tau)^2 - (t-mu)/tau)
         overflow_mask = ~safe_mask
         if np.any(overflow_mask):
             # k^2 term: 0.5 * (sig/tau)^2
-            k2 = 0.5 * (sig_m / tau[mask])**2
+            k2 = 0.5 * (sig_m / tau[mask]) ** 2
             # -2kx term: -(t-mu)/tau
             minus_2kx = -t_m / tau[mask]
             exponent = k2 + minus_2kx
-            
-            res_m[overflow_mask] = inv_tau_expanded[overflow_mask] * \
-                                   np.exp(exponent[overflow_mask])
-        
+
+            res_m[overflow_mask] = inv_tau_expanded[overflow_mask] * np.exp(exponent[overflow_mask])
+
         # Replace NaNs (if any remain in deep tails) with 0
         np.nan_to_num(res_m, copy=False, nan=0.0, posinf=0.0, neginf=0.0)
-        
+
         res[mask] = res_m
-        
+
     return res
+
 
 # ----------------------------------------------------------------------
 # Log-probability wrapper
@@ -246,7 +249,8 @@ def _log_prob_wrapper(
     tau_1ghz = 0.0
     if "tau_1ghz" in names:
         tau_1ghz = theta[names.index("tau_1ghz")]
-    if not (0.001 < tau_1ghz < 15): return -np.inf
+    if not (0.001 < tau_1ghz < 15):
+        return -np.inf
 
     # 3. Jeffreys 1/x weight for positive params (still sampling in linear units)
     if log_weight_pos:
@@ -263,10 +267,10 @@ def _log_prob_wrapper(
             delta_dm = theta[names.index("delta_dm")]
 
         model_sum = np.zeros_like(model.data)
-        
+
         for i, model_type in enumerate(components):
-            suffix = f"_{i+1}"
-            
+            suffix = f"_{i + 1}"
+
             # Helper to extract parameter for this component
             def get_p(root, default=0.0):
                 full_name = f"{root}{suffix}"
@@ -280,9 +284,9 @@ def _log_prob_wrapper(
             gamma = get_p("gamma", -1.6)
 
             # Model-dependent parameters
-            zeta = get_p("zeta", 0.0)        # M1, M3
-            tau_1ghz = get_p("tau_1ghz", 0.0) # M2, M3
-            alpha = get_p("alpha", 4.4)      # M3 (fixed to 4.4 for M2)
+            zeta = get_p("zeta", 0.0)  # M1, M3
+            tau_1ghz = get_p("tau_1ghz", 0.0)  # M2, M3
+            alpha = get_p("alpha", 4.4)  # M3 (fixed to 4.4 for M2)
 
             p_i = FRBParams(
                 c0=c0,
@@ -298,7 +302,7 @@ def _log_prob_wrapper(
         # Compute likelihood against summed model
         noise_std_safe = np.clip(model.noise_std, 1e-9, None)
         resid = (model.data - model_sum) / noise_std_safe[:, None]
-        
+
         if likelihood_kind == "gaussian":
             return logp + (-0.5 * np.sum(resid**2))
         else:
@@ -315,9 +319,7 @@ def _log_prob_wrapper(
         if likelihood_kind == "gaussian":
             return logp + model.log_likelihood(params, key)
         elif likelihood_kind == "studentt":
-            return logp + model.log_likelihood_student_t(
-                params, key, nu=float(student_nu)
-            )
+            return logp + model.log_likelihood_student_t(params, key, nu=float(student_nu))
         else:
             return logp + model.log_likelihood(params, key)
     else:
@@ -384,11 +386,11 @@ class FRBParams:
     @property
     def amplitude(self) -> float:
         return self.c0
-    
+
     @property
     def width(self) -> float:
         return self.zeta
-        
+
     @property
     def tau_alpha(self) -> float:
         return self.alpha
@@ -407,7 +409,7 @@ class FRBParams:
 
     # ## FIX ##: Added the @classmethod decorator. This was a critical bug.
     @classmethod
-    def from_sequence(cls, seq: Sequence[float], model_key: str = "M3") -> "FRBParams":
+    def from_sequence(cls, seq: Sequence[float], model_key: str = "M3") -> FRBParams:
         """Unpack a flat param vector according to *model_key*."""
         key_map = {
             "M0": ("c0", "t0", "gamma"),
@@ -432,7 +434,7 @@ def _gp_amplitude_logL(
     delta_nu_d_MHz: float,
     mu_degree: int = 1,
     sigma_g2: float | None = None,
-) -> Tuple[float, float, NDArray[np.floating], float]:
+) -> tuple[float, float, NDArray[np.floating], float]:
     """Spectral GP marginal over the matched-filter gain estimates `ahat`.
 
     Diffractive scintillation makes the per-channel gain estimates correlated in
@@ -484,19 +486,19 @@ def _gp_amplitude_logL(
     span = float(nu.max() - nu.min())
     nu_c = (nu - nu.mean()) / (span if span > 0 else 1.0)
     X = np.vander(nu_c, N=int(mu_degree) + 1, increasing=True)  # (n, p+1)
-    a_w = Q.T @ (dinv_sqrt * ahat)          # Q^T D^{-1/2} ahat
-    X_w = Q.T @ (dinv_sqrt[:, None] * X)    # Q^T D^{-1/2} X   (n, p+1)
+    a_w = Q.T @ (dinv_sqrt * ahat)  # Q^T D^{-1/2} ahat
+    X_w = Q.T @ (dinv_sqrt[:, None] * X)  # Q^T D^{-1/2} X   (n, p+1)
     logdet_v = float(np.sum(np.log(v)))
 
-    def _profile_mu(s2: float) -> Tuple[NDArray[np.floating], NDArray[np.floating]]:
+    def _profile_mu(s2: float) -> tuple[NDArray[np.floating], NDArray[np.floating]]:
         """GLS beta and rotated residual z = Q^T D^{-1/2} (ahat - mu) at sigma_g^2=s2."""
-        d_eig = s2 * L + 1.0                 # eigenvalues of D^{-1/2} Sigma D^{-1/2}
+        d_eig = s2 * L + 1.0  # eigenvalues of D^{-1/2} Sigma D^{-1/2}
         inv_d = 1.0 / d_eig
         # X^T Sigma^-1 X = X_w^T diag(inv_d) X_w ; X^T Sigma^-1 ahat = X_w^T diag(inv_d) a_w
         XtSiX = (X_w * inv_d[:, None]).T @ X_w
         XtSia = (X_w * inv_d[:, None]).T @ a_w
         beta = np.linalg.solve(XtSiX, XtSia)
-        z = a_w - X_w @ beta                 # rotated residual
+        z = a_w - X_w @ beta  # rotated residual
         return beta, z
 
     def _neglogL_s2(log_s2: float, return_full: bool = False):
@@ -510,8 +512,7 @@ def _gp_amplitude_logL(
         XtSiX = (X_w * inv_d[:, None]).T @ X_w
         sgn, logdet_XtSiX = np.linalg.slogdet(XtSiX)
         jac = 0.5 * logdet_XtSiX if sgn > 0 else -1e30
-        logL = (-0.5 * quad - 0.5 * logdet_sigma + jac
-                - 0.5 * (n * np.log(2.0 * np.pi) + logdet_v))
+        logL = -0.5 * quad - 0.5 * logdet_sigma + jac - 0.5 * (n * np.log(2.0 * np.pi) + logdet_v)
         if return_full:
             return logL, beta, s2
         return -logL
@@ -524,11 +525,13 @@ def _gp_amplitude_logL(
         # the (non-convex) unresolved boundary, unlike Newton. Range anchored on
         # the data scale: median(v) sets the noise floor, var(ahat) the ceiling.
         from scipy.optimize import minimize_scalar
+
         med_v = float(np.median(v))
         scale = max(med_v, float(np.var(ahat)), 1e-30)
         lo, hi = np.log(scale) - 18.0, np.log(scale) + 18.0
-        res = minimize_scalar(_neglogL_s2, bounds=(lo, hi), method="bounded",
-                              options={"xatol": 1e-3})
+        res = minimize_scalar(
+            _neglogL_s2, bounds=(lo, hi), method="bounded", options={"xatol": 1e-3}
+        )
         logL, beta, s2_ml = _neglogL_s2(res.x, return_full=True)
 
     mu = X @ beta
@@ -582,7 +585,7 @@ class FRBModel:
             self.noise_std = self._estimate_noise(off_pulse)
         else:
             self.noise_std = noise_std
-        
+
         # Pre-calculate validity mask (exclude dead channels and NaNs)
         if self.data is not None and self.noise_std is not None:
             self.valid = (self.noise_std > 1e-9) & (np.isfinite(np.nanmean(self.data, axis=1)))
@@ -626,9 +629,7 @@ class FRBModel:
         idx = idx[idx < self.data.shape[1]]
 
         mad = np.median(
-            np.abs(
-                self.data[:, idx] - np.median(self.data[:, idx], axis=1, keepdims=True)
-            ),
+            np.abs(self.data[:, idx] - np.median(self.data[:, idx], axis=1, keepdims=True)),
             axis=1,
         )
         return 1.4826 * mad  # Do not clip to 1e-6, allow 0 for dead channels
@@ -637,7 +638,7 @@ class FRBModel:
         self, p: FRBParams, model_key: str = "M3", freq_subset: NDArray[np.bool_] | None = None
     ) -> NDArray[np.floating]:
         """Return model dynamic spectrum for parameters *p*.
-        
+
         Args:
             p: Parameters
             model_key: Model variant
@@ -652,9 +653,9 @@ class FRBModel:
         n_freq = freq.size
         n_time = self.time.size
 
-        ref_freq = np.median(self.freq) # Keep global ref_freq for consistency
+        ref_freq = np.median(self.freq)  # Keep global ref_freq for consistency
         amp = p.c0 * (freq / ref_freq) ** p.gamma
-        
+
         # Dispersion delay
         dd_full = self._dispersion_delay(p.delta_dm)
         if freq_subset is None:
@@ -666,7 +667,7 @@ class FRBModel:
             sig_full = self._smearing_sigma(self.dm_init, p.zeta)
         else:
             sig_full = self._smearing_sigma(self.dm_init, 0.0)
-            
+
         if freq_subset is None:
             sig = sig_full[:, None]
         else:
@@ -679,22 +680,18 @@ class FRBModel:
             alpha = getattr(p, "alpha", 4.4)
             tau = p.tau_1ghz * (freq / 1.0) ** (-alpha)
             tau = np.clip(tau, 1e-6, None)[:, None]
-            
+
             # Use analytic convolution for speed and precision
-            return amp[:, None] * analytic_gaussian_exp_convolution(
-                self.time, mu, sig, tau
-            )
+            return amp[:, None] * analytic_gaussian_exp_convolution(self.time, mu, sig, tau)
 
         # Non-scattering models (M0, M1) or negligible tau
-        gauss = (1.0 / (np.sqrt(2.0 * np.pi) * sig)) * np.exp(
-            -0.5 * ((self.time - mu) / sig) ** 2
-        )
+        gauss = (1.0 / (np.sqrt(2.0 * np.pi) * sig)) * np.exp(-0.5 * ((self.time - mu) / sig) ** 2)
         # Normalize
         gauss_sum = np.sum(gauss, axis=1, keepdims=True)
         safe_gauss_sum = np.clip(gauss_sum, 1e-30, None)
-        
+
         if model_key not in {"M0", "M1", "M2", "M3"}:
-             raise ValueError(f"unknown model '{model_key}'")
+            raise ValueError(f"unknown model '{model_key}'")
 
         return amp[:, None] * (gauss / safe_gauss_sum)
 
@@ -713,10 +710,10 @@ class FRBModel:
         noise_std_full = np.broadcast_to(ns, self.data.shape)
         noise_valid = noise_std_full[self.valid]
         data_valid = self.data[self.valid]
-        
+
         # Calculate model only for valid channels
         model_valid = self(p, model, freq_subset=self.valid)
-        
+
         resid = (data_valid - model_valid) / noise_valid
         return -0.5 * np.sum(resid**2)
 
@@ -841,8 +838,12 @@ class FRBModel:
         nu_MHz = self.freq[self.valid][ok] * 1.0e3  # GHz -> MHz
         try:
             logL_amp, _s2, _mu, _m = _gp_amplitude_logL(
-                ahat, v, nu_MHz, float(delta_nu_d_MHz),
-                mu_degree=int(mu_degree), sigma_g2=sigma_g2,
+                ahat,
+                v,
+                nu_MHz,
+                float(delta_nu_d_MHz),
+                mu_degree=int(mu_degree),
+                sigma_g2=sigma_g2,
             )
         except np.linalg.LinAlgError:
             return -np.inf
@@ -856,7 +857,7 @@ class FRBModel:
         model: str = "M3",
         delta_nu_d_MHz: float | None = None,
         mu_degree: int = 1,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Recover the GLS smooth mean mu, residual gains, ML sigma_g^2 and the
         modulation index at parameters *p* and a given ``delta_nu_d_MHz``.
 
@@ -884,26 +885,37 @@ class FRBModel:
             X = np.vander(nu_c, N=int(mu_degree) + 1, increasing=True)
             beta, *_ = np.linalg.lstsq(X, ahat, rcond=None)
             mu = X @ beta
-            return dict(freq_MHz=nu_MHz, ahat=ahat, mu=mu, resid=ahat - mu,
-                        sigma_g2=float("nan"),
-                        modulation_index=float(np.nanstd((ahat - mu) /
-                                              np.where(np.abs(mu) > 1e-30, mu, np.nan))),
-                        delta_nu_d_MHz=delta_nu_d_MHz)
+            return dict(
+                freq_MHz=nu_MHz,
+                ahat=ahat,
+                mu=mu,
+                resid=ahat - mu,
+                sigma_g2=float("nan"),
+                modulation_index=float(
+                    np.nanstd((ahat - mu) / np.where(np.abs(mu) > 1e-30, mu, np.nan))
+                ),
+                delta_nu_d_MHz=delta_nu_d_MHz,
+            )
         _ll, s2, mu, mod = _gp_amplitude_logL(
-            ahat, v, nu_MHz, float(delta_nu_d_MHz), mu_degree=int(mu_degree))
-        return dict(freq_MHz=nu_MHz, ahat=ahat, mu=mu, resid=ahat - mu,
-                    sigma_g2=s2, modulation_index=mod,
-                    delta_nu_d_MHz=float(delta_nu_d_MHz))
+            ahat, v, nu_MHz, float(delta_nu_d_MHz), mu_degree=int(mu_degree)
+        )
+        return dict(
+            freq_MHz=nu_MHz,
+            ahat=ahat,
+            mu=mu,
+            resid=ahat - mu,
+            sigma_g2=s2,
+            modulation_index=mod,
+            delta_nu_d_MHz=float(delta_nu_d_MHz),
+        )
 
-    def log_likelihood_student_t(
-        self, p: FRBParams, model: str = "M3", nu: float = 5.0
-    ) -> float:
+    def log_likelihood_student_t(self, p: FRBParams, model: str = "M3", nu: float = 5.0) -> float:
         if self.data is None or self.noise_std is None:
             raise RuntimeError("need observed data + noise_std for likelihood")
         # Use pre-calculated validity mask
         if self.valid is None or not np.any(self.valid):
-             return -np.inf
-             
+            return -np.inf
+
         # Broadcast noise to full shape before masking
         ns = self.noise_std
         if ns.ndim == 1:
@@ -912,18 +924,20 @@ class FRBModel:
         noise_valid = noise_std_full[self.valid]
         data_valid = self.data[self.valid]
         model_valid = self(p, model, freq_subset=self.valid)
-        
+
         resid = (data_valid - model_valid) / noise_valid
-        
+
         # Student-t log-pdf up to constant per element
         # logL = sum( - (nu+1)/2 * log(1 + r^2/nu) ) - N * 0.5*log(nu*pi) - sum(log(sigma))
         r2_over_nu = (resid**2) / nu
         term = -0.5 * (nu + 1.0) * np.log1p(r2_over_nu)
-        
+
         # Constant term accounts for valid pixels only
         n_pix = data_valid.size
-        const = -0.5 * n_pix * np.log(nu * np.pi) - np.sum(np.log(noise_valid)) * data_valid.shape[1]
-        
+        const = (
+            -0.5 * n_pix * np.log(nu * np.pi) - np.sum(np.log(noise_valid)) * data_valid.shape[1]
+        )
+
         return const + float(np.sum(term))
 
 
@@ -944,14 +958,14 @@ class FRBFitter:
     def __init__(
         self,
         model: FRBModel,
-        priors: Dict[str, Tuple[float, float]],
+        priors: dict[str, tuple[float, float]],
         *,
         n_steps: int = 1000,
         n_walkers_mult: int = 8,
         pool=None,
         log_weight_pos=False,
         sample_log_params: bool = True,
-        alpha_prior: Tuple[float, float] | None = None,
+        alpha_prior: tuple[float, float] | None = None,
         likelihood_kind: str = "gaussian",
         student_nu: float = 5.0,
         walker_width_frac: float = 0.01,
@@ -965,19 +979,17 @@ class FRBFitter:
         self.pool = pool
         self.log_weight_pos = log_weight_pos
         self.sample_log_params = sample_log_params
-        self._log_param_names = (
-            {"c0", "zeta", "tau_1ghz"} if sample_log_params else set()
-        )
+        self._log_param_names = {"c0", "zeta", "tau_1ghz"} if sample_log_params else set()
         self.alpha_prior = alpha_prior
         self.likelihood_kind = likelihood_kind
         self.student_nu = student_nu
         self.custom_order: dict[str, tuple[str, ...]] = {}
         self.walker_width_frac = max(1e-4, float(walker_width_frac))
         self.components = components
-        
+
         # Pre-build order if components are provided
         if self.components:
-             self.build_mixed_model_order(self.components)
+            self.build_mixed_model_order(self.components)
 
     def _is_log_param(self, name: str) -> bool:
         """Check if a parameter should be sampled in log-space.
@@ -1041,12 +1053,8 @@ class FRBFitter:
         # Use "mixed" key if components are provided
         if self.components:
             model_key = "mixed"
-            
-        names = (
-            self._ORDER[model_key]
-            if model_key in self._ORDER
-            else self.custom_order[model_key]
-        )
+
+        names = self._ORDER[model_key] if model_key in self._ORDER else self.custom_order[model_key]
         ndim = len(names)
         nwalk = max(self.n_walkers_mult * ndim, 2 * ndim)
 
@@ -1087,42 +1095,42 @@ class FRBFitter:
 
     def build_mixed_model_order(self, components: Sequence[str]) -> tuple[str, ...]:
         """Build parameter list for mixed multi-component models.
-        
+
         Parameters
         ----------
         components : list of str
             List of model keys (e.g. ["M0", "M3", "M1"]).
-            
+
         Returns
         -------
         tuple of str
             Ordered parameter names.
         """
         order = []
-        
+
         # 1. Global Parameters
         # Only fit delta_dm if at least one component is M3 (the full model)
         if any(c == "M3" for c in components):
             order.append("delta_dm")
-            
+
         # 2. Per-Component Parameters
         for i, c in enumerate(components):
             idx = i + 1
             # Core parameters (all models)
             order.extend([f"c0_{idx}", f"t0_{idx}", f"gamma_{idx}"])
-            
+
             # Intrinsic width (M1, M3)
             if c in ["M1", "M3"]:
                 order.append(f"zeta_{idx}")
-                
+
             # Scattering timescale (M2, M3)
             if c in ["M2", "M3"]:
                 order.append(f"tau_1ghz_{idx}")
-                
+
             # Scattering index (M3 only - M2 has fixed alpha)
             if c == "M3":
                 order.append(f"alpha_{idx}")
-                
+
         self.custom_order["mixed"] = tuple(order)
         return self.custom_order["mixed"]
 
@@ -1245,7 +1253,7 @@ def apply_physical_priors(
 
 
 def build_priors(
-    init: "FRBParams",
+    init: FRBParams,
     *,
     scale: float = 6.0,  # half-width multiplier (wide!)
     abs_min: float = _MIN_POS,  # floor for positive parameters
@@ -1271,27 +1279,33 @@ def build_priors(
         -log(x) to the log-prior for each positive parameter.
     """
     pri = {}
-    
+
     # Map parameters to their specific bounds
     # If not in this map, use defaults
     param_bounds = {
         "c0": (AMP_MIN, AMP_MAX),
         "tau_1ghz": (WIDTH_MIN, WIDTH_MAX),
         "zeta": (WIDTH_MIN, WIDTH_MAX),
-        "delta_dm": (-DM_RESID_MAX, DM_RESID_MAX), # residual DM around dm_init (small), not full DM_MAX
-        "gamma": (-5.0, 5.0), # Spectral index bounds
-        "t0": (init.t0 - 2*max(init.tau_1ghz, 10.0), init.t0 + 2*max(init.tau_1ghz, 10.0)), # Dynamic t0 window
-        "alpha": (ALPHA_GOOD_MIN, ALPHA_MARGINAL_MAX) # Scattering index
+        "delta_dm": (
+            -DM_RESID_MAX,
+            DM_RESID_MAX,
+        ),  # residual DM around dm_init (small), not full DM_MAX
+        "gamma": (-5.0, 5.0),  # Spectral index bounds
+        "t0": (
+            init.t0 - 2 * max(init.tau_1ghz, 10.0),
+            init.t0 + 2 * max(init.tau_1ghz, 10.0),
+        ),  # Dynamic t0 window
+        "alpha": (ALPHA_GOOD_MIN, ALPHA_MARGINAL_MAX),  # Scattering index
     }
-    
+
     ceiling = abs_max or {}
-    
+
     for name, val in asdict(init).items():
         # Determine specific bounds for this parameter
         if name in param_bounds:
             hard_min, hard_max = param_bounds[name]
         else:
-             hard_min, hard_max = abs_min, 1e6
+            hard_min, hard_max = abs_min, 1e6
 
         if absolute_bounds and name != "t0":
             # Init-independent physical prior: use the hard bounds directly.
@@ -1314,7 +1328,7 @@ def build_priors(
         # Override with explicit ceiling if provided
         if name in ceiling:
             upper = min(upper, ceiling[name])
-            
+
         pri[name] = (lower, upper)
 
     return pri, log_weight_pos
@@ -1333,9 +1347,7 @@ def downsample(data: NDArray[np.floating], f_factor=1, t_factor=1):
     # Ensure dimensions are divisible by factors
     nf_new = nf - (nf % f_factor)
     nt_new = nt - (nt % t_factor)
-    d = data[:nf_new, :nt_new].reshape(
-        nf_new // f_factor, f_factor, nt_new // t_factor, t_factor
-    )
+    d = data[:nf_new, :nt_new].reshape(nf_new // f_factor, f_factor, nt_new // t_factor, t_factor)
     return d.mean(axis=(1, 3))
 
 
@@ -1376,7 +1388,9 @@ def classify_fit_quality(
 
     # Informational only -- these do NOT change the flag.
     if r_squared is not None and np.isfinite(r_squared) and r_squared < R_SQ_MARGINAL_MIN:
-        notes.append(f"Low weighted R2 ({r_squared:.3f}) [informational; expected for low-S/N bursts]")
+        notes.append(
+            f"Low weighted R2 ({r_squared:.3f}) [informational; expected for low-S/N bursts]"
+        )
     if (
         normality_pvalue is not None
         and np.isfinite(normality_pvalue)
@@ -1391,13 +1405,13 @@ def goodness_of_fit(
     model: NDArray[np.floating],
     noise_std: NDArray[np.floating],
     n_params: int,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Compute comprehensive goodness-of-fit metrics and validation flags."""
     residual = data - model
     # Ensure noise broadcast correctly
     noise_std_safe = np.clip(np.atleast_1d(noise_std), 1e-9, None)
     if noise_std_safe.ndim == 1 and data.ndim == 2:
-         noise_std_safe = noise_std_safe[:, np.newaxis]
+        noise_std_safe = noise_std_safe[:, np.newaxis]
 
     # Create valid mask based on noise threshold
     valid_mask = noise_std > 1e-9
@@ -1414,7 +1428,7 @@ def goodness_of_fit(
     data_valid = data[valid_mask]
 
     n_valid = resid_valid.size
-    
+
     # 1. Chi-squared
     chi2 = np.sum((resid_valid / noise_valid) ** 2)
     ndof = n_valid - n_params
@@ -1451,9 +1465,9 @@ def goodness_of_fit(
     # 5. Durbin-Watson (Autocorrelation)
     # We can compute it on the flattened valid array
     diffs = np.diff(data_flat)
-    dw_stat = np.sum(diffs ** 2) / np.sum(data_flat ** 2)
+    dw_stat = np.sum(diffs**2) / np.sum(data_flat**2)
     # autocorr_pass = RESIDUAL_AUTOCORR_DW_MIN <= dw_stat <= RESIDUAL_AUTOCORR_DW_MAX
-    
+
     # 6. Quality Flag -- driven by reduced chi-squared (the trustworthy gate when
     # noise is well estimated). R^2 and normality are informational only; see
     # classify_fit_quality for why noise-weighted R^2 is not a gate for faint
@@ -1473,12 +1487,12 @@ def goodness_of_fit(
         "r_squared": float(r_squared),
         "ndof": int(ndof),
         "residual_rms": float(np.std(resid_valid)),
-        "residual_autocorr": norm_autocorr, # Keep array for plotting
+        "residual_autocorr": norm_autocorr,  # Keep array for plotting
         "normality_pvalue": float(normality_pvalue),
         "bias_nsigma": float(bias_nsigma),
         "durbin_watson": float(dw_stat),
         "quality_flag": quality,
-        "validation_notes": notes
+        "validation_notes": notes,
     }
 
 

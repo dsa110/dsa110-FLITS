@@ -171,7 +171,7 @@ def plot_toa_analysis(
         logger.info(f"Analysis plot saved to {output_path}")
 
     if show:
-        # plt.show()
+        plt.show()
 
     return fig
 
@@ -245,7 +245,7 @@ def plot_systematics_matrix(
         logger.info(f"Systematics matrix saved to {output_path}")
 
     if show:
-        # plt.show()
+        plt.show()
     return fig
 
 

@@ -103,6 +103,15 @@
     ]
   },
   "permissions": {
+    "allow": [
+      "Bash(entire status:*)",
+      "Bash(entire checkpoint:*)",
+      "Bash(entire search:*)",
+      "Bash(entire recap:*)",
+      "Bash(entire activity:*)",
+      "Bash(entire dispatch:*)",
+      "Bash(entire version:*)"
+    ],
     "deny": [
       "Read(./.entire/metadata/**)"
     ]

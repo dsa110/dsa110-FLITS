@@ -1,17 +1,30 @@
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+from types import SimpleNamespace
 
-from flits.models import FRBModel, K_DM
-from flits.params import FRBParams
-from flits.scattering import tau_per_freq
+from flits.common.constants import K_DM_MS as K_DM
 from flits.plotting import use_flits_style  # noqa: F401 (applies style on import)
+from flits.scattering import tau_per_freq
+from scattering.scat_analysis.burstfit import DM_DELAY_MS, FRBModel, FRBParams
 
 
 def simulate_and_dedisperse(params, t, freqs):
     """Simulate FRB and dedisperse it."""
-    # Simulate with scattering
-    model = FRBModel(params)
-    dynspec = model.simulate(t, freqs)
+    # Simulate with scattering via the core kernel. Core references the
+    # dispersion delay to f_max, so shift t0 (legacy arrival at infinite
+    # frequency) by the band-top delay to keep the same absolute arrival time.
+    freqs_ghz = freqs / 1000.0
+    p = FRBParams(
+        c0=params.amplitude,
+        t0=params.t0 + DM_DELAY_MS * params.dm / freqs_ghz.max() ** 2,
+        gamma=0.0,
+        zeta=params.width,
+        tau_1ghz=params.tau_1ghz,
+        alpha=params.tau_alpha,
+        delta_dm=params.dm,
+    )
+    model = FRBModel(time=t, freq=freqs_ghz, dm_init=params.dm, df_MHz=abs(freqs[1] - freqs[0]))
+    dynspec = model(p, "M3")
 
     # Dedisperse: shift each frequency channel to align at t0
     delays = K_DM * params.dm / freqs**2
@@ -103,11 +116,13 @@ def main():
     # Convert FWHM to sigma: FWHM = 2.355 * sigma
     sigma = fwhm / (2 * np.sqrt(2 * np.log(2)))
 
-    params = FRBParams(
+    # Demo params for simulation + plot labels (core kernel built in
+    # simulate_and_dedisperse). t0 is the legacy arrival at infinite frequency.
+    params = SimpleNamespace(
         dm=50.0,  # pc/cm^3
         width=sigma,  # sigma (derived from FWHM=2.0ms)
         amplitude=1.0,
-        t0=20.0,  # ms (arrival time at infinite frequency)
+        t0=20.0,  # ms
         tau_1ghz=5.0,  # ms (scattering timescale at 1 GHz)
         tau_alpha=4.0,  # Scattering index (thin screen)
     )

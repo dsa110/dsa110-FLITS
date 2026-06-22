@@ -1,20 +1,18 @@
-import numpy as np
 import matplotlib.pyplot as plt
-from flits.models import FRBModel
-from flits.params import FRBParams
+import numpy as np
+
+from scattering.scat_analysis.burstfit import DM_DELAY_MS, FRBModel, FRBParams
 
 
 def main():
     # 1. Define parameters
     # A moderately dispersed and scattered burst
-    params = FRBParams(
-        dm=50.0,  # pc/cm^3
-        width=2.0,  # ms (intrinsic width)
-        amplitude=1.0,
-        t0=20.0,  # ms (arrival time at infinite frequency)
-        tau_1ghz=5.0,  # ms (scattering timescale at 1 GHz)
-        tau_alpha=4.0,  # Scattering index (thin screen)
-    )
+    dm = 50.0  # pc/cm^3
+    width = 2.0  # ms (intrinsic sigma)
+    amplitude = 1.0
+    t0 = 20.0  # ms (arrival time at infinite frequency)
+    tau_1ghz = 5.0  # ms (scattering timescale at 1 GHz)
+    tau_alpha = 4.0  # Scattering index (thin screen)
 
     # 2. Define grid
     # Frequencies: 1200 MHz to 1500 MHz (L-band ish)
@@ -23,10 +21,22 @@ def main():
     # Time: 100 to 200 ms (adjusted for dispersion delay)
     t = np.linspace(100, 200, 1024)
 
-    # 3. Simulate
-    model = FRBModel(params)
-    # We simulate with the scattering parameters defined in params
-    dynspec = model.simulate(t, freqs)
+    # 3. Simulate with the core kernel. Core references the dispersion delay to
+    # f_max; t0 here is the legacy "arrival at infinite frequency", so shift by
+    # the delay at the top of the band to keep the same absolute arrival time.
+    freqs_ghz = freqs / 1000.0
+    df_MHz = abs(freqs[1] - freqs[0])
+    p = FRBParams(
+        c0=amplitude,
+        t0=t0 + DM_DELAY_MS * dm / freqs_ghz.max() ** 2,
+        gamma=0.0,
+        zeta=width,
+        tau_1ghz=tau_1ghz,
+        alpha=tau_alpha,
+        delta_dm=dm,
+    )
+    model = FRBModel(time=t, freq=freqs_ghz, dm_init=dm, df_MHz=df_MHz)
+    dynspec = model(p, "M3")
 
     # 4. Calculate time series (frequency-averaged profile)
     time_series = dynspec.mean(axis=0)
@@ -40,7 +50,7 @@ def main():
     ax1.plot(t, time_series, color="black", lw=1.5)
     ax1.set_ylabel("Intensity (arb)")
     ax1.set_title(
-        f"Scattered FRB Simulation\nDM={params.dm}, Width={params.width}ms, $\\tau_{{1GHz}}$={params.tau_1ghz}ms"
+        f"Scattered FRB Simulation\nDM={dm}, Width={width}ms, $\\tau_{{1GHz}}$={tau_1ghz}ms"
     )
     ax1.grid(True, alpha=0.3)
 

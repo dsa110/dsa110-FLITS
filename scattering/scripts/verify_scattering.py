@@ -7,14 +7,22 @@ This script demonstrates the integrated scatter-broadening architecture:
 3. Plot results: data, model, residuals, and posterior summaries.
 """
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
 # Adjust imports based on your environment
 try:
-    from flits.params import FRBParams
-    from flits.models import FRBModel
-    from scattering.scat_analysis.burstfit import FRBModel as FitModel
+    from types import SimpleNamespace
+
+    from scattering.scat_analysis.burstfit import (
+        DM_DELAY_MS,
+    )
+    from scattering.scat_analysis.burstfit import (
+        FRBModel as FitModel,
+    )
+    from scattering.scat_analysis.burstfit import (
+        FRBParams as FitParams,
+    )
 except ImportError as e:
     print(f"Import error: {e}. Ensure FLITS is installed or PYTHONPATH is set.")
     raise
@@ -55,8 +63,8 @@ def generate_synthetic_data(
     t = np.linspace(0, 200, ntime)
     freqs = np.linspace(freq_min, freq_max, nfreq)
 
-    # Ground truth params
-    truth = FRBParams(
+    # Ground truth params (demo-facing names; core kernel built below)
+    truth = SimpleNamespace(
         dm=dm,
         amplitude=c0_true,
         t0=t0_true,
@@ -65,9 +73,21 @@ def generate_synthetic_data(
         tau_alpha=alpha_true,
     )
 
-    # Generate synthetic spectrum
-    sim_model = FRBModel(truth)
-    dynspec = sim_model.simulate(t, freqs)
+    # Generate synthetic spectrum with the core kernel. Core references the
+    # dispersion delay to f_max, so shift t0 by the band-top delay.
+    freqs_ghz = freqs / 1000.0
+    p = FitParams(
+        c0=c0_true,
+        t0=t0_true + DM_DELAY_MS * dm / freqs_ghz.max() ** 2,
+        gamma=0.0,
+        zeta=zeta_true,
+        tau_1ghz=tau_1ghz_true,
+        alpha=alpha_true,
+        delta_dm=dm,
+    )
+    dynspec = FitModel(time=t, freq=freqs_ghz, dm_init=dm, df_MHz=(freq_max - freq_min) / nfreq)(
+        p, "M3"
+    )
 
     # Add Gaussian noise
     noise_level = np.sqrt(np.mean(dynspec**2)) / snr
@@ -136,9 +156,7 @@ def fit_synthetic_data(
     return fit_model, init_params
 
 
-def plot_results(
-    data, time, freq, model, truth, sampler=None, title="Synthetic FRB Fit"
-):
+def plot_results(data, time, freq, model, truth, sampler=None, title="Synthetic FRB Fit"):
     """Plot data, model, residuals, and posteriors."""
     # Forward model at best-fit
     best_fit = model(
@@ -212,9 +230,7 @@ def plot_results(
             ax5.grid(True, alpha=0.3)
 
             ax6 = fig.add_subplot(gs[2, 1])
-            ax6.hist(
-                samples[:, 5], bins=30, alpha=0.7, label=r"$\alpha$"
-            )  # alpha is param 5
+            ax6.hist(samples[:, 5], bins=30, alpha=0.7, label=r"$\alpha$")  # alpha is param 5
             ax6.axvline(truth.tau_alpha, color="r", linestyle="--", label="Truth")
             ax6.set_xlabel(r"$\alpha$ (freq. exponent)")
             ax6.set_ylabel("Posterior Density")
@@ -246,9 +262,7 @@ if __name__ == "__main__":
         snr=15.0,
     )
     print(f"  Data shape: {data.shape}")
-    print(
-        f"  Ground truth tau_1ghz={truth.tau_1ghz:.3f} ms, alpha={truth.tau_alpha:.2f}"
-    )
+    print(f"  Ground truth tau_1ghz={truth.tau_1ghz:.3f} ms, alpha={truth.tau_alpha:.2f}")
     print(f"  Time range: {time.min():.1f} – {time.max():.1f} ms")
     print(f"  Freq range: {freq.min():.0f} – {freq.max():.0f} MHz")
 
@@ -291,12 +305,8 @@ if __name__ == "__main__":
 
     print("\n[4] Summary of integration:")
     print("  ✓ FRBParams: tau_ms and tau_alpha parameters")
-    print(
-        "  ✓ FRBModel.simulate(): uses scatter_broaden utility with freq-dependent tau(ν)"
-    )
-    print(
-        "  ✓ scatter_broaden utility: reusable kernel convolution (flits/scattering.py)"
-    )
+    print("  ✓ FRBModel.simulate(): uses scatter_broaden utility with freq-dependent tau(ν)")
+    print("  ✓ scatter_broaden utility: reusable kernel convolution (flits/scattering.py)")
     print("  ✓ Physical priors: log-normal(tau), Gaussian(alpha)")
     print("  ✓ Fitting: FRBFitter integrates apply_physical_priors")
 

@@ -83,9 +83,7 @@ def _validate_and_prepare_inputs(
         if tau_arr.size == 1:
             tau_arr = np.full(nfreq, tau_arr[0])
         elif tau_arr.size != nfreq:
-            raise ValueError(
-                f"tau_ms size {tau_arr.size} must match signal.shape[0]={nfreq}"
-            )
+            raise ValueError(f"tau_ms size {tau_arr.size} must match signal.shape[0]={nfreq}")
         is_2d = True
     else:
         raise ValueError(f"signal must be 1D or 2D, got shape {signal.shape}.")
@@ -129,9 +127,7 @@ def scatter_broaden(
     -----
     The kernel is normalized to unit integral to preserve total flux.
     """
-    dt, ntime, tau_arr, tau_scalar, is_2d = _validate_and_prepare_inputs(
-        signal, t, tau_ms
-    )
+    dt, ntime, tau_arr, tau_scalar, is_2d = _validate_and_prepare_inputs(signal, t, tau_ms)
 
     if is_2d:
         result = np.zeros_like(signal)
@@ -171,53 +167,7 @@ def tau_per_freq(
     return tau_ref_ms * (ref_freq_mhz / freqs_mhz) ** alpha
 
 
-def log_normal_prior(x: float, mu: float, sigma: float) -> float:
-    """Log-probability for log-normal distribution (for τ_ms or similar).
-
-    Parameters
-    ----------
-    x : float
-        Value (must be > 0).
-    mu : float
-        Mean of log(x).
-    sigma : float
-        Std dev of log(x).
-
-    Returns
-    -------
-    float
-        Log-probability (unnormalized).
-    """
-    if x <= 0.0:
-        return -np.inf
-    return -0.5 * ((np.log(x) - mu) / sigma) ** 2 - np.log(sigma * x)
-
-
-def gaussian_prior(x: float, mu: float, sigma: float) -> float:
-    """Log-probability for Gaussian (normal) distribution.
-
-    Parameters
-    ----------
-    x : float
-        Value.
-    mu : float
-        Mean.
-    sigma : float
-        Std dev.
-
-    Returns
-    -------
-    float
-        Log-probability (unnormalized).
-    """
-    if sigma <= 0.0:
-        return 0.0
-    return -0.5 * ((x - mu) / sigma) ** 2 - np.log(sigma * np.sqrt(2 * np.pi))
-
-
 __all__ = [
     "scatter_broaden",
     "tau_per_freq",
-    "log_normal_prior",
-    "gaussian_prior",
 ]

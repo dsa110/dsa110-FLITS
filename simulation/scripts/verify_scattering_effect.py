@@ -1,15 +1,12 @@
-import numpy as np
 import matplotlib.pyplot as plt
-from flits.models import FRBModel
-from flits.params import FRBParams
-from flits.scattering import scatter_broaden
+import numpy as np
+
+from scattering.scat_analysis.burstfit import DM_DELAY_MS, FRBModel, FRBParams
 
 
 def verify():
     # Parameters
-    params = FRBParams(
-        dm=50.0, width=2.0, amplitude=1.0, t0=20.0, tau_1ghz=5.0, tau_alpha=4.0
-    )
+    dm, width, amplitude, t0, tau_alpha = 50.0, 2.0, 1.0, 20.0, 4.0
 
     # Single low frequency where scattering is strongest
     freq = 1200.0  # MHz
@@ -18,16 +15,26 @@ def verify():
     # Time
     t = np.linspace(100, 200, 1024)
 
-    # 1. Simulate with scattering DISABLED
-    params_no_scat = FRBParams(dm=50.0, width=2.0, amplitude=1.0, t0=20.0, tau_1ghz=0.0)
-    model_no_scat = FRBModel(params_no_scat)
-    dynspec_no_scat = model_no_scat.simulate(t, freqs)
-    profile_no_scat = dynspec_no_scat[0]
+    # Core references dispersion to f_max; shift t0 (legacy arrival at infinite
+    # frequency) by the band-top delay to preserve the absolute arrival time.
+    freqs_ghz = freqs / 1000.0
+    t0_core = t0 + DM_DELAY_MS * dm / freqs_ghz.max() ** 2
 
-    # 2. Simulate with scattering ENABLED
-    model_scat = FRBModel(params)
-    dynspec_scat = model_scat.simulate(t, freqs)
-    profile_scat = dynspec_scat[0]
+    def sim(tau_1ghz):
+        p = FRBParams(
+            c0=amplitude,
+            t0=t0_core,
+            gamma=0.0,
+            zeta=width,
+            tau_1ghz=tau_1ghz,
+            alpha=tau_alpha,
+            delta_dm=dm,
+        )
+        return FRBModel(time=t, freq=freqs_ghz, dm_init=dm, df_MHz=1.0)(p, "M3")[0]
+
+    # 1. Scattering DISABLED, then 2. ENABLED
+    profile_no_scat = sim(0.0)
+    profile_scat = sim(5.0)
 
     # 3. Plot comparison
     plt.figure(figsize=(10, 6))

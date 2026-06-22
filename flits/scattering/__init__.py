@@ -6,15 +6,17 @@ This lets downstream code use standard imports such as
 `from flits.scattering.scat_analysis import burstfit` without relying on
 ad-hoc `sys.path` manipulation.
 
-Also exports broadening and scattering utilities from `.broaden`.
+Also exports broadening utilities from `.broaden` and prior helpers from the
+canonical `scattering.scat_analysis.burstfit` kernel.
 """
 
 from __future__ import annotations
 
 from pathlib import Path
-from typing import List
 
-from .broaden import scatter_broaden, tau_per_freq, log_normal_prior, gaussian_prior
+from scattering.scat_analysis.burstfit import gaussian_prior, log_normal_prior
+
+from .broaden import scatter_broaden, tau_per_freq
 
 _ROOT = Path(__file__).resolve().parents[2] / "scattering"
 
@@ -26,7 +28,7 @@ if not _ROOT.exists():
     )
 
 # Tell Python where to find submodules such as scat_analysis.*
-__path__: List[str] = [str(_ROOT)]
+__path__: list[str] = [str(_ROOT)]
 
 # Re-export the absolute path for tooling/tests that need it.
 SCATTERING_ROOT = _ROOT

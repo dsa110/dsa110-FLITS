@@ -6,13 +6,13 @@ The protocol is deliberately reusable. Any future multi-component fit that produ
 
 ## What is being verified, and why a separate script
 
-The joint CHIME+DSA fit marginalizes the per-channel burst amplitude (gain) analytically, integrating out one independent gain per frequency channel per temporal component under a Gaussian prior. That marginalization is what makes the evidence comparable across models with different component counts — every model in the grid (C1D1, C1D2, C2D1, C2D2) is scored on the *same* gain-marginal joint likelihood, so the $\ln Z$ differences are matched-normalization (see the model-selection grid). The kernel that computes this evidence per band is `_gain_marginal_multi_band` at `scattering/scat_analysis/burstfit_joint.py:129`.
+The joint CHIME+DSA fit marginalizes the per-channel burst amplitude (gain) analytically, integrating out one independent gain per frequency channel per temporal component under a Gaussian prior. That marginalization is what makes the evidence comparable across models with different component counts — every model in the grid (C1D1, C1D2, C2D1, C2D2) is scored on the *same* gain-marginal joint likelihood, so the $\ln Z$ differences are matched-normalization (see the model-selection grid). The kernel that computes this evidence per band is `_gain_marginal_multi_band` at `scattering/scat_analysis/burstfit_joint.py:152`.
 
-The verification problem is that the sampler only ever reports the *summed* $\ln Z$. It never exposes the per-channel MAP gains, the conditioning of each channel's kernel matrix $M_f$, or the residual after the best-fit gains are subtracted. Those are exactly the quantities that diagnose a pathology. So `verify_zach_c2.py` re-derives them from scratch — it reconstructs the per-channel generalized-least-squares (GLS) gain MAP directly from the kernel docstring formula, forms a band-integrated residual, and recomputes the *same* lag-1 autocorrelation metric that the whiteness gate used to flag this burst in the first place. Independence is the point: a bug shared between the fitter and its checker would hide. The verifier reads only the kernel formula (the docstring at `burstfit_joint.py:136-176`), not the kernel's internal solve.
+The verification problem is that the sampler only ever reports the *summed* $\ln Z$. It never exposes the per-channel MAP gains, the conditioning of each channel's kernel matrix $M_f$, or the residual after the best-fit gains are subtracted. Those are exactly the quantities that diagnose a pathology. So `verify_zach_c2.py` re-derives them from scratch — it reconstructs the per-channel generalized-least-squares (GLS) gain MAP directly from the kernel docstring formula, forms a band-integrated residual, and recomputes the *same* lag-1 autocorrelation metric that the whiteness gate used to flag this burst in the first place. Independence is the point: a bug shared between the fitter and its checker would hide. The verifier reads only the kernel formula (the docstring at `burstfit_joint.py:159-199`), not the kernel's internal solve.
 
 ## Reconstructing the per-channel GLS gain MAP
 
-For one band, one frequency channel $f$, with data row $d_t$, noise variance $\sigma_f^2$, and $N$ component kernels $K_{i,t}$ (one per temporal component, evaluated at unit amplitude), the gain-marginal kernel forms the per-channel quantities (`burstfit_joint.py:193-195`):
+For one band, one frequency channel $f$, with data row $d_t$, noise variance $\sigma_f^2$, and $N$ component kernels $K_{i,t}$ (one per temporal component, evaluated at unit amplitude), the gain-marginal kernel forms the per-channel quantities (`burstfit_joint.py:217-219`):
 
 $$
 M_{ij} = \sum_t K_{i,t}\,K_{j,t}\quad(N\times N),\qquad
@@ -20,7 +20,7 @@ b_i = \sum_t d_t\,K_{i,t},\qquad
 S_{dd} = \sum_t d_t^2 .
 $$
 
-The per-component gains $g \sim \mathcal{N}(0,\,s^2 I_N)$ are integrated analytically, giving the per-channel log-evidence (`burstfit_joint.py:146-148`):
+The per-component gains $g \sim \mathcal{N}(0,\,s^2 I_N)$ are integrated analytically, giving the per-channel log-evidence (`burstfit_joint.py:169-171`):
 
 $$
 \ln Z_f = -\tfrac12\Big[\,\frac{S_{dd}}{\sigma^2} - \frac{b^{\!\top}\big(M + \tfrac{\sigma^2}{s^2} I\big)^{-1} b}{\sigma^2}\,\Big]
@@ -28,9 +28,9 @@ $$
 \;-\;\tfrac12\,\ln\det\!\Big(I_N + \tfrac{s^2}{\sigma^2} M\Big).
 $$
 
-The first bracket is the data-fit term, the middle is the full data normalization over $T$ time samples, and the last is the Occam penalty. The quadratic divisor is $\sigma^2$, not $\sigma^4$ — this was verified against the brute Gaussian evidence $d^{\!\top}\Sigma_d^{-1}d$ with $\Sigma_d = \sigma^2 I_T + s^2 K K^{\!\top}$ via Woodbury; the original spec's $\sigma^4$ was a transcription slip (`burstfit_joint.py:150-152`). The Occam term *grows* with $N$ and with $s^2$, so adding an unsupported component is penalized, not rewarded.
+The first bracket is the data-fit term, the middle is the full data normalization over $T$ time samples, and the last is the Occam penalty. The quadratic divisor is $\sigma^2$, not $\sigma^4$ — this was verified against the brute Gaussian evidence $d^{\!\top}\Sigma_d^{-1}d$ with $\Sigma_d = \sigma^2 I_T + s^2 K K^{\!\top}$ via Woodbury; the original spec's $\sigma^4$ was a transcription slip (`burstfit_joint.py:173-175`). The Occam term *grows* with $N$ and with $s^2$, so adding an unsupported component is penalized, not rewarded.
 
-The verifier does not need the evidence value to form a residual — it needs the gains. The maximum-a-posteriori (ridge-regularized GLS) gain for a well-conditioned channel is the solution of the ridge system (`burstfit_joint.py:232-234`):
+The verifier does not need the evidence value to form a residual — it needs the gains. The maximum-a-posteriori (ridge-regularized GLS) gain for a well-conditioned channel is the solution of the ridge system (`burstfit_joint.py:256-258`):
 
 $$
 A = M + \frac{\sigma^2}{s^2} I_N,\qquad
@@ -39,7 +39,7 @@ $$
 
 `verify_zach_c2.py` reconstructs $\hat g$ per channel from this formula (`reconstruct`, the per-channel solve at `verify_zach_c2.py:84-88`), evaluates the model component kernels $K_{i,t}$ at the posterior-median parameters, and predicts each channel's time series $\hat d_{f,t} = \sum_i \hat g_{f,i}\,K_{i,t}$ (`verify_zach_c2.py:89`). The **band-integrated residual** is then the channel-summed $r_t = \sum_f (d_{f,t} - \hat d_{f,t})$ (`prof_r = r.sum(0)`, `verify_zach_c2.py:90,93`), i.e. the profile-domain residual after the best-fit gains are removed. The summary metrics are the reduced chi-square $\chi^2_{\rm red}$ of the full residual map (`verify_zach_c2.py:98`) and the **lag-1 autocorrelation** of the band-integrated residual (`verify_zach_c2.py:96`) — the latter chosen on purpose because it is the gate metric (next section).
 
-The gain-prior variance $s^2$ is the hyperparameter: if not fixed it is profiled by 1-D maximum likelihood over $\log s^2$ on a shared per-band value (`burstfit_joint.py:269-282`). The verifier uses the same $s^2$ policy as the fit — it pulls $s^2$ straight from the likelihood's own profiled `diag["s2"]` (`verify_zach_c2.py:77-78`) — so the reconstruction is faithful, not a re-tune.
+The gain-prior variance $s^2$ is the hyperparameter: if not fixed it is profiled by 1-D maximum likelihood over $\log s^2$ on a shared per-band value (`burstfit_joint.py:292-310`). The verifier uses the same $s^2$ policy as the fit — it pulls $s^2$ straight from the likelihood's own profiled `diag["s2"]` (`verify_zach_c2.py:77-78`) — so the reconstruction is faithful, not a re-tune.
 
 ## Internal control: reproduce the gate the fitter never saw
 
@@ -60,7 +60,7 @@ The reconstructed $\chi^2_{\rm red}=2.30$ matches the gate exactly and the lag-1
 
 With the reconstruction trusted, the next question is whether the $\Delta\ln Z=+3612$ came from a numerically pathological likelihood rather than real signal. Two guards target the specific failure modes of the gain-marginal kernel.
 
-**Guard 1 — fraction of culled channels (`frac_culled`).** A channel is culled when its kernel matrix is rank-deficient: when two component kernels nearly merge, $M_f$ becomes singular and the full-$N$ solve $A^{-1}b$ explodes. The kernel's eigenvalue guard (`burstfit_joint.py:201-220`) culls a channel when $\min\mathrm{eig}(M_f)/\max\mathrm{eig}(M_f) < 10^{-6}$. Critically, a culled-but-supported channel does **not** drop to a gain=0 baseline — it falls back to a rank-1 proper-prior evidence on its top eigenpair (`burstfit_joint.py:249-266`), so a degenerate merge stays Occam-penalized rather than being rewarded by $\sim+0.5\,F\ln(s^2/\sigma^2)$ nats (e.g. $+676$ nats at $s^2=10^8$). `frac_culled` (`burstfit_joint.py:290`) is the fraction of channels that are not well-conditioned full-rank-$N$. If C2D1's $+3612$ were a kernel-merge artifact, `frac_culled` would be nonzero. The verifier reads this value back through the kernel's own diagnostics (`verify_zach_c2.py:77,107`).
+**Guard 1 — fraction of culled channels (`frac_culled`).** A channel is culled when its kernel matrix is rank-deficient: when two component kernels nearly merge, $M_f$ becomes singular and the full-$N$ solve $A^{-1}b$ explodes. The kernel's eigenvalue guard (`burstfit_joint.py:221-243`) culls a channel when $\min\mathrm{eig}(M_f)/\max\mathrm{eig}(M_f) < 10^{-6}$. Critically, a culled-but-supported channel does **not** drop to a gain=0 baseline — it falls back to a rank-1 proper-prior evidence on its top eigenpair (`burstfit_joint.py:272-289`), so a degenerate merge stays Occam-penalized rather than being rewarded by $\sim+0.5\,F\ln(s^2/\sigma^2)$ nats (e.g. $+676$ nats at $s^2=10^8$). `frac_culled` (`burstfit_joint.py:319`) is the fraction of channels that are not well-conditioned full-rank-$N$. If C2D1's $+3612$ were a kernel-merge artifact, `frac_culled` would be nonzero. The verifier reads this value back through the kernel's own diagnostics (`verify_zach_c2.py:77,107`).
 
 **Guard 2 — ill-conditioned channel count.** Independently of the kernel's per-channel `frac_culled`, the verifier counts how many of the band's 16 channels have an ill-conditioned ridge-regularized solve matrix $A_f = M_f + (\sigma^2/s^2)I$, using $\mathrm{cond}(A_f) > 10^{10}$ (`verify_zach_c2.py:85-87`). This is a distinct, coarser conditioning probe than the kernel's $\min/\max$ eigenvalue test on $M_f$; a clean count means no kernel merge blew up the solve anywhere in the band.
 
@@ -97,7 +97,7 @@ The protocol is built to falsify, so it must report what it could *not* clean up
 
 The structure generalizes to any multi-component fit reporting a suspiciously large $\Delta\ln Z$:
 
-1. **Reconstruct independently.** Re-derive the per-channel GLS gain MAP from the kernel's *documented formula* (`burstfit_joint.py:136-176`), not its internal solve, and form a residual. A bug shared by fitter and checker cannot be caught by a checker that reuses the fitter's code.
+1. **Reconstruct independently.** Re-derive the per-channel GLS gain MAP from the kernel's *documented formula* (`burstfit_joint.py:159-199`), not its internal solve, and form a residual. A bug shared by fitter and checker cannot be caught by a checker that reuses the fitter's code.
 2. **Internal control before the headline.** Reproduce a metric computed by a *separate* upstream path (here, the whiteness gate's flagged C1D1 lag-1 $+0.82 \to$ reconstructed $+0.836$). Until the control passes, the reconstruction's numbers are not admissible.
 3. **Pathology guards targeting the kernel's failure modes.** For a gain-marginal evidence the modes are kernel merge / ill-conditioning: check `frac_culled = 0` and the ill-conditioned channel count $0/N$, and confirm components are not pinned at the ordered-prior floor $dt_{\min}$.
 4. **Same metric as the gate.** Score before/after on the *exact* metric that flagged the burst (lag-1 autocorr, $\chi^2_{\rm red}$), so the improvement is like-for-like.
@@ -105,5 +105,5 @@ The structure generalizes to any multi-component fit reporting a suspiciously la
 
 ## Source
 
-- `scattering/scat_analysis/burstfit_joint.py` — the multi-component gain-marginal kernel that `verify_zach_c2.py` reconstructs against: `_gain_marginal_multi_band` (`:129`), the per-channel evidence/GLS-gain-MAP docstring formula (`:136-176`; the closed-form $\ln Z_f$ at `:146-148`, the $M$/$b$/$S_{dd}$ implementation at `:193-195`), the GLS gain solve $A^{-1}b$ (`:232-234`), the eigenvalue conditioning guard and rank-1 fallback (`:201-266`), `frac_culled` (`:290`), and the $s^2$ ML profile (`:269-282`).
+- `scattering/scat_analysis/burstfit_joint.py` — the multi-component gain-marginal kernel that `verify_zach_c2.py` reconstructs against: `_gain_marginal_multi_band` (`:152`), the per-channel evidence/GLS-gain-MAP docstring formula (`:159-199`; the closed-form $\ln Z_f$ at `:169-171`, the $M$/$b$/$S_{dd}$ implementation at `:217-219`), the GLS gain solve $A^{-1}b$ (`:256-258`), the eigenvalue conditioning guard and rank-1 fallback (`:221-289`), `frac_culled` (`:319`), and the $s^2$ ML profile (`:292-310`).
 - `analysis/scattering-refit-2026-06/verify_zach_c2.py` — the adversarial verification script (reconstruct gain MAP → band-integrated residual → lag-1 gate metric; internal control, pathology guards, same-metric comparison). Committed on `main` (commit `75a917c`). The reconstruction lives in `reconstruct` (`:66-112`): the per-channel ridge solve at `:84-88`, the predicted waterfall at `:89`, the band-integrated residual / lag-1 / $\chi^2_{\rm red}$ at `:90-98`, and the $s^2$ pulled from the kernel's `diag["s2"]` at `:77-78`. The CHIME control/test loop is `:130-143`; the DSA loop is `:151-164`.

@@ -95,7 +95,7 @@ def main():
     df[f"tau_ms_{args.freq:.0f}MHz"] = taus
     df[f"bw_kHz_{args.freq:.0f}MHz"] = bws
     df.to_csv(args.out, index=False)
-    print(f"✓  {len(df)} positions processed →  '{args.out}'")
+    print(f"[ok] {len(df)} positions processed -> '{args.out}'")
 
 
 if __name__ == "__main__":

@@ -58,7 +58,8 @@ plt.rcParams.update(
 # ---- wilhelm measured quantities -------------------------------------------
 L_WILHELM, B_WILHELM = 107.135, 16.691  # Galactic l,b (astropy, ICRS->Galactic)
 TAU_1GHZ_MS = 0.26  # joint M3 fit
-ALPHA = 2.69
+ALPHA = 2.69  # MEASURED burst scattering index -- NOT the Kolmogorov 4.4 the
+# NE2025 MW-floor scaling (ne2025_sightline.at_freq) uses. Do not "reconcile" them.
 F_CHIME, F_DSA = 0.684, 1.405  # GHz, band medians
 # DSA native-res ACF (wilhelm_dsa.yaml stored_fits), per-subband narrow/broad:
 DSA_NARROW = np.array([0.1166, 0.0600, 0.1247, 0.1772])  # MHz (l_1_gamma)

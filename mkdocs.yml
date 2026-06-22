@@ -40,4 +40,5 @@ nav:
   - The joint likelihood: likelihood.md
   - Model selection (the grid): model-selection.md
   - "Case study: zach & the alpha bias": zach-case-study.md
+  - Intervening foreground catalog: foreground.md
   - Adversarial verification: verification.md

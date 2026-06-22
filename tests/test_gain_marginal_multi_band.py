@@ -12,8 +12,9 @@ the direct Gaussian evidence of d_f under the marginal covariance
 
 summed over valid channels. We use a DUCK-TYPED fake model that returns
 PRESCRIBED component kernels so the brute side is exactly computable and decoupled
-from the real forward model. s2 is passed as a fixed float so the s2-profiling
-path is never exercised.
+from the real forward model. The brute-force tests pass a fixed float s2; the
+s2=None ML-profiling path is covered separately by
+`test_s2_profiling_finds_interior_optimum`.
 """
 
 import numpy as np

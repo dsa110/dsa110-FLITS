@@ -286,6 +286,10 @@ def _gain_marginal_multi_band(
     lnZ, g_all = _lnZ_at(s2_used)
     max_abs_g = [float(np.max(np.abs(g_all[:, i]))) if F else 0.0
                  for i in range(N)]
+    # NB: n_supported and frac_culled use DIFFERENT denominators. n_supported counts
+    # only well-conditioned (full-rank-N) channels (`ok`), whereas frac_culled =
+    # mean(~ok) also counts rank-1-fallback channels as culled -- so in general
+    # n_supported != (1 - frac_culled) * F.
     diag = {
         "frac_culled": float(np.mean(~ok)),
         "max_abs_g": max_abs_g,

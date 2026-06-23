@@ -803,6 +803,10 @@ def main():
         results_dir=results_dir, configs_dir=configs_dir, bursts_dir=bursts_dir, enrich=False
     )
 
+    # Emit TNS designations (not internal nicknames) in the CSV, table, and figure.
+    from scattering.scat_analysis.burst_metadata import load_tns_name
+    df["name"] = [load_tns_name(n) for n in df["name"]]
+
     csv_path = os.path.join(results_dir, "sightline_dm_scattering_budget.csv")
     df.to_csv(csv_path, index=False)
     print(f"Wrote {csv_path}")

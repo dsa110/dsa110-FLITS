@@ -42,40 +42,32 @@ def load_burst_metadata(csv_path: Optional[Path] = None) -> pd.DataFrame:
     return _BURST_METADATA_CACHE
 
 
+# Canonical nickname -> TNS map. The preferred source, chimedsa_burst_specs.csv,
+# is gitignored and absent from clean checkouts, so this committed map is the
+# fallback used by load_tns_name. mahi and johndoeii carry corrections verified
+# against a TNS cone search (mahi: 20240119A -> 20240122A;
+# johndoeii: 20230814B -> 20230814A).
+_FALLBACK_TNS = {
+    "zach": "FRB 20220207C", "whitney": "FRB 20220310F", "oran": "FRB 20220506D",
+    "isha": "FRB 20221113A", "wilhelm": "FRB 20221203A", "phineas": "FRB 20230307A",
+    "freya": "FRB 20230325A", "johndoeii": "FRB 20230814A", "hamilton": "FRB 20230913A",
+    "mahi": "FRB 20240122A", "chromatica": "FRB 20240203A", "casey": "FRB 20240229A",
+}
+
+
 def load_tns_name(burst_nickname: str, csv_path: Optional[Path] = None) -> str:
     """Load TNS name for a burst given its nickname.
-    
-    Parameters
-    ----------
-    burst_nickname : str
-        Burst nickname (e.g., 'casey', 'freya')
-    csv_path : Path, optional
-        Path to CSV file. If None, uses default location.
-        
-    Returns
-    -------
-    str
-        TNS name (e.g., 'FRB 20240229A') or nickname if not found
-        
-    Examples
-    --------
-    >>> load_tns_name('casey')
-    'FRB 20240229A'
-    >>> load_tns_name('freya')
-    'FRB 20230325A'
+
+    Prefers chimedsa_burst_specs.csv when present; otherwise uses the committed
+    _FALLBACK_TNS map. Returns the uppercased nickname only if the burst is in
+    neither source.
     """
+    nickname_lower = burst_nickname.lower()
     try:
         df = load_burst_metadata(csv_path)
-        # Case-insensitive lookup
-        nickname_lower = burst_nickname.lower()
-        match = df[df['name'].str.lower() == nickname_lower]
-        
+        match = df[df["name"].str.lower() == nickname_lower]
         if not match.empty:
-            return match.iloc[0]['TNS']
-        else:
-            # Fallback to uppercase nickname if not found
-            return burst_nickname.upper()
-    except Exception as e:
-        # If any error occurs, fallback to uppercase nickname
-        print(f"Warning: Could not load TNS name for {burst_nickname}: {e}")
-        return burst_nickname.upper()
+            return match.iloc[0]["TNS"]
+    except Exception:
+        pass
+    return _FALLBACK_TNS.get(nickname_lower, burst_nickname.upper())

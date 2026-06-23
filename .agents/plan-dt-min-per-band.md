@@ -162,9 +162,11 @@ list matches the file's explicit pickle-safety discipline.
       keeps its own — confirmed on synthetic two-band draws (min realized DSA-gap 0.0606 vs
       its 0.06 floor; the old `max` floor would have been 0.24). ✔
 - [x] N=1 vs N=2 `lnZ` ladder, single-component truth, `force_multi=True`, fixed `gain_s2`:
-      per-band introduces **no** spurious N=2 win. Controlled check (per-band vs old-max,
-      `N=1` cancels): `lnZ(N=2)` shift = **−0.62 ± 3.21**, consistent with zero. Posted to
-      PR #11. (Synthetic, low-nlive; absolute N-selection on real bursts is the HPCC campaign.) ✔
+      **no spurious N=2 selection**. nlive=300: per-band dlnZ_21 = **−0.17** (N=2 doesn't win)
+      vs old-max **−5.66**; per-band's looser floor is measurably more permissive (`lnZ(N=2)`
+      ~+5.9 higher), eroding the N=1 margin without flipping it. (Earlier nlive=40 probe −0.62 ±
+      3.21 was noise-dominated; superseded — PR #11 correction.) Converged same-data magnitude
+      on real bursts → HPCC campaign `/experiment`. ✔
 
 ## Testing Strategy
 

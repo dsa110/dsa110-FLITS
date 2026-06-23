@@ -16,7 +16,7 @@
 | Research #37 evidence kernel / N=1 commensurability | ✅ Complete | Found #37 ~90% already implemented (`force_multi`, `gain_s2`, kernel tests). |
 | Plan per-band `dt_min` (the one open item) | ✅ Complete | Design fork resolved to per-band (scalar broadcast retained). |
 | Implement per-band `dt_min` | ✅ Complete | Transform + caller; new tests; verified. |
-| Validate | ✅ Complete (PASS) | Full suite 356 passed / 0 regressions. N-ladder resolved (PR #11): per-band adds no spurious N=2 win, `lnZ(N=2)` shift −0.62 ± 3.21. |
+| Validate | ✅ Complete (PASS) | Full suite 356 passed / 0 regressions. N-ladder resolved (PR #11): no spurious N=2 *selection* — nlive=300 per-band dlnZ_21 = −0.17 (vs old-max −5.66); per-band somewhat more permissive (`lnZ(N=2)` ~+5.9 higher). |
 | Commit / PR | ✅ Complete | Committed `df23cce` (pathspec), pushed; PR #11 squash-merged (`3e45712`). |
 
 **Current Workflow Phase:** Complete (merged)
@@ -75,10 +75,11 @@ git commit -m "..."   # never `git add -A` / `git commit -a`
 ## Action Items & Next Steps
 
 1. [x] Committed `df23cce` (pathspec), pushed; PR #11 squash-merged (`3e45712`).
-2. [x] N=1 vs N=2 `lnZ` ladder done (synthetic single-component): per-band introduces no
-       spurious N=2 win — controlled `lnZ(N=2)` shift per-band vs old-max = −0.62 ± 3.21
-       (consistent with zero). Result on PR #11. Absolute N-selection on real bursts deferred
-       to the HPCC recovery campaign.
+2. [x] N=1 vs N=2 `lnZ` ladder done (synthetic single-component): no spurious N=2 *selection*.
+       nlive=300: per-band dlnZ_21 = −0.17 (N=2 doesn't win) vs old-max −5.66; per-band's
+       looser floor is measurably more permissive (`lnZ(N=2)` ~+5.9 higher), eroding the N=1
+       margin but not flipping the choice. Result + nlive=300 correction on PR #11. A converged
+       same-data magnitude is deferred to the HPCC recovery-campaign `/experiment` (real bursts).
 3. [ ] (Optional, gated/outward) Post a "#37 mostly implemented; remainder = per-band `dt_min` done"
        status comment to the upstream issue (`dsa110/dsa110-FLITS#37`). **Still open.**
 4. [ ] (Optional follow-up) `analysis/scattering-refit-2026-06/verify_zach_c2.py:124` hardcodes the old

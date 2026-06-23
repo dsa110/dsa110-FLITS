@@ -158,11 +158,13 @@ list matches the file's explicit pickle-safety discipline.
       remains; not introduced by this change. ✔
 
 ### Manual Verification
-- [ ] On a real two-band burst, draw prior samples and confirm the DSA group reaches
-      smaller component separations than the old `max` floor while CHIME keeps its own.
-- [ ] Sanity: an N=1 vs N=2 `lnZ` ladder via `force_multi=True, gain_s2=<fixed>` is
-      unchanged in sign/conclusion on a single-component burst (no spurious N=2 win
-      introduced by the looser DSA floor).
+- [x] DSA group reaches smaller component separations than the old `max` floor while CHIME
+      keeps its own — confirmed on synthetic two-band draws (min realized DSA-gap 0.0606 vs
+      its 0.06 floor; the old `max` floor would have been 0.24). ✔
+- [x] N=1 vs N=2 `lnZ` ladder, single-component truth, `force_multi=True`, fixed `gain_s2`:
+      per-band introduces **no** spurious N=2 win. Controlled check (per-band vs old-max,
+      `N=1` cancels): `lnZ(N=2)` shift = **−0.62 ± 3.21**, consistent with zero. Posted to
+      PR #11. (Synthetic, low-nlive; absolute N-selection on real bursts is the HPCC campaign.) ✔
 
 ## Testing Strategy
 

@@ -68,6 +68,11 @@ transform tests and an end-to-end smoke confirm the behavior.
   → clean except the pre-existing `:247` B905 noted above.
 - Diff reviewed: band order `[model_C, model_D] → [grp_C, grp_D]` correctly aligned;
   no residual scalar read of `self.dt_min` (only `:568`/`:572`, both moved to the loop var).
+- Post-merge science check (N=1 vs N=2 `lnZ` ladder, synthetic single-component truth): the
+  per-band floor introduces **no** spurious N=2 win. Controlled `lnZ(N=2)` shift per-band vs
+  old-max (`N=1` is `dt_min`-independent, cancels) = **−0.62 ± 3.21**, consistent with zero.
+  Result posted to PR #11. Absolute N-selection on real bursts at production nlive remains the
+  HPCC recovery-campaign's job.
 
 ## Files Changed
 - `scattering/scat_analysis/burstfit_joint.py` — transform + caller (per-band `dt_min`).

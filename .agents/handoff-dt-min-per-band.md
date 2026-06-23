@@ -16,10 +16,10 @@
 | Research #37 evidence kernel / N=1 commensurability | ✅ Complete | Found #37 ~90% already implemented (`force_multi`, `gain_s2`, kernel tests). |
 | Plan per-band `dt_min` (the one open item) | ✅ Complete | Design fork resolved to per-band (scalar broadcast retained). |
 | Implement per-band `dt_min` | ✅ Complete | Transform + caller; new tests; verified. |
-| Validate | ✅ Complete (PASS) | Full suite 356 passed / 0 regressions; one manual item open (below). |
-| Commit / PR | 📋 Planned | Not committed. **Pathspec-only** — a separate lane is in the tree. |
+| Validate | ✅ Complete (PASS) | Full suite 356 passed / 0 regressions. N-ladder resolved (PR #11): per-band adds no spurious N=2 win, `lnZ(N=2)` shift −0.62 ± 3.21. |
+| Commit / PR | ✅ Complete | Committed `df23cce` (pathspec), pushed; PR #11 squash-merged (`3e45712`). |
 
-**Current Workflow Phase:** Validate → (handoff before commit)
+**Current Workflow Phase:** Complete (merged)
 
 ## Workflow Artifacts
 
@@ -74,12 +74,13 @@ git commit -m "..."   # never `git add -A` / `git commit -a`
 
 ## Action Items & Next Steps
 
-1. [ ] Commit this task's lane via the pathspec above (branch off `main` first — currently on `main`).
-2. [ ] Open the one remaining **manual** validation: N=1 vs N=2 `lnZ` ladder on a real
-       single-component burst via `force_multi=True, gain_s2=<fixed>`, confirm the looser DSA floor
-       introduces no spurious N=2 win. (Low risk — rank-1/Occam guard still penalizes a true merge.)
+1. [x] Committed `df23cce` (pathspec), pushed; PR #11 squash-merged (`3e45712`).
+2. [x] N=1 vs N=2 `lnZ` ladder done (synthetic single-component): per-band introduces no
+       spurious N=2 win — controlled `lnZ(N=2)` shift per-band vs old-max = −0.62 ± 3.21
+       (consistent with zero). Result on PR #11. Absolute N-selection on real bursts deferred
+       to the HPCC recovery campaign.
 3. [ ] (Optional, gated/outward) Post a "#37 mostly implemented; remainder = per-band `dt_min` done"
-       status comment to the upstream issue (`dsa110/dsa110-FLITS#37`).
+       status comment to the upstream issue (`dsa110/dsa110-FLITS#37`). **Still open.**
 4. [ ] (Optional follow-up) `analysis/scattering-refit-2026-06/verify_zach_c2.py:124` hardcodes the old
        `max(dt_C,dt_D)*3` for a printed diagnostic — annotate/update if relied on.
 5. [ ] (Optional, trivial) Fix the pre-existing `:247` B905 if the repo ever widens its ruff path.

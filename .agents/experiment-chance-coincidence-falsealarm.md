@@ -178,6 +178,7 @@ statistic), extend Approach B with the CHIME/FRB catalogue. Until then, A is suf
 ```
 INPUTS (conservative): rate=1000/sky/day  Omega=0.785 deg^2  dt=+/-1s  ddm=+/-5
 [A] per-burst P: 1.7e-9 (mahi) .. 6.3e-9 (chromatica);  sum mu = 5.460e-08
+[A] baseline mu at DM=500 (plan regression pin) = 5.023345e-09
 [A vs B] inflated mu~4.605e-02:  Analytic P=4.5006e-02  MC P=4.5129e-02 +/-1.0e-04 (5 seeds)  ratio=1.003
 Sweeps: dt 1e-3..86400 -> sum_mu 5.5e-11..4.7e-3;  Omega 1e-4..200 -> 7e-12..1.4e-5;
         ddm 0.1..50 -> 1.1e-9..5.5e-7;  rate 525..1e4 -> 2.9e-8..5.5e-7

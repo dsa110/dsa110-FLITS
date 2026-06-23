@@ -17,8 +17,8 @@ BASE = dict(
 
 print("=" * 78)
 print(
-    "INPUTS (conservative): rate=%.0f/sky/day  Omega=%.3f deg^2  dt=+/-%.0fs  ddm=+/-%.0f"
-    % (BASE["rate_per_day"], BASE["omega_win_deg2"], BASE["dt_s"], BASE["ddm"])
+    f"INPUTS (conservative): rate={BASE['rate_per_day']:.0f}/sky/day  "
+    f"Omega={BASE['omega_win_deg2']:.3f} deg^2  dt=+/-{BASE['dt_s']:.0f}s  ddm=+/-{BASE['ddm']:.0f}"
 )
 print("=" * 78)
 
@@ -31,8 +31,9 @@ for r in res:
     mus.append(r["mu"])
     print(f"  {r['name']:11s} {r['dm']:7.1f} {r['mu']:12.3e} {r['P']:12.3e}")
 sum_mu = sum(mus)
-print(f"\n  Expected # chance associations across all 12 (sum mu) = {sum_mu:.3e}")
-print(f"  P(>=1 chance assoc in 12) = {1 - np.exp(-sum_mu):.3e}")
+n = len(bursts)
+print(f"\n  Expected # chance associations across all {n} (sum mu) = {sum_mu:.3e}")
+print(f"  P(>=1 chance assoc in {n}) = {1 - np.exp(-sum_mu):.3e}")
 print(f"  max single-burst P = {max(r['P'] for r in res):.3e}")
 
 # --- 2. MC <-> analytic cross-validation in a MEASURABLE regime -------------

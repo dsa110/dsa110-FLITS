@@ -40,7 +40,8 @@ test anywhere in the validation path.
   - Error bars are dominated by an **assumed** `dm_uncertainty = 0.1 pc cm⁻³` propagated to
     400 MHz (the 1/400² lever): typical σ ≈ 2.4 ms, **24 ms (mahi), 74 ms (oran)**. Windows that
     wide cannot exclude a chance alignment — oran's constraint is effectively vacuous.
-  - Residuals are **not centered on zero**: mean **+2.42 ms**, std 3.06 ms. A true common-origin
+  - Residuals are **not centered on zero**: mean **+2.42 ms**, std 3.20 ms (sample; 3.06 population).
+    A true common-origin
     signal after correct geometric + dispersive correction should scatter about 0; a +2.4 ms
     pedestal points to an unmodeled systematic (inter-site clock offset, DM/reference-frequency
     convention, or geometric-delay sign/site definition) currently absorbed by the wide error bars.
@@ -73,7 +74,7 @@ canonical worked example is the FRB 121102 multi-telescope campaign — the firs
 multi-instrument FRB detection — which leans on cross-instrument DM, timing, and localization
 concordance (Law et al. 2017, arXiv:1705.07553). The community reporting standard requires full
 dynamic spectra, per-beam data, complete timing/pointing metadata, and explicit exclusion of
-terrestrial/RFI origins (Petroff, Houben et al. 2018, MNRAS 481, 2612, arXiv:1808.07809).
+terrestrial/RFI origins (Foster et al. 2018, MNRAS 481, 2612, arXiv:1808.07809).
 
 Theme 2 — **Chance-coincidence probability is the decisive, and for us missing, statistic.**
 Occurrence of an unrelated burst in a given (time, DM, sky) window is modelled as a Poisson process;
@@ -94,7 +95,7 @@ offsets here mimic a common-origin residual; (b) **DM-constant convention** — 
 secondary*), plus topocentric-vs-barycentric reference and dedispersion/reference-frequency choices;
 (c) **intra-channel dispersive smearing**, which broadens the pulse differently per channelization
 and biases the peak. Each is a documented way to manufacture an apparent offset. [Theme-3 synthesis:
-Perplexity disconfirming pass, 2026-06-23, corroborated by Petroff et al. 2018 on terrestrial
+Perplexity disconfirming pass, 2026-06-23, corroborated by Foster et al. 2018 on terrestrial
 exclusion and metadata.] **Relevance to us:** our non-zero **+2.4 ms** mean residual is precisely the
 signature these systematics produce, and our error model includes none of them.
 
@@ -148,7 +149,7 @@ pillars 2–4 as *tightening* an already-significant result rather than the sole
 - External:
   - Law et al. 2017, "A Multi-telescope Campaign on FRB 121102", arXiv:1705.07553 —
     https://ar5iv.labs.arxiv.org/html/1705.07553
-  - Petroff, Houben et al. 2018, "Verifying and Reporting Fast Radio Bursts", MNRAS 481, 2612,
+  - Foster et al. 2018, "Verifying and Reporting Fast Radio Bursts", MNRAS 481, 2612,
     arXiv:1808.07809 — https://academic.oup.com/mnras/article/481/2/2612/5090173
   - Kulkarni 2020, "Dispersion measure: confusion, constants & clarity", arXiv:2007.02886
     (DM-constant convention 4.148808 vs 4.149377) — *widely-cited secondary*.

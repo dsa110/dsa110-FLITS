@@ -15,7 +15,7 @@ LINT_TARGETS = ("noxfile.py",)
 @nox.session(default=True)
 def tests(session: nox.Session) -> None:
     """Run the Python test suite."""
-    session.install("-e", ".[nested,perf]", "pytest>=7.0")
+    session.install("-e", ".[nested,perf,ne2025]", "pytest>=7.0")
     session.run("pytest", *session.posargs)
 
 

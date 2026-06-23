@@ -187,13 +187,41 @@ asserted in-script), and model-to-model excess ratios are C1-/2π-/measurement-i
 | NE2001 | 6/6 — zach 7.3, casey 6.0, wilhelm 6.2, hamilton 4.8, chromatica 4.2, oran 2.2 |
 | YMW16  | 1/6 — only casey 4.8 |
 
-**The excess is robust across the two Cordes-family models (NE2025, NE2001)** — NE2001
-independently gives 4–7× on the same sightlines. **YMW16 erases it**, but does so by
-predicting a floor Δν_d *below* the measured value on 5/6 sightlines (floor excess < 1) —
-i.e. YMW16 says the smooth Galaxy alone scatters *more* than we observe, which is
-physically suspect and consistent with YMW16's documented unreliability for
-individual-sightline τ_sc. So the systematic is real insofar as one trusts NE2025/NE2001
-over YMW16; the sole model that removes the excess does so by over-predicting. (A truly
+**NE2025 is the authority here, and the disagreement breaks along a trustworthiness axis,
+not at random.** NE2025 and NE2001 both *forward-model* scattering from the
+electron-density-fluctuation (C_n²) field; NE2025 is the newest and was refit to 568
+pulsar/AGN/maser scattering measurements (scattering rms 0.65 dex vs NE2001's 0.98), with a
+thick-disk repartition motivated by NE2001's known high-|b| underestimation — exactly this
+mid-to-high-|b|, integrated-to-disk-edge regime. YMW16 is last *for scattering* **by
+construction**: its authors state they "do not make use of observations of interstellar
+scattering in building the model" (Yao, Manchester & Wang 2017 §3.11) and substitute a
+single empirical τ–DM relation with ~1 dex (×10) rms scatter that "cannot be readily
+extrapolated to predict the Galactic scattering of extragalactic sources" — precisely this
+use case. Its thin-disk density (~0.4 cm⁻³) is ~5× NE2001/NE2025's, so it over-assigns
+smooth-disk column and is documented to mispredict per-sightline τ by 1–3 dex (Gum/Vela;
+the factor-1200 underscattering of Mall et al. 2022). So the *most-trusted* model gives the
+largest excess, its same-lineage parent confirms it 6/6, and only the *least-reliable-for-
+scattering* model erases it — via YMW16's expected failure mode (floor *below* measured =
+the smooth Galaxy supposedly scattering more than we observe), which is not a contradicting
+measurement. The cross-model floors are genuinely apples-to-apples: the in-script assert
+shows the τ-derived NE2025 floor reproduces the model's native-SBW excess exactly (ratio
+1.00), so all three columns share one conversion. (NB the ranking is *scattering*-specific —
+YMW16 is actually better than NE2001 for DM/distance; it is last only for the τ/Δν_d
+prediction we use here.)
+
+**What this does and does not establish.** The excess is *robust to model choice among the
+scattering-calibrated Cordes-lineage models, and erased only by the one with documented
+scattering unreliability* — not "proven," and not a stacked detection. The NE2025 floor
+itself carries factor ~2–3 (~0.65 dex) per-sightline uncertainty that is a *shared*
+systematic (common thick-disk normalization extrapolated to the disk edge where high-|b|
+pulsar anchors are sparse), so it does **not** beat down as √N — no stacked-significance
+claim. The low-amplitude sightlines (~2.6–3×, oran/chromatica) sit inside that uncertainty
+and are **marginal**; only the high-amplitude ones (~7–11×, zach/wilhelm/hamilton/casey)
+survive as robust evidence for an extragalactic screen. Residual checks: a
+finite-channel-resolution bias could mechanically inflate the floor/measured ratio (verify
+against the mid-|b| ACFs); the fixed C1 = 1.16 / α = 4.4 conventions propagate a correlated
+~20–50% into the *absolute* excess; and NE2025 is itself Galactic-calibrated, so the
+extragalactic floor is a best-available extrapolation, not an exact prediction. (A truly
 independent pulsar/H I floor is still not available locally.)
 
 ### Sightline attribution — is the excess an intervening galaxy/CGM? (no)

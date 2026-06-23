@@ -545,8 +545,10 @@ class _JointPriorTransformOrdered(_JointPriorTransform):
     the likelihood (degenerate kernels) is culled by the eigenvalue guard, so the
     merge is penalized by the Occam term, not rewarded -- which is the whole fix.
 
-    dt_min defaults to a few channel time-samples (>= the kernel can resolve);
-    the caller passes the band time grids so it is data-derived, not hardcoded.
+    dt_min defaults to a few channel time-samples (>= the kernel can resolve); the
+    caller passes the band time grids so it is data-derived, not hardcoded. dt_min may
+    be a scalar (one floor broadcast to every group) or one value per t0 group, so each
+    band's components are bound by THAT band's time resolution.
     """
 
     def __init__(self, spec, t0_groups, dt_min):
@@ -554,22 +556,31 @@ class _JointPriorTransformOrdered(_JointPriorTransform):
         # t0_groups: list of index arrays into the param vector, one per band,
         # giving the positions of that band's t0_C1..t0_C{n} (already ascending).
         self.t0_groups = [np.asarray(g, dtype=int) for g in t0_groups]
-        self.dt_min = float(dt_min)
+        # dt_min: scalar -> broadcast to every group; sequence -> one floor per group
+        # (per-band). Stored as a plain list[float] (pickles to dynesty pools).
+        if np.ndim(dt_min) == 0:
+            self.dt_min = [float(dt_min)] * len(self.t0_groups)
+        else:
+            self.dt_min = [float(d) for d in dt_min]
+            if len(self.dt_min) != len(self.t0_groups):
+                raise ValueError(
+                    f"dt_min sequence length {len(self.dt_min)} != {len(self.t0_groups)} t0 groups"
+                )
 
     def __call__(self, u: NDArray[np.floating]) -> NDArray[np.floating]:
         x = super().__call__(u)
-        for grp in self.t0_groups:
+        for grp, dtm in zip(self.t0_groups, self.dt_min, strict=True):
             n = grp.size
             if n < 2:
                 continue
             lo = self.lo[grp[0]]
             hi = self.hi[grp[0]]
             # Feasible width after reserving (n-1)*dt_min of separation.
-            usable = hi - lo - (n - 1) * self.dt_min
+            usable = hi - lo - (n - 1) * dtm
             uu = np.sort(u[grp])  # n sorted unit-cube coords -> ordered
             if usable > 0:
                 # place n ordered points in [0, usable], then add cumulative dt_min
-                pts = lo + uu * usable + np.arange(n) * self.dt_min
+                pts = lo + uu * usable + np.arange(n) * dtm
             else:
                 # band too narrow for n separated comps -> collapse (culled by guard)
                 pts = np.full(n, lo + uu.mean() * (hi - lo))
@@ -871,14 +882,14 @@ def fit_joint_scattering(
         loglike = _JointLogLikelihoodGainMulti(
             model_C, model_D, n_C=components_C, n_D=components_D, s2=gain_s2
         )
-        # dt_min: a few channel time-samples of each band (data-derived). The
-        # binding constraint is the tighter (smaller-dt) band's resolution.
+        # dt_min: a few channel time-samples of each band (data-derived), one floor
+        # PER band ([dt_C, dt_D]) so each band's components are bound by its own time
+        # resolution. An explicit scalar dt_min is broadcast to both groups.
         if dt_min is None:
-            dts = []
-            for m in (model_C, model_D):
-                t = np.asarray(m.time, dtype=float)
-                dts.append(float(np.median(np.abs(np.diff(t)))) * 3.0)
-            dt_min = max(dts)
+            dt_min = [
+                float(np.median(np.abs(np.diff(np.asarray(m.time, dtype=float))))) * 3.0
+                for m in (model_C, model_D)
+            ]
         # index groups of each band's t0 components within the vector.
         idx = {n: i for i, n in enumerate(names)}
         grp_C = [idx[f"t0_C{i}"] for i in range(1, int(components_C) + 1)]

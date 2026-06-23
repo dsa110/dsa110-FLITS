@@ -11,8 +11,8 @@ Panel (b): the two-screen mutual-coherence limit (Nimmo et al. 2025, Eq. 10).
 Two resolved, mutually coherent DSA scintillation scales (narrow ~0.12 MHz, broad
 ~5 MHz) bound the product d_obs,s1 * d_s2,src. For an assumed Milky-Way (near)
 screen distance d_MW this caps how far the near-SOURCE screen can sit from the
-FRB, d_s2,src. Shown as the excluded region; the bound scales with the (currently
-unmeasured) host distance, so the curve is drawn for a fiducial z and annotated.
+FRB, d_s2,src. Shown as the excluded region; the bound scales with the host
+distance, so the curve is drawn at the spectroscopic host z and annotated.
 
 Numbers + provenance (all in-repo unless flagged):
   tau_1ghz, alpha : wilhelm joint M3 fit (12-vector), data/joint/wilhelm_joint_fit.json
@@ -23,9 +23,9 @@ Numbers + provenance (all in-repo unless flagged):
   dnu_d (CHIME)   : 0.060 MHz @ 0.684 GHz -- BELOW CHIME native 0.39 MHz channel
                     => UNRESOLVED, shown as an upper limit only.
   l,b             : 107.14, 16.69 (astropy, ICRS->Galactic).
-  FIDUCIAL/FLAGGED: host redshift z (no in-repo measurement) -> z~0.47 from a
-                    Macquart-relation DM estimate; NE2001 MW dnu_d (~few MHz at
-                    1.4 GHz) not yet run (mwprop absent). Both annotated as such.
+  host z         : z=0.5100 (spectroscopic; Connor+2024), galaxies/v2_0/config.py.
+  FIDUCIAL/FLAGGED: NE2001 MW dnu_d (~few MHz at 1.4 GHz) not yet run (mwprop
+                    absent); annotated as such.
 """
 
 import os
@@ -190,8 +190,10 @@ def fig():
     tau_excess = (TAU_1GHZ_MS * 1e3) / tau_mw_1ghz_us  # measured / MW floor @ 1 GHz
     d_mw_kpc = mw["d_eff_kpc"]  # NE2025 effective MW screen distance
 
-    z_fid = 0.47
-    D_A_src_mpc = 1330.0  # D_A(z=0.47), Planck18 fiducial (FLAGGED -- no in-repo z)
+    z_fid = 0.5100
+    D_A_src_mpc = (
+        1311.2  # D_A(z=0.5100), Planck18 (spectroscopic; Connor+2024, galaxies/v2_0/config.py)
+    )
     nu_hz = F_DSA * 1e9
     dnu1, dnu2 = DNU_DSA_BROAD * 1e6, DNU_DSA_NARROW * 1e6
     d_src_kpc = D_A_src_mpc * 1e3
@@ -255,7 +257,7 @@ def fig():
     ax_b.text(
         0.905,
         yc + 0.29,
-        "host FRB" "\n" rf"$z\!\approx\!{z_fid}$ (est.)",
+        "host FRB" "\n" rf"$z\!\approx\!{z_fid}$ (spec.)",
         ha="center",
         fontsize=6.5,
     )
@@ -339,7 +341,7 @@ def main():
     print(f"d_product_kpc2 = {info['d_prod_kpc2']:.3e}  (d_s2,src <= d_prod/d_MW)")
     print(
         f"  NE2025 d_MW={info['d_mw_kpc']:.2f} kpc -> d_s2,src <= {info['d_s2_max_mpc']:.1f} Mpc "
-        f"(z=0.47 fiducial)"
+        f"(z=0.5100 spectroscopic)"
     )
     print(
         f"  MW Dnu_d @DSA = {info['sbw_mw_dsa']:.2f} MHz ; tau excess = {info['tau_excess']:.0f}x"

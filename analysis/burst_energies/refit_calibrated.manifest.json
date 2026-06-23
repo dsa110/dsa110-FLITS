@@ -1,0 +1,88 @@
+{
+  "generated_by": "analysis/burst_energies/refit_calibrated.py",
+  "figures": [
+    {
+      "path": "refit_calibrated.png",
+      "expectation": "Per burst: grey = gamma_D from the S/N fit, red = from the flux-calibrated re-fit (M2 MCMC, error bars 16-84 pct); blue dash = the original joint gamma_D. x-labels give the beam gain G and the analytic prediction slope_s = slope(sigma_S). HYPOTHESIS: red sits ABOVE grey by ~slope_s (rail relaxes when beam-edge channels are down-weighted), strongest for off-axis low-G bursts (freya G=0.20, chromatica G=0.25, slope_s large +); for on-axis phineas (G=1.0, slope_s~0) red ~= grey. The gamma floor is opened to -10 so the shift is not clipped at the old -5 rail. CHECK: (1) red-minus-grey tracks the slope_s annotation per burst; (2) no panel has collapsed error bars; (3) gamma_SN reaching well below -5 for the steep bursts means the single-band DSA falloff is REAL (the joint -5 blue dashes were the old prior floor, not the true preference) -- so the rail is a genuinely steep DSA spectrum that calibration only partly (off-axis) relaxes."
+    }
+  ],
+  "per_burst": [
+    {
+      "burst": "chromatica",
+      "theta_deg": 2.4,
+      "G_ref": 0.254,
+      "gamma_D_joint": -4.98,
+      "gamma_SN": -9.91,
+      "gamma_SN_lo": -9.98,
+      "gamma_SN_hi": -9.63,
+      "gamma_cal": -9.9,
+      "gamma_cal_lo": -9.97,
+      "gamma_cal_hi": -9.56,
+      "d_gamma_mcmc": 0.01,
+      "d_gamma_analytic": 2.15,
+      "relaxed": false
+    },
+    {
+      "burst": "oran",
+      "theta_deg": 1.33,
+      "G_ref": 0.666,
+      "gamma_D_joint": -4.85,
+      "gamma_SN": -8.49,
+      "gamma_SN_lo": -9.28,
+      "gamma_SN_hi": -7.42,
+      "gamma_cal": -7.84,
+      "gamma_cal_lo": -8.72,
+      "gamma_cal_hi": -6.89,
+      "d_gamma_mcmc": 0.65,
+      "d_gamma_analytic": 0.62,
+      "relaxed": true
+    },
+    {
+      "burst": "phineas",
+      "theta_deg": 0.1,
+      "G_ref": 0.997,
+      "gamma_D_joint": -5.0,
+      "gamma_SN": -9.91,
+      "gamma_SN_lo": -9.98,
+      "gamma_SN_hi": -9.36,
+      "gamma_cal": -9.95,
+      "gamma_cal_lo": -9.99,
+      "gamma_cal_hi": -9.77,
+      "d_gamma_mcmc": -0.04,
+      "d_gamma_analytic": 0.0,
+      "relaxed": false
+    },
+    {
+      "burst": "zach",
+      "theta_deg": 1.28,
+      "G_ref": 0.684,
+      "gamma_D_joint": -4.95,
+      "gamma_SN": -7.5,
+      "gamma_SN_lo": -8.22,
+      "gamma_SN_hi": -0.49,
+      "gamma_cal": -7.05,
+      "gamma_cal_lo": -7.73,
+      "gamma_cal_hi": -6.24,
+      "d_gamma_mcmc": 0.45,
+      "d_gamma_analytic": 0.57,
+      "relaxed": false
+    },
+    {
+      "burst": "freya",
+      "theta_deg": 2.6,
+      "G_ref": 0.197,
+      "gamma_D_joint": -4.94,
+      "gamma_SN": -6.04,
+      "gamma_SN_lo": -6.57,
+      "gamma_SN_hi": -5.63,
+      "gamma_cal": -3.81,
+      "gamma_cal_lo": -4.48,
+      "gamma_cal_hi": -3.44,
+      "d_gamma_mcmc": 2.23,
+      "d_gamma_analytic": 2.56,
+      "relaxed": true
+    }
+  ],
+  "n_relaxed_of": "2/5",
+  "method": "M2 MCMC, 5000 steps, discard 50%, seed 0; identical setup S/N vs calibrated; calibrated noise = sigma_S(nu) so beam-edge channels down-weight. d_gamma_analytic = slope(sigma_S) is the oracle the MCMC d_gamma should match."
+}

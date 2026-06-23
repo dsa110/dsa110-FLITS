@@ -1,0 +1,2 @@
+sefd_jy,tsys_k,a_phys_m2,eta,a_eff_m2,systematic_dex,source
+34.5,50.0,8000.0,0.5,4000.0,0.25,"SEFD = 2 k_B Tsys / A_eff; Tsys=50 K (receiver) and A_phys=8000 m^2 from Amiri et al. 2018 (CHIME/FRB system overview, ApJ 863:48) Table 1; aperture efficiency eta=0.5 (typical cylinder, assumed). Single zenith value: CHIME re-points its formed beam onto each baseband burst. Systematic ~0.25 dex covers eta in [0.4,0.6], real Tsys up to ~80 K, and declination/frequency dependence (see analysis/chime_beam.py)."

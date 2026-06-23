@@ -1,0 +1,125 @@
+{
+  "generated_by": "analysis/burst_energies/plot_bandpass_check.py",
+  "figures": [
+    {
+      "path": "bandpass_check.png",
+      "expectation": "Per burst: red flux-calibrated squares vs grey S/N points + dashed nu^gamma_D fit, each peak-normalized. The title shows S/N->cal log-log slope. HYPOTHESIS: sigma_S(nu) rises toward the band edges where the beam gain G falls, so calibrating FLATTENS off-axis bursts (cal slope less negative than the S/N slope) while leaving on-axis bursts (G~1, flat sigma_S) unchanged. Confirm visually: for the off-axis railed bursts (freya G=0.20, chromatica G=0.25) the red squares fall LESS steeply than the grey points/dashed fit; for on-axis phineas (G=1.0) red and grey overlap (steep spectrum persists -> NOT a beam artifact there). Check axes 1.31-1.50 GHz, annotated slopes match the visual, no empty panels."
+    }
+  ],
+  "per_burst": [
+    {
+      "burst": "chromatica",
+      "theta_deg": 2.4,
+      "G_ref": 0.254,
+      "gamma_D": -4.98,
+      "sn_slope": -6.81,
+      "cal_slope": -4.75,
+      "d_slope_from_sigmaS": 2.06,
+      "flattened_by_cal": true
+    },
+    {
+      "burst": "freya",
+      "theta_deg": 2.6,
+      "G_ref": 0.197,
+      "gamma_D": -4.94,
+      "sn_slope": -3.65,
+      "cal_slope": -1.08,
+      "d_slope_from_sigmaS": 2.56,
+      "flattened_by_cal": true
+    },
+    {
+      "burst": "hamilton",
+      "theta_deg": 0.81,
+      "G_ref": 0.86,
+      "gamma_D": -4.91,
+      "sn_slope": -7.91,
+      "cal_slope": -7.69,
+      "d_slope_from_sigmaS": 0.22,
+      "flattened_by_cal": false
+    },
+    {
+      "burst": "isha",
+      "theta_deg": 1.29,
+      "G_ref": 0.68,
+      "gamma_D": 0.95,
+      "sn_slope": -3.61,
+      "cal_slope": -3.02,
+      "d_slope_from_sigmaS": 0.6,
+      "flattened_by_cal": true
+    },
+    {
+      "burst": "johndoeii",
+      "theta_deg": 1.53,
+      "G_ref": 0.583,
+      "gamma_D": -4.68,
+      "sn_slope": -5.9,
+      "cal_slope": -5.07,
+      "d_slope_from_sigmaS": 0.82,
+      "flattened_by_cal": true
+    },
+    {
+      "burst": "mahi",
+      "theta_deg": 0.48,
+      "G_ref": 0.946,
+      "gamma_D": -0.17,
+      "sn_slope": 2.12,
+      "cal_slope": 2.19,
+      "d_slope_from_sigmaS": 0.08,
+      "flattened_by_cal": false
+    },
+    {
+      "burst": "oran",
+      "theta_deg": 1.33,
+      "G_ref": 0.666,
+      "gamma_D": -4.85,
+      "sn_slope": -4.97,
+      "cal_slope": -4.38,
+      "d_slope_from_sigmaS": 0.59,
+      "flattened_by_cal": true
+    },
+    {
+      "burst": "phineas",
+      "theta_deg": 0.1,
+      "G_ref": 0.997,
+      "gamma_D": -5.0,
+      "sn_slope": -9.12,
+      "cal_slope": -9.12,
+      "d_slope_from_sigmaS": 0.0,
+      "flattened_by_cal": false
+    },
+    {
+      "burst": "whitney",
+      "theta_deg": 1.77,
+      "G_ref": 0.482,
+      "gamma_D": 2.91,
+      "sn_slope": 2.03,
+      "cal_slope": 3.16,
+      "d_slope_from_sigmaS": 1.13,
+      "flattened_by_cal": true
+    },
+    {
+      "burst": "wilhelm",
+      "theta_deg": 0.44,
+      "G_ref": 0.955,
+      "gamma_D": -1.99,
+      "sn_slope": -2.5,
+      "cal_slope": -2.43,
+      "d_slope_from_sigmaS": 0.06,
+      "flattened_by_cal": false
+    },
+    {
+      "burst": "zach",
+      "theta_deg": 1.28,
+      "G_ref": 0.684,
+      "gamma_D": -4.95,
+      "sn_slope": -4.11,
+      "cal_slope": -3.54,
+      "d_slope_from_sigmaS": 0.57,
+      "flattened_by_cal": true
+    }
+  ],
+  "n_flattened_by_calibration": "7/11",
+  "interpretation": "gamma_D rail is PARTLY a beam-edge sensitivity artifact (flattens for off-axis bursts) but persists on-axis (phineas) -- not uniformly instrumental.",
+  "caveat_absolute_scale": "SHAPE/slope comparison is robust; ABSOLUTE Jy scale (band-avg fluences 218-6860 Jy*ms) is high vs published DSA fluences and is a separate cross-check (SEFD/n_pol/beam), not asserted here.",
+  "caveat_slope_proxy": "sn_slope/cal_slope are naive log-log fits over positive channels, a proxy for the MCMC gamma_D (2D fit); they differ in magnitude, so compare cal vs sn (the sigma_S effect), not cal vs gamma_D."
+}

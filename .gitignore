@@ -51,6 +51,8 @@ Thumbs.db
 *.tsv
 # ...except the tracked data-source manifest (reproducibility, not a data dump)
 !/data-manifest.csv
+# ...and the small flux-calibration input tables (SEFD, pointing) — config/provenance, not bulk data
+!/analysis/burst_energies/*.csv
 # FITS (astronomy images)
 *.fits
 *.fit

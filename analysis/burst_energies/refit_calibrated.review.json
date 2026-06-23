@@ -1,0 +1,10 @@
+{
+  "reviewed_by": "figure-reviewer",
+  "verdicts": [
+    {
+      "path": "refit_calibrated.png",
+      "verdict": "match",
+      "notes": "All five bursts plot three series (grey S/N fit, red flux-calibrated, blue solid joint-orig horizontal markers) and every visible point matches its per_burst number. chromatica: grey ~-9.9 / red ~-9.9, both tight bars pinned at the -10 floor, blue ~-5.0 (matches gamma_SN=-9.91, gamma_cal=-9.90, d_gamma_mcmc=0.01, relaxed:false). oran: grey ~-8.5 / red ~-7.8 (red above grey), bars present (matches -8.49/-7.84, d=0.65). phineas: grey ~-9.9 / red ~-9.95, tight bars at floor, slope_s=+0.0, red~=grey (matches -9.91/-9.95, d=-0.04). zach: grey ~-7.5 with a distinctive large upward whisker reaching ~-0.5 (matches gamma_SN_hi=-0.49), red ~-7.05 (matches -7.5/-7.05, d=0.45). freya: grey ~-6.0 / red ~-3.8, the largest red-above-grey shift, matching slope_s=+2.6 and d_gamma_mcmc=2.23. Check1 (red-minus-grey tracks slope_s): holds for the 4 unpinned cases (freya largest, phineas ~0); chromatica is the one place the slope_s=+2.1 hypothesis is NOT realized (d_gamma_mcmc=0.01) because both fits pin at the -9.9 floor, but the manifest itself records relaxed:false and n_relaxed=2/5, so the plot faithfully renders its own numbers rather than the optimistic hypothesis. Check2: no collapsed bars except the legitimate floor pins at chromatica/phineas (expected). Check3: gamma_SN spans -6 to -9.9, all below -5, nothing clipped at the old -5 rail; floor opened to -10 as intended. Blue joint markers all sit ~-4.85 to -5.0 (matches gamma_D_joint). Minor cosmetic: blue reference is drawn as solid horizontal bars, not dashed as the expectation text says 'blue dash'; identity (joint orig) is unambiguous from legend and position, so not an anomaly. Axes (gamma_D, -10 to ~0), units, and labels (burst / G / slope_s) are all sane."
+    }
+  ]
+}

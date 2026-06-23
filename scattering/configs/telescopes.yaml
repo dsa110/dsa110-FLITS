@@ -18,6 +18,8 @@ dsa:
   dt_ms_raw: 32.768e-3 # float, ms
   f_min_GHz: 1.31125 # float, GHz
   f_max_GHz: 1.49875 # float, GHz
+  flux_jy_per_unit: fluxcal # "fluxcal" => data-driven model-based radiometer fluence (analysis/flux_cal.joint_band_fluence_jy_ms_hz); DSA measured beam + coherent-beam SEFD. null => uncalibrated. See analysis/burst_energies/CALIBRATION_REVIEW.md
+  beam_model_h5: null # path to the measured Jones beam cube (DSA110_beam_1.h5, ~345 MB, external/gitignored) used by analysis/dsa_beam.py for G(theta,phi,nu). SEFD is measured per-epoch by dsa110-rt (lxd110h23:5777), not stored here.
   freq_descending: true # DSA .npy stored row 0 = f_max: dsa110-scat dedisperses with fch1=1498.75 (ch0=high) and its fitter flips the model (burstfittools.py:160) to match descending data; loader flips to ascending
 
 chime:
@@ -25,5 +27,6 @@ chime:
   dt_ms_raw: 2.56e-3 # float, ms (voltage sample rate)
   f_min_GHz: 0.40019 # float, GHz
   f_max_GHz: 0.80019 # float, GHz
+  flux_jy_per_unit: fluxcal # "fluxcal" => data-driven model-based radiometer fluence (analysis/flux_cal.joint_band_fluence_jy_ms_hz); CHIME documented cylinder beam G~1 + chime_sefd.csv. null => uncalibrated. See analysis/burst_energies/CALIBRATION_REVIEW.md
   freq_descending: true # CHIME baseband_analysis stores row 0 = f_max (800 MHz); loader flips to ascending
 

@@ -63,6 +63,7 @@ namespaces = true
 [tool.pytest.ini_options]
 minversion = "7.0"
 addopts = ["-ra", "--strict-config", "--strict-markers"]
+pythonpath = ["."]  # make repo-root namespace dirs (analysis/, galaxies/) importable in tests
 log_level = "INFO"
 xfail_strict = true
 markers = [

@@ -8,11 +8,13 @@ from typing import Any
 import astropy.units as u
 import numpy as np
 from astropy.time import Time
+from scipy.signal import savgol_filter
 
 from crossmatching.toa_crossmatch import compute_toa
 
 CHIME_BASEBAND_SAMPLE_TIME_S = 2.56e-6
 CHIME_DEFAULT_REFERENCE_FREQUENCY_MHZ = 400.0
+_SAVGOL_WINDOW, _SAVGOL_POLYORDER = 9, 3
 
 
 class SinglebeamExtractionError(RuntimeError):
@@ -20,30 +22,18 @@ class SinglebeamExtractionError(RuntimeError):
 
 
 @dataclass(frozen=True)
-class SinglebeamLayout:
-    """Minimal HDF5 layout facts used by the CHIME singlebeam extractor."""
-
-    data_path: str
-    time0_path: str
-    freq_path: str | None
-    data_shape: tuple[int, ...]
-    time_axis: int
-    frequency_axis: int | None
-    polarization_axis: int | None
-    sample_time_s: float
-    ntime: int
-    nfreq: int | None
-
-
-@dataclass(frozen=True)
 class ChimeSinglebeamToa:
-    """Candidate CHIME TOA derived directly from a singlebeam HDF5 file."""
+    """CHIME 400 MHz TOA extracted from a singlebeam HDF5 file.
+
+    Reproduces ``crossmatching/toa_crossmatch.ipynb`` cell 11: coherent + incoherent
+    dedispersion, Stokes-I, frequency-collapse, Savitzky-Golay peak. The 400 MHz
+    reference and bottom-channel ``time0``/``f_center`` convention match the notebook,
+    so ``toa_unix_400`` is directly comparable to the notebook-derived value.
+    """
 
     path: str
     method: str
-    data_path: str
-    time0_path: str
-    frequency_path: str | None
+    dm: float
     peak_index: int
     peak_offset_s: float
     native_frequency_mhz: float
@@ -53,272 +43,148 @@ class ChimeSinglebeamToa:
     toa_unix_400: float
     toa_utc_400: str
     sample_time_s: float
-    time0_frequency_index: int
     time0_ctime: float
     time0_ctime_offset: float
-    time0_fpga_count: int | None
     data_shape: tuple[int, ...]
+    n_rfi_channels_masked: int
+    noise_window_offpulse_frac: float
     peak_snr_like: float
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
-def inspect_singlebeam_layout(
-    path: str | Path,
+def toa_400_from_peak(
     *,
-    data_path: str | None = None,
-    time0_path: str = "time0",
-    freq_path: str | None = None,
-    sample_time_s: float = CHIME_BASEBAND_SAMPLE_TIME_S,
-) -> SinglebeamLayout:
-    """Inspect a CHIME singlebeam HDF5 file without loading the full payload."""
+    peak_index: int,
+    sample_time_s: float,
+    time0_ctime: float,
+    time0_ctime_offset: float,
+    native_frequency_mhz: float,
+    dm: float,
+    reference_frequency_mhz: float = CHIME_DEFAULT_REFERENCE_FREQUENCY_MHZ,
+) -> tuple[Time, Time]:
+    """Convert a peak sample to native and 400 MHz TOAs (notebook convention).
 
-    h5py = _require_h5py()
-    with h5py.File(path, "r") as h5:
-        resolved_data_path = data_path or _find_first_dataset(
-            h5,
-            (
-                "tiedbeam_baseband",
-                "tiedbeam_power",
-                "intensity",
-                "waterfall",
-                "data",
-            ),
-        )
-        if resolved_data_path is None:
-            raise SinglebeamExtractionError("no singlebeam data dataset found")
-        if time0_path not in h5:
-            raise SinglebeamExtractionError(f"missing required time0 dataset: {time0_path}")
-
-        data = h5[resolved_data_path]
-        shape = tuple(int(value) for value in data.shape)
-        axes = _infer_axes(shape)
-        resolved_freq_path = freq_path or _find_first_dataset(
-            h5,
-            (
-                "index_map/freq",
-                "freq",
-                "frequency",
-                "frequencies",
-            ),
-            required=False,
-        )
-
-    return SinglebeamLayout(
-        data_path=resolved_data_path,
-        time0_path=time0_path,
-        freq_path=resolved_freq_path,
-        data_shape=shape,
-        time_axis=axes["time"],
-        frequency_axis=axes["frequency"],
-        polarization_axis=axes["polarization"],
-        sample_time_s=float(sample_time_s),
-        ntime=shape[axes["time"]],
-        nfreq=shape[axes["frequency"]] if axes["frequency"] is not None else None,
+    Pure timing math (no baseband_analysis); shares ``compute_toa`` with the
+    crossmatch so the dispersive shift uses the same ``K_DM``.
+    """
+    native = (
+        Time(time0_ctime, val2=time0_ctime_offset, format="unix", scale="utc")
+        + (peak_index * sample_time_s) * u.s
     )
+    toa_400 = compute_toa(
+        native,
+        0.0 * u.s,
+        native_frequency_mhz * u.MHz,
+        dm * (u.pc / u.cm**3),
+        reference_frequency_mhz * u.MHz,
+    )
+    native.precision = 9
+    toa_400.precision = 9
+    return native, toa_400
 
 
 def extract_singlebeam_toa(
     path: str | Path,
     *,
     dm: float,
-    data_path: str | None = None,
-    time0_path: str = "time0",
-    freq_path: str | None = None,
-    native_frequency_mhz: float | None = None,
     reference_frequency_mhz: float = CHIME_DEFAULT_REFERENCE_FREQUENCY_MHZ,
-    sample_time_s: float = CHIME_BASEBAND_SAMPLE_TIME_S,
-    chunk_time: int = 16384,
+    sample_time_s: float | None = None,
 ) -> ChimeSinglebeamToa:
-    """Extract a candidate CHIME TOA from a singlebeam HDF5 file.
+    """Extract the CHIME 400 MHz TOA from a singlebeam HDF5 file.
 
-    This is intentionally conservative: it derives a power-summed time series
-    and peak-picks it, then shifts the native-frequency TOA to 400 MHz. It does
-    not perform CHIME-native coherent dedispersion. The returned ``method``
-    records that distinction.
+    Requires the CANFAR ``baseband-analysis`` runtime (imported lazily). The
+    per-burst noise window and RFI channel mask used by the notebook live in
+    ``bursts.fits``; absent that, an off-pulse noise window and a mild
+    zero-variance RFI mask are derived here. Bright bursts are insensitive to
+    this substitution and reproduce the notebook TOA exactly.
     """
+    BBData, coherent_dedisp, incoherent_dedisp = _require_baseband_analysis()
 
-    h5py = _require_h5py()
-    layout = inspect_singlebeam_layout(
-        path,
-        data_path=data_path,
-        time0_path=time0_path,
-        freq_path=freq_path,
-        sample_time_s=sample_time_s,
+    bb = BBData.from_file(str(path))
+    if "time0" not in bb:
+        raise SinglebeamExtractionError("missing required time0 dataset: time0")
+    delta_time = float(sample_time_s if sample_time_s is not None else bb.attrs["delta_time"])
+    freq = np.asarray(bb.index_map["freq"]["centre"], dtype=float)
+
+    bb["tiedbeam_baseband"][:] = coherent_dedisp(bb, float(dm), time_shift=False)
+    bb_inc, _freq, _freq_id = incoherent_dedisp(bb, float(dm), fill_wfall=True)
+
+    intensity = np.abs(bb_inc[:, 0, :]) ** 2 + np.abs(bb_inc[:, 1, :]) ** 2
+    profile, peak_index, n_rfi, offpulse_frac = _collapse_and_peak(intensity)
+
+    # Notebook convention: bottom channel (index -1, ~400 MHz) sets time0 / f_center.
+    t0 = bb["time0"]
+    ctime, ctime_offset = float(t0["ctime"][-1]), float(t0["ctime_offset"][-1])
+    native_frequency = float(freq[-1])
+    native_toa, toa_400 = toa_400_from_peak(
+        peak_index=peak_index,
+        sample_time_s=delta_time,
+        time0_ctime=ctime,
+        time0_ctime_offset=ctime_offset,
+        native_frequency_mhz=native_frequency,
+        dm=dm,
+        reference_frequency_mhz=reference_frequency_mhz,
     )
-
-    with h5py.File(path, "r") as h5:
-        data = h5[layout.data_path]
-        timeseries = _collapse_power_timeseries(
-            data,
-            time_axis=layout.time_axis,
-            chunk_time=chunk_time,
-        )
-        if not np.isfinite(timeseries).any():
-            raise SinglebeamExtractionError("collapsed time series has no finite samples")
-
-        peak_index = int(np.nanargmax(timeseries))
-        peak_snr_like = _snr_like(timeseries, peak_index)
-        frequencies = _read_frequency_centres_mhz(h5, layout.freq_path)
-        frequency_index, native_frequency = _select_frequency(
-            frequencies,
-            layout.nfreq,
-            native_frequency_mhz,
-        )
-        ctime, ctime_offset, fpga_count = _read_time0(h5[layout.time0_path], frequency_index)
-        native_toa = (
-            Time(ctime, val2=ctime_offset, format="unix", scale="utc")
-            + (peak_index * layout.sample_time_s) * u.s
-        )
-        toa_400 = compute_toa(
-            native_toa,
-            0.0 * u.s,
-            native_frequency * u.MHz,
-            dm * (u.pc / u.cm**3),
-            reference_frequency_mhz * u.MHz,
-        )
-        native_toa.precision = 9
-        toa_400.precision = 9
-        method = "power_sum_peak_no_coherent_dedispersion"
-        if _dataset_dm_matches(data, dm):
-            method = "power_sum_peak_pre_dedispersed_dataset"
 
     return ChimeSinglebeamToa(
         path=str(path),
-        method=method,
-        data_path=layout.data_path,
-        time0_path=layout.time0_path,
-        frequency_path=layout.freq_path,
+        method="notebook_dedispersed_savgol_peak",
+        dm=float(dm),
         peak_index=peak_index,
-        peak_offset_s=float(peak_index * layout.sample_time_s),
-        native_frequency_mhz=float(native_frequency),
+        peak_offset_s=float(peak_index * delta_time),
+        native_frequency_mhz=native_frequency,
         reference_frequency_mhz=float(reference_frequency_mhz),
         native_toa_unix=float(native_toa.to_value("unix")),
         native_toa_utc=native_toa.iso,
         toa_unix_400=float(toa_400.to_value("unix")),
         toa_utc_400=toa_400.iso,
-        sample_time_s=layout.sample_time_s,
-        time0_frequency_index=int(frequency_index),
-        time0_ctime=float(ctime),
-        time0_ctime_offset=float(ctime_offset),
-        time0_fpga_count=None if fpga_count is None else int(fpga_count),
-        data_shape=layout.data_shape,
-        peak_snr_like=peak_snr_like,
+        sample_time_s=delta_time,
+        time0_ctime=ctime,
+        time0_ctime_offset=ctime_offset,
+        data_shape=tuple(int(v) for v in bb["tiedbeam_baseband"].shape),
+        n_rfi_channels_masked=n_rfi,
+        noise_window_offpulse_frac=offpulse_frac,
+        peak_snr_like=_snr_like(profile, peak_index),
     )
 
 
-def _require_h5py():
+def _collapse_and_peak(intensity: np.ndarray) -> tuple[np.ndarray, int, int, float]:
+    """Noise-normalise per channel, mask dead channels, collapse, Savgol peak-pick."""
+    ntime = intensity.shape[-1]
+    coarse = np.nansum(np.nan_to_num(intensity), axis=0)
+    coarse_peak = int(np.nanargmax(coarse))
+
+    guard = 4000  # ~10 ms either side of the coarse peak at 2.56 us
+    idx = np.arange(ntime)
+    noise = (idx < coarse_peak - guard) | (idx > coarse_peak + guard)
+    if noise.sum() < ntime * 0.1:
+        noise = (idx < int(0.2 * ntime)) | (idx > int(0.8 * ntime))
+
+    mu = np.nanmean(intensity[:, noise], axis=-1)[:, None]
+    sd = np.nanstd(intensity[:, noise], axis=-1)[:, None]
+    with np.errstate(invalid="ignore", divide="ignore"):
+        norm = (intensity - mu) / sd
+    norm = np.nan_to_num(norm, nan=0.0, posinf=0.0, neginf=0.0)
+
+    chan_ok = np.isfinite(sd[:, 0]) & (sd[:, 0] > 0)
+    norm = norm * chan_ok[:, None]
+
+    profile = np.nansum(norm, axis=0)
+    peak_index = int(np.nanargmax(savgol_filter(profile, _SAVGOL_WINDOW, _SAVGOL_POLYORDER)))
+    return profile, peak_index, int((~chan_ok).sum()), float(noise.mean())
+
+
+def _require_baseband_analysis():
     try:
-        import h5py
+        from baseband_analysis.core.bbdata import BBData
+        from baseband_analysis.core.dedispersion import coherent_dedisp, incoherent_dedisp
     except ModuleNotFoundError as exc:  # pragma: no cover - environment dependent
-        raise SinglebeamExtractionError("h5py is required to read singlebeam HDF5 files") from exc
-    return h5py
-
-
-def _find_first_dataset(h5, candidates: tuple[str, ...], *, required: bool = True) -> str | None:
-    for candidate in candidates:
-        if candidate in h5:
-            obj = h5[candidate]
-            if hasattr(obj, "shape"):
-                return candidate
-    if required:
-        raise SinglebeamExtractionError(f"none of these datasets were found: {candidates}")
-    return None
-
-
-def _infer_axes(shape: tuple[int, ...]) -> dict[str, int | None]:
-    if len(shape) == 1:
-        return {"time": 0, "frequency": None, "polarization": None}
-
-    polarization_axis = next((idx for idx, size in enumerate(shape) if size in {1, 2}), None)
-    if polarization_axis is None:
-        polarization_axis = next((idx for idx, size in enumerate(shape) if size == 4), None)
-    remaining = [idx for idx in range(len(shape)) if idx != polarization_axis]
-    if not remaining:
-        raise SinglebeamExtractionError(f"cannot infer time axis from shape {shape}")
-
-    time_axis = max(remaining, key=lambda idx: shape[idx])
-    frequency_candidates = [idx for idx in remaining if idx != time_axis]
-    frequency_axis = frequency_candidates[0] if frequency_candidates else None
-    return {"time": time_axis, "frequency": frequency_axis, "polarization": polarization_axis}
-
-
-def _collapse_power_timeseries(data, *, time_axis: int, chunk_time: int) -> np.ndarray:
-    ntime = int(data.shape[time_axis])
-    out = np.zeros(ntime, dtype=np.float64)
-    for start in range(0, ntime, chunk_time):
-        stop = min(start + chunk_time, ntime)
-        selection = [slice(None)] * data.ndim
-        selection[time_axis] = slice(start, stop)
-        chunk = np.asarray(data[tuple(selection)])
-        if np.iscomplexobj(chunk):
-            chunk = np.abs(chunk) ** 2
-        else:
-            chunk = np.asarray(chunk, dtype=np.float64)
-        chunk = np.nan_to_num(chunk, nan=0.0, posinf=0.0, neginf=0.0)
-        local_time_axis = time_axis
-        reduce_axes = tuple(idx for idx in range(chunk.ndim) if idx != local_time_axis)
-        out[start:stop] = np.sum(chunk, axis=reduce_axes)
-    return out
-
-
-def _read_frequency_centres_mhz(h5, freq_path: str | None) -> np.ndarray | None:
-    if freq_path is None:
-        return None
-    arr = np.asarray(h5[freq_path])
-    if arr.dtype.fields and "centre" in arr.dtype.fields:
-        arr = arr["centre"]
-    arr = np.asarray(arr, dtype=np.float64).reshape(-1)
-    if arr.size == 0:
-        return None
-    if np.nanmedian(np.abs(arr)) < 10:
-        arr = arr * 1000.0
-    return arr
-
-
-def _select_frequency(
-    frequencies_mhz: np.ndarray | None,
-    nfreq: int | None,
-    requested_mhz: float | None,
-) -> tuple[int, float]:
-    if frequencies_mhz is not None:
-        if requested_mhz is None:
-            index = len(frequencies_mhz) // 2
-        else:
-            index = int(np.nanargmin(np.abs(frequencies_mhz - requested_mhz)))
-        return index, float(frequencies_mhz[index])
-
-    if requested_mhz is not None:
-        if nfreq is None:
-            return 0, float(requested_mhz)
-        return nfreq // 2, float(requested_mhz)
-
-    raise SinglebeamExtractionError(
-        "native_frequency_mhz is required when the file has no frequency dataset"
-    )
-
-
-def _read_time0(time0, frequency_index: int) -> tuple[float, float, int | None]:
-    row = np.asarray(time0)[frequency_index]
-    if row.dtype.fields is None:
-        raise SinglebeamExtractionError("time0 must be a structured dataset")
-    fields = row.dtype.fields
-    if "ctime" not in fields:
-        raise SinglebeamExtractionError("time0 is missing required ctime field")
-    ctime = float(row["ctime"])
-    ctime_offset = float(row["ctime_offset"]) if "ctime_offset" in fields else 0.0
-    fpga_count = int(row["fpga_count"]) if "fpga_count" in fields else None
-    return ctime, ctime_offset, fpga_count
-
-
-def _dataset_dm_matches(data, dm: float) -> bool:
-    if "DM" not in data.attrs:
-        return False
-    try:
-        return bool(np.isclose(float(data.attrs["DM"]), float(dm)))
-    except (TypeError, ValueError):
-        return False
+        raise SinglebeamExtractionError(
+            "baseband_analysis is required (CANFAR image); not importable in this environment"
+        ) from exc
+    return BBData, coherent_dedisp, incoherent_dedisp
 
 
 def _snr_like(timeseries: np.ndarray, peak_index: int) -> float:
@@ -331,18 +197,16 @@ def _snr_like(timeseries: np.ndarray, peak_index: int) -> float:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        description="Extract a candidate TOA from a CHIME singlebeam HDF5 file."
+        description="Extract the CHIME 400 MHz TOA from a singlebeam HDF5 file."
     )
     parser.add_argument("path", help="Path to singlebeam_*.h5")
     parser.add_argument("--dm", type=float, required=True, help="Dispersion measure in pc cm^-3")
-    parser.add_argument("--native-frequency-mhz", type=float, default=None)
     parser.add_argument("--reference-frequency-mhz", type=float, default=400.0)
     args = parser.parse_args(argv)
 
     result = extract_singlebeam_toa(
         args.path,
         dm=args.dm,
-        native_frequency_mhz=args.native_frequency_mhz,
         reference_frequency_mhz=args.reference_frequency_mhz,
     )
     for key, value in result.to_dict().items():

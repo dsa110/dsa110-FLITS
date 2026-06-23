@@ -20,6 +20,7 @@ Public API
 from __future__ import annotations
 
 import logging
+import os
 from collections.abc import Sequence
 from dataclasses import asdict, dataclass, replace
 from typing import Any
@@ -180,6 +181,59 @@ def analytic_gaussian_exp_convolution(t, mu, sig, tau):
         res[mask] = res_m
 
     return res
+
+
+def gaussian_powerlaw_convolution(t, mu, sig, tau, beta):
+    """
+    Gaussian G(t; mu, sig) convolved with a power-law-spectrum thin-screen PBF.
+
+    For a power-law density wavenumber spectrum with index 2 < beta < 4 and a
+    negligible inner scale, the thin-screen PBF is exponential at small lag and
+    develops a heavy power-law tail at large lag (Cordes review sec 11.2, after
+    Ostashov & Shishov 1978; Lee & Jokipii 1975; Lambert & Rickett 1999):
+
+        p(s) ~ exp(-s)                 for s <= s_c
+        p(s) ~ (s / s_c)^(-beta/2)     for s >  s_c     [continuous at s_c]
+
+    with s = lag / tau and the crossover s_c = 2 ln(2 / (4 - beta)) from the same
+    review. As beta -> 4, s_c -> infinity and the PBF reduces to the pure
+    exponential e^{-s}, recovering analytic_gaussian_exp_convolution in shape (the
+    FFT path leaves a ~0.5-sample time-registration offset vs the closed form, but
+    that is fully degenerate with the free t0 and so cancels in any fit/evidence);
+    Kolmogorov is beta = 11/3 (tail slope -11/6). The tail is normalizable for
+    beta > 2 (the mean delay still diverges for beta < 4, per the review).
+
+    Returns an area-normalized density on the time grid (continuous integral ~ 1),
+    matching analytic_gaussian_exp_convolution so the exp-vs-power-law evidence is
+    on the same amplitude footing. Computed by zero-padded FFT linear convolution.
+    """
+    if t.ndim == 1:
+        t = t[None, :]
+    T = t.shape[1]
+    dt = t[0, 1] - t[0, 0]
+
+    # Area-normalized Gaussian (same convention as the exp / M0,M1 paths)
+    g = (1.0 / (np.sqrt(2.0 * np.pi) * sig)) * np.exp(-0.5 * ((t - mu) / sig) ** 2)
+
+    # One-sided PBF on a causal lag grid. beta clipped to the integrable,
+    # non-degenerate open interval (2, 4); s_c floored so the tail term never
+    # divides by zero (the s=0 value lands in the exp branch regardless).
+    beta = float(np.clip(beta, 2.01, 3.99))
+    s_c = max(2.0 * np.log(2.0 / (4.0 - beta)), 1e-3)
+    lag = (np.arange(T) * dt)[None, :]
+    s = lag / tau
+    h = np.where(
+        s <= s_c,
+        np.exp(-s),
+        np.exp(-s_c) * (np.maximum(s, s_c) / s_c) ** (-0.5 * beta),
+    )
+    h = h / np.clip(h.sum(axis=1, keepdims=True) * dt, 1e-30, None)
+
+    # *dt makes the discrete linear convolution the sampled continuous one, so
+    # the returned profile integrates to ~1 like analytic_gaussian_exp_convolution.
+    L = 2 * T
+    conv = np.fft.irfft(np.fft.rfft(g, L, axis=1) * np.fft.rfft(h, L, axis=1), L, axis=1)
+    return conv[:, :T] * dt
 
 
 # ----------------------------------------------------------------------
@@ -581,6 +635,14 @@ class FRBModel:
             raise ValueError("time axis must be uniform")
         self.dt = self.time[1] - self.time[0]
 
+        # PBF selection (env-driven so it threads through multiprocessing pools and
+        # the prepare()/fit call stack without signature changes). "exp" (default) =
+        # thin-screen exponential; "powerlaw" = thin-screen power-law-spectrum PBF
+        # with a heavy t^{-beta/2} tail (Cordes 2025 §11.2). FLITS_PBF_BETA is the
+        # density wavenumber-spectrum index beta (Kolmogorov = 11/3 -> tail -11/6).
+        self.pbf = os.environ.get("FLITS_PBF", "exp").lower()
+        self.pbf_beta = float(os.environ.get("FLITS_PBF_BETA", str(11.0 / 3.0)))
+
         if noise_std is None and self.data is not None:
             self.noise_std = self._estimate_noise(off_pulse)
         else:
@@ -688,6 +750,11 @@ class FRBModel:
             alpha = getattr(p, "alpha", 4.4)
             tau = p.tau_1ghz * (freq / 1.0) ** (-alpha)
             tau = np.clip(tau, 1e-6, None)[:, None]
+
+            if self.pbf == "powerlaw":
+                return amp[:, None] * gaussian_powerlaw_convolution(
+                    self.time, mu, sig, tau, self.pbf_beta
+                )
 
             # Use analytic convolution for speed and precision
             return amp[:, None] * analytic_gaussian_exp_convolution(self.time, mu, sig, tau)

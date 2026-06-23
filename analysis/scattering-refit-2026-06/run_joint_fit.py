@@ -116,6 +116,14 @@ def main():
         "shared across both bands (gain-marginal, 8-dim) instead of per-band zeta; "
         "gives a single coherent burst across the full band",
     )
+    # Per-band PBF: CHIME and DSA are separate FRBModel instances, so each can carry
+    # its own pulse-broadening function. The wilhelm test showed the bands want
+    # different shapes (CHIME mildly prefers a Kolmogorov power-law tail, DSA an
+    # exponential), which a single global PBF cannot express.
+    ap.add_argument("--pbf-C", dest="pbf_C", default="exp", choices=["exp", "powerlaw"])
+    ap.add_argument("--pbf-D", dest="pbf_D", default="exp", choices=["exp", "powerlaw"])
+    ap.add_argument("--beta-C", dest="beta_C", type=float, default=11.0 / 3.0)
+    ap.add_argument("--beta-D", dest="beta_D", type=float, default=11.0 / 3.0)
     a = ap.parse_args()
     multi = a.components_C > 1 or a.components_D > 1 or a.force_multi
 
@@ -132,6 +140,12 @@ def main():
     print(f"[{a.burst}] preparing CHIME + DSA models ...", flush=True)
     model_C, init_C = prepare(cC, f"{a.burst}_chime", out_dir)
     model_D, init_D = prepare(cD, f"{a.burst}_dsa", out_dir)
+    model_C.pbf, model_C.pbf_beta = a.pbf_C, a.beta_C
+    model_D.pbf, model_D.pbf_beta = a.pbf_D, a.beta_D
+    print(
+        f"[{a.burst}] PBF: CHIME={a.pbf_C}(b={a.beta_C:.3g}) DSA={a.pbf_D}(b={a.beta_D:.3g})",
+        flush=True,
+    )
     print(
         f"[{a.burst}] CHIME init: tau={init_C.tau_1ghz:.3g} a={init_C.alpha:.2g} | "
         f"DSA init: tau={init_D.tau_1ghz:.3g} a={init_D.alpha:.2g}",

@@ -1,0 +1,128 @@
+{
+  "casey": {
+    "burst": "casey",
+    "classification": "recovered",
+    "dnud_MHz": 0.9082,
+    "err_MHz": 0.4131,
+    "confidence": "low",
+    "is_lower_limit": false,
+    "excess_estimate": 9.598,
+    "n_supporting_subbands": 1,
+    "chosen": {
+      "subband": "subband_0",
+      "model": "Lorentzian+Gaussian",
+      "dnud_MHz": 0.9082,
+      "broad_MHz": 5.031
+    },
+    "reasoning": "casey is high-latitude (b=44.6) with a correspondingly large NE2025 MW floor of 8.7174 MHz. Across all 10 stored candidates, only ONE has a genuinely narrow (<1 MHz) diffractive width co-fitted with a distinctly broader component matching the wilhelm/zach reference morphology: subband_0 Lorentzian+Gaussian, narrow gamma=0.9082 MHz (err=0.4131, err/val=0.45 < 0.5 cap, good_err=true), with a distinct broad=5.031 MHz (>5x narrow), n_chan~30 (well-resolved), not railed, valid=true. Every other candidate is either a railed/degenerate fit (err=0, err~1e5+, the dnud=6.5/6.9/317/715 MHz entries with err_MHz=0 or absurd) or a single broad Lorentzian at 6.7-14.7 MHz, i.e. AT or above the MW floor (8.57, 7.80, 6.69, 14.70 MHz) -- those carry no narrow component and are consistent with the large MW floor (no excess). I select the 0.9082 MHz narrow: excess = 8.7174/0.9082 = 9.6x, comparable to the ~7x reference excess for the cleanly-resolved sightlines. is_lower_limit=false because the narrow is explicitly co-fitted with a separate broad Gaussian (5.0 MHz), so it is not inflated by unresolved broad structure -- if anything redchi=0.38 hints at slight over-modeling rather than under-modeling.",
+    "adversarial_note": "Strongest reason this is wrong: the chosen narrow is a LONE detection in a SINGLE subband (subband_0) with redchi=0.38, which is below the 0.5 overfit threshold -> noise/over-modeled, meaning the 0.9082 MHz \"narrow\" could be an artifact of the Lorentzian+Gaussian over-fitting structured noise rather than a real diffractive scale. There is ZERO cross-subband corroboration: subbands 1, 2, 3 all yield only broad (6.7-14.7 MHz) widths at/above the MW floor with no narrow component, and the reference sightlines (wilhelm, zach) showed narrow widths CONSISTENT across multiple subbands. A defensible alternative classification is non_detection -- the broad widths near the 8.7 MHz floor across 3 of 4 subbands are exactly what a high-|b| MW-floor-only sightline with no excess should look like, and the single sub-MHz narrow may be spurious. err/val=0.45 also sits right at the rejection boundary, so the formal measurement is marginal at best."
+  },
+  "freya": {
+    "burst": "freya",
+    "classification": "recovered",
+    "dnud_MHz": 0.5053,
+    "err_MHz": 0.1509,
+    "confidence": "low",
+    "is_lower_limit": true,
+    "excess_estimate": 3.25,
+    "n_supporting_subbands": 2,
+    "chosen": {
+      "subband": "subband_0",
+      "model": "Lorentzian+Lorentzian",
+      "dnud_MHz": 0.5053,
+      "broad_MHz": 259.03
+    },
+    "reasoning": "Freya (b=22.2, floor=1.6421 MHz) has no clean reference-morphology narrow+broad fit (cf. wilhelm/zach: narrow 0.10-0.22 MHz co-fitted with a physical 3-5 MHz broad). The candidate menu splits into three groups: (1) a single rail-adjacent narrow at subband_0 Gen-Lorentz dnud=0.0681+/-0.0127, but only 2.2 channels and just 0.008 MHz above the 0.060 rail with no broad co-fit -> effectively unresolved/rail-adjacent, rejected; (2) two cross-subband-consistent Lorentzian+Lorentzian fits with narrow=0.5053+/-0.151 (sb0, redchi 0.94) and 0.5204+/-0.164 (sb1, redchi 0.91), both valid/distinct/good_err, the only candidates with a genuine two-component fit; (3) a cluster of lone single Lorentzians/Gen-Lorentz from 0.79-1.46 MHz with no broad co-fit, spanning all 4 subbands, redchi~0.9-1.0, that approach the MW floor and are likely inflated by unresolved structure. I chose the cross-subband-consistent ~0.51 MHz narrow from group (2): not railed, finite good error (~30% rel), distinct second component, consistent value across two subbands, sane redchi~0.9. excess = 1.6421/0.5053 = 3.25 (modest, well below the reference ~7x). Marked low confidence and is_lower_limit=true because the co-fitted broad is 259-436 MHz -- not a physical second scintillation scale but an essentially flat baseline, so this is effectively a single-Lorentzian width that may be inflated by unresolved broad structure; the true diffractive scale is <= 0.51 MHz and the excess is a lower limit.",
+    "adversarial_note": "The strongest case against this choice: the \"Lorentzian+Lorentzian\" broad component at 259-436 MHz is far wider than the DSA subband itself (~250 MHz), meaning it is not a resolved second scintillation scale but an unconstrained quasi-flat baseline term. Once that baseline is absorbed, the fit reduces to a single ~0.5 MHz Lorentzian -- statistically indistinguishable from the group-(3) lone single Lorentzians (0.79-1.46 MHz), whose scatter (0.5 up to 1.46 MHz) is large and brackets the floor. A defensible alternative reading is non_detection: every freya candidate is consistent with a single broad-ish width near/above the MW floor with no resolved narrow diffractive component (the rail-adjacent 0.068 being a rail artifact), implying NO excess. If so, reporting 0.5053 MHz with excess 3.25x overstates the result. The cross-subband consistency at ~0.51 is the one thing favoring recovered, but two subbands of the same telescope/burst are not independent screens, and the value sitting a factor ~3 below the floor (more scattering than MW predicts) is physically plausible only if an extragalactic screen dominates -- which this morphology does not cleanly demonstrate."
+  },
+  "isha": {
+    "burst": "isha",
+    "classification": "non_detection",
+    "dnud_MHz": 0.5954,
+    "err_MHz": 0.2954,
+    "confidence": "low",
+    "is_lower_limit": true,
+    "excess_estimate": 0.3848,
+    "n_supporting_subbands": 1,
+    "chosen": {
+      "subband": "subband_1",
+      "model": "Lorentzian",
+      "dnud_MHz": 0.5954,
+      "broad_MHz": null
+    },
+    "reasoning": "Two subbands. subband_0 offers three narrow candidates but ALL are pinned at the 0.060 MHz fitter rail (railed=true, valid=false), only n_chan=2 (unresolved), and the Lorentzian+Lorentzian variant has nonsensical stderr ~1.2e21 with a degenerate 'broad'=0.06 (no distinct broad component). These are rails, not measurements -> rejected. The only valid=true candidate is subband_1's single Lorentzian: dnud=0.5954 MHz, finite stderr=0.2954 (err/value=0.496, right at the 0.5*value cutoff -> marginal), n_chan=19.5 (well resolved), redchi=0.95 (sane), not railed. The subband_1 L+L variant (1.09 MHz) has junk err ~8e6 and broad==narrow (non-distinct) -> rejected. Critically, the surviving width is a LONE Lorentzian with NO co-fitted broad component, several channels wide -- this does not match the reference diffractive morphology (narrow 0.10-0.22 MHz Lorentzian co-fit with a distinct broad 3-5 MHz, redchi 0.7-1.0, ~7x excess as in wilhelm/zach). At 0.6 MHz it is itself a broad-ish single feature, not a resolved narrow diffractive spike. excess = floor/dnud = 0.2291/0.5954 = 0.38 < 1, i.e. the NE2025 MW floor is LARGER than the measured width, the opposite of a diffractive excess. High |b|=15.8 gives a comfortably large, reliable MW floor. Net: only broad single-Lorentzian structure survives, no defensible narrow diffractive scale -> non_detection consistent with the MW floor. The 0.5954 MHz is reported as the best-constrained width but is an UPPER limit on any true diffractive scale (single Lorentzian, no broad co-fit, multi-channel -> likely inflated by unresolved broad structure), so excess is a lower limit.",
+    "adversarial_note": "Strongest reason this is wrong: subband_1's 0.5954 MHz IS a clean, well-resolved (19.5 ch), non-railed, redchi-sane Lorentzian with finite error -- by the letter of the rubric's 'recovered' criteria (not railed, finite good error) it could be a genuine diffractive scale that simply happens to be wider than the high-|b| MW floor (which is plausible at 1.36 GHz where diffractive scales grow steeply with frequency, nu^4.4). If so this is a real recovery, not a non-detection, and calling excess<1 a 'non-detection' conflates 'floor exceeds measurement' with 'no measurement'. The fit may have under-resolved a true two-component spectrum: a single broad Lorentzian can absorb a real narrow spike that the single-component model never tried to fit, so the true diffractive scale could be much smaller (deep in the subband_0 rail regime) and genuinely below the floor -- meaning a real, large excess was missed entirely rather than absent. The err/value=0.496 being a hair under the 0.5 cutoff also means a tiny shift in error would flip 'valid' to false."
+  },
+  "johndoeii": {
+    "burst": "johndoeii",
+    "classification": "recovered",
+    "dnud_MHz": 0.5506,
+    "err_MHz": 0.0893,
+    "confidence": "medium",
+    "is_lower_limit": true,
+    "excess_estimate": 0.4448,
+    "n_supporting_subbands": 2,
+    "chosen": {
+      "subband": "subband_1",
+      "model": "Lorentzian",
+      "dnud_MHz": 0.5506,
+      "broad_MHz": null
+    },
+    "reasoning": "A narrow Lorentzian width near 0.52-0.55 MHz reproduces consistently across BOTH subbands and three independent model fits, none railed (rail is ~0.060 MHz; these are ~9x above it). Chosen: subband_1 single Lorentzian gamma=0.5506 +/- 0.0893 MHz, err/val=0.16 (finite, <<0.5*value), redchi=0.82 (sane), ~18 native channels wide (well resolved). Corroborated by subband_0 single Lorentzian (0.5238 +/- 0.0962, redchi 0.91, ~17 ch). The subband_0 Lorentzian+Lorentzian independently recovers the same narrow (0.5339 +/- 0.1958) co-fitted with a DISTINCT broad 11.86 MHz component (broad/narrow ~22x), satisfying the two-scale morphology of the reference sightlines wilhelm/zach -- but its redchi 0.48 signals overfitting, so it is used only as corroboration, not as the primary value. The subband_1 Lor+Lor narrow (0.2661 +/- 0.3081) is rejected: err > value. The Lor+Gaussian 6.58 MHz candidate is the broad scintillation scale (not distinct), not the diffractive one. floor_MHz=0.2449 (NE2025 MW floor at b=13.2). excess = 0.2449/0.5506 = 0.44 < 1, i.e. the measured diffractive bandwidth EXCEEDS the Galactic floor -- no excess (host/IGM) scattering detected, consistent with a clean high-|b| sightline dominated by the MW screen. is_lower_limit=true: the clean single-Lorentzian primary has no broad co-fit, and the sb0 Lor+Lor shows a real distinct broad component coexists, so the single-Lorentzian narrow may be inflated by blended broad power; the true diffractive scale is <= 0.55 MHz, making the excess a LOWER limit (the deficit relative to the floor could shrink, possibly pushing toward an actual excess if the true narrow is smaller).",
+    "adversarial_note": "Strongest reason the choice is wrong: the diffractive scale may be UNRESOLVED and the chosen 0.55 MHz is an artifact of a single-Lorentzian absorbing two superposed scales. The subband_0 Lorentzian+Lorentzian explicitly decomposes the same data into a 0.53 MHz narrow PLUS a distinct 11.86 MHz broad -- proving the spectrum is genuinely two-component. The single-Lorentzian fits I chose as primary collapse that into one width, which can bias the recovered gamma upward (toward the broad). Worse, both single-Lorentzian fits used a tight +/-6 MHz fit range, which truncates the broad wings and can artificially narrow OR widen the recovered Lorentzian depending on baseline curvature. If the true diffractive narrow is closer to the ~0.27 MHz hinted by the subband_1 Lor+Lor (despite its bad error), excess would rise toward ~0.9, still near but below unity -- but this is fragile. Additionally, redchi values cluster at 0.8-0.9 and dip to 0.48, suggesting possible over-fitting / noise-dominated regime where the narrow component is partly fitting correlated noise rather than true scintillation, which would make even the \"recovered\" classification suspect."
+  },
+  "mahi": {
+    "burst": "mahi",
+    "classification": "rail_only",
+    "dnud_MHz": null,
+    "err_MHz": null,
+    "confidence": "medium",
+    "is_lower_limit": false,
+    "excess_estimate": null,
+    "n_supporting_subbands": 0,
+    "chosen": {
+      "subband": "none",
+      "model": "none",
+      "dnud_MHz": null,
+      "broad_MHz": null
+    },
+    "reasoning": "mahi has only two stored scint candidates, both in subband_0. (1) Lorentzian+Lorentzian narrow comp at dnud=0.06 MHz, err=0.053 (err~=value), n_chan=2, railed=true, good_err=false, valid=false -- this is the fitter's ~0.060 MHz lower-bound RAIL, not a measurement; rejected per the decision framework. (2) A single Lorentzian at 1.68 MHz (err=0.308, finite good error, n_chan=55) -- this is a broad single-Lorentzian fit with NO narrow co-fitted component. It does not resemble the reference diffractive morphology (a 0.10-0.22 MHz narrow co-fitted with a 3-5 MHz broad). A 1.68 MHz width is itself near/below the NE2025 MW floor (0.152 MHz) only by an order of magnitude in the wrong direction -- floor/1.68 = 0.09, i.e. the resolved scale is ~11x BROADER than the MW floor, the opposite of a diffractive excess. The only narrow candidate that exists is the 0.06 MHz rail. Therefore no defensible diffractive Delta-nu_d can be reported: this is rail_only (the sole narrow candidate is a rail; the only finite measurement is a broad single Lorentzian, not a diffractive scale). I do not classify as non_detection because a non_detection requires a clean broad single Lorentzian to be the floor-consistent result with no rail present; here a rail dominates the narrow candidate slate, and the broad 1.68 MHz Lorentzian is far above the MW floor, so there is no diffractive scale to quote and no excess to compute.",
+    "adversarial_note": "Strongest reason this could be wrong: the broad 1.68 MHz single Lorentzian has a clean fit (redchi=0.88, bic=-156, err<<value, 55 channels) and could itself BE the (modulated) diffractive scintillation if mahi's true Delta-nu_d is genuinely ~1-2 MHz -- broad-but-real, not noise. In that reading mahi would be 'recovered' with dnud~1.68 MHz and an excess_estimate = 0.152/1.68 ~ 0.09 (i.e. measured scale ABOVE the MW floor, which would imply the NE2025 floor at b=10 is overestimated or void-affected, or that the broad scale is interstellar but the narrow MW-floor component is simply unresolved at the 0.061 MHz channelization). The Lorentzian+Lorentzian fit (BIC=-48) is strongly disfavored vs the single Lorentzian (BIC=-156), which is itself evidence that NO second (narrow) component is needed -- supporting either 'broad is real' or 'broad-only, narrow unresolved.' If the grader treats a single clean broad Lorentzian as a tentative diffractive detection rather than a non-component, my rail_only call understates the result; one could argue 'non_detection' (broad-only, floor-consistent narrow unresolved) is the more defensible label than rail_only."
+  },
+  "phineas": {
+    "burst": "phineas",
+    "classification": "non_detection",
+    "dnud_MHz": null,
+    "err_MHz": null,
+    "confidence": "high",
+    "is_lower_limit": false,
+    "excess_estimate": null,
+    "n_supporting_subbands": 0,
+    "chosen": {
+      "model": "none",
+      "subband": "none",
+      "dnud_MHz": null,
+      "broad_MHz": null
+    },
+    "reasoning": "phineas has only two stored candidates, both single broad Lorentzians with no co-fitted narrow component: subband_0 dnud=9.885 MHz (err 1.28, redchi 1.12, 324 ch) and subband_1 dnud=3.772 MHz (err 1.78, redchi 1.01, 124 ch). Neither is railed (both well above the 0.060 MHz lower bound by ~60-160x) and both have finite good errors and sane redchi, but neither represents a diffractive scale: there is no narrow Lorentzian (0.1-0.3 MHz reference morphology of wilhelm/zach) and no broad/narrow distinction within a fit -- each is a lone broad component. The two widths are themselves comparable to or larger than the NE2025 MW floor (8.70 MHz at high latitude b=44.7). This matches the non_detection signature: only broad single Lorentzians, no narrow component, consistent with the large high-|b| MW floor with no excess detected. No defensible diffractive Delta-nu_d exists.",
+    "adversarial_note": "Strongest reason this could be wrong: the two subband widths disagree by ~2.6x (9.885 vs 3.772 MHz) with non-overlapping 1-sigma errors -- a genuinely flat noise-dominated ACF would not show such subband structure. The 3.77 MHz feature in subband_1 sits below the 8.70 MHz floor and could plausibly be a partially-resolved real (if broad) scintillation scale rather than pure broadband decorrelation, in which case a marginal recovered excess of ~2.3x might be argued. But with no narrow component, no broad co-fit to anchor against, and the broad widths straddling the floor, treating either as a diffractive Delta-nu_d is unjustified; non_detection is the defensible call. A secondary risk: the high-|b| NE2025 floor of 8.70 MHz, while not void-suspect (low DM regime not flagged here), is itself uncertain at the ~50% level, so the floor-vs-width comparison driving the classification carries that systematic."
+  },
+  "whitney": {
+    "burst": "whitney",
+    "classification": "non_detection",
+    "dnud_MHz": null,
+    "err_MHz": null,
+    "confidence": "medium",
+    "is_lower_limit": false,
+    "excess_estimate": null,
+    "n_supporting_subbands": 0,
+    "chosen": {
+      "model": "none",
+      "subband": "none",
+      "dnud_MHz": null,
+      "broad_MHz": null
+    },
+    "reasoning": "High-|b| sightline (b=34.8 deg) with a large NE2025 MW floor of 5.91 MHz. Surveying all 8 stored candidates: the only sub-floor narrow widths are (a) a 0.06 MHz value flagged railed=True with err(0.119)>value -> a hard-rail artifact, rejected; and (b) a 0.50 MHz Gen-Lorentz narrow co-fitted with a distinct 23.3 MHz broad, but good_err=False with err(0.26)=52% of value, failing the <0.5*value finite-error gate and appearing in only one subband (subband_0) at ~16 ch. Every other candidate has dnud >> floor (8, 12, 15, 24, 25, 28 MHz) and is either a lone broad single Lorentzian or noise-dominated (redchi 0.09-0.11, overfit) or a bad fit (redchi 7.33). The two valid=True entries (15.1, 24.5 MHz lone Lorentzians, redchi ~0.9) are broad single components with no narrow co-fit -> they characterize coarse spectral structure, not a diffractive scintle. No candidate matches the reference morphology (a finite-error 0.10-0.22 MHz narrow co-fitted with a 3-5 MHz broad, consistent across subbands). The resolvable fits return only broad scales consistent with or exceeding the large high-|b| MW floor, so no diffractive excess is detected.",
+    "adversarial_note": "Strongest counter: the subband_0 0.50 MHz Gen-Lorentz narrow (distinct from a real 23.3 MHz broad, redchi 0.89, not railed, 16 ch -> well-resolved) could be a genuine diffractive scale that I down-weighted only because err/value=0.52 narrowly exceeds the 0.5 cutoff. If real, dnud~0.50 MHz gives excess ~12x (floor 5.91/0.50), comparable to or exceeding the wilhelm/zach reference ~7x, which would make this a 'recovered' (and possibly is_lower_limit, since a single co-fit may leave finer structure unresolved). The non_detection call hinges on one marginal error-gate failure in one subband; a slightly looser threshold or a confirming refit in another subband would flip this to recovered."
+  }
+}

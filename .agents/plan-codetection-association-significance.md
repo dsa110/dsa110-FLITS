@@ -3,7 +3,8 @@
 ---
 **Date:** 2026-06-23
 **Author:** AI Assistant
-**Status:** Draft
+**Status:** Implemented — all 5 phases done & automated-verified (see
+[implement-codetection-association-significance.md](implement-codetection-association-significance.md)); manual verification pending
 **Codebase state:** `ab9d7f1` (2026-06-23)
 **Related Documents:**
 - [Research: co-detection validation rigor](research-codetection-validation-rigor.md)
@@ -477,7 +478,7 @@ open question)*
 **Files analyzed:** `crossmatching/toa_crossmatch.py:99,128,151,91-93`, `crossmatching/plotting.py:84,90,150`,
 `crossmatching/notebook_reproduction_fixture.json`, `tests/test_crossmatching_notebook_reproduction.py`,
 `.experiments/chance-coincidence/{inputs,estimator_analytic,estimator_mc,run}.py`.
-**External:** CHIME/FRB Catalogue 1 — Amiri et al. 2021, ApJS 257, 59; Petroff et al. 2018 (arXiv:1808.07809);
+**External:** CHIME/FRB Catalogue 1 — Amiri et al. 2021, ApJS 257, 59; Foster et al. 2018 (arXiv:1808.07809);
 Law et al. 2017 (arXiv:1705.07553).
 
 ---

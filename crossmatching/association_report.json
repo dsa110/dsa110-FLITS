@@ -1,0 +1,180 @@
+{
+  "inputs": {
+    "rate_per_day": 1000.0,
+    "omega_win_deg2": 0.7853981633974483,
+    "dt_s": 1.0,
+    "ddm": 5.0,
+    "dm_model": "lognormal(500,0.7) [assumption]"
+  },
+  "expected_chance_associations": 5.460165706874625e-08,
+  "bursts": [
+    {
+      "name": "zach",
+      "chime_id": "210456524",
+      "dm": 262.368,
+      "chance_coincidence_P": 6.262785512411995e-09,
+      "dm_agreement": {
+        "delta": null,
+        "sigma": null,
+        "n_sigma": null,
+        "consistent": null,
+        "reason": "no CHIME DM available"
+      },
+      "position_consistent": null
+    },
+    {
+      "name": "whitney",
+      "chime_id": "215063905",
+      "dm": 462.174,
+      "chance_coincidence_P": 5.400264901922469e-09,
+      "dm_agreement": {
+        "delta": null,
+        "sigma": null,
+        "n_sigma": null,
+        "consistent": null,
+        "reason": "no CHIME DM available"
+      },
+      "position_consistent": null
+    },
+    {
+      "name": "oran",
+      "chime_id": "224263996",
+      "dm": 396.882,
+      "chance_coincidence_P": 5.993225582479056e-09,
+      "dm_agreement": {
+        "delta": null,
+        "sigma": null,
+        "n_sigma": null,
+        "consistent": null,
+        "reason": "no CHIME DM available"
+      },
+      "position_consistent": null
+    },
+    {
+      "name": "isha",
+      "chime_id": "252069198",
+      "dm": 411.568,
+      "chance_coincidence_P": 5.871290675862895e-09,
+      "dm_agreement": {
+        "delta": null,
+        "sigma": null,
+        "n_sigma": null,
+        "consistent": null,
+        "reason": "no CHIME DM available"
+      },
+      "position_consistent": null
+    },
+    {
+      "name": "wilhelm",
+      "chime_id": "253635173",
+      "dm": 602.346,
+      "chance_coincidence_P": 4.0248395727360275e-09,
+      "dm_agreement": {
+        "delta": null,
+        "sigma": null,
+        "n_sigma": null,
+        "consistent": null,
+        "reason": "no CHIME DM available"
+      },
+      "position_consistent": null
+    },
+    {
+      "name": "phineas",
+      "chime_id": "274819243",
+      "dm": 610.274,
+      "chance_coincidence_P": 3.9521710348822126e-09,
+      "dm_agreement": {
+        "delta": null,
+        "sigma": null,
+        "n_sigma": null,
+        "consistent": null,
+        "reason": "no CHIME DM available"
+      },
+      "position_consistent": null
+    },
+    {
+      "name": "freya",
+      "chime_id": "278720455",
+      "dm": 912.4,
+      "chance_coincidence_P": 1.903084689836021e-09,
+      "dm_agreement": {
+        "delta": null,
+        "sigma": null,
+        "n_sigma": null,
+        "consistent": null,
+        "reason": "no CHIME DM available"
+      },
+      "position_consistent": null
+    },
+    {
+      "name": "johndoeII",
+      "chime_id": "311723353",
+      "dm": 696.506,
+      "chance_coincidence_P": 3.2236500135951474e-09,
+      "dm_agreement": {
+        "delta": null,
+        "sigma": null,
+        "n_sigma": null,
+        "consistent": null,
+        "reason": "no CHIME DM available"
+      },
+      "position_consistent": null
+    },
+    {
+      "name": "hamilton",
+      "chime_id": "318353610",
+      "dm": 518.799,
+      "chance_coincidence_P": 4.83459627886873e-09,
+      "dm_agreement": {
+        "delta": null,
+        "sigma": null,
+        "n_sigma": null,
+        "consistent": null,
+        "reason": "no CHIME DM available"
+      },
+      "position_consistent": null
+    },
+    {
+      "name": "mahi",
+      "chime_id": "354049284",
+      "dm": 960.128,
+      "chance_coincidence_P": 1.6942627301119728e-09,
+      "dm_agreement": {
+        "delta": null,
+        "sigma": null,
+        "n_sigma": null,
+        "consistent": null,
+        "reason": "no CHIME DM available"
+      },
+      "position_consistent": null
+    },
+    {
+      "name": "chromatica",
+      "chime_id": "356959136",
+      "dm": 272.664,
+      "chance_coincidence_P": 6.3298608576900506e-09,
+      "dm_agreement": {
+        "delta": null,
+        "sigma": null,
+        "n_sigma": null,
+        "consistent": null,
+        "reason": "no CHIME DM available"
+      },
+      "position_consistent": null
+    },
+    {
+      "name": "casey",
+      "chime_id": "362593221",
+      "dm": 491.207,
+      "chance_coincidence_P": 5.111624901132927e-09,
+      "dm_agreement": {
+        "delta": null,
+        "sigma": null,
+        "n_sigma": null,
+        "consistent": null,
+        "reason": "no CHIME DM available"
+      },
+      "position_consistent": null
+    }
+  ]
+}

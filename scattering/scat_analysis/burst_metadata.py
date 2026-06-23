@@ -44,13 +44,14 @@ def load_burst_metadata(csv_path: Optional[Path] = None) -> pd.DataFrame:
 
 # Canonical nickname -> TNS map. The preferred source, chimedsa_burst_specs.csv,
 # is gitignored and absent from clean checkouts, so this committed map is the
-# fallback used by load_tns_name. mahi and johndoeii carry corrections verified
-# against a TNS cone search (mahi: 20240119A -> 20240122A;
-# johndoeii: 20230814B -> 20230814A).
+# fallback used by load_tns_name. mahi carries a correction verified against a
+# TNS cone search (20240119A -> 20240122A). johndoeii uses the DSA-110 archive
+# designation FRB 20230814B (a.k.a. "johndoe"): the burst was double-reported to
+# TNS, also as 20230814A, but the data producer files it under B.
 _FALLBACK_TNS = {
     "zach": "FRB 20220207C", "whitney": "FRB 20220310F", "oran": "FRB 20220506D",
     "isha": "FRB 20221113A", "wilhelm": "FRB 20221203A", "phineas": "FRB 20230307A",
-    "freya": "FRB 20230325A", "johndoeii": "FRB 20230814A", "hamilton": "FRB 20230913A",
+    "freya": "FRB 20230325A", "johndoeii": "FRB 20230814B", "hamilton": "FRB 20230913A",
     "mahi": "FRB 20240122A", "chromatica": "FRB 20240203A", "casey": "FRB 20240229A",
 }
 

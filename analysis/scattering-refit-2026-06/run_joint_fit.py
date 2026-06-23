@@ -116,11 +116,15 @@ def main():
         "shared across both bands (gain-marginal, 8-dim) instead of per-band zeta; "
         "gives a single coherent burst across the full band",
     )
-    # Per-band PBF: CHIME and DSA are separate FRBModel instances, so each can carry
-    # its own pulse-broadening function. The wilhelm test showed the bands want
-    # different shapes (CHIME mildly prefers a Kolmogorov power-law tail, DSA an
-    # exponential), which a single global PBF cannot express.
-    ap.add_argument("--pbf-C", dest="pbf_C", default="exp", choices=["exp", "powerlaw"])
+    # Per-band PBF (DEFAULT): CHIME and DSA are separate FRBModel instances, so each
+    # carries its own pulse-broadening function. The wilhelm test showed the bands want
+    # different shapes -- CHIME mildly prefers a Kolmogorov power-law tail, DSA an
+    # exponential -- and CHIME-powerlaw/DSA-exp beats all-exp by dlnZ=+4.0
+    # (.agents/experiment-powerlaw-pbf.md). The Kolmogorov default (beta=11/3) is
+    # physically motivated, but the +4.0 evidence is wilhelm-only so far; revisit
+    # when more bursts carry per-band PBF evidence. Pass --pbf-C exp to revert CHIME
+    # to a single global exponential PBF.
+    ap.add_argument("--pbf-C", dest="pbf_C", default="powerlaw", choices=["exp", "powerlaw"])
     ap.add_argument("--pbf-D", dest="pbf_D", default="exp", choices=["exp", "powerlaw"])
     ap.add_argument("--beta-C", dest="beta_C", type=float, default=11.0 / 3.0)
     ap.add_argument("--beta-D", dest="beta_D", type=float, default=11.0 / 3.0)

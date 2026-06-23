@@ -172,6 +172,44 @@ BIC-selected; this is deliberate (BIC picks the best *descriptive* model, which 
 a real narrow diffractive component) and is why hamilton/chromatica were recovered as
 clean, but it is paired with rail/over-fit rejection to avoid spurious narrows.
 
+### Second electron-density model — does the excess survive? (YMW16 / NE2001)
+
+`scint_mw_models.py` recomputes the floor under two more Galactic models (YMW16, NE2001
+via pygedm; with a scipy `simps`→`simpson` shim), putting all three on a common footing —
+each model's scattering time τ@1 GHz is scaled to the DSA band and converted to a floor
+Δν_d via 2π·τ·Δν_d = C1 (C1 = 1.16). Only the electron model differs across columns, so
+the τ-derived NE2025 floor reproduces the published SBW-based excess exactly (ratio 1.00,
+asserted in-script), and model-to-model excess ratios are C1-/2π-/measurement-independent.
+
+| model | mid-latitude sightlines with excess > 2× (excess value) |
+|---|---|
+| NE2025 | 6/6 — zach 10.7, casey 9.6, wilhelm 8.0, hamilton 7.2, chromatica 5.9, oran 2.6 |
+| NE2001 | 6/6 — zach 7.3, casey 6.0, wilhelm 6.2, hamilton 4.8, chromatica 4.2, oran 2.2 |
+| YMW16  | 1/6 — only casey 4.8 |
+
+**The excess is robust across the two Cordes-family models (NE2025, NE2001)** — NE2001
+independently gives 4–7× on the same sightlines. **YMW16 erases it**, but does so by
+predicting a floor Δν_d *below* the measured value on 5/6 sightlines (floor excess < 1) —
+i.e. YMW16 says the smooth Galaxy alone scatters *more* than we observe, which is
+physically suspect and consistent with YMW16's documented unreliability for
+individual-sightline τ_sc. So the systematic is real insofar as one trusts NE2025/NE2001
+over YMW16; the sole model that removes the excess does so by over-predicting. (A truly
+independent pulsar/H I floor is still not available locally.)
+
+### Sightline attribution — is the excess an intervening galaxy/CGM? (no)
+
+`sightline_attribution.py` cross-matches the excess sightlines against the project's vetted
+intervening-systems catalog (`docs-analysis/foreground.md`, 49 objects classified
+confirmed/refuted/inconclusive with impact parameter b). **0/6 excess sightlines pierce the
+inner CGM (b < 100 kpc) of a CONFIRMED foreground galaxy.** The closest confirmed-foreground
+halos sit in the outer halo where CGM scattering measure is low (casey 171 kpc z=0.20;
+chromatica 228 kpc z=0.05); the rest are unreliable PS1-STRM photo-z (extrapolated /
+UNSURE), refuted background, or inconclusive (zach's only catalogued nearby object is a
+single inconclusive photo-z-extrapolated galaxy at b=76 kpc).
+**⇒ the excess favors a host / circumsource screen, not a specific intervening system.**
+Caveat: sparse spec-z on these fields cannot exclude a faint undetected intervening dwarf
+inside the inner CGM.
+
 ## Interpretation / consequences
 
 1. **Scattering and scintillation probe different screens on this sightline.** The α from
@@ -194,10 +232,14 @@ Promoted into the repo at `analysis/scattering-refit-2026-06/scint_census/`
 (scint_candidates.py + scint_mw_final.py are fully reproducible from in-repo configs):
 - Scripts: `scint_subband_alpha.py` (wilhelm subband Δν_d), `scint_mw_census.py`
   (BIC-only census, superseded), `scint_candidates.py` (all-stored-fits candidate menu),
-  `scint_mw_final.py` (recovery + NE2025-significance census), `figbank.py` (paper figures)
+  `scint_mw_final.py` (recovery + NE2025-significance census), `scint_mw_models.py`
+  (YMW16/NE2001 second-model cross-check), `sightline_attribution.py` (intervening-vs-host
+  attribution from `docs-analysis/foreground.md`), `figbank.py` (paper figures)
 - Results: `data/scint/{scint_candidates,scint_mw_final,scint_recover_verdicts,scint_mw_census,
-  wilhelm_scint_subband,wilhelm_ne2025_floor}.json` (`scint_recover_verdicts.json` = the 7
-  adversarial-judge verdicts; `scint_mw_final.json` = the final 12-burst census)
+  scint_mw_models,sightline_attribution,wilhelm_scint_subband,wilhelm_ne2025_floor}.json`
+  (`scint_recover_verdicts.json` = the 7 adversarial-judge verdicts; `scint_mw_final.json` =
+  the final 12-burst census; `scint_mw_models.json` = 3-model floor comparison;
+  `sightline_attribution.json` = per-sightline foreground attribution)
 - Figures (reviewed, verdict match): paper PDFs `pbf_shapes`, `wilhelm_pbf_evidence`,
   `wilhelm_scint_dnud_ne2025`, `codetection_scint_excess` folded into `Faber2026/figures/` +
   `Faber2026/figbank.tex`

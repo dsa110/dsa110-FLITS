@@ -1,0 +1,68 @@
+{
+  "inner_cgm_kpc": 100.0,
+  "n_inner_cgm": 0,
+  "bursts": {
+    "zach": {
+      "excess": 10.665263157894737,
+      "closest_confirmed": null,
+      "inner_cgm": false,
+      "verdict": "no confirmed intervening screen -> host/circumsource favored",
+      "n_confirmed": 0
+    },
+    "wilhelm": {
+      "excess": 8.049999999999999,
+      "closest_confirmed": null,
+      "inner_cgm": false,
+      "verdict": "no confirmed intervening screen -> host/circumsource favored",
+      "n_confirmed": 0
+    },
+    "hamilton": {
+      "excess": 7.247886070315976,
+      "closest_confirmed": null,
+      "inner_cgm": false,
+      "verdict": "no confirmed intervening screen -> host/circumsource favored",
+      "n_confirmed": 0
+    },
+    "chromatica": {
+      "excess": 5.914353687549564,
+      "closest_confirmed": {
+        "burst": "chromatica",
+        "type": "halo",
+        "survey": "WISE/PS1/STRM",
+        "b_kpc": 228.1,
+        "b_r500": "",
+        "z": "0.054",
+        "zsrc": "NED",
+        "verdict": "confirmed",
+        "note": "NED < host"
+      },
+      "inner_cgm": false,
+      "verdict": "confirmed fg only in OUTER halo -> weak screen; host/circumsource favored",
+      "n_confirmed": 1
+    },
+    "casey": {
+      "excess": 9.59854657564413,
+      "closest_confirmed": {
+        "burst": "casey",
+        "type": "halo",
+        "survey": "WISE/PS1/STRM",
+        "b_kpc": 170.6,
+        "b_r500": "",
+        "z": "0.203",
+        "zsrc": "DESI spec",
+        "verdict": "confirmed",
+        "note": "DESI spec < host"
+      },
+      "inner_cgm": false,
+      "verdict": "confirmed fg only in OUTER halo -> weak screen; host/circumsource favored",
+      "n_confirmed": 4
+    },
+    "oran": {
+      "excess": 2.6349040595222557,
+      "closest_confirmed": null,
+      "inner_cgm": false,
+      "verdict": "no confirmed intervening screen -> host/circumsource favored",
+      "n_confirmed": 0
+    }
+  }
+}

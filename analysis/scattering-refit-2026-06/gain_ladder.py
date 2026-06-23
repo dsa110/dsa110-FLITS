@@ -15,16 +15,21 @@ resolution.
 
   python gain_ladder.py <burst>     e.g.  python gain_ladder.py casey
 """
-import json, os, sys
+
+import json
+import os
+import sys
 from dataclasses import replace
+
 import numpy as np
 import yaml
+
 REPO = os.environ.get("FLITS_REPO", "/home/jfaber/flits/dsa110-FLITS")
 RUNS = os.environ.get("FLITS_RUNS", "/central/scratch/jfaber/flits-runs")
 sys.path.insert(0, f"{REPO}/scattering")
+from scat_analysis.burstfit import FRBParams
 from scat_analysis.config_utils import load_telescope_block
 from scat_analysis.pipeline.io import BurstDataset
-from scat_analysis.burstfit import FRBParams
 
 BURST = sys.argv[1] if len(sys.argv) > 1 else "freya"
 SUF = {"chime": "C", "dsa": "D"}
@@ -39,10 +44,21 @@ def ladder(tel):
 def build(tel, ff):
     cfg = yaml.safe_load(open(f"{RUNS}/configs/{BURST}_{tel}_run.yaml"))
     telb = load_telescope_block(cfg["telcfg_path"], cfg["telescope"])
-    ds = BurstDataset(cfg["path"], RUNS, name=f"{BURST}_{tel}_ff{ff}", telescope=telb,
-                      f_factor=int(ff), t_factor=int(cfg["t_factor"]),
-                      outer_trim=float(cfg.get("outer_trim", 0.15)),
-                      onpulse_crop=True, onpulse_pad_factor=0.5)
+    ds = BurstDataset(
+        cfg["path"],
+        RUNS,
+        name=f"{BURST}_{tel}_ff{ff}",
+        telescope=telb,
+        f_factor=int(ff),
+        t_factor=int(cfg["t_factor"]),
+        outer_trim=float(cfg.get("outer_trim", 0.15)),
+        # crop=False to match the frame the committed joint fits were made in:
+        # _crop_on_pulse (pipeline/io.py) re-zeroes the time axis, so crop=True
+        # moves the burst off the stored t0_{C,D} (fit on the uncropped centered
+        # window) -> M3 model lands off the burst -> matched-filter gain ~0/nan.
+        onpulse_crop=False,
+        onpulse_pad_factor=0.5,
+    )
     m = ds.model
     m.dm_init = float(cfg.get("dm_init", 0.0))
     return m
@@ -62,7 +78,7 @@ def gain_var(m, p, model="M3"):
     if sig.ndim > 1:
         sig = sig[:, 0]
     sig = np.clip(sig, 1e-12, None)
-    v = np.where(ok, sig ** 2 / np.where(ok, S_kk, 1.0), np.nan)
+    v = np.where(ok, sig**2 / np.where(ok, S_kk, 1.0), np.nan)
     return m.freq.copy(), g, v
 
 
@@ -79,15 +95,24 @@ def main():
             except Exception as e:
                 print(f"{tel} ff{ff}: BUILD FAIL {e}")
                 continue
-            pp = FRBParams(c0=1.0, t0=p[f"t0_{s}"], gamma=0.0, zeta=p[f"zeta_{s}"],
-                           tau_1ghz=tau, alpha=al, delta_dm=p[f"delta_dm_{s}"])
+            pp = FRBParams(
+                c0=1.0,
+                t0=p[f"t0_{s}"],
+                gamma=0.0,
+                zeta=p[f"zeta_{s}"],
+                tau_1ghz=tau,
+                alpha=al,
+                delta_dm=p[f"delta_dm_{s}"],
+            )
             fr, g, v = gain_var(m, pp)
             cw = float(np.nanmedian(np.abs(np.diff(fr)))) * 1e3
             snr = float(np.nanmedian(g / np.sqrt(v)))
             out[f"freq_{s}_ff{ff}"] = fr
             out[f"gain_{s}_ff{ff}"] = g
             out[f"var_{s}_ff{ff}"] = v
-            print(f"{tel:5s} ff{ff:<4d}: {fr.size:4d} ch  {cw:7.3f} MHz/ch  med gain S/N={snr:6.1f}")
+            print(
+                f"{tel:5s} ff{ff:<4d}: {fr.size:4d} ch  {cw:7.3f} MHz/ch  med gain S/N={snr:6.1f}"
+            )
     fp = f"{RUNS}/data/joint/{BURST}_gainladder.npz"
     np.savez_compressed(fp, **out)
     print(f"wrote {fp}")

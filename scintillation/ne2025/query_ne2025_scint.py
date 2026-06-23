@@ -30,6 +30,10 @@ from mwprop.nemod.NE2025 import ne2025
 
 EDGE_KPC = 30.0  # integrate to the Galactic boundary (NE2025 caps at the edge)
 
+# Band centres (MHz) = midpoints of f_min/f_max in configs/telescopes.yaml.
+# CHIME 400.19-800.19, DSA 1311.25-1498.75.
+BAND_CENTERS_MHZ = {"CHIME": 600.19, "DSA": 1405.0}
+
 
 # ---------------------------------------------------------------------------
 def coord_from_row(row):
@@ -73,14 +77,71 @@ def query_single(coord_icrs, freq_mhz, alpha=4.4):
     return tau_ms, bw_kHz
 
 
+def galactic_floor(coord_icrs, bands=BAND_CENTERS_MHZ, alpha=4.4):
+    """MW scattering floor at each band centre for one sky position.
+
+    Returns {band: {"tau_ms": .., "bw_kHz": ..}}. Integrated to the Galactic
+    edge, so it is z-independent and applies to every burst regardless of host
+    redshift. The floor is the Galactic-vs-extragalactic discriminator: measured
+    tau/Dnu well above this floor implies an extragalactic (host/intervening)
+    screen.
+    """
+    return {
+        b: dict(zip(("tau_ms", "bw_kHz"), query_single(coord_icrs, f, alpha), strict=True))
+        for b, f in bands.items()
+    }
+
+
+def floor_for_bursts(catalog_path="configs/bursts.yaml", bands=BAND_CENTERS_MHZ, alpha=4.4):
+    """Per-burst MW floor table from the burst catalog (one row per burst)."""
+    from pathlib import Path
+
+    import yaml
+
+    cat = Path(catalog_path)
+    if not cat.is_absolute():
+        cat = Path(__file__).resolve().parents[2] / catalog_path
+    bursts = yaml.safe_load(cat.read_text())["bursts"]
+
+    rows = []
+    for name, b in bursts.items():
+        coord = SkyCoord(ra=b["ra_deg"] * u.deg, dec=b["dec_deg"] * u.deg, frame="icrs")
+        row = {
+            "burst": name,
+            "l_deg": coord.galactic.l.value,
+            "b_deg": coord.galactic.b.value,
+        }
+        for band, vals in galactic_floor(coord, bands, alpha).items():
+            row[f"tau_ms_{band}"] = vals["tau_ms"]
+            row[f"bw_kHz_{band}"] = vals["bw_kHz"]
+        rows.append(row)
+    return pd.DataFrame(rows)
+
+
 # ---------------------------------------------------------------------------
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("infile", help="Input CSV/TSV with sky positions")
+    p.add_argument(
+        "infile", nargs="?", help="Input CSV/TSV with sky positions (omit with --bursts)"
+    )
+    p.add_argument(
+        "--bursts",
+        action="store_true",
+        help="Emit per-burst MW floor at CHIME+DSA band centres from configs/bursts.yaml (ignores infile/--freq)",
+    )
     p.add_argument("--freq", type=float, default=600.0, help="Frequency in MHz (default 600)")
     p.add_argument("--alpha", type=float, default=4.4, help="Scattering index α (default 4.4)")
     p.add_argument("--out", default="ne2025_results.csv", help="Output CSV file name")
     args = p.parse_args()
+
+    if args.bursts:
+        df = floor_for_bursts(alpha=args.alpha)
+        df.to_csv(args.out, index=False)
+        print(f"[ok] {len(df)} bursts -> '{args.out}' (MW floor at CHIME+DSA)")
+        return
+
+    if not args.infile:
+        p.error("infile is required unless --bursts is given")
 
     # Load table (auto-detect separator)
     df = pd.read_csv(args.infile, sep=None, engine="python")

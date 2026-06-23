@@ -47,6 +47,12 @@ def use_flits_style(style: list[str] | None = None) -> None:
         return
 
     plt.style.use(style)
+    plt.rcParams['text.usetex'] = False
+    plt.rcParams['font.family'] = 'serif'
+    plt.rcParams['font.serif'] = ['cmr10']
+    plt.rcParams['mathtext.fontset'] = 'cm'
+    plt.rcParams['axes.formatter.use_mathtext'] = True
+    plt.rcParams['axes.unicode_minus'] = False
 
 
 # Automatically apply the style when this module is imported

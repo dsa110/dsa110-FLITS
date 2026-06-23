@@ -1,0 +1,51 @@
+# Default Matplotlib Style for dsa110-FLITS
+# Combines 'science' + 'notebook' with native Computer Modern font overrides
+
+# Text and Font
+text.usetex          : False
+font.family          : serif
+font.serif           : cmr10, DejaVu Serif, Times New Roman, serif
+mathtext.fontset     : cm
+
+# Axes and Math Formatting
+axes.formatter.use_mathtext : True
+axes.unicode_minus   : False
+axes.labelsize       : 16.0
+axes.linewidth       : 1.0
+axes.titlesize       : 16.0
+axes.prop_cycle      : cycler('color', ['#0C5DA5', '#00B945', '#FF9500', '#FF2C00', '#845B97', '#474747', '#9e9e9e'])
+
+# Figure
+figure.figsize       : 8.0, 6.0
+
+# Grid and Lines
+grid.linewidth       : 1.0
+lines.linewidth      : 2.0
+
+# Legend
+legend.fontsize      : 16.0
+legend.frameon       : False
+legend.title_fontsize: 16.0
+
+# Savefig
+savefig.bbox         : tight
+savefig.pad_inches   : 0.05
+
+# Ticks
+xtick.direction      : in
+xtick.labelsize      : 16.0
+xtick.major.size     : 6.0
+xtick.major.width    : 1.0
+xtick.minor.size     : 3.0
+xtick.minor.visible  : True
+xtick.minor.width    : 1.0
+xtick.top            : True
+
+ytick.direction      : in
+ytick.labelsize      : 16.0
+ytick.major.size     : 6.0
+ytick.major.width    : 1.0
+ytick.minor.size     : 3.0
+ytick.minor.visible  : True
+ytick.minor.width    : 1.0
+ytick.right          : True

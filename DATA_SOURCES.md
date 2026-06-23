@@ -60,6 +60,28 @@ Surfaced while building the manifest. CHIME configs are clean; DSA needs care:
 - Note: DSA `path:` values are double-quoted YAML (`path: "..."`) while CHIME are
   unquoted — both valid; a DSA batch runner must strip the quotes when extracting
   the path (the current `run_all_chime_bursts.sh` is CHIME-only).
+- **OPEN: stored scintillation does not reproduce from the current arc files +
+  committed joint fits** (investigated 2026-06-22; root cause NOT yet isolated —
+  do not trust a one-line explanation). All 24 arc spectra were fetched to
+  `~/Developer/dsa110-local-data/DSA_bursts/` and load with correct shapes
+  (DSA `(6144, 2500)`, CHIME `(1024, 32000)`). Re-running the scint chain
+  (`gain_ladder.py` → `multiscale_fit.py`) on those files using the committed
+  `joint_json/*_joint_fit.json` reproduces the stored Δν for **freya CHIME**
+  (verified: dnu_1L ladder ≈ stored) but gives matched-filter **gain S/N ≈ 0**
+  (model pulse off the burst) for most band-instances — and the pattern is
+  burst/band-specific, NOT a clean "CHIME good / DSA bad" split (alive: freya/
+  chromatica/isha/oran CHIME, whitney DSA; dead: most others incl. several CHIME).
+  Symptoms seen, cause unconfirmed: (a) many joint-fit `t0_C`/`t0_D` cluster at
+  ~28.5 ms (plausibly just onpulse-crop centering in a ~57 ms window, not
+  necessarily placeholder); (b) some `t0` are wild (mahi `t0_D`=183 ms); (c) DSA
+  onpulse crops sometimes collapse to <1.5 ms. Candidate causes to check before
+  any conclusion: the joint fits were produced with different `BurstDataset`
+  framing (`f_factor`/`t_factor`/`outer_trim`/crop) than `configs/batch/*`; arc
+  files were re-generated/re-centered vs the joint-fit inputs; or a DSA-loader/
+  crop bug. Until reconciled, treat stored Δν/τ as not-yet-regenerable from the
+  arc data. (NOTE: an earlier version of this bullet claimed a clean "DSA
+  re-centered ~82 ms vs t0_D ~30 ms, 47–54 ms offset" — that was a raw-frame `dt`
+  artifact + n=1 overgeneralization and is RETRACTED.)
 
 CHIME path bugs already fixed: `johndoeII_chime.yaml` had `johndoeII_dsa.yaml_chime_...`
 spliced into the filename (commit `88747e7`); `casey_chime.yaml` repointed from a

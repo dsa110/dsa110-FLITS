@@ -1,0 +1,99 @@
+{
+    "210456524": {
+        "chimeid": "210456524",
+        "dm_fd_max": 262.38,
+        "dm_fd_mean": 262.38,
+        "dm_fd_sum": 262.392,
+        "dm_sn": 262.404,
+        "name": "zach",
+        "status": "Processed"
+    },
+    "215063905": {
+        "chimeid": "215063905",
+        "dm_fd_max": 462.182,
+        "dm_fd_sum": 462.202,
+        "dm_sn": 462.186,
+        "name": "whitney",
+        "status": "Processed"
+    },
+    "224263996": {
+        "chimeid": "224263996",
+        "dm_fd_max": 396.73,
+        "dm_fd_sum": 396.73,
+        "dm_sn": 397.122,
+        "name": "oran",
+        "status": "Processed"
+    },
+    "252069198": {
+        "chimeid": "252069198",
+        "dm_fd_max": 411.568,
+        "dm_fd_sum": 411.796,
+        "dm_sn": 411.796,
+        "name": "isha",
+        "status": "Processed"
+    },
+    "253635173": {
+        "chimeid": "253635173",
+        "dm_fd_max": 602.646,
+        "dm_fd_sum": 602.646,
+        "dm_sn": 602.358,
+        "name": "wilhelm",
+        "status": "Processed"
+    },
+    "274819243": {
+        "chimeid": "274819243",
+        "dm_fd_max": 610.266,
+        "dm_fd_sum": 610.546,
+        "dm_sn": 610.546,
+        "name": "phineas",
+        "status": "Processed"
+    },
+    "278720455": {
+        "chimeid": "278720455",
+        "dm_fd_max": 912.46,
+        "dm_fd_sum": 912.468,
+        "dm_sn": 912.476,
+        "name": "freya",
+        "status": "Processed"
+    },
+    "311723353": {
+        "chimeid": "311723353",
+        "dm_fd_max": 696.514,
+        "dm_fd_sum": 696.534,
+        "dm_sn": 696.538,
+        "name": "johndoeII",
+        "status": "Processed"
+    },
+    "318353610": {
+        "chimeid": "318353610",
+        "dm_fd_max": 518.811,
+        "dm_fd_sum": 518.791,
+        "dm_sn": 518.795,
+        "name": "hamilton",
+        "status": "Processed"
+    },
+    "354049284": {
+        "chimeid": "354049284",
+        "dm_fd_max": 960.132,
+        "dm_fd_sum": 960.12,
+        "dm_sn": 960.2,
+        "name": "mahi",
+        "status": "Processed"
+    },
+    "356959136": {
+        "chimeid": "356959136",
+        "dm_fd_max": 272.66,
+        "dm_fd_sum": 272.68,
+        "dm_sn": 272.692,
+        "name": "chromatica",
+        "status": "Processed"
+    },
+    "362593221": {
+        "chimeid": "362593221",
+        "dm_fd_max": 491.223,
+        "dm_fd_sum": 491.219,
+        "dm_sn": 491.207,
+        "name": "casey",
+        "status": "Processed"
+    }
+}

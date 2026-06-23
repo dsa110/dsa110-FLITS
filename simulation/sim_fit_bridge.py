@@ -8,13 +8,14 @@ Unit conventions differ across the boundary:
   simulator  -> I[time, freq], time in s, freq in Hz
   burstfit   -> data[freq, time], time in ms, freq in GHz, df in MHz (native channel)
 """
+
 from __future__ import annotations
 
 import os
 import sys
 
-import numpy as np
 import astropy.units as u
+import numpy as np
 
 # simulation/ is a bare-import dir (engine does `from screen import ...`, not relative),
 # so it must be on sys.path for `from engine import ...` to resolve regardless of caller cwd.
@@ -22,11 +23,12 @@ _HERE = os.path.dirname(os.path.abspath(__file__))
 if _HERE not in sys.path:
     sys.path.insert(0, _HERE)
 
-from engine import SimCfg, FRBScintillator  # noqa: E402
+from engine import FRBScintillator, SimCfg  # noqa: E402
+
 from scattering.scat_analysis.burstfit import (  # noqa: E402
+    FRBFitter,
     FRBModel,
     FRBParams,
-    FRBFitter,
     build_priors,
 )
 
@@ -106,6 +108,14 @@ def roundtrip(cfg: SimCfg, duration: u.Quantity, *, alpha: float = 4.0, rng=None
 
     tau_true is at nu0; the fitter reports tau at 1 GHz, so scale to nu0 by nu0^-alpha
     before comparing (tau ∝ nu^-alpha).
+
+    CAVEAT (narrow band): the nu0^-alpha rescale is only valid when the band is
+    wide enough to constrain the tau-nu lever. For a narrow fractional band (e.g.
+    25 MHz at 800 MHz) the fitter cannot separate tau_1ghz from alpha, so its
+    tau_1ghz comes out ~= tau at the data band, not at 1 GHz -- multiplying again
+    by nu0^-alpha then double-counts it (a constant ~nu0^-alpha bias). For
+    narrow-band recovery compare the raw tau_1ghz to tau_true; see
+    recovery_campaign.recover_stacked.
     """
     sim, (data, time_ms, freq_ghz, df_MHz), tau_true_ms = simulate_scattered_burst(
         cfg, duration, rng=rng

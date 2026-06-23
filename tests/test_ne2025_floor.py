@@ -8,6 +8,14 @@ import numpy as np
 import pytest
 from astropy.coordinates import SkyCoord
 
+# query_ne2025_scint imports mwprop.nemod.NE2025 at module load; mwprop (NE2001p/NE2025,
+# `pip install mwprop`) is an optional dep, guarded gracefully elsewhere (priors_physical.py).
+# Skip the whole module when it is absent so collection does not error.
+pytest.importorskip(
+    "mwprop.nemod.NE2025",
+    reason="NE2025 Galactic-floor tests need the optional mwprop package (pip install mwprop)",
+)
+
 _MOD = (
     pathlib.Path(__file__).resolve().parents[1]
     / "scintillation"

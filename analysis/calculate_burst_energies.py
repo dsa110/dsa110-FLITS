@@ -67,6 +67,21 @@ PLACEHOLDER_Z = 1.0  # Freya/Mahi/Johndoeii carry z=1.0000 as a "redshift unknow
 # (chime_sefd.csv). Lognormal: fractional sigma = ln(10)*dex. Dominates the c0 statistical error.
 BAND_SYS_DEX = {"C": 0.25, "D": 0.20}
 
+# Host-redshift provenance (nick -> (quality, source)). All 8 E_iso hosts are spectroscopic;
+# hamilton/chromatica have no published host paper yet (value repo-internal, provenance TBD).
+# Sharma+2024 (arXiv:2409.16964) Gold sample; Connor+2024 (arXiv:2409.16952) Keck/MOSFIRE for
+# wilhelm. See docs/rse/specs/research-energetics-followups.md. Surfaced as row["z_src"].
+Z_PROVENANCE = {
+    "zach": ("spec", "Sharma+2024 Keck/LRIS"),
+    "whitney": ("spec", "Sharma+2024 Keck/LRIS"),
+    "oran": ("spec", "Sharma+2024 Keck/LRIS"),
+    "isha": ("spec", "Sharma+2024 P200/DBSP"),
+    "phineas": ("spec", "Sharma+2024 Keck/DEIMOS"),
+    "wilhelm": ("spec", "Connor+2024 Keck/MOSFIRE"),
+    "hamilton": ("spec-provisional", "unpublished host; provenance TBD"),
+    "chromatica": ("spec-provisional", "unpublished host; provenance TBD"),
+}
+
 
 def band_edges_hz() -> dict[str, tuple[float, float, float]]:
     """(nu1, nu2, nu_ref) in Hz per band from the instrument config (band centre = ref)."""
@@ -176,6 +191,7 @@ def compute(scales: dict[str, float | str | None] | None = None) -> list[dict]:
             "I_CHIME_native_ms_Hz": I_C,  # band fluence integral, NATIVE units
             "I_DSA_native_ms_Hz": I_D,
             "calibrated": calibrated,
+            "z_src": Z_PROVENANCE.get(nick, ("unknown", ""))[0],
         }
         if I_C_jy is not None:
             row["I_CHIME_jy_ms_hz"] = I_C_jy

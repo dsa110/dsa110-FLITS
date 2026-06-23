@@ -322,7 +322,7 @@ The independent validation pass (`docs/rse/specs/validation-radiometer-flux-cal.
 absolute Jy scale is **empirically catalog-anchored for only a subset of the sample**, so the energy
 table's calibration confidence is not uniform across sightlines. Scope precisely:
 
-1. **Absolute-scale cross-check covers 3 sightlines, not all.** `test_joint_band_fluence_matches_catalog_scale`
+1. **Absolute-scale cross-check covers 3 sightlines, not all.** `test_dsa_fluence_matches_catalog_scale`
    compares the model-based DSA fluence to the Law+2024 catalog for **oran (0.99×), zach (1.27×), and
    whitney (2.15×)** — the only co-detections with a published catalog fluence in the repo. The other
    DSA-band fluences (isha, phineas, wilhelm, hamilton, chromatica) rely on the radiometer model
@@ -345,3 +345,28 @@ table's calibration confidence is not uniform across sightlines. Scope precisely
 **Net:** the energies are correct given the model, catalog-anchored to ~2× for oran/zach/whitney, and
 band-restricted lower limits throughout. The manuscript and any energetics claim should state the
 absolute scale is catalog-validated for the 3 anchored bursts rather than implying uniform validation.
+
+## Follow-up audit (2026-06-23) — the 3-burst anchor is structural; redshift provenance recorded
+
+A dedicated literature + codebase pass (`docs/rse/specs/research-energetics-followups.md`) resolved
+the two open scope items above:
+
+1. **The catalog cross-check cannot be widened — it is a structural limit, not an oversight.**
+   Law+2024 (arXiv:2307.03344) Table 1 is the *only* published DSA-110 catalog tabulating per-burst
+   fluence in Jy·ms, and it contains **11 FRBs, all from the Feb–Oct 2022 science-commissioning
+   window**; zach/whitney/oran are the only FLITS co-detections in it. Every other co-detection
+   (isha Nov 2022, wilhelm Dec 2022, phineas/freya 2023, hamilton Sep 2023, chromatica/mahi/casey
+   2024) is outside that window. Later DSA-110 papers do **not** republish fluences — Sharma+2024
+   (arXiv:2409.16964) tabulates host astrometry/redshift only (no fluence column); Sherman+2024
+   (arXiv:2308.06813) is polarimetry on the same 2022 sample. So no published value exists to add.
+   **Do not promote any model-based fluence into the `CATALOG` dict** — those are FLITS radiometer
+   outputs, not catalog measurements; doing so would fabricate a "published" anchor.
+
+2. **Redshift provenance: all 8 E_iso hosts are spectroscopic; none photometric.** Six have a
+   published spectroscopic redshift — zach/whitney/oran (Sharma+2024 Gold, Keck/LRIS), isha
+   (Sharma+2024 Gold, P200/DBSP), phineas (Sharma+2024 Gold, Keck/DEIMOS), wilhelm (Connor+2024
+   arXiv:2409.16952, Keck/MOSFIRE). Two — **hamilton (FRB 20230913A) and chromatica (FRB 20240203A)**
+   — post-date Sharma+2024 and have **no published host paper**; their z is repo-internal and
+   provisional. This is now encoded as data (`Z_PROVENANCE` in `calculate_burst_energies.py`,
+   surfaced as `row["z_src"]` in `burst_energies.json`) and flagged in the manuscript table, rather
+   than living only in this prose. There is no photometric host z to demote.

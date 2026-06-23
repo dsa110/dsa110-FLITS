@@ -54,3 +54,12 @@ def test_dsa_burst_config_resolves():
     npy, f_factor, t_factor = _dsa_burst_config("chromatica")
     assert npy.name == "chromatica_dsa_I_272_368_2500b_cntr_bpc.npy"
     assert f_factor == 384 and t_factor == 2
+
+
+def test_z_provenance_flags_unpublished_hosts():
+    # every E_iso host has a redshift-provenance entry; only hamilton/chromatica are provisional
+    # (no published host paper). Guards against silently presenting an unpublished z as catalog spec.
+    energy = {"zach", "whitney", "oran", "isha", "phineas", "wilhelm", "hamilton", "chromatica"}
+    assert energy <= set(E.Z_PROVENANCE)
+    provisional = {n for n, (q, _) in E.Z_PROVENANCE.items() if q.endswith("provisional")}
+    assert provisional == {"hamilton", "chromatica"}

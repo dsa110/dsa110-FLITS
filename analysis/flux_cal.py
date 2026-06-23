@@ -258,7 +258,10 @@ def _band_noise_grid(npy, telescope, f_factor, t_factor):
         valid = m.valid if m.valid.ndim == 1 else np.any(m.valid, axis=1)
     else:
         valid = np.isfinite(ns) & (ns > 0)
-    valid = valid & np.isfinite(ns) & (ns > 1e-6 * np.nanmedian(ns[valid]))  # drop masked channels
+    if valid.any():  # all-masked band -> leave valid all-False, no empty-slice nanmedian warning
+        valid = (
+            valid & np.isfinite(ns) & (ns > 1e-6 * np.nanmedian(ns[valid]))
+        )  # drop masked channels
     return m.freq * 1e9, ns, ds.dt_ms, ds.df_MHz * 1e6, valid
 
 

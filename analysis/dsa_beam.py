@@ -27,6 +27,7 @@ burst's epoch. See analysis/burst_energies/CALIBRATION_REVIEW.md.
 from __future__ import annotations
 
 import os
+from functools import lru_cache
 from pathlib import Path
 
 import numpy as np
@@ -53,6 +54,7 @@ def _default_beam() -> Path:
 DEFAULT_BEAM = _default_beam()
 
 
+@lru_cache(maxsize=2)  # ponytail: cache the ~345 MB cube; beam_gain reloads it once per channel
 def load_power_beam(path: str | Path = DEFAULT_BEAM):
     """(freq_ghz, theta_deg, phi_deg, P) with P normalized to boresight=1 per frequency."""
     import h5py

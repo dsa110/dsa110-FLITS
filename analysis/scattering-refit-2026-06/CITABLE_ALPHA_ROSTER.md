@@ -28,12 +28,12 @@ documented "off-Kolmogorov" reason = a real, well-fit, shallow α.
 | chromatica | 3.284 +0.040/−0.040  | 1.14/1.16  | no   | PASS | PASS     | **CITABLE** |
 | mahi       | 2.806 +1.660/−1.245  | 1.12/0.86  | YES  | PASS | PASS     | EXCLUDE — α unconstrained (rail, σ≈1.5) |
 | oran       | 2.663 +0.161/−0.180  | 1.04/1.16  | no   | PASS | PASS     | **CITABLE** |
-| wilhelm    | 2.557 +0.039/−0.039  | 1.14/4.55  | no   | PASS | MARGINAL | SUSPECT — DSA χ²=4.55, shared-zeta law misfits DSA; α a forced compromise |
+| wilhelm    | 2.557 +0.039/−0.039  | 1.14/4.55  | no   | PASS | MARGINAL | CITABLE (caveat) — α robust (per-band-zeta cross-check 2.625), DSA χ²=4.6 is bright-burst inflation, not α-driven |
 | casey      | 2.396 +0.014/−0.015  | 1.41/0.99  | no   | PASS | PASS     | **CITABLE** |
 | johndoeII  | 1.529 +0.092/−0.088  | 1.04/1.27  | no   | PASS | PASS     | **CITABLE** — sole genuine sub-Kolmogorov, well-fit BOTH bands |
 | isha       | 5.302 +0.579/−3.515  | 1.33/0.93  | YES  | PASS | PASS     | EXCLUDE — DSA non-det, α rails 6.0 (σ−=3.5) |
-| phineas    | (refitting C3D3)     | —          | —    | —    | —        | PENDING — 64544411 (16 cores, 5h wall; prior C3D3 TIMEOUT at 30 min) |
-| hamilton   | non-identifiable     | —          | —    | —    | —        | EXCLUDE from α — CHIME↔DSA component-correspondence ambiguity; per-band τ + DSA limit reported instead |
+| phineas    | 3.320 +0.060/−0.064  | 1.02/1.34  | no   | PASS | PASS     | **CITABLE** — C3D3 (3+3 comp), both bands clean; landed 16-core/52-min run |
+| hamilton   | non-identifiable     | —          | —    | —    | —        | EXCLUDE from α — CHIME↔DSA component-correspondence ambiguity; per-band: CHIME τ≈0.020 ms (χ²=3.36, single-comp on a multi-comp band), DSA τ→0 (non-detection, upper limit) |
 
 ## Summary
 
@@ -41,7 +41,16 @@ documented "off-Kolmogorov" reason = a real, well-fit, shallow α.
   casey 2.40, johndoeII 1.53. Predominantly **sub-Kolmogorov**, tight grouping ~2.4–3.3.
 - **johndoeII** is the sole genuine sub-K case (1.53) AND well-fit in both bands —
   the strongest shallow-α detection, not a rail artifact.
-- **wilhelm** flagged: DSA χ²=4.55 under the shared-zeta law → α=2.56 suspect; needs
-  a per-band-zeta cross-check before citing (decision pending).
+- **wilhelm** resolved → CITABLE with caveat: α=2.557 (shared-zeta canonical) is
+  robust — the per-band-zeta cross-check gives 2.625 with the SAME DSA χ²≈4.6, so
+  the elevated DSA χ² is the very bright (peak ≈47σ), narrow DSA burst inflating
+  reduced-χ², not an α-driven model failure. Cite α≈2.6 with the DSA fit-quality note.
 - **mahi, isha** excluded: α prior-railed / unconstrained (DSA non-detections).
-- **phineas** pending refit; **hamilton** excluded from α (single-band per-band τ only).
+- **phineas** landed (C3D3, both bands clean, χ² 1.02/1.34): α=3.32. **hamilton**
+  excluded from α — per-band τ only (CHIME ≈0.020 ms, DSA non-detection upper limit).
+
+**8 citable α (final):** johndoeII 1.53, casey 2.40, wilhelm 2.56, oran 2.66,
+chromatica 3.28, zach 3.32, phineas 3.32, freya 4.36. A 9th, whitney (FRB 20220310F)
+α=5.1±0.2, is the multiplicity exemplar (separate local C2D2 fit, in the manuscript
+prose). Sub-Kolmogorov dominates (7 of 8 tabulated below α=4, median ≈2.9); johndoeII
+is the only α<2.0, well-fit in both bands. In Faber2026 as Table 4 (`alpha_table.tex`).

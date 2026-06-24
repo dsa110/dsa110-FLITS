@@ -1,0 +1,10 @@
+{
+  "burst": "phineas",
+  "alpha": 3.320325180826794,
+  "tau_1ghz": 0.30183486547951716,
+  "chi2_chime": 1.022529543856026,
+  "chi2_dsa": 1.3423982374298828,
+  "components_C": 3,
+  "components_D": 3,
+  "suffix": "_C3D3_pbf-exp-exp"
+}

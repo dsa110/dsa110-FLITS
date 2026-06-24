@@ -49,3 +49,24 @@ def test_floor_for_all_bursts():
         assert col in df.columns
     for col in ("tau_ms_CHIME", "bw_kHz_CHIME", "tau_ms_DSA", "bw_kHz_DSA"):
         assert np.all(np.isfinite(df[col])) and np.all(df[col] > 0)
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize("model", ["ne2001", "ymw16"])
+def test_pygedm_floor_finite_positive(model):
+    """The pygedm-backed (NE2001/YMW16) floor is a finite, positive prediction.
+
+    The analytic band-scaling (tau~nu^-alpha, Dnu~nu^+alpha) is model-independent
+    and already covered by test_band_scaling_is_analytic; here we only assert the
+    swapped electron-density model yields a usable floor."""
+    # pygedm bare-imports raise on SciPy>=1.14 (integrate.simps removed); the
+    # _load_pygedm shim is the only working entry, so skip on its result.
+    from galaxies.v2_0.sightline_budget import _load_pygedm
+
+    if not _load_pygedm():
+        pytest.skip("pygedm unavailable")
+    coord = SkyCoord(ra=169.98 * u.deg, dec=70.68 * u.deg, frame="icrs")  # casey
+    floor = q.galactic_floor(coord, q.BAND_CENTERS_MHZ, model=model)
+    for band in ("CHIME", "DSA"):
+        for k in ("tau_ms", "bw_kHz"):
+            assert floor[band][k] > 0 and np.isfinite(floor[band][k])

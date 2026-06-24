@@ -21,6 +21,7 @@ OUTPUT : CSV with tau_ms_<freq>MHz and bw_kHz_<freq>MHz (the predicted MW floor)
 """
 
 import argparse
+import math
 import re
 
 import astropy.units as u
@@ -61,38 +62,68 @@ def coord_from_row(row):
     raise ValueError("Row is missing a recognisable coordinate column set.")
 
 
-def query_single(coord_icrs, freq_mhz, alpha=4.4):
+def _tau_sbw_1ghz(gl, gb, model):
+    """Return (tau_ms, sbw_MHz) @1 GHz of the MW floor toward Galactic (gl, gb).
+
+    model='ne2025' uses NE2025's native TAU and SBW (the existing path).
+    model in {'ne2001','ymw16'} reuses galaxies.v2_0.sightline_budget.galactic_dm_tau
+    (compiled pygedm NE2001/YMW16, with the scipy.simps shim + bare-float fallback) for
+    tau @1 GHz to the SAME Galactic edge distance (EDGE_KPC). pygedm returns no
+    scintillation bandwidth, so Dnu_d is derived from
+        Dnu_d = C1 / (2*pi*tau),  C1=1.16
+    the uniform/extended-medium Kolmogorov value (Cordes & Rickett 1998, Table 2) --
+    appropriate for the disk-integrated MW floor (cf. thin-screen C1=1.53). This is an
+    ASYMMETRY vs NE2025, whose SBW is the model's native value; the excess-survival
+    claim uses tau (not Dnu), so this C1 choice does not affect the headline numbers.
+    """
+    if model == "ne2025":
+        Dk, Dv, Du, Dd = ne2025(
+            ldeg=gl, bdeg=gb, dmd=EDGE_KPC, ndir=-1, classic=False, dmd_only=False
+        )
+        return Dv["TAU"], Dv["SBW"]
+    from galaxies.v2_0.sightline_budget import galactic_dm_tau
+
+    *_, tau_ms = galactic_dm_tau(gl, gb, method=model, dist_pc=EDGE_KPC * 1e3)  # kpc -> pc
+    if math.isnan(tau_ms):
+        raise RuntimeError("pygedm unavailable; cannot use model=" + model)
+    sbw_mhz = 1.16 / (2.0 * math.pi * tau_ms * 1e-3) * 1e-6  # C1/(2*pi*tau[s]) [Hz]->MHz
+    return tau_ms, sbw_mhz
+
+
+def query_single(coord_icrs, freq_mhz, alpha=4.4, model="ne2025"):
     """Return (tau_scatt_ms, Dnu_scint_kHz) of the MW floor at freq_mhz.
 
-    Uses NE2025's native TAU and SBW (both reported @1 GHz) and scales them by
-    nu^-alpha / nu^+alpha (alpha=4.4 = 22/5; scattering_functions2020.py:90,
-    tauiss ~ nu^-4.4). Taking SBW from the model preserves NE2025's C1=1.16,
-    unlike re-deriving Dnu_d = 1/(2*pi*tau) which implicitly assumes C1=1.
+    tau and SBW are taken @1 GHz (model-dependent; see _tau_sbw_1ghz) and scaled
+    by nu^-alpha / nu^+alpha (alpha=4.4 = 22/5; scattering_functions2020.py:90,
+    tauiss ~ nu^-4.4). pygedm's tau is referenced @1 GHz, the same as NE2025, so
+    the band-scaling is identical across models.
     """
     gl, gb = coord_icrs.galactic.l.value, coord_icrs.galactic.b.value
-    Dk, Dv, Du, Dd = ne2025(ldeg=gl, bdeg=gb, dmd=EDGE_KPC, ndir=-1, classic=False, dmd_only=False)
+    tau_1ghz, sbw_1ghz = _tau_sbw_1ghz(gl, gb, model)
     nu_ghz = freq_mhz / 1000.0
-    tau_ms = Dv["TAU"] * nu_ghz ** (-alpha)  # ms
-    bw_kHz = Dv["SBW"] * nu_ghz**alpha * 1e3  # MHz @1GHz -> kHz at freq
+    tau_ms = tau_1ghz * nu_ghz ** (-alpha)  # ms
+    bw_kHz = sbw_1ghz * nu_ghz**alpha * 1e3  # MHz @1GHz -> kHz at freq
     return tau_ms, bw_kHz
 
 
-def galactic_floor(coord_icrs, bands=BAND_CENTERS_MHZ, alpha=4.4):
+def galactic_floor(coord_icrs, bands=BAND_CENTERS_MHZ, alpha=4.4, model="ne2025"):
     """MW scattering floor at each band centre for one sky position.
 
     Returns {band: {"tau_ms": .., "bw_kHz": ..}}. Integrated to the Galactic
     edge, so it is z-independent and applies to every burst regardless of host
     redshift. The floor is the Galactic-vs-extragalactic discriminator: measured
     tau/Dnu well above this floor implies an extragalactic (host/intervening)
-    screen.
+    screen. model selects the electron-density model (ne2025/ne2001/ymw16).
     """
     return {
-        b: dict(zip(("tau_ms", "bw_kHz"), query_single(coord_icrs, f, alpha), strict=True))
+        b: dict(zip(("tau_ms", "bw_kHz"), query_single(coord_icrs, f, alpha, model), strict=True))
         for b, f in bands.items()
     }
 
 
-def floor_for_bursts(catalog_path="configs/bursts.yaml", bands=BAND_CENTERS_MHZ, alpha=4.4):
+def floor_for_bursts(
+    catalog_path="configs/bursts.yaml", bands=BAND_CENTERS_MHZ, alpha=4.4, model="ne2025"
+):
     """Per-burst MW floor table from the burst catalog (one row per burst)."""
     from pathlib import Path
 
@@ -111,7 +142,7 @@ def floor_for_bursts(catalog_path="configs/bursts.yaml", bands=BAND_CENTERS_MHZ,
             "l_deg": coord.galactic.l.value,
             "b_deg": coord.galactic.b.value,
         }
-        for band, vals in galactic_floor(coord, bands, alpha).items():
+        for band, vals in galactic_floor(coord, bands, alpha, model).items():
             row[f"tau_ms_{band}"] = vals["tau_ms"]
             row[f"bw_kHz_{band}"] = vals["bw_kHz"]
         rows.append(row)
@@ -131,11 +162,17 @@ def main():
     )
     p.add_argument("--freq", type=float, default=600.0, help="Frequency in MHz (default 600)")
     p.add_argument("--alpha", type=float, default=4.4, help="Scattering index α (default 4.4)")
+    p.add_argument(
+        "--model",
+        choices=("ne2025", "ne2001", "ymw16"),
+        default="ne2025",
+        help="Galactic electron-density model for the floor (default ne2025)",
+    )
     p.add_argument("--out", default="ne2025_results.csv", help="Output CSV file name")
     args = p.parse_args()
 
     if args.bursts:
-        df = floor_for_bursts(alpha=args.alpha)
+        df = floor_for_bursts(alpha=args.alpha, model=args.model)
         df.to_csv(args.out, index=False)
         print(f"[ok] {len(df)} bursts -> '{args.out}' (MW floor at CHIME+DSA)")
         return
@@ -149,7 +186,7 @@ def main():
     taus, bws = [], []
     for _idx, row in df.iterrows():
         coord = coord_from_row(row)
-        tau_ms, bw_kHz = query_single(coord, args.freq, args.alpha)
+        tau_ms, bw_kHz = query_single(coord, args.freq, args.alpha, args.model)
         taus.append(tau_ms)
         bws.append(bw_kHz)
 

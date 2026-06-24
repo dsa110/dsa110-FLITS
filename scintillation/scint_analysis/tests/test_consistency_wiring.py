@@ -25,11 +25,11 @@ def test_band_consistency_oracle_single_screen():
 
 
 def test_band_consistency_flags_multiscreen():
-    """10x too much Dnu -> C_implied == 10 -> inconsistent (>=2 screens)."""
+    """C_implied > 2π·2.0 (canonical upper bound) -> inconsistent (>=2 screens)."""
     tau_1ghz, alpha, nu0 = 0.5, 4.0, 1.4
-    dnu = _dnu_for_C(tau_1ghz, alpha, nu0, 10.0)
+    dnu = _dnu_for_C(tau_1ghz, alpha, nu0, 15.0)
     r = band_consistency(tau_1ghz, alpha, nu0, dnu)
-    assert r["C_implied"] == pytest.approx(10.0, rel=1e-6)
+    assert r["C_implied"] == pytest.approx(15.0, rel=1e-6)
     assert r["consistent"] is False
 
 

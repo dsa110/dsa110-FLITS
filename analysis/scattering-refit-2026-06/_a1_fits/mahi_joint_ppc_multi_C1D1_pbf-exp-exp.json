@@ -1,0 +1,10 @@
+{
+  "burst": "mahi",
+  "alpha": 2.805666388023054,
+  "tau_1ghz": 0.2561784483973517,
+  "chi2_chime": 1.115750695864649,
+  "chi2_dsa": 0.8551091477945804,
+  "components_C": 1,
+  "components_D": 1,
+  "suffix": "_C1D1_pbf-exp-exp"
+}

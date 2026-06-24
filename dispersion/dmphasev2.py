@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import numpy as np
 from numpy.fft import fft, fftfreq
 from scipy.optimize import curve_fit
@@ -15,12 +16,13 @@ EPS = 1e-30
 
 def quadratic(x, a, b, c):
     """Quadratic a x² + b x + c."""
-    return a * x ** 2 + b * x + c
+    return a * x**2 + b * x + c
 
 
 # ------------------------------------------------------------------
 # Main class
 # ------------------------------------------------------------------
+
 
 class DMPhaseEstimator:
     """Vectorised phase‑coherence DM estimator with bootstrap‑robust σ_DM."""
@@ -46,15 +48,23 @@ class DMPhaseEstimator:
         self.f_cut = f_cut
 
         self.nu_ref = (
-            self.freqs.max() if ref == "top" else self.freqs.min() if ref == "bottom" else
-            0.5 * (self.freqs.max() + self.freqs.min()) if ref == "centre" else float(ref)
+            self.freqs.max()
+            if ref == "top"
+            else self.freqs.min()
+            if ref == "bottom"
+            else 0.5 * (self.freqs.max() + self.freqs.min())
+            if ref == "centre"
+            else float(ref)
         )
 
         self.weights = self._init_weights(weights)
         self.n_t, self.n_ch = self.wf.shape
         self.fft_wf = fft(self.wf, axis=0)
         self.freq_axis = fftfreq(self.n_t, self.dt)
-        self.delay_sec = 1e-3 * K_DM * (1 / self.freqs**2 - 1 / self.nu_ref**2)
+        # K_DM is already in seconds (MHz^2 pc^-1 cm^3 s); freqs in MHz -> delay in seconds.
+        # (A spurious 1e-3 here made every dispersive delay 1000x too small, so the de-dispersion
+        # phase ramp never removed real dispersion and DM-phase curves never peaked.)
+        self.delay_sec = K_DM * (1 / self.freqs**2 - 1 / self.nu_ref**2)
 
         self.dm_curve, self.dm_err, self._bs_curves = self._make_dm_curve()
         self.dm_best, self.dm_sigma = self._fit_peak_bootstrap()
@@ -76,7 +86,9 @@ class DMPhaseEstimator:
     # ------------------------------------------------------------------
     def _phase_cube(self):
         phase = np.exp(
-            -2j * np.pi * self.freq_axis[:, None, None]
+            -2j
+            * np.pi
+            * self.freq_axis[:, None, None]
             * (self.dm_grid[:, None] * self.delay_sec)[None, :, :]
         )
         return (self.fft_wf[:, None, :] * phase).transpose(1, 0, 2)  # (dm, t, ch)
@@ -85,7 +97,7 @@ class DMPhaseEstimator:
         ph = spec / np.maximum(np.abs(spec), EPS)
         ph *= self.weights[None, None, :]
         s = ph.sum(axis=2)
-        return np.abs(s) ** 2 * (self.freq_axis ** 2)[None, :]
+        return np.abs(s) ** 2 * (self.freq_axis**2)[None, :]
 
     def _window_mask(self, power):
         if self.f_cut is not None:
@@ -112,7 +124,7 @@ class DMPhaseEstimator:
             idx = self.rng.choice(self.n_ch, self.n_ch, True)
             ph = spec[:, :, idx] / np.maximum(np.abs(spec[:, :, idx]), EPS)
             ph *= self.weights[idx][None, None, :]
-            bs_p = np.abs(ph.sum(2)) ** 2 * (self.freq_axis ** 2)[None, :]
+            bs_p = np.abs(ph.sum(2)) ** 2 * (self.freq_axis**2)[None, :]
             bs_curves.append(bs_p[:, mask].sum(1))
         bs_curves = np.stack(bs_curves)
         err = np.std(bs_curves, 0, ddof=1)
@@ -163,4 +175,3 @@ class DMPhaseEstimator:
 
     def get_dm(self):
         return self.dm_best, self.dm_sigma
-

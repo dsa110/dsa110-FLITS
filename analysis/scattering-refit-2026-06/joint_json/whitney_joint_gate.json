@@ -1,0 +1,13 @@
+{
+  "burst": "whitney",
+  "chi2_reduced": 1.6756463096485115,
+  "chi2_chime": 1.152832380946967,
+  "chi2_dsa": 1.6756463096485115,
+  "tau": 0.4859766379421074,
+  "alpha": 1.4581137120977927,
+  "alpha_railed": false,
+  "quality_flag": "FAIL",
+  "notes": [
+    "L1 alpha=1.458 outside (1.5,6.0)"
+  ]
+}

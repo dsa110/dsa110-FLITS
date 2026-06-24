@@ -1,0 +1,13 @@
+{
+  "burst": "mahi",
+  "chi2_reduced": 1.0799447380860865,
+  "chi2_chime": 1.051593844179074,
+  "chi2_dsa": 1.0799447380860865,
+  "tau": 0.0945460140817763,
+  "alpha": 5.530045355428672,
+  "alpha_railed": false,
+  "quality_flag": "MARGINAL",
+  "notes": [
+    "L3 alpha=5.53 off Kolmogorov"
+  ]
+}

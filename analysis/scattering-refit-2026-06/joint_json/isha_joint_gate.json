@@ -1,0 +1,13 @@
+{
+  "burst": "isha",
+  "chi2_reduced": null,
+  "chi2_chime": null,
+  "chi2_dsa": null,
+  "tau": 0.3472058050693977,
+  "alpha": 4.960585117191904,
+  "alpha_railed": false,
+  "quality_flag": "MARGINAL",
+  "notes": [
+    "L2 no PPC (chi2 unknown); L3 alpha=4.96 off Kolmogorov"
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "burst": "freya",
+  "chi2_reduced": null,
+  "chi2_chime": null,
+  "chi2_dsa": null,
+  "tau": 0.048651057808932516,
+  "alpha": 5.995226536147882,
+  "alpha_railed": true,
+  "quality_flag": "MARGINAL",
+  "notes": [
+    "alpha prior-railed (within 0.1 of bound) -> unconstrained; L2 no PPC (chi2 unknown); L3 alpha=6.00 off Kolmogorov"
+  ]
+}

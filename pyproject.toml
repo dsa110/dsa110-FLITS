@@ -71,7 +71,7 @@ xfail_strict = true
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
 ]
-testpaths = ["tests", "scattering/scripts", "scattering/scat_analysis/tests", "scintillation/scint_analysis/tests", "flits/batch/tests"]
+testpaths = ["tests", "scattering/scripts", "scattering/scat_analysis/tests", "scintillation/scint_analysis/tests", "flits/batch/tests", "analysis/scattering-refit-2026-06/test_gate_joint_committed.py"]
 filterwarnings = [
     "ignore::DeprecationWarning",
 ]

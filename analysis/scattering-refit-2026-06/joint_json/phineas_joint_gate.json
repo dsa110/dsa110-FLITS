@@ -1,0 +1,13 @@
+{
+  "burst": "phineas",
+  "chi2_reduced": 2.0175022651508754,
+  "chi2_chime": 1.2015961809256968,
+  "chi2_dsa": 2.0175022651508754,
+  "tau": 0.3219678541983566,
+  "alpha": 3.578037689994229,
+  "alpha_railed": false,
+  "quality_flag": "MARGINAL",
+  "notes": [
+    "L2 chi2_C=1.20(PASS) chi2_D=2.02(MARGINAL)"
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "burst": "oran",
+  "chi2_reduced": 1.114588234933634,
+  "chi2_chime": 1.114588234933634,
+  "chi2_dsa": 1.0585731843999537,
+  "tau": 0.49717824655913273,
+  "alpha": 1.4387843929577984,
+  "alpha_railed": false,
+  "quality_flag": "FAIL",
+  "notes": [
+    "L1 alpha=1.439 outside (1.5,6.0)"
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "burst": "wilhelm",
+  "chi2_reduced": 1.712869249292194,
+  "chi2_chime": 1.712869249292194,
+  "chi2_dsa": 1.2963273668581146,
+  "tau": 0.2607060120226853,
+  "alpha": 2.705698914353688,
+  "alpha_railed": false,
+  "quality_flag": "MARGINAL",
+  "notes": [
+    "L2 chi2_C=1.71(MARGINAL) chi2_D=1.30(PASS); L3 alpha=2.71 off Kolmogorov"
+  ]
+}

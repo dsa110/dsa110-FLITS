@@ -1,0 +1,13 @@
+{
+  "burst": "hamilton",
+  "chi2_reduced": null,
+  "chi2_chime": null,
+  "chi2_dsa": null,
+  "tau": 0.004969769902862857,
+  "alpha": 5.98985258576896,
+  "alpha_railed": true,
+  "quality_flag": "MARGINAL",
+  "notes": [
+    "alpha prior-railed (within 0.1 of bound) -> unconstrained; L2 no PPC (chi2 unknown); L3 alpha=5.99 off Kolmogorov"
+  ]
+}

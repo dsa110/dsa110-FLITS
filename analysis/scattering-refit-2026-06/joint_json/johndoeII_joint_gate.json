@@ -1,0 +1,13 @@
+{
+  "burst": "johndoeII",
+  "chi2_reduced": 1.1424960166277993,
+  "chi2_chime": 1.1424960166277993,
+  "chi2_dsa": 1.0298964725824564,
+  "tau": 0.8520815970667569,
+  "alpha": 1.3733290552021324,
+  "alpha_railed": false,
+  "quality_flag": "FAIL",
+  "notes": [
+    "L1 alpha=1.373 outside (1.5,6.0)"
+  ]
+}

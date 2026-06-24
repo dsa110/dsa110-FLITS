@@ -1,0 +1,13 @@
+{
+  "burst": "zach",
+  "chi2_reduced": null,
+  "chi2_chime": null,
+  "chi2_dsa": null,
+  "tau": 0.3219197299896321,
+  "alpha": 3.662811868539347,
+  "alpha_railed": false,
+  "quality_flag": "MARGINAL",
+  "notes": [
+    "L2 no PPC (chi2 unknown)"
+  ]
+}

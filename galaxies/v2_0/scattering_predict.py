@@ -214,10 +214,13 @@ def g_scatt(z_lens: float, z_frb: float) -> float:
     if d_l <= 0.0 or d_s <= 0.0 or d_ls <= 0.0:
         return 0.0
 
-    # Macquart & Koay 2013 ApJ 776,125 include the angular-diameter geometry;
-    # the (1+z_l)^-2 term folds in cosmological screen dilation for a relative
-    # Mpc-valued weight whose absolute normalization is left to tau_scat_ms.
-    leverage = d_l * d_ls / d_s / (1.0 + z_l) ** 2
+    # Macquart & Koay 2013 ApJ 776,125 / Ocker+2021 ApJ 911,102: the intervening
+    # thin-screen weight is the angular-diameter combination D_L D_LS / D_S (already
+    # redshift-aware). The full observer-frame redshift dependence is the canonical
+    # (1+z_l)^-3, applied ONCE in tau_scat_ms; we do NOT add a screen-dilation factor
+    # here. The earlier extra /(1+z_l)^2 double-counted to (1+z_l)^-5 and
+    # over-suppressed high-z screens, biasing the relative z-ranking of sightlines.
+    leverage = d_l * d_ls / d_s
     if leverage <= 0.0 or not math.isfinite(leverage):
         return 0.0
     return float(leverage)
@@ -395,13 +398,18 @@ def cool_covering_fraction(
 # r_c ~ 0.1-0.2 R500. Cavaliere & Fusco-Femiano 1976 A&A 49,137 set the form.
 CLUSTER_BETA = 0.65
 CLUSTER_RC_OVER_R500 = 0.15
-# Vikhlinin+2006 ApJ 640,691 / Pratt+2009 / Eckert+2019: hot-gas mass fraction
-# within R500 ~ 0.13 for massive clusters.
-CLUSTER_F_GAS_500 = 0.13
+# Eckert+2019 A&A 621,A40 (X-COP) / Vikhlinin+2006: the hot-gas mass fraction
+# within R500 spans ~0.10-0.13 and is lower at the smaller radii where most of the
+# projected column is built. We adopt the lower-middle 0.11 (the 0.13 high end
+# inflates the DM); even so the isothermal beta-model over-predicts the outskirts,
+# so dm_cluster_beta_model returns an UPPER BOUND (see its docstring).
+CLUSTER_F_GAS_500 = 0.11
 # Fully ionized ICM mean molecular weight per electron (primordial-ish).
 CLUSTER_MU_E = 1.17
-# R200/R500 ~ 1.54 for a typical cluster NFW concentration (c500 ~ 1.5).
-CLUSTER_R200_OVER_R500 = 1.54
+# R200/R500 = (M200/M500 * 500/200)^(1/3) = (1.3*2.5)^(1/3) = 1.48, consistent with
+# config.CLUSTER_M500_TO_M200 = 1.3 (typical c500 ~ 1.5). The earlier 1.54 assumed a
+# different concentration and was inconsistent with the 1.3 mass ratio used for R200.
+CLUSTER_R200_OVER_R500 = 1.48
 
 
 def r_delta_kpc(m_delta_msun: float, z: float, delta: float) -> float:
@@ -468,6 +476,14 @@ def dm_cluster_beta_model(
     (Vikhlinin+2006). The column is projected at impact parameter b, truncated at
     r_trunc_factor * R500, and divided by (1+z) for the observer frame
     (Macquart+2020 convention). Returns 0.0 for b beyond truncation or bad inputs.
+
+    UPPER BOUND: the isothermal beta-model keeps the density slope fixed to large
+    radius, but real clusters steepen beyond ~R500, so this over-predicts the
+    projected column by ~1.5-2x relative to the resolved anchor -- Lee+2023 give
+    ~300 and ~110 pc cm^-3 at b ~ 0.4 and 0.8 R200 for the FRB 20190520B foreground
+    clusters, where this model returns ~1.7-1.9x more. Treat the value as a
+    conservative ceiling on the cluster DM, not a point estimate; the upgrade path
+    is a Vikhlinin+2006 steepening term or a per-cluster X-ray n_e(r) profile.
     """
     if any(_is_bad(x) for x in (m500_msun, z, impact_kpc)) or float(m500_msun) <= 0.0:
         return 0.0

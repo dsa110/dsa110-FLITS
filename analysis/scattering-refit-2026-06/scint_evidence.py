@@ -16,9 +16,13 @@ freyafine_joint_samples.npz) + the coarse fit (tau, alpha), and produces ONE
 
   python scint_evidence.py
 """
-import json, os
+
+import json
+import os
 import numpy as np
-import matplotlib; matplotlib.use("Agg")
+import matplotlib
+
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 RUNS = os.environ.get("FLITS_RUNS", "/central/scratch/jfaber/flits-runs")
@@ -36,7 +40,8 @@ def detrend(freq, gain):
 def acf(freq, gain):
     f, g, gn = detrend(freq, gain)
     x = gn - gn.mean()
-    ac = np.correlate(x, x, "full"); ac = ac[ac.size // 2:]
+    ac = np.correlate(x, x, "full")
+    ac = ac[ac.size // 2 :]
     ac = ac / ac[0]
     chan = float(np.median(np.abs(np.diff(f)))) * 1e3
     return np.arange(ac.size) * chan, ac, chan
@@ -48,7 +53,8 @@ def rebin_gain(freq, gain, F):
     n = (f.size // F) * F
     if n < 4 * F:
         return None, None
-    f = f[:n].reshape(-1, F).mean(1); g = g[:n].reshape(-1, F).mean(1)
+    f = f[:n].reshape(-1, F).mean(1)
+    g = g[:n].reshape(-1, F).mean(1)
     return f, g
 
 
@@ -72,9 +78,13 @@ def main():
         ff, gf, _ = detrend(fine[f"freq_{suf}"], fine[f"gain_{suf}"])
         a0 = ax[row][0]
         a0.plot(fc, gc / np.nanmedian(gc), "o-", ms=3, color="0.6", label=f"coarse ({fc.size}ch)")
-        a0.plot(ff, gf / np.nanmedian(gf), ".-", ms=3, color=col, lw=0.8, label=f"fine ({ff.size}ch)")
-        a0.set_title(f"{name}: gain spectrum g_f"); a0.set_xlabel("freq (GHz)")
-        a0.set_ylabel("g_f / median"); a0.legend(fontsize=7)
+        a0.plot(
+            ff, gf / np.nanmedian(gf), ".-", ms=3, color=col, lw=0.8, label=f"fine ({ff.size}ch)"
+        )
+        a0.set_title(f"{name}: gain spectrum g_f")
+        a0.set_xlabel("freq (GHz)")
+        a0.set_ylabel("g_f / median")
+        a0.legend(fontsize=7)
 
         # --- col 1: ACF coarse vs fine + Lorentzian fits
         lc, acc, cwc = acf(coarse[f"freq_{suf}"], coarse[f"gain_{suf}"])
@@ -85,29 +95,56 @@ def main():
 
         # Fit Lorentzian to fine ACF (primary): acf_fit = 1/(1+(lag/lag_h)**2)
         from scipy.optimize import minimize_scalar
+
         for ldata, acfdata, cwdata, linestyle, linecolor in [
             (lf[lf <= 60], acf_[lf <= 60], cwf, "-", col),
-            (lc[lc <= 60], acc[lc <= 60], cwc, "--", "0.6")
+            (lc[lc <= 60], acc[lc <= 60], cwc, "--", "0.6"),
         ]:
             if len(ldata) > 2 and np.max(acfdata) > 0.15:
+
                 def residual(lag_h):
-                    if lag_h <= 0: return 1e10
-                    model = 1.0 / (1.0 + (np.abs(ldata) / lag_h)**2)
-                    return np.sum((acfdata - model)**2)
+                    if lag_h <= 0:
+                        return 1e10
+                    model = 1.0 / (1.0 + (np.abs(ldata) / lag_h) ** 2)
+                    return np.sum((acfdata - model) ** 2)
+
                 res = minimize_scalar(residual, bounds=(0.5, 200), method="bounded")
                 lag_h = res.x
                 dnu_est = cwdata / lag_h
                 # Plot fitted Lorentzian
                 l_fit = np.linspace(0, np.max(ldata), 80)
-                acf_fit = 1.0 / (1.0 + (l_fit / lag_h)**2)
-                label_txt = f"fit: lag_h={lag_h:.1f}MHz, Δν_d≈{dnu_est:.2f}MHz" if linestyle == "-" else f"(coarse fit: lag_h={lag_h:.1f})"
-                a1.plot(l_fit, acf_fit, linestyle=linestyle, color=linecolor, lw=1.5, alpha=0.7, label=label_txt)
+                acf_fit = 1.0 / (1.0 + (l_fit / lag_h) ** 2)
+                label_txt = (
+                    f"fit: lag_h={lag_h:.1f}MHz, Δν_d≈{dnu_est:.2f}MHz"
+                    if linestyle == "-"
+                    else f"(coarse fit: lag_h={lag_h:.1f})"
+                )
+                a1.plot(
+                    l_fit,
+                    acf_fit,
+                    linestyle=linestyle,
+                    color=linecolor,
+                    lw=1.5,
+                    alpha=0.7,
+                    label=label_txt,
+                )
 
-        a1.axhline(0, color="k", lw=0.5); a1.axhline(0.5, color="0.8", ls=":")
-        a1.set_xlim(0, max(cwc * 4, 60)); a1.set_title(f"{name}: gain ACF + Lorentzian fit")
-        a1.set_xlabel("freq lag (MHz)"); a1.set_ylabel("ACF"); a1.legend(fontsize=6, loc="upper right")
-        a1.text(0.97, 0.85, "ACF width ~ channel\n=> UNRESOLVED" if cwf else "",
-                transform=a1.transAxes, ha="right", fontsize=8, color=col)
+        a1.axhline(0, color="k", lw=0.5)
+        a1.axhline(0.5, color="0.8", ls=":")
+        a1.set_xlim(0, max(cwc * 4, 60))
+        a1.set_title(f"{name}: gain ACF + Lorentzian fit")
+        a1.set_xlabel("freq lag (MHz)")
+        a1.set_ylabel("ACF")
+        a1.legend(fontsize=6, loc="upper right")
+        a1.text(
+            0.97,
+            0.85,
+            "ACF width ~ channel\n=> UNRESOLVED" if cwf else "",
+            transform=a1.transAxes,
+            ha="right",
+            fontsize=8,
+            color=col,
+        )
 
     # --- col 2 top: m^2 vs 1/chan from rebinning FINE gains (curvature = multi-scale)
     a = ax[0][2]
@@ -118,36 +155,51 @@ def main():
             if fr is None:
                 continue
             m, cw = mod_index(fr, gn)
-            invcw.append(1.0 / cw); m2.append(m ** 2)
+            invcw.append(1.0 / cw)
+            m2.append(m**2)
         invcw, m2 = np.array(invcw), np.array(m2)
         a.plot(invcw, m2, "o-", color=col, label=name)
         if invcw.size >= 2:
             s, b = np.polyfit(invcw, m2, 1)
             xx = np.linspace(0, invcw.max(), 50)
             a.plot(xx, s * xx + b, "--", color=col, lw=0.8)
-    a.set_xlabel("1 / channel width  (1/MHz)"); a.set_ylabel("modulation index m^2")
+    a.set_xlabel("1 / channel width  (1/MHz)")
+    a.set_ylabel("modulation index m^2")
     a.set_title("m^2 vs 1/chan: curvature => multiple scales\n(not one unresolved Delta_nu_d)")
     a.legend(fontsize=7)
 
     # --- col 2 bot: same-screen test
     a = ax[1][2]
     nu = np.linspace(0.4, 1.5, 100)
-    tau_nu = tau1 * nu ** (-al)                       # ms
-    dnud_pred = 1.0 / (2 * np.pi * (tau_nu * 1e-3)) / 1e6   # MHz, C1=1
-    a.plot(nu, dnud_pred, "k-", label="predicted Delta_nu_d = 1/(2 pi tau(nu))")
+    tau_nu = tau1 * nu ** (-al)  # ms
+    dnud_pred = 1.16 / (2 * np.pi * (tau_nu * 1e-3)) / 1e6  # MHz, C1=1.16 (Cordes&Rickett 1998)
+    a.plot(nu, dnud_pred, "k-", label="predicted Delta_nu_d = C1/(2 pi tau(nu)), C1=1.16")
     # observed upper limits (fine-channel slope estimates)
     obs = {"CHIME": (0.6, 0.30), "DSA": (1.405, 0.06)}
     for nm, (nub, dn) in obs.items():
-        a.errorbar([nub], [dn], yerr=[[dn * 0.5], [dn]], fmt="v", capsize=4,
-                   label=f"{nm} observed UL ~{dn:.2f}MHz")
-    a.set_yscale("log"); a.set_xlabel("freq (GHz)"); a.set_ylabel("Delta_nu_d (MHz)")
-    a.set_title(f"same-screen: observed UL ~1000x > predicted\n(alpha={al:.2f}, tau_1GHz={tau1:.3f}ms)")
+        a.errorbar(
+            [nub],
+            [dn],
+            yerr=[[dn * 0.5], [dn]],
+            fmt="v",
+            capsize=4,
+            label=f"{nm} observed UL ~{dn:.2f}MHz",
+        )
+    a.set_yscale("log")
+    a.set_xlabel("freq (GHz)")
+    a.set_ylabel("Delta_nu_d (MHz)")
+    a.set_title(
+        f"same-screen: observed UL ~1000x > predicted\n(alpha={al:.2f}, tau_1GHz={tau1:.3f}ms)"
+    )
     a.legend(fontsize=7)
 
-    fig.suptitle("freya scintillation evidence: UNRESOLVED in both bands; coarse 5.5MHz was broadband contamination",
-                 fontsize=13)
+    fig.suptitle(
+        "freya scintillation evidence: UNRESOLVED in both bands; coarse 5.5MHz was broadband contamination",
+        fontsize=13,
+    )
     fig.tight_layout()
-    fp = f"{J}/freya_scint_evidence.png"; fig.savefig(fp, dpi=130, bbox_inches="tight")
+    fp = f"{J}/freya_scint_evidence.png"
+    fig.savefig(fp, dpi=130, bbox_inches="tight")
     print(f"wrote {fp}")
 
 

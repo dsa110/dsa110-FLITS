@@ -80,6 +80,19 @@ def test_tau_scat_ms_scales_with_f_dm_frequency_and_geometry():
     assert sp.tau_scat_ms(f_tilde=0.1, g_scatt_val=50.0, dm_l=20.0, z_lens=0.2, nu_ghz=0.0) is None
 
 
+def test_tau_scat_ms_intervening_redshift_scaling_is_minus_three():
+    # Locks the referee correction: tau_obs = tau_rest*(1+z_l)^-3 (Macquart & Koay
+    # 2013), applied ONCE in tau_scat_ms. g_scatt no longer carries a (1+z_l)
+    # factor, so the net redshift dependence here is exactly -3 (was -5 before the
+    # double-count fix). This guards against reintroducing ^-2/^-5/^0.
+    kw = dict(f_tilde=0.1, g_scatt_val=50.0, dm_l=20.0, nu_ghz=1.0)
+    z0, z1 = 0.2, 0.8
+    t0 = sp.tau_scat_ms(z_lens=z0, **kw)
+    t1 = sp.tau_scat_ms(z_lens=z1, **kw)
+    assert t0 is not None and t1 is not None
+    assert t1 / t0 == pytest.approx(((1.0 + z0) / (1.0 + z1)) ** 3)
+
+
 def test_scint_bandwidth_khz_decreases_with_tau_and_rejects_nonpositive():
     narrow = sp.scint_bandwidth_khz(2.0)
     broad = sp.scint_bandwidth_khz(1.0)
@@ -197,7 +210,7 @@ def test_dm_cluster_beta_model_matches_analytic_projection_untruncated():
 def test_dm_cluster_beta_model_zero_beyond_truncation():
     m500, z = 5.0e14, 0.25
     r500 = sp.r_delta_kpc(m500, z, 500)
-    assert sp.dm_cluster_beta_model(m500, z, 1.54 * r500 + 1.0) == 0.0
+    assert sp.dm_cluster_beta_model(m500, z, 1.48 * r500 + 1.0) == 0.0  # default trunc = 1.48 R500
     assert sp.dm_cluster_beta_model(-1.0, z, 100.0) == 0.0
 
 

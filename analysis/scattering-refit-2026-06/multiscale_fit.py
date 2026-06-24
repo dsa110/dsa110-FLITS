@@ -16,9 +16,11 @@ Channelizations with median gain S/N < SNR_MIN are dropped as noise-dominated.
   python multiscale_fit.py <burst>     e.g.  python multiscale_fit.py casey
 Writes <burst>_multiscale_results.json.
 """
+
 import json
 import re
 import sys
+
 import numpy as np
 from scipy.optimize import least_squares
 
@@ -30,8 +32,14 @@ NAME = {"C": "CHIME", "D": "DSA"}
 
 
 def ladder(s):
-    ffs = sorted({int(re.match(rf"gain_{s}_ff(\d+)", k).group(1))
-                  for k in Z.files if re.match(rf"gain_{s}_ff\d+$", k)}, reverse=True)
+    ffs = sorted(
+        {
+            int(re.match(rf"gain_{s}_ff(\d+)", k).group(1))
+            for k in Z.files
+            if re.match(rf"gain_{s}_ff\d+$", k)
+        },
+        reverse=True,
+    )
     return ffs
 
 
@@ -59,14 +67,14 @@ def resid(fr, g, v, deg):
     tr = np.polyval(np.polyfit(fr, g, deg), fr)
     tr = np.where(np.abs(tr) > 1e-12, tr, np.nan)
     r = g / tr - 1.0
-    vr = v / tr ** 2
+    vr = v / tr**2
     ok = np.isfinite(r) & np.isfinite(vr)
     return r[ok], vr[ok]
 
 
 def acf_nc(r, vr):
     x = r - r.mean()
-    ac = np.correlate(x, x, "full")[x.size - 1:] / x.size
+    ac = np.correlate(x, x, "full")[x.size - 1 :] / x.size
     sig0 = ac[0] - vr.mean()
     if sig0 <= 0:
         return None, None
@@ -120,8 +128,14 @@ for s in ("C", "D"):
     if not ffs:
         continue
     NU0[s] = band_center(s, ffs[0])
-    b = {"ladder": [], "dnu_1L_stability": [], "m2_vs_invchan": [],
-         "modelsel_finest": {}, "detrend_sensitivity": {}, "nu0_GHz": round(NU0[s], 4)}
+    b = {
+        "ladder": [],
+        "dnu_1L_stability": [],
+        "m2_vs_invchan": [],
+        "modelsel_finest": {},
+        "detrend_sensitivity": {},
+        "nu0_GHz": round(NU0[s], 4),
+    }
     finest = None
     for ff in ffs:
         u = usable(s, ff)
@@ -134,14 +148,23 @@ for s in ("C", "D"):
         r, vr = resid(fr, g, v, 1)
         ac, m2 = acf_nc(r, vr)
         if ac is None:
-            b["ladder"].append({"ff": ff, "chan_MHz": round(chan, 3), "m2": None}); continue
+            b["ladder"].append({"ff": ff, "chan_MHz": round(chan, 3), "m2": None})
+            continue
         lags = np.arange(ac.size) * chan
         span = lags[-1]
         sel = (np.arange(ac.size) >= 1) & (lags <= 0.5 * span)
         p1, _ = fit_lor(lags[sel], ac[sel], 1, chan, span)
-        b["ladder"].append({"ff": ff, "chan_MHz": round(chan, 3), "nch": int(fr.size),
-                            "snr": round(snr, 1), "m2": round(m2, 5),
-                            "acf1": round(float(ac[1]), 3), "dnu_1L": round(float(p1[1]), 3)})
+        b["ladder"].append(
+            {
+                "ff": ff,
+                "chan_MHz": round(chan, 3),
+                "nch": int(fr.size),
+                "snr": round(snr, 1),
+                "m2": round(m2, 5),
+                "acf1": round(float(ac[1]), 3),
+                "dnu_1L": round(float(p1[1]), 3),
+            }
+        )
         b["dnu_1L_stability"].append(round(float(p1[1]), 3))
         b["m2_vs_invchan"].append((round(1.0 / chan, 4), round(m2, 5)))
     if finest is not None:
@@ -152,20 +175,27 @@ for s in ("C", "D"):
             ac, m2 = acf_nc(r, vr)
             if ac is None:
                 continue
-            lags = np.arange(ac.size) * chan; span = lags[-1]
+            lags = np.arange(ac.size) * chan
+            span = lags[-1]
             sel = (np.arange(ac.size) >= 1) & (lags <= 0.5 * span)
             p1, _ = fit_lor(lags[sel], ac[sel], 1, chan, span)
             b["detrend_sensitivity"][tag] = {"m2": round(m2, 5), "dnu_1L": round(float(p1[1]), 3)}
-        r, vr = resid(fr, g, v, 1); ac, m2 = acf_nc(r, vr)
-        lags = np.arange(ac.size) * chan; span = lags[-1]
+        r, vr = resid(fr, g, v, 1)
+        ac, m2 = acf_nc(r, vr)
+        lags = np.arange(ac.size) * chan
+        span = lags[-1]
         sel = (np.arange(ac.size) >= 1) & (lags <= 0.5 * span)
         n = int(np.count_nonzero(sel))
         for N in (1, 2, 3):
             if n < 2 * N + 1:
                 continue
             p, rss = fit_lor(lags[sel], ac[sel], N, chan, span)
-            b["modelsel_finest"][N] = {"components_dnu_A": comps(p), "rss": round(rss, 5),
-                                       "bic": round(bic(rss, n, 2 * N), 2), "nlags": n}
+            b["modelsel_finest"][N] = {
+                "components_dnu_A": comps(p),
+                "rss": round(rss, 5),
+                "bic": round(bic(rss, n, 2 * N), 2),
+                "nlags": n,
+            }
         bics = {N: d["bic"] for N, d in b["modelsel_finest"].items()}
         b["BIC_preferred_N"] = int(min(bics, key=bics.get)) if bics else None
         b["finest_chan_MHz"] = round(chan, 3)
@@ -176,14 +206,18 @@ if all(res["bands"].get(NAME[s], {}).get("dnu_1L_stability") for s in ("C", "D")
     dC = float(np.median(res["bands"]["CHIME"]["dnu_1L_stability"]))
     dD = float(np.median(res["bands"]["DSA"]["dnu_1L_stability"]))
     res["nu_scaling"] = {
-        "dnu_CHIME_MHz": round(dC, 3), "dnu_DSA_MHz": round(dD, 3),
+        "dnu_CHIME_MHz": round(dC, 3),
+        "dnu_DSA_MHz": round(dD, 3),
         "observed_ratio_DSA_over_CHIME": round(dD / dC, 3),
         "expected_ratio_nu4": round((NU0["D"] / NU0["C"]) ** 4, 3),
         "implied_alpha": round(float(np.log(dD / dC) / np.log(NU0["D"] / NU0["C"])), 3),
     }
 else:
-    res["nu_scaling"] = {"note": "one band lacks usable channelizations (S/N) -- cross-band test skipped"}
-res["tau_screen_dnu_MHz"] = {NAME[s]: 1.0 / (2 * np.pi * (TAU * NU0[s] ** (-AL) * 1e-3)) / 1e6
-                             for s in NU0}
+    res["nu_scaling"] = {
+        "note": "one band lacks usable channelizations (S/N) -- cross-band test skipped"
+    }
+res["tau_screen_dnu_MHz"] = {
+    NAME[s]: 1.16 / (2 * np.pi * (TAU * NU0[s] ** (-AL) * 1e-3)) / 1e6 for s in NU0
+}  # C1=1.16 (Cordes&Rickett 1998)
 json.dump(res, open(f"{BURST}_multiscale_results.json", "w"), indent=2)
 print(json.dumps(res, indent=2))

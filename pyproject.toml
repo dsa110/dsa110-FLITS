@@ -47,6 +47,7 @@ dev = [
 ]
 test = [
   "pytest>=7.0",
+  "pytest-cov>=4.0",
 ]
 lint = [
   "ruff>=0.15.18",
@@ -75,6 +76,14 @@ testpaths = ["tests", "scattering/scripts", "scattering/scat_analysis/tests", "s
 filterwarnings = [
     "ignore::DeprecationWarning",
 ]
+
+[tool.coverage.run]
+source = ["flits", "scattering", "scintillation"]
+omit = ["*/tests/*", "*/scripts/*"]
+
+[tool.coverage.report]
+show_missing = true
+# ponytail: no fail_under gate — coverage here nominates dead code, it doesn't gate CI
 
 [tool.ruff]
 line-length = 100

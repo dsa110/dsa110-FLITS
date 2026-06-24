@@ -20,6 +20,17 @@ def tests(session: nox.Session) -> None:
 
 
 @nox.session
+def cov(session: nox.Session) -> None:
+    """Run the suite under coverage to nominate untested/dead code.
+
+    Skips slow-marked tests by default; pass paths/markers after ``--``.
+    """
+    session.install("-e", ".[nested,perf,ne2025]", "pytest>=7.0", "pytest-cov>=4.0")
+    args = session.posargs or ["-m", "not slow"]
+    session.run("pytest", "--cov", "--cov-report=term-missing", *args)
+
+
+@nox.session
 def lint(session: nox.Session) -> None:
     """Run Ruff checks without modifying files.
 

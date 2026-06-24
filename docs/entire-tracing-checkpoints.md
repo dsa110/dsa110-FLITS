@@ -166,3 +166,161 @@ preserving for future agents.
 - `origin` `entire/*` refs:
   - entire/checkpoints/v1 -> dbce343
 - note: `.entire/` remains host-local runtime state; only this ledger is tracked.
+
+## 2026-06-24T10:58:49-07:00 — jakob
+- repo: `/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS`
+- branch: `main`
+- head: `c4f34bd2`
+- origin/main: `c4f34bd2`
+- worktree: clean
+- note: watched path changed: analysis/scattering-refit-2026-06/joint_ladder/_ladder.py
+- tracked status: clean
+- local `entire/*` refs:
+  - entire/0cc8a90-e3b0c4 -> 16d2565c
+  - entire/12a929e-e3b0c4 -> 746c927b
+  - entire/18520fb-e3b0c4 -> 3dfcd2f3
+  - entire/1bf078a-e3b0c4 -> 66e40d11
+  - entire/1d2f28b-e3b0c4 -> 8d9722a7
+  - entire/258d643-e3b0c4 -> d553c648
+  - entire/2963885-e3b0c4 -> 4ef72ea7
+  - entire/2a04537-e3b0c4 -> ef4c295e
+  - entire/2ad704b-e3b0c4 -> 99a3ff7e
+  - entire/30a21f5-e3b0c4 -> 69a665dd
+  - entire/3c13a71-e3b0c4 -> 51f7da8a
+  - entire/4803c13-e3b0c4 -> 5b448460
+  - entire/48f63b7-e3b0c4 -> 1491a141
+  - entire/4b041e2-e3b0c4 -> fcde5011
+  - entire/4b8f41d-e3b0c4 -> f04dacb4
+  - entire/51791c0-e3b0c4 -> c79c7aba
+  - entire/53194a6-e3b0c4 -> d3fc0e1c
+  - entire/66795c0-e3b0c4 -> 061405de
+  - entire/6bf7895-e3b0c4 -> eb56c54b
+  - entire/725b34e-e3b0c4 -> 11860bc8
+  - entire/7ae7c93-e3b0c4 -> 0c10c4ea
+  - entire/867ecd5-e3b0c4 -> 261a7c0b
+  - entire/8b864e3-e3b0c4 -> 2359cb77
+  - entire/8bbaf90-e3b0c4 -> 07e0f6b2
+  - entire/8ca87f7-e3b0c4 -> 61e3979c
+  - entire/8d37540-e3b0c4 -> 3e52d926
+  - entire/90ff6fd-e3b0c4 -> bcd111d9
+  - entire/a25bce0-e3b0c4 -> 0ae2439e
+  - entire/bc89489-e3b0c4 -> ea8df01d
+  - entire/checkpoints/v1 -> 8ab96390
+  - entire/d78efae-e3b0c4 -> e4060327
+  - entire/d8c3cb1-e3b0c4 -> 68d71ebc
+  - entire/dffbd51-e3b0c4 -> 8a83a84d
+  - entire/e753bb6-e3b0c4 -> 73feaf8e
+  - entire/ea91839-e3b0c4 -> 57e22464
+  - entire/ebd68e5-e3b0c4 -> 9ab88abd
+  - entire/f03fab9-e3b0c4 -> 205d20c8
+  - entire/f94f467-e3b0c4 -> 0a62db43
+  - entire/ff0dbb9-e3b0c4 -> 859b2f1b
+- `origin` `entire/*` refs:
+  - entire/checkpoints/v1 -> d594bc0
+- note: `.entire/` remains host-local runtime state; only this ledger is tracked.
+
+## 2026-06-24T10:58:52-07:00 — jakob
+- repo: `/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS`
+- branch: `main`
+- head: `9a6dee3a`
+- origin/main: `c4f34bd2`
+- worktree: dirty
+- note: watched path changed: analysis/scattering-refit-2026-06/joint_ladder/_ladder.py
+- tracked status:
+  - M docs/entire-tracing-checkpoints.md
+- local `entire/*` refs:
+  - entire/0cc8a90-e3b0c4 -> 16d2565c
+  - entire/12a929e-e3b0c4 -> 746c927b
+  - entire/18520fb-e3b0c4 -> 3dfcd2f3
+  - entire/1bf078a-e3b0c4 -> 66e40d11
+  - entire/1d2f28b-e3b0c4 -> 8d9722a7
+  - entire/258d643-e3b0c4 -> d553c648
+  - entire/2963885-e3b0c4 -> 4ef72ea7
+  - entire/2a04537-e3b0c4 -> ef4c295e
+  - entire/2ad704b-e3b0c4 -> 99a3ff7e
+  - entire/30a21f5-e3b0c4 -> 69a665dd
+  - entire/3c13a71-e3b0c4 -> 51f7da8a
+  - entire/4803c13-e3b0c4 -> 5b448460
+  - entire/48f63b7-e3b0c4 -> 1491a141
+  - entire/4b041e2-e3b0c4 -> fcde5011
+  - entire/4b8f41d-e3b0c4 -> f04dacb4
+  - entire/51791c0-e3b0c4 -> c79c7aba
+  - entire/53194a6-e3b0c4 -> d3fc0e1c
+  - entire/66795c0-e3b0c4 -> 061405de
+  - entire/6bf7895-e3b0c4 -> eb56c54b
+  - entire/725b34e-e3b0c4 -> 11860bc8
+  - entire/7ae7c93-e3b0c4 -> 0c10c4ea
+  - entire/867ecd5-e3b0c4 -> 261a7c0b
+  - entire/8b864e3-e3b0c4 -> 2359cb77
+  - entire/8bbaf90-e3b0c4 -> 07e0f6b2
+  - entire/8ca87f7-e3b0c4 -> 61e3979c
+  - entire/8d37540-e3b0c4 -> 3e52d926
+  - entire/90ff6fd-e3b0c4 -> bcd111d9
+  - entire/a25bce0-e3b0c4 -> 0ae2439e
+  - entire/bc89489-e3b0c4 -> ea8df01d
+  - entire/checkpoints/v1 -> 436487cd
+  - entire/d78efae-e3b0c4 -> e4060327
+  - entire/d8c3cb1-e3b0c4 -> 68d71ebc
+  - entire/dffbd51-e3b0c4 -> 8a83a84d
+  - entire/e753bb6-e3b0c4 -> 73feaf8e
+  - entire/ea91839-e3b0c4 -> 57e22464
+  - entire/ebd68e5-e3b0c4 -> 9ab88abd
+  - entire/f03fab9-e3b0c4 -> 205d20c8
+  - entire/f94f467-e3b0c4 -> b0699051
+  - entire/ff0dbb9-e3b0c4 -> 859b2f1b
+- `origin` `entire/*` refs:
+  - entire/checkpoints/v1 -> d594bc0
+- note: `.entire/` remains host-local runtime state; only this ledger is tracked.
+
+## 2026-06-24T10:58:55-07:00 — jakob
+- repo: `/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS`
+- branch: `main`
+- head: `60f48604`
+- origin/main: `c4f34bd2`
+- worktree: dirty
+- note: watched path changed: docs/superpowers/plans/2026-06-24-per-burst-association-figures.md
+- tracked status:
+  - M docs/entire-tracing-checkpoints.md
+- local `entire/*` refs:
+  - entire/0cc8a90-e3b0c4 -> 16d2565c
+  - entire/12a929e-e3b0c4 -> 746c927b
+  - entire/18520fb-e3b0c4 -> 3dfcd2f3
+  - entire/1bf078a-e3b0c4 -> 66e40d11
+  - entire/1d2f28b-e3b0c4 -> 8d9722a7
+  - entire/258d643-e3b0c4 -> d553c648
+  - entire/2963885-e3b0c4 -> 4ef72ea7
+  - entire/2a04537-e3b0c4 -> ef4c295e
+  - entire/2ad704b-e3b0c4 -> 99a3ff7e
+  - entire/30a21f5-e3b0c4 -> 69a665dd
+  - entire/3c13a71-e3b0c4 -> 51f7da8a
+  - entire/4803c13-e3b0c4 -> 5b448460
+  - entire/48f63b7-e3b0c4 -> 1491a141
+  - entire/4b041e2-e3b0c4 -> fcde5011
+  - entire/4b8f41d-e3b0c4 -> f04dacb4
+  - entire/51791c0-e3b0c4 -> c79c7aba
+  - entire/53194a6-e3b0c4 -> d3fc0e1c
+  - entire/66795c0-e3b0c4 -> 061405de
+  - entire/6bf7895-e3b0c4 -> eb56c54b
+  - entire/725b34e-e3b0c4 -> 11860bc8
+  - entire/7ae7c93-e3b0c4 -> 0c10c4ea
+  - entire/867ecd5-e3b0c4 -> 261a7c0b
+  - entire/8b864e3-e3b0c4 -> 2359cb77
+  - entire/8bbaf90-e3b0c4 -> 07e0f6b2
+  - entire/8ca87f7-e3b0c4 -> 61e3979c
+  - entire/8d37540-e3b0c4 -> 3e52d926
+  - entire/90ff6fd-e3b0c4 -> bcd111d9
+  - entire/a25bce0-e3b0c4 -> 0ae2439e
+  - entire/bc89489-e3b0c4 -> ea8df01d
+  - entire/checkpoints/v1 -> 436487cd
+  - entire/d78efae-e3b0c4 -> e4060327
+  - entire/d8c3cb1-e3b0c4 -> 68d71ebc
+  - entire/dffbd51-e3b0c4 -> 8a83a84d
+  - entire/e753bb6-e3b0c4 -> 73feaf8e
+  - entire/ea91839-e3b0c4 -> 57e22464
+  - entire/ebd68e5-e3b0c4 -> 9ab88abd
+  - entire/f03fab9-e3b0c4 -> 205d20c8
+  - entire/f94f467-e3b0c4 -> b0699051
+  - entire/ff0dbb9-e3b0c4 -> 859b2f1b
+- `origin` `entire/*` refs:
+  - entire/checkpoints/v1 -> d594bc0
+- note: `.entire/` remains host-local runtime state; only this ledger is tracked.

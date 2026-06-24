@@ -39,7 +39,9 @@ data ingest, and inspected the stored posteriors. Files: `burstfit_joint.py`, `b
    `[burst, alpha, tau_1ghz, log_evidence, log_evidence_err, alpha_bounds, percentiles, ncall]`
    — no `units`, `calibration`, or `Jy` field. Nothing asserts the `.npy` is in Jy·ms.
 
-3. **`c0_C` and `c0_D` show no common scale** (medians):
+3. **`c0_C` and `c0_D` show no common scale** (medians; source:
+   `analysis/scattering-refit-2026-06/joint_json/*_joint_fit.json` →
+   `percentiles.c0_C/c0_D.median`, verified to match these values 2026-06-23):
 
    ```
    burst        c0_C    c0_D        burst        c0_C    c0_D

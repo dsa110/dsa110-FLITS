@@ -42,9 +42,14 @@ documented "off-Kolmogorov" reason = a real, well-fit, shallow α.
 - **johndoeII** is the sole genuine sub-K case (1.53) AND well-fit in both bands —
   the strongest shallow-α detection, not a rail artifact.
 - **wilhelm** resolved → CITABLE with caveat: α=2.557 (shared-zeta canonical) is
-  robust — the per-band-zeta cross-check gives 2.625 with the SAME DSA χ²≈4.6, so
-  the elevated DSA χ² is the very bright (peak ≈47σ), narrow DSA burst inflating
-  reduced-χ², not an α-driven model failure. Cite α≈2.6 with the DSA fit-quality note.
+  robust — the per-band-zeta cross-check gives 2.625 with the SAME DSA χ²≈4.6.
+  Adversarial fit-validation (independently re-derived) corrected my first read: the
+  DSA χ² is NOT S/N inflation but a **coherent shape misfit localized at the bright
+  peak** (off-peak pixel RMS≈1.1 white; on-peak RMS≈2.9; freq-summed peak residual
+  ±15σ dipole) — a single exp-scattered component cannot fully reproduce wilhelm's
+  DSA pulse shape. α is stable across the ζ parametrization (so the index is
+  defensible), but it is measured through a model with residual peak structure;
+  cite α≈2.6 with that honest caveat, NOT "DSA well fit."
 - **mahi, isha** excluded: α prior-railed / unconstrained (DSA non-detections).
 - **phineas** landed (C3D3, both bands clean, χ² 1.02/1.34): α=3.32. **hamilton**
   excluded from α — per-band τ only (CHIME ≈0.020 ms, DSA non-detection upper limit).

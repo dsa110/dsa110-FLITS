@@ -16,8 +16,8 @@ non-blocking tag if it genuinely cannot be done by the agent now.
 
 ## Open
 
-- [ ] @human Regenerate `analysis/burst_energies/burst_energies.{json,tex}` on a host with the CHIME/DSA `.npy` staged (iacobus / `data/{chime,dsa}/`) by running `python analysis/calculate_burst_energies.py`. The energy trust boundary now drops FAIL-gated joint fits (johndoeII, oran, whitney) and stamps `quality_flag`; in the energy table this removes oran + whitney (johndoeII is already skipped as a placeholder z=1.0). The committed artifacts predate the boundary (still list oran/whitney, no `quality_flag`) — the live config is `fluxcal`, so regeneration needs the data, which is not available in CI.
+_(none)_
 
 ## Done
 
-_(archive completed items here, or prune as the ledger grows)_
+- [x] Regenerate `analysis/burst_energies/burst_energies.{json,tex}` with the energy trust boundary (#39). **Done 2026-06-24** on jakob-mbp using the local arc replica `~/Developer/dsa110-local-data/DSA_bursts/` (24 cubes; the "arc mount" reachable from here — `DATA_SOURCES.md` local replica), staged under `data/{dsa,chime}/`. Ran `python analysis/calculate_burst_energies.py` in the `flits` env. `--check` PASS; the quality gate refused the 3 FAIL joint fits (johndoeii, oran, whitney). Result: 8→6-burst energy table (removed oran+whitney; johndoeii also placeholder z=1.0), `quality_flag` now stamped on every row (all MARGINAL), all calibrated, E_iso 4.6e38–1.1e41 erg. Artifacts now show as `M` in the working tree (tracked); commit/push left to the user per the push gate.

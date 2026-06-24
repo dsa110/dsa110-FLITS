@@ -231,6 +231,186 @@ def fit_two_screen_acf(
     }
 
 
+def _lor(x, gamma, m):
+    """Bare Lorentzian component m²/(1+(x/γ)²); the composite below adds one shared C."""
+    return m**2 / (1 + (x / gamma) ** 2)
+
+
+def _n_lorentzian_model(n):
+    """lmfit composite of ``n`` Lorentzians (prefixes l0_, l1_, …) + one shared constant.
+    For n=1 this is identical to ``_lorentz_w_c``."""
+    from lmfit.models import ConstantModel
+
+    model = ConstantModel(prefix="c_")
+    for i in range(n):
+        model = model + Model(_lor, prefix=f"l{i}_")
+    return model
+
+
+def compare_lorentzian_components(
+    lags, acf, max_components=3, acf_err=None, delta_bic_strong=6.0, p_thresh=0.05
+):
+    """Decide how many Lorentzian components an ACF statistically supports.
+
+    Fits 1..``max_components`` Lorentzians (+ a shared constant) to the SAME ACF and
+    compares neighbouring models two independent ways, which must BOTH agree before a
+    component is added:
+
+      - **BIC** — the criterion the pipeline's ``_select_overall_best_model`` already
+        uses. Prefer n over n−1 only if ΔBIC = BIC_{n−1} − BIC_n exceeds
+        ``delta_bic_strong`` (≈6 ⇒ "strong" on the Kass & Raftery 1995 scale).
+      - **nested extra-sum-of-squares F-test** — the (n−1)-component model is nested in
+        the n-component one (set the extra m→0), so the two added parameters must cut
+        the residual sum of squares significantly (p < ``p_thresh``).
+
+    Requiring both guards against BIC alone accepting a degenerate extra component
+    (γ_i≈γ_j or m≈0) that does not actually reduce χ². Caveat: adding a component puts
+    the null (m=0) on the parameter-space boundary with γ unidentified there, so the
+    F-test p-value is only approximate / mildly anti-conservative (Protassov et al.
+    2002, ApJ 571, 545). That is why BIC is the primary, more defensible criterion and
+    the F-test is the corroborating second vote, not the sole arbiter.
+
+    Parameters
+    ----------
+    lags, acf : array
+        ACF and its lags (MHz). Use the mean-normalized, lag-0-excluded ACF from
+        ``_mean_normalized_acf`` for a Nimmo/Pleunis-consistent comparison. A symmetric
+        (±lag) input is reduced to its positive side internally (the ACF is even), so
+        the reported ``ndata`` and the BIC/F-test reflect independent points, not the
+        mirrored count.
+    acf_err : array, optional
+        Per-lag ACF uncertainty; when given the fits are χ²-weighted (1/err) so the BIC
+        and χ² are on a true-χ² scale (the F-test ratio is valid either way).
+
+    Returns
+    -------
+    dict
+        ``n_preferred`` plus, per n, BIC/AIC/redchi/χ²/n_params/components, and the
+        ``delta_bic`` and ``f_test`` p-value for each n vs n−1.
+    """
+    from scipy.stats import f as f_dist
+
+    lags = np.asarray(lags, dtype=float)
+    acf = np.asarray(acf, dtype=float)
+    err = np.asarray(acf_err, dtype=float) if acf_err is not None else None
+    # The ACF is even, so a symmetric ±lag input duplicates every independent point;
+    # counting both sides would inflate ndata and over-state BIC/F-test significance
+    # (the penalty term and F dof both scale with ndata). Fit one side (positive lags,
+    # lag 0 excluded) — the Lorentzian model is symmetric so the fit is identical but
+    # ndata is the true independent-point count.
+    side = lags > 0
+    if side.sum() >= 3:
+        lags, acf = lags[side], acf[side]
+        if err is not None:
+            err = err[side]
+    order = np.argsort(lags)
+    lags, acf = lags[order], acf[order]
+    if err is not None:
+        err = err[order]
+    span = float(np.nanmax(lags))
+    uniq = np.unique(lags)
+    fine = float(np.nanmin(np.diff(uniq))) if uniq.size > 1 else span / 10.0
+    peak = float(np.nanmax(acf))
+    weights = (1.0 / err) if err is not None else None
+
+    fits = []
+    for n in range(1, max_components + 1):
+        model = _n_lorentzian_model(n)
+        params = model.make_params()
+        params["c_c"].set(value=0.0)
+        # seed γ_i geometrically across [≈few channels, ≈half-span] so the components
+        # start on distinct scales; m_i split from the ACF peak.
+        gammas = (
+            np.geomspace(max(fine * 2.0, span / 50.0), 0.5 * span, n)
+            if n > 1
+            else np.array([0.2 * span])
+        )
+        for i in range(n):
+            params[f"l{i}_gamma"].set(value=float(gammas[i]), min=fine / 10.0)
+            params[f"l{i}_m"].set(value=float(np.sqrt(max(peak, 1e-3) / n)), min=0.0)
+        try:
+            res_n = model.fit(acf, params, x=lags, weights=weights)
+        except Exception:
+            fits.append({"n": n, "success": False, "bic": np.inf, "chi2": np.inf})
+            continue
+        comps = sorted(
+            (
+                (abs(res_n.params[f"l{i}_gamma"].value), abs(res_n.params[f"l{i}_m"].value))
+                for i in range(n)
+            ),
+            reverse=True,
+        )
+        fits.append(
+            {
+                "n": n,
+                "success": bool(res_n.success),
+                "bic": float(res_n.bic),
+                "aic": float(res_n.aic),
+                "chi2": float(res_n.chisqr),
+                "redchi": float(res_n.redchi),
+                "n_params": int(res_n.nvarys),
+                "ndata": int(res_n.ndata),
+                "components": [{"dnu_mhz": g, "m": m} for g, m in comps],
+            }
+        )
+
+    # Walk up from 1: accept n only if BIC strongly improves AND the nested F-test is
+    # significant; stop at the first n that is not justified (do not skip a level).
+    delta_bic = {}
+    f_test = {}
+    n_pref = 1
+    for n in range(2, max_components + 1):
+        prev, cur = fits[n - 2], fits[n - 1]
+        if not (prev.get("success") and cur.get("success")):
+            break
+        d_bic = prev["bic"] - cur["bic"]  # > 0 ⇒ n is the better model
+        delta_bic[n] = float(d_bic)
+        dof_num = cur["n_params"] - prev["n_params"]
+        dof_den = cur["ndata"] - cur["n_params"]
+        if dof_num > 0 and dof_den > 0 and cur["chi2"] > 0 and prev["chi2"] > cur["chi2"]:
+            f_stat = ((prev["chi2"] - cur["chi2"]) / dof_num) / (cur["chi2"] / dof_den)
+            p = float(f_dist.sf(f_stat, dof_num, dof_den))
+        else:
+            p = 1.0
+        f_test[n] = p
+        if n_pref == n - 1 and d_bic > delta_bic_strong and p < p_thresh:
+            n_pref = n
+        else:
+            break
+
+    return {
+        "n_preferred": n_pref,
+        "fits": fits,
+        "delta_bic": delta_bic,
+        "f_test": f_test,
+        "criterion": (
+            f"BIC ΔBIC>{delta_bic_strong} (Kass-Raftery 'strong') AND nested "
+            f"F-test p<{p_thresh}; both required to add a component"
+        ),
+    }
+
+
+def compare_components_from_spectrum(
+    spec,
+    channel_width_mhz,
+    max_components=3,
+    max_lag_mhz=None,
+    rfi_n_sigma=5.0,
+    first_lag=1,
+    offspec_mean=None,
+    **kw,
+):
+    """Convenience wrapper: build the mean-normalized, lag-0-excluded ACF from a
+    spectrum (as the other revalidation fits do) and run
+    ``compare_lorentzian_components`` on it. Returns the same verdict dict."""
+    spec = np.asarray(spec, dtype=float)
+    keep = (~rfi_flag(spec, n_sigma=rfi_n_sigma)).astype(float)
+    lags, acf, _peak = _mean_normalized_acf(
+        spec, keep, channel_width_mhz, max_lag_mhz, first_lag, offspec_mean
+    )
+    return compare_lorentzian_components(lags, acf, max_components=max_components, **kw)
+
+
 def res(lens_dist_kpc, lda_m, scat_lens_ms):
     """Physical resolution of a scattering screen, in km. Port of Nimmo et al. 2025
     ``res``. ``lens_dist_kpc`` = source↔lens distance (kpc), ``lda_m`` = wavelength

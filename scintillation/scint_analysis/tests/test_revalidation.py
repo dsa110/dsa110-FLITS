@@ -91,3 +91,39 @@ def test_emission_size_nimmo_port():
     assert big > small > 0
     # m -> 1 (unresolved) collapses the emission size toward 0.
     assert emission_size(phys_res, mod_ind=0.999) < small
+
+
+from scint_analysis.revalidation import _lor, compare_lorentzian_components  # noqa: E402
+
+
+def _synthetic_acf(components, span=2.0, dch=0.01, noise=3e-3, seed=0):
+    """Symmetric, lag-0-excluded ACF (as _mean_normalized_acf returns) summing the
+    given (gamma, m) Lorentzian components plus white noise."""
+    rng = np.random.default_rng(seed)
+    pos = np.arange(1, int(span / dch) + 1) * dch
+    lags = np.concatenate((-pos[::-1], pos))
+    acf = np.zeros(lags.size)
+    for g, m in components:
+        acf = acf + _lor(lags, g, m)
+    return lags, acf + rng.normal(0, noise, lags.size)
+
+
+def test_single_lorentzian_prefers_one():
+    """Known-truth oracle: one injected scale -> the BIC + nested-F-test selector
+    refuses the second component (ΔBIC must exceed 'strong' AND the F-test fire)."""
+    lags, acf = _synthetic_acf([(0.1, 0.8)])
+    out = compare_lorentzian_components(lags, acf, max_components=3)
+    assert out["n_preferred"] == 1
+    assert out["delta_bic"][2] < 6.0  # second component does not strongly improve BIC
+
+
+def test_two_lorentzians_prefers_two():
+    """Known-truth oracle: two well-separated scales -> selector picks exactly 2 and
+    recovers two distinct decorrelation bandwidths."""
+    lags, acf = _synthetic_acf([(0.04, 0.7), (0.7, 0.6)])
+    out = compare_lorentzian_components(lags, acf, max_components=3)
+    assert out["n_preferred"] == 2
+    assert out["delta_bic"][2] > 6.0 and out["f_test"][2] < 0.05
+    comps = next(f for f in out["fits"] if f["n"] == 2)["components"]
+    dnus = sorted(c["dnu_mhz"] for c in comps)
+    assert dnus[1] > 5 * dnus[0]  # two genuinely distinct scales

@@ -56,6 +56,18 @@ def test_dsa_burst_config_resolves():
     assert f_factor == 384 and t_factor == 2
 
 
+def test_fail_gated_joint_fits_excluded_from_eiso():
+    # Trust boundary: a joint fit the committed-fit quality gate marks FAIL
+    # (prior-railed / unphysical shared alpha) must not flow into E_iso. Wired to
+    # the #34 *_joint_gate.json sidecars. Reads JSON only -> data-independent.
+    flags = E.load_gate_flags()
+    kept = set(E.load_joint_params())
+    live_fail = {b for b, f in flags.items() if f == "FAIL"}
+    assert live_fail, "no live FAIL verdict to exercise the gate"
+    assert not (live_fail & kept), f"FAIL joint fit leaked into E_iso: {sorted(live_fail & kept)}"
+    assert all(flags.get(b) != "FAIL" for b in kept)
+
+
 def test_z_provenance_flags_unpublished_hosts():
     # every E_iso host has a redshift-provenance entry; only hamilton/chromatica are provisional
     # (no published host paper). Guards against silently presenting an unpublished z as catalog spec.

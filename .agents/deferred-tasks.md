@@ -16,7 +16,7 @@ non-blocking tag if it genuinely cannot be done by the agent now.
 
 ## Open
 
-_(none)_
+- [ ] @human Regenerate `analysis/burst_energies/burst_energies.{json,tex}` on a host with the CHIME/DSA `.npy` staged (iacobus / `data/{chime,dsa}/`) by running `python analysis/calculate_burst_energies.py`. The energy trust boundary now drops FAIL-gated joint fits (johndoeII, oran, whitney) and stamps `quality_flag`; in the energy table this removes oran + whitney (johndoeII is already skipped as a placeholder z=1.0). The committed artifacts predate the boundary (still list oran/whitney, no `quality_flag`) — the live config is `fluxcal`, so regeneration needs the data, which is not available in CI.
 
 ## Done
 

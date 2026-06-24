@@ -26,6 +26,11 @@ telescope's SEFD + beam response at the burst position). Until then it reports t
 band fluence integrals in native units, flagged uncalibrated, and writes a
 "pending calibration" LaTeX stub rather than a publishable table of fake erg.
 
+A second trust boundary gates fit QUALITY: a joint fit the committed-fit quality
+gate marks FAIL (prior-railed / unphysical shared alpha; see the *_joint_gate.json
+sidecars from gate_joint_committed.py) had its per-band c0/gamma fit under a wrong
+alpha, so it is dropped here rather than allowed to flow into E_iso.
+
 The (1+z) bandwidth k-correction (Zhang 2018) is applied by default; the
 no-k-correction value is tabulated alongside so the manuscript can state the
 convention explicitly.
@@ -124,18 +129,49 @@ def load_redshifts() -> dict[str, float]:
     return {name.lower(): z for name, _ra, _dec, z in TARGETS}
 
 
-def load_joint_params() -> dict[str, dict]:
-    """nickname (lowercased) -> {c0_C, gamma_C, c0_D, gamma_D} medians."""
+def load_gate_flags() -> dict[str, str]:
+    """nickname (lowercased) -> joint-fit quality_flag (PASS/MARGINAL/FAIL).
+
+    Source: the committed-fit quality gate `*_joint_gate.json` sidecars produced by
+    analysis/scattering-refit-2026-06/gate_joint_committed.py (the authoritative
+    runtime FLITS contract applied to the joint fits). One file per burst.
+    """
     out = {}
+    for p in sorted(JOINT_DIR.glob("*_joint_gate.json")):
+        d = json.loads(p.read_text())
+        out[d["burst"].lower()] = d["quality_flag"]
+    return out
+
+
+def load_joint_params() -> dict[str, dict]:
+    """nickname (lowercased) -> {c0_C, gamma_C, c0_D, gamma_D, quality_flag} medians.
+
+    Trust boundary: a joint fit the quality gate marks FAIL has a prior-railed or
+    unphysical shared alpha, so its per-band c0/gamma were fit UNDER that wrong
+    alpha and must not flow into E_iso (a railed fit is not a measurement). FAIL
+    fits are dropped here (logged); a fit with no gate sidecar keeps quality_flag
+    None and is retained (un-stamped legacy fit -> do not assume FAIL).
+    """
+    flags = load_gate_flags()
+    out, dropped = {}, []
     for p in sorted(JOINT_DIR.glob("*_joint_fit.json")):
         d = json.loads(p.read_text())
         pct = d["percentiles"]
+        nick = d["burst"].lower()
         try:
-            out[d["burst"].lower()] = {
-                k: pct[k]["median"] for k in ("c0_C", "gamma_C", "c0_D", "gamma_D")
-            }
+            params = {k: pct[k]["median"] for k in ("c0_C", "gamma_C", "c0_D", "gamma_D")}
         except KeyError:
             continue  # not a per-band-amplitude fit; skip
+        if flags.get(nick) == "FAIL":
+            dropped.append(nick)
+            continue
+        params["quality_flag"] = flags.get(nick)
+        out[nick] = params
+    if dropped:
+        print(
+            f"[gate] refused {len(dropped)} FAIL joint fit(s) from E_iso: {', '.join(sorted(dropped))}",
+            file=sys.stderr,
+        )
     return out
 
 
@@ -191,6 +227,7 @@ def compute(scales: dict[str, float | str | None] | None = None) -> list[dict]:
             "I_CHIME_native_ms_Hz": I_C,  # band fluence integral, NATIVE units
             "I_DSA_native_ms_Hz": I_D,
             "calibrated": calibrated,
+            "quality_flag": fp.get("quality_flag"),
             "z_src": Z_PROVENANCE.get(nick, ("unknown", ""))[0],
         }
         if I_C_jy is not None:
@@ -391,7 +428,16 @@ def _check() -> None:
     assert (live["C"] is None) == (live["D"] is None), (
         "telescopes.yaml: calibrate both bands or neither"
     )
-    print("self-check OK: integral matches quadrature; energy oracle, k-correction, and gate exact")
+
+    # 4. quality trust boundary: a FAIL-gated joint fit must never reach E_iso
+    flags = load_gate_flags()
+    kept = set(load_joint_params())
+    live_fail = {b for b, f in flags.items() if f == "FAIL"}
+    assert live_fail, "no live FAIL verdict to exercise the trust boundary"
+    assert not (live_fail & kept), f"FAIL joint fit leaked into E_iso: {sorted(live_fail & kept)}"
+    print(
+        "self-check OK: integral matches quadrature; energy oracle, k-correction, and both gates exact"
+    )
 
 
 def main() -> None:

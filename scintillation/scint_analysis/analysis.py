@@ -1386,8 +1386,6 @@ def analyze_scintillation_from_acfs(acf_results, config):
             param = p.get(param_name)
             return param.stderr if param is not None and param.stderr is not None else np.nan
 
-        component_params = []
-
         # Handle different model types
         if "power" in best_model_name:
             # Power-law model: C(Δν) = c · |Δν|^n
@@ -1402,7 +1400,6 @@ def analyze_scintillation_from_acfs(acf_results, config):
             # Use c as proxy for "bandwidth scale" and set modulation to NaN
             bw, bw_err = c_val, c_err
             mod, mod_err = np.nan, np.nan  # Power-law has no modulation index
-            component_params.append((bw, mod, bw_err, mod_err))
 
         elif "lor_gen" in best_model_name or "gen" in best_model_name:
             # Generalized Lorentzian: has gamma, alpha, m
@@ -1410,7 +1407,6 @@ def analyze_scintillation_from_acfs(acf_results, config):
             bw, bw_err = get_bw_params(f"{prefix}gamma", False)
             mod = p[f"{prefix}m"].value
             mod_err = get_mod_err(f"{prefix}m")
-            component_params.append((bw, mod, bw_err, mod_err))
 
         else:
             # Standard Lorentzian or Gaussian
@@ -1420,7 +1416,26 @@ def analyze_scintillation_from_acfs(acf_results, config):
             bw, bw_err = get_bw_params(f"{prefix}{p_root}", is_gauss)
             mod = p[f"{prefix}m"].value
             mod_err = get_mod_err(f"{prefix}m")
-            component_params.append((bw, mod, bw_err, mod_err))
+
+        # Append this sub-band's measurement as the dict contract the power-law
+        # consumer below expects (keys bw/mod/bw_err/mod_err/finite_err/gof).
+        # _fit_acf_models only yields single-component models, so the measured
+        # bandwidth lands in component 0; any extra components (never hit on this
+        # path) get {} to keep per-sub-band index alignment with the fail branch.
+        measurement = {
+            "bw": bw,
+            "mod": mod,
+            "bw_err": bw_err,
+            "mod_err": mod_err,
+            # finite-scintle error is already folded into bw_err via the weighted
+            # ACF fit (calculate_acf builds it into acf_err); keep nan here so the
+            # consumer's quadrature sum does not double-count it.
+            "finite_err": np.nan,
+            "gof": gof_metrics,
+        }
+        params_per_comp[0].append(measurement)
+        for comp_list in params_per_comp[1:]:
+            comp_list.append({})
 
     final_results = {"best_model": best_model_name, "components": {}}
     all_powerlaw_fits = {}

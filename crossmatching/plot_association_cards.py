@@ -154,7 +154,6 @@ def _plot_timing_panel(ax, nickname: str, toa: dict, chime_row: dict):
     ax.set_ylim(-0.7, 1.7)
     ax.set_yticks([0, 1], ["DSA", "CHIME"])
     ax.set_xlabel("Residual at 400 MHz reference (ms)")
-    ax.set_title("Timing and dispersion", loc="left", pad=3)
     ax.text(
         0.02,
         0.96,
@@ -219,7 +218,6 @@ def _plot_position_panel(
     ax.set_ylim(-lim, lim)
     ax.set_xlabel(r"$\Delta$RA cos Dec (arcmin)")
     ax.set_ylabel(r"$\Delta$Dec (arcmin)")
-    ax.set_title("Position and beams", loc="left", pad=3)
     ax.grid(alpha=0.20)
     handles, labels = ax.get_legend_handles_labels()
     ax.legend(handles, labels, loc="upper right", fontsize=5.6, framealpha=0.92, borderpad=0.3)

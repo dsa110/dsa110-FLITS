@@ -66,9 +66,22 @@ def expected_chance_associations(dms, **kw) -> float:
 
 # --- Pillar 2: independent DM agreement ---------------------------------------
 def dm_agreement(
-    *, dm_chime, dm_chime_err, dm_dsa, dm_dsa_err, n_sigma_thresh: float = 3.0
+    *,
+    dm_chime,
+    dm_chime_err,
+    dm_dsa,
+    dm_dsa_err,
+    n_sigma_thresh: float = 3.0,
+    dm_floor: float = 1.0,
 ) -> dict:
-    """CHIME-vs-DSA DM consistency, each with its own error. Null+reason when CHIME DM absent."""
+    """CHIME-vs-DSA DM consistency, each with its own error. Null+reason when CHIME DM absent.
+
+    ``dm_floor`` (pc/cm^3) is a PHYSICAL tolerance floor on the combined sigma: the CHIME arrival
+    regression returns a statistical sigma that can sit far below the ~1 pc/cm^3 scale at which a DM
+    difference is physically meaningful (e.g. casey +/-0.0009), so a sub-pc offset would otherwise read
+    as many-sigma. The floor (expert verdict, .agents/audit-chime-side-dm.md) keeps the test honest:
+    sigma_eff = max(quadrature errors, dm_floor).
+    """
     if dm_chime is None or dm_dsa is None:
         return {
             "delta": None,
@@ -78,7 +91,7 @@ def dm_agreement(
             "reason": "no CHIME DM available",
         }
     delta = abs(dm_chime - dm_dsa)
-    sigma = math.hypot(dm_chime_err or 0.0, dm_dsa_err or 0.0)
+    sigma = max(math.hypot(dm_chime_err or 0.0, dm_dsa_err or 0.0), dm_floor)
     n = delta / sigma if sigma > 0 else float("inf")
     return {
         "delta": delta,

@@ -78,6 +78,14 @@ def test_dm_agreement_missing_chime_dm_returns_null_reason():
     assert r["consistent"] is None and "no CHIME DM" in r["reason"]
 
 
+def test_dm_agreement_applies_physical_floor():
+    # casey-like: tiny statistical sigma + sub-pc offset. Without the 1 pc/cm^3 floor this reads as
+    # ~40 sigma (inconsistent); with the floor it is the physically-correct sub-sigma consistency.
+    r = dm_agreement(dm_chime=491.17, dm_chime_err=0.001, dm_dsa=491.21, dm_dsa_err=0.0)
+    assert r["sigma"] == pytest.approx(1.0)  # floor, not 0.001
+    assert r["n_sigma"] < 1.0 and r["consistent"] is True
+
+
 # --- Pillar 3: timing budget + residual-pedestal significance ------------------
 def test_timing_budget_quadrature():
     got = timing_budget_ms(
@@ -156,10 +164,11 @@ def test_report_activates_pillars_2_and_4_from_chime_inputs(tmp_path):
     assert report["inputs"]["chime_localization_radius_deg"] == 0.1
 
 
-def test_report_pillar4_active_pillar2_suspended_pending_audit():
-    # The DM-phase extraction was retracted (1e-3*K_DM inter-channel unit bug + non-peaking curves;
-    # see .agents/audit-chime-side-dm.md): CHIME DMs nulled -> Pillar 2 suspended for all 12, while
-    # Pillar 4 (positions, from tiedbeam_locations) is independent and stays active 12/12.
+def test_report_pillar2_active_8_of_12_with_floor():
+    # Post-audit (.agents/audit-chime-side-dm.md): arrival-regression on coherent-dedispersed data at a
+    # uniform downsampled binning (TDS=32/N_SB=6) independently constrains CHIME DM for 8/12 bursts
+    # (downsampling rescued isha/wilhelm/phineas from the v2 +2-3 scattering bias). The other 4 are
+    # genuine non-detections (<3 sub-bands @ S/N>=4). Pillar 4 stays 12/12.
     chime = ROOT / "crossmatching/chime_side_inputs.json"
     if not chime.exists():
         import pytest
@@ -168,8 +177,19 @@ def test_report_pillar4_active_pillar2_suspended_pending_audit():
     report = build_association_report(
         ROOT / "crossmatching/notebook_reproduction_fixture.json", chime_inputs_path=chime
     )
-    # Pillar 2 suspended: every burst nulled with an explicit reason, none fabricated
-    assert all(b["dm_agreement"]["consistent"] is None for b in report["bursts"])
-    assert all(b["dm_confidence"] == "under-audit" for b in report["bursts"])
+    by = {b["name"]: b for b in report["bursts"]}
+    constrained = {"zach", "casey", "freya", "hamilton", "chromatica", "isha", "wilhelm", "phineas"}
+    # Pillar 2 active for the 8 constrained bursts: all consistent with DSA via the physical floor
+    for n in constrained:
+        da = by[n]["dm_agreement"]
+        assert da["consistent"] is True
+        assert da["sigma"] >= 1.0  # 1 pc/cm^3 physical floor applied
+        assert by[n]["dm_confidence"] == "constrained"
+    # the other 4 are honest non-detections: nulled, no fabricated value
+    for b in report["bursts"]:
+        if b["name"] not in constrained:
+            assert b["dm_agreement"]["consistent"] is None
+            assert b["dm_confidence"] == "unconstrained"
+    assert sum(b["dm_agreement"]["consistent"] is True for b in report["bursts"]) == 8
     # Pillar 4 intact: all 12 CHIME positions still consistent with DSA
     assert all(b["position"]["consistent"] is True for b in report["bursts"])

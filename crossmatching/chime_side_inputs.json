@@ -1,7 +1,7 @@
 [
   {
-    "dm_chime": 260.118,
-    "dm_chime_err": 2.7400343905758735,
+    "dm_chime": null,
+    "dm_chime_err": null,
     "interior": true,
     "flat_ratio": 1.3567122943621235,
     "snr": 3.933155302794981,
@@ -12,11 +12,12 @@
     "chime_id": "210456524",
     "dm_dsa": 262.368,
     "method": "DM-phase structure-max (dmphasev2), residual grid, flip orient",
-    "dm_confidence": "real"
+    "dm_confidence": "under-audit",
+    "dm_status": "SUSPENDED: dedispersion/DM-phase audit (1e-3*K_DM unit bug + non-peaking curves); see .agents/audit-chime-side-dm.md"
   },
   {
-    "dm_chime": 462.474,
-    "dm_chime_err": 2.8119012183109313,
+    "dm_chime": null,
+    "dm_chime_err": null,
     "interior": true,
     "flat_ratio": 1.2754595882156556,
     "snr": 3.0564088730085825,
@@ -27,11 +28,12 @@
     "chime_id": "215063905",
     "dm_dsa": 462.174,
     "method": "DM-phase structure-max (dmphasev2), residual grid, flip orient",
-    "dm_confidence": "marginal"
+    "dm_confidence": "under-audit",
+    "dm_status": "SUSPENDED: dedispersion/DM-phase audit (1e-3*K_DM unit bug + non-peaking curves); see .agents/audit-chime-side-dm.md"
   },
   {
-    "dm_chime": 391.332,
-    "dm_chime_err": 3.989778406223748,
+    "dm_chime": null,
+    "dm_chime_err": null,
     "interior": true,
     "flat_ratio": 1.229956445590882,
     "snr": 3.808539544276419,
@@ -42,7 +44,8 @@
     "chime_id": "224263996",
     "dm_dsa": 396.882,
     "method": "DM-phase structure-max (dmphasev2), residual grid, flip orient",
-    "dm_confidence": "marginal"
+    "dm_confidence": "under-audit",
+    "dm_status": "SUSPENDED: dedispersion/DM-phase audit (1e-3*K_DM unit bug + non-peaking curves); see .agents/audit-chime-side-dm.md"
   },
   {
     "dm_chime": null,
@@ -57,11 +60,12 @@
     "chime_id": "252069198",
     "dm_dsa": 411.568,
     "method": "DM-phase structure-max (dmphasev2), residual grid, flip orient",
-    "dm_confidence": "noise"
+    "dm_confidence": "under-audit",
+    "dm_status": "SUSPENDED: dedispersion/DM-phase audit (1e-3*K_DM unit bug + non-peaking curves); see .agents/audit-chime-side-dm.md"
   },
   {
-    "dm_chime": 597.846,
-    "dm_chime_err": 4.285649690447279,
+    "dm_chime": null,
+    "dm_chime_err": null,
     "interior": true,
     "flat_ratio": 1.3630246566333848,
     "snr": 3.4169849419386344,
@@ -72,7 +76,8 @@
     "chime_id": "253635173",
     "dm_dsa": 602.346,
     "method": "DM-phase structure-max (dmphasev2), residual grid, flip orient",
-    "dm_confidence": "marginal"
+    "dm_confidence": "under-audit",
+    "dm_status": "SUSPENDED: dedispersion/DM-phase audit (1e-3*K_DM unit bug + non-peaking curves); see .agents/audit-chime-side-dm.md"
   },
   {
     "dm_chime": null,
@@ -87,11 +92,12 @@
     "chime_id": "274819243",
     "dm_dsa": 610.274,
     "method": "DM-phase structure-max (dmphasev2), residual grid, flip orient",
-    "dm_confidence": "noise"
+    "dm_confidence": "under-audit",
+    "dm_status": "SUSPENDED: dedispersion/DM-phase audit (1e-3*K_DM unit bug + non-peaking curves); see .agents/audit-chime-side-dm.md"
   },
   {
-    "dm_chime": 911.8,
-    "dm_chime_err": 2.5137812462197626,
+    "dm_chime": null,
+    "dm_chime_err": null,
     "interior": true,
     "flat_ratio": 1.5111192239460067,
     "snr": 3.751563096289994,
@@ -102,11 +108,12 @@
     "chime_id": "278720455",
     "dm_dsa": 912.4,
     "method": "DM-phase structure-max (dmphasev2), residual grid, flip orient",
-    "dm_confidence": "real"
+    "dm_confidence": "under-audit",
+    "dm_status": "SUSPENDED: dedispersion/DM-phase audit (1e-3*K_DM unit bug + non-peaking curves); see .agents/audit-chime-side-dm.md"
   },
   {
-    "dm_chime": 698.156,
-    "dm_chime_err": 3.2752018434570815,
+    "dm_chime": null,
+    "dm_chime_err": null,
     "interior": true,
     "flat_ratio": 1.2726427085018421,
     "snr": 3.228224958269302,
@@ -117,11 +124,12 @@
     "chime_id": "311723353",
     "dm_dsa": 696.506,
     "method": "DM-phase structure-max (dmphasev2), residual grid, flip orient",
-    "dm_confidence": "marginal"
+    "dm_confidence": "under-audit",
+    "dm_status": "SUSPENDED: dedispersion/DM-phase audit (1e-3*K_DM unit bug + non-peaking curves); see .agents/audit-chime-side-dm.md"
   },
   {
-    "dm_chime": 515.199,
-    "dm_chime_err": 3.301745604746312,
+    "dm_chime": null,
+    "dm_chime_err": null,
     "interior": true,
     "flat_ratio": 1.317515610864322,
     "snr": 3.27545833530964,
@@ -132,7 +140,8 @@
     "chime_id": "318353610",
     "dm_dsa": 518.799,
     "method": "DM-phase structure-max (dmphasev2), residual grid, flip orient",
-    "dm_confidence": "marginal"
+    "dm_confidence": "under-audit",
+    "dm_status": "SUSPENDED: dedispersion/DM-phase audit (1e-3*K_DM unit bug + non-peaking curves); see .agents/audit-chime-side-dm.md"
   },
   {
     "dm_chime": null,
@@ -147,11 +156,12 @@
     "chime_id": "354049284",
     "dm_dsa": 960.128,
     "method": "DM-phase structure-max (dmphasev2), residual grid, flip orient",
-    "dm_confidence": "noise"
+    "dm_confidence": "under-audit",
+    "dm_status": "SUSPENDED: dedispersion/DM-phase audit (1e-3*K_DM unit bug + non-peaking curves); see .agents/audit-chime-side-dm.md"
   },
   {
-    "dm_chime": 273.86400000000003,
-    "dm_chime_err": 2.9186963633681566,
+    "dm_chime": null,
+    "dm_chime_err": null,
     "interior": true,
     "flat_ratio": 1.4430114691919307,
     "snr": 3.53558238158885,
@@ -162,11 +172,12 @@
     "chime_id": "356959136",
     "dm_dsa": 272.664,
     "method": "DM-phase structure-max (dmphasev2), residual grid, flip orient",
-    "dm_confidence": "marginal"
+    "dm_confidence": "under-audit",
+    "dm_status": "SUSPENDED: dedispersion/DM-phase audit (1e-3*K_DM unit bug + non-peaking curves); see .agents/audit-chime-side-dm.md"
   },
   {
-    "dm_chime": 493.007,
-    "dm_chime_err": 3.496352494991148,
+    "dm_chime": null,
+    "dm_chime_err": null,
     "interior": true,
     "flat_ratio": 1.363559731955987,
     "snr": 3.34419274973488,
@@ -177,6 +188,7 @@
     "chime_id": "362593221",
     "dm_dsa": 491.207,
     "method": "DM-phase structure-max (dmphasev2), residual grid, flip orient",
-    "dm_confidence": "marginal"
+    "dm_confidence": "under-audit",
+    "dm_status": "SUSPENDED: dedispersion/DM-phase audit (1e-3*K_DM unit bug + non-peaking curves); see .agents/audit-chime-side-dm.md"
   }
 ]

@@ -156,9 +156,10 @@ def test_report_activates_pillars_2_and_4_from_chime_inputs(tmp_path):
     assert report["inputs"]["chime_localization_radius_deg"] == 0.1
 
 
-def test_report_with_real_chime_inputs_activates_pillars():
-    # committed CHIME-side extraction (RFI-mask recipe, figure-reviewed): 2 real / 7 marginal /
-    # 3 noise -> 9/12 DM active (isha/phineas/mahi noise -> null), all 12 positions consistent.
+def test_report_pillar4_active_pillar2_suspended_pending_audit():
+    # The DM-phase extraction was retracted (1e-3*K_DM inter-channel unit bug + non-peaking curves;
+    # see .agents/audit-chime-side-dm.md): CHIME DMs nulled -> Pillar 2 suspended for all 12, while
+    # Pillar 4 (positions, from tiedbeam_locations) is independent and stays active 12/12.
     chime = ROOT / "crossmatching/chime_side_inputs.json"
     if not chime.exists():
         import pytest
@@ -167,16 +168,8 @@ def test_report_with_real_chime_inputs_activates_pillars():
     report = build_association_report(
         ROOT / "crossmatching/notebook_reproduction_fixture.json", chime_inputs_path=chime
     )
-    by = {b["name"]: b for b in report["bursts"]}
-    noise = {"isha", "phineas", "mahi"}
-    assert {n for n in by if by[n]["dm_confidence"] == "noise"} == noise
-    for n in noise:  # noise -> nulled, not fabricated
-        assert by[n]["dm_agreement"]["consistent"] is None
-    dm_active = [b for b in report["bursts"] if b["dm_agreement"]["consistent"] is not None]
-    assert len(dm_active) == 9
-    assert all(b["dm_agreement"]["consistent"] is True for b in dm_active)  # all within 3 sigma
-    assert all(b["position"]["consistent"] is True for b in report["bursts"])  # 12/12 positions
-    assert {b["name"] for b in report["bursts"] if b["dm_confidence"] == "real"} == {
-        "zach",
-        "freya",
-    }
+    # Pillar 2 suspended: every burst nulled with an explicit reason, none fabricated
+    assert all(b["dm_agreement"]["consistent"] is None for b in report["bursts"])
+    assert all(b["dm_confidence"] == "under-audit" for b in report["bursts"])
+    # Pillar 4 intact: all 12 CHIME positions still consistent with DSA
+    assert all(b["position"]["consistent"] is True for b in report["bursts"])

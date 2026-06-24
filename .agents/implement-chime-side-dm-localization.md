@@ -1,5 +1,11 @@
 # Implementation Summary: activate association pillars 2 & 4 with CHIME-side DM + localization
 
+> **⚠️ PILLAR 2 RETRACTED (2026-06-24).** The CHIME structure-DMs below are INVALID — the extraction
+> had a 1e-3*K_DM inter-channel unit bug (1000×) and the DM-phase curves never actually peaked (see
+> [audit-chime-side-dm.md](audit-chime-side-dm.md)). DMs nulled on main; rebuild on library
+> dedispersion pending. **Pillar 4 (positions) is independent and stands.** The 2-real/7-marginal/
+> 3-noise headline below is the retracted state, kept for provenance.
+
 ---
 **Date:** 2026-06-23
 **Status:** Phases 1-3 complete (automated-verified + figure-reviewed); Phase 4 (verify + PR) pending a scientific decision

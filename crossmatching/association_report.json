@@ -4,7 +4,10 @@
     "omega_win_deg2": 0.7853981633974483,
     "dt_s": 1.0,
     "ddm": 5.0,
-    "dm_model": "lognormal(500,0.7) [assumption]"
+    "dm_model": "lognormal(500,0.7) [assumption]",
+    "chime_dm_method": "DM-phase structure-max (dmphasev2); coherent dedisp, flip orient",
+    "chime_localization_radius_deg": 0.1,
+    "chime_localization_note": "tiedbeam pointing; no multi-beam error ellipse (Michilli+2021 sub-arcmin assumed)"
   },
   "expected_chance_associations": 5.460165706874625e-08,
   "bursts": [
@@ -14,13 +17,19 @@
       "dm": 262.368,
       "chance_coincidence_P": 6.262785512411995e-09,
       "dm_agreement": {
-        "delta": null,
-        "sigma": null,
-        "n_sigma": null,
-        "consistent": null,
-        "reason": "no CHIME DM available"
+        "delta": 2.25,
+        "sigma": 2.741858577961033,
+        "n_sigma": 0.8206112518294796,
+        "consistent": true,
+        "reason": null
       },
-      "position_consistent": null
+      "dm_confidence": "real",
+      "position": {
+        "separation_deg": 0.016227784668577917,
+        "radius_deg": 0.1,
+        "consistent": true,
+        "reason": null
+      }
     },
     {
       "name": "whitney",
@@ -28,13 +37,19 @@
       "dm": 462.174,
       "chance_coincidence_P": 5.400264901922469e-09,
       "dm_agreement": {
-        "delta": null,
-        "sigma": null,
-        "n_sigma": null,
-        "consistent": null,
-        "reason": "no CHIME DM available"
+        "delta": 0.30000000000001137,
+        "sigma": 2.813678812789139,
+        "n_sigma": 0.10662197783073465,
+        "consistent": true,
+        "reason": null
       },
-      "position_consistent": null
+      "dm_confidence": "marginal",
+      "position": {
+        "separation_deg": 0.011692487824505162,
+        "radius_deg": 0.1,
+        "consistent": true,
+        "reason": null
+      }
     },
     {
       "name": "oran",
@@ -42,13 +57,19 @@
       "dm": 396.882,
       "chance_coincidence_P": 5.993225582479056e-09,
       "dm_agreement": {
-        "delta": null,
-        "sigma": null,
-        "n_sigma": null,
-        "consistent": null,
-        "reason": "no CHIME DM available"
+        "delta": 5.550000000000011,
+        "sigma": 3.9910314118995993,
+        "n_sigma": 1.3906179699443644,
+        "consistent": true,
+        "reason": null
       },
-      "position_consistent": null
+      "dm_confidence": "marginal",
+      "position": {
+        "separation_deg": 0.030569719709358414,
+        "radius_deg": 0.1,
+        "consistent": true,
+        "reason": null
+      }
     },
     {
       "name": "isha",
@@ -62,7 +83,13 @@
         "consistent": null,
         "reason": "no CHIME DM available"
       },
-      "position_consistent": null
+      "dm_confidence": "noise",
+      "position": {
+        "separation_deg": 0.014981182817416788,
+        "radius_deg": 0.1,
+        "consistent": true,
+        "reason": null
+      }
     },
     {
       "name": "wilhelm",
@@ -70,13 +97,19 @@
       "dm": 602.346,
       "chance_coincidence_P": 4.0248395727360275e-09,
       "dm_agreement": {
-        "delta": null,
-        "sigma": null,
-        "n_sigma": null,
-        "consistent": null,
-        "reason": "no CHIME DM available"
+        "delta": 4.5,
+        "sigma": 4.2868162159382175,
+        "n_sigma": 1.0497300964919312,
+        "consistent": true,
+        "reason": null
       },
-      "position_consistent": null
+      "dm_confidence": "marginal",
+      "position": {
+        "separation_deg": 0.007464782164573648,
+        "radius_deg": 0.1,
+        "consistent": true,
+        "reason": null
+      }
     },
     {
       "name": "phineas",
@@ -90,7 +123,13 @@
         "consistent": null,
         "reason": "no CHIME DM available"
       },
-      "position_consistent": null
+      "dm_confidence": "noise",
+      "position": {
+        "separation_deg": 0.005936123970720243,
+        "radius_deg": 0.1,
+        "consistent": true,
+        "reason": null
+      }
     },
     {
       "name": "freya",
@@ -98,13 +137,19 @@
       "dm": 912.4,
       "chance_coincidence_P": 1.903084689836021e-09,
       "dm_agreement": {
-        "delta": null,
-        "sigma": null,
-        "n_sigma": null,
-        "consistent": null,
-        "reason": "no CHIME DM available"
+        "delta": 0.6000000000000227,
+        "sigma": 2.5157694953723766,
+        "n_sigma": 0.23849561778362074,
+        "consistent": true,
+        "reason": null
       },
-      "position_consistent": null
+      "dm_confidence": "real",
+      "position": {
+        "separation_deg": 0.018192650112516265,
+        "radius_deg": 0.1,
+        "consistent": true,
+        "reason": null
+      }
     },
     {
       "name": "johndoeII",
@@ -112,13 +157,19 @@
       "dm": 696.506,
       "chance_coincidence_P": 3.2236500135951474e-09,
       "dm_agreement": {
-        "delta": null,
-        "sigma": null,
-        "n_sigma": null,
-        "consistent": null,
-        "reason": "no CHIME DM available"
+        "delta": 1.6499999999999773,
+        "sigma": 3.2767281113001525,
+        "n_sigma": 0.5035510863137449,
+        "consistent": true,
+        "reason": null
       },
-      "position_consistent": null
+      "dm_confidence": "marginal",
+      "position": {
+        "separation_deg": 0.017079836415563276,
+        "radius_deg": 0.1,
+        "consistent": true,
+        "reason": null
+      }
     },
     {
       "name": "hamilton",
@@ -126,13 +177,19 @@
       "dm": 518.799,
       "chance_coincidence_P": 4.83459627886873e-09,
       "dm_agreement": {
-        "delta": null,
-        "sigma": null,
-        "n_sigma": null,
-        "consistent": null,
-        "reason": "no CHIME DM available"
+        "delta": 3.6000000000000227,
+        "sigma": 3.3032596080934344,
+        "n_sigma": 1.089832597831407,
+        "consistent": true,
+        "reason": null
       },
-      "position_consistent": null
+      "dm_confidence": "marginal",
+      "position": {
+        "separation_deg": 0.013362385474048047,
+        "radius_deg": 0.1,
+        "consistent": true,
+        "reason": null
+      }
     },
     {
       "name": "mahi",
@@ -146,7 +203,13 @@
         "consistent": null,
         "reason": "no CHIME DM available"
       },
-      "position_consistent": null
+      "dm_confidence": "noise",
+      "position": {
+        "separation_deg": 0.03773422254784797,
+        "radius_deg": 0.1,
+        "consistent": true,
+        "reason": null
+      }
     },
     {
       "name": "chromatica",
@@ -154,13 +217,19 @@
       "dm": 272.664,
       "chance_coincidence_P": 6.3298608576900506e-09,
       "dm_agreement": {
-        "delta": null,
-        "sigma": null,
-        "n_sigma": null,
-        "consistent": null,
-        "reason": "no CHIME DM available"
+        "delta": 1.2000000000000455,
+        "sigma": 2.9204089545025202,
+        "n_sigma": 0.4109013561782002,
+        "consistent": true,
+        "reason": null
       },
-      "position_consistent": null
+      "dm_confidence": "marginal",
+      "position": {
+        "separation_deg": 0.0140542339747058,
+        "radius_deg": 0.1,
+        "consistent": true,
+        "reason": null
+      }
     },
     {
       "name": "casey",
@@ -168,13 +237,19 @@
       "dm": 491.207,
       "chance_coincidence_P": 5.111624901132927e-09,
       "dm_agreement": {
-        "delta": null,
-        "sigma": null,
-        "n_sigma": null,
-        "consistent": null,
-        "reason": "no CHIME DM available"
+        "delta": 1.8000000000000114,
+        "sigma": 3.4977822644113834,
+        "n_sigma": 0.5146117922531466,
+        "consistent": true,
+        "reason": null
       },
-      "position_consistent": null
+      "dm_confidence": "marginal",
+      "position": {
+        "separation_deg": 0.010302202214218582,
+        "radius_deg": 0.1,
+        "consistent": true,
+        "reason": null
+      }
     }
   ]
 }

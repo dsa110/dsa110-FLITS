@@ -10,12 +10,9 @@ the main scattering MCMC analysis.
 from __future__ import annotations
 
 import logging
-from typing import Tuple
 
 import numpy as np
 from numpy.typing import NDArray
-
-from dispersion.dmphasev2 import DMPhaseEstimator
 
 log = logging.getLogger(__name__)
 
@@ -30,11 +27,11 @@ def estimate_dm_from_waterfall(
     dm_search_window: float = 5.0,
     dm_grid_resolution: float = 0.01,
     n_bootstrap: int = 200,
-    f_cut_hz: Tuple[float, float] | None = None,
+    f_cut_hz: tuple[float, float] | None = None,
 ) -> dict:
     """
     Estimate optimal DM using phase-coherence method.
-    
+
     Parameters
     ----------
     waterfall : ndarray
@@ -53,7 +50,7 @@ def estimate_dm_from_waterfall(
         Number of bootstrap resamples for uncertainty
     f_cut_hz : tuple or None
         Frequency cutoff range (lo, hi) in Hz for coherent power integration
-        
+
     Returns
     -------
     dict
@@ -74,16 +71,16 @@ def estimate_dm_from_waterfall(
     log.info(f"Running DM estimation around catalog value {dm_catalog:.3f} pc/cm³")
     log.info(f"  Search window: ±{dm_search_window:.2f} pc/cm³")
     log.info(f"  Grid resolution: {dm_grid_resolution:.3f} pc/cm³")
-    
+
     # Build DM search grid
     dm_min = dm_catalog - dm_search_window
     dm_max = dm_catalog + dm_search_window
     n_grid = int((dm_max - dm_min) / dm_grid_resolution) + 1
     dm_grid = np.linspace(dm_min, dm_max, n_grid)
-    
+
     # Convert time resolution to seconds
     dt_sec = dt_ms * 1e-3
-    
+
     # Initialize estimator
     # DMPhaseEstimator expects waterfall in (time, freq) shape if following its internal logic,
     # or at least consistent with how it applies FFT.
@@ -94,9 +91,12 @@ def estimate_dm_from_waterfall(
     # This implies the first axis MUST be time.
     # But input 'waterfall' is typically (freq, time).
     # So we must transpose it.
-    
+    from dispersion.dmphasev2 import (
+        DMPhaseEstimator,  # lazy: breaks dispersion<->flits import cycle
+    )
+
     estimator = DMPhaseEstimator(
-        waterfall=waterfall.T, # Transpose to (time, freq)
+        waterfall=waterfall.T,  # Transpose to (time, freq)
         freqs=freqs,
         dt=dt_sec,
         dm_grid=dm_grid,
@@ -104,14 +104,14 @@ def estimate_dm_from_waterfall(
         f_cut=f_cut_hz,
         n_boot=n_bootstrap,
     )
-    
+
     # Get results
     dm_best, dm_sigma = estimator.get_dm()
     dm_offset = dm_best - dm_catalog
-    
+
     log.info(f"  DM estimate: {dm_best:.3f} ± {dm_sigma:.3f} pc/cm³")
     log.info(f"  Offset from catalog: {dm_offset:+.3f} pc/cm³")
-    
+
     return {
         "dm_best": float(dm_best),
         "dm_sigma": float(dm_sigma),
@@ -132,10 +132,10 @@ def refine_dm_init(
 ) -> float:
     """
     Refine initial DM value for scattering analysis.
-    
+
     If DM estimation is enabled, runs phase-coherence DM estimation.
     Otherwise, returns the catalog DM value.
-    
+
     Parameters
     ----------
     dataset : BurstDataset
@@ -148,7 +148,7 @@ def refine_dm_init(
         Half-width of DM search range (pc/cm³)
     **kwargs
         Additional arguments passed to estimate_dm_from_waterfall
-        
+
     Returns
     -------
     float
@@ -157,7 +157,7 @@ def refine_dm_init(
     if not enable_dm_estimation:
         log.info(f"DM estimation disabled, using catalog DM: {catalog_dm:.3f} pc/cm³")
         return catalog_dm
-    
+
     try:
         # Run DM estimation
         dm_results = estimate_dm_from_waterfall(
@@ -168,10 +168,10 @@ def refine_dm_init(
             dm_search_window=dm_search_window,
             **kwargs,
         )
-        
+
         dm_refined = dm_results["dm_best"]
         dm_offset = dm_results["dm_offset"]
-        
+
         # Only use refined DM if offset is within reasonable range
         if abs(dm_offset) > 2 * dm_search_window:
             log.warning(
@@ -179,10 +179,10 @@ def refine_dm_init(
                 f"Using catalog DM {catalog_dm:.3f} instead."
             )
             return catalog_dm
-        
+
         log.info(f"✓ Using refined DM: {dm_refined:.3f} pc/cm³ (offset: {dm_offset:+.3f})")
         return dm_refined
-        
+
     except Exception as e:
         log.error(f"DM estimation failed: {e}")
         log.info(f"Falling back to catalog DM: {catalog_dm:.3f} pc/cm³")

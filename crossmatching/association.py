@@ -116,17 +116,44 @@ def omega_disk_deg2(radius_deg: float) -> float:
     return math.pi * radius_deg**2
 
 
-def position_consistent(dsa_coord: str, chime_center: str, radius_deg: float) -> bool:
-    """True if the DSA (arcsec) position lies within ``radius_deg`` of the CHIME disk centre."""
+def position_agreement(dsa_coord: str, chime_ra_deg, chime_dec_deg, radius_deg: float) -> dict:
+    """CHIME tied-beam point vs DSA position; consistent within a stated CHIME radius.
+
+    ``tiedbeam_locations`` is the CHIME position the singlebeam was formed at (independent
+    of DSA) but carries no error ellipse, so consistency is judged against a stated CHIME
+    localization radius (assumption; Michilli et al. 2021 baseband localizations sub-arcmin).
+    Null+reason when no CHIME position is available.
+    """
+    if chime_ra_deg is None or chime_dec_deg is None:
+        return {
+            "separation_deg": None,
+            "radius_deg": radius_deg,
+            "consistent": None,
+            "reason": "no CHIME position available",
+        }
     import astropy.units as u
     from astropy.coordinates import SkyCoord
 
     a = SkyCoord(dsa_coord, unit=(u.hourangle, u.deg), frame="icrs")
-    b = SkyCoord(chime_center, unit=(u.hourangle, u.deg), frame="icrs")
-    return bool(a.separation(b).deg <= radius_deg)
+    b = SkyCoord(chime_ra_deg, chime_dec_deg, unit=u.deg, frame="icrs")
+    sep = float(a.separation(b).deg)
+    return {
+        "separation_deg": sep,
+        "radius_deg": radius_deg,
+        "consistent": bool(sep <= radius_deg),
+        "reason": None,
+    }
 
 
 # --- Assemble the association report (golden artifact never touched) -----------
+def _load_chime_inputs(chime_inputs_path) -> dict:
+    """Index CHIME-side extraction rows by chime_id (empty dict if path absent/None)."""
+    if not chime_inputs_path or not Path(chime_inputs_path).exists():
+        return {}
+    rows = json.loads(Path(chime_inputs_path).read_text())
+    return {str(r["chime_id"]): r for r in rows if "dm_chime" in r}
+
+
 def build_association_report(
     fixture_path,
     *,
@@ -134,17 +161,22 @@ def build_association_report(
     omega_win_deg2: float = OMEGA_WIN_BASELINE_DEG2,
     dt_s: float = DT_BASELINE_S,
     ddm: float = DDM_BASELINE,
+    chime_inputs_path=None,
+    chime_radius_deg: float = 0.1,
 ) -> dict:
     """Run all four pillars over the fixture and return the report dict. Read-only on disk.
 
-    CHIME independent DM and localization are not yet sourced (singlebeam files carry
-    neither), so pillars 2 and 4 emit explicit null+reason rather than fabricated values.
+    Pillars 2 (CHIME DM) and 4 (CHIME position) activate per burst when a CHIME-side inputs
+    file is supplied (``chime_inputs_path``, keyed by chime_id); bursts absent from it emit
+    explicit null+reason rather than fabricated values.
     """
     fx = json.loads(Path(fixture_path).read_text())
+    chime = _load_chime_inputs(chime_inputs_path)
     bursts, dms = [], []
     for row in fx["bursts"]:
         dm = row["dm"]
         dms.append(dm)
+        ci = chime.get(str(row["chime_id"]), {})
         bursts.append(
             {
                 "name": row["name"],
@@ -153,13 +185,19 @@ def build_association_report(
                 "chance_coincidence_P": chance_probability(
                     dm, rate_per_day=rate_per_day, omega_win_deg2=omega_win_deg2, dt_s=dt_s, ddm=ddm
                 ),
-                "dm_agreement": dm_agreement(  # CHIME DM not yet sourced -> null+reason
-                    dm_chime=None,
-                    dm_chime_err=None,
+                "dm_agreement": dm_agreement(
+                    dm_chime=ci.get("dm_chime"),
+                    dm_chime_err=ci.get("dm_chime_err"),
                     dm_dsa=dm,
                     dm_dsa_err=row.get("dm_uncertainty"),
                 ),
-                "position_consistent": None,  # CHIME localization not yet sourced
+                "dm_confidence": ci.get("dm_confidence"),  # figure-review: real/marginal/noise
+                "position": position_agreement(
+                    row.get("source_coord"),
+                    ci.get("chime_ra_deg"),
+                    ci.get("chime_dec_deg"),
+                    chime_radius_deg,
+                ),
             }
         )
     return {
@@ -169,6 +207,10 @@ def build_association_report(
             "dt_s": dt_s,
             "ddm": ddm,
             "dm_model": "lognormal(500,0.7) [assumption]",
+            "chime_dm_method": "DM-phase structure-max (dmphasev2); coherent dedisp, flip orient",
+            "chime_localization_radius_deg": chime_radius_deg,
+            "chime_localization_note": "tiedbeam pointing; no multi-beam error ellipse "
+            "(Michilli+2021 sub-arcmin assumed)",
         },
         "expected_chance_associations": expected_chance_associations(
             dms, rate_per_day=rate_per_day, omega_win_deg2=omega_win_deg2, dt_s=dt_s, ddm=ddm
@@ -179,10 +221,15 @@ def build_association_report(
 
 def main() -> None:
     here = Path(__file__).resolve().parent
-    rep = build_association_report(here / "notebook_reproduction_fixture.json")
+    chime_path = here / "chime_side_inputs.json"
+    rep = build_association_report(
+        here / "notebook_reproduction_fixture.json",
+        chime_inputs_path=chime_path if chime_path.exists() else None,
+    )
     out = here / "association_report.json"
     out.write_text(json.dumps(rep, indent=2))
-    print(f"wrote {out}  (sum_mu={rep['expected_chance_associations']:.3e})")
+    n_dm = sum(1 for b in rep["bursts"] if b["dm_agreement"]["consistent"] is not None)
+    print(f"wrote {out}  (sum_mu={rep['expected_chance_associations']:.3e}, dm_active={n_dm}/12)")
 
 
 if __name__ == "__main__":

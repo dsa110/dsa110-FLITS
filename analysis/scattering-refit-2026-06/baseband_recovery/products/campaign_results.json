@@ -1,0 +1,70 @@
+{
+  "whitney": {
+    "U": 16,
+    "best_model": "lorentzian_component",
+    "note": "no successful sub-band ACF fit (sub-bands too narrow); pipeline defaulted to lorentzian_component",
+    "bw_at_ref": 130000000000.0,
+    "alpha": 4.0,
+    "alpha_err": 7.16e-321,
+    "chi2_med": null,
+    "on": [
+      38,
+      40
+    ],
+    "off": [
+      0,
+      1504
+    ],
+    "burst_pk": 39,
+    "verdict": "FAIL"
+  },
+  "phineas": {
+    "U": 16,
+    "best_model": "fit_sn_tpl_gauss",
+    "bw_at_ref": 894000.0,
+    "alpha": 59.4,
+    "alpha_err": 24.2,
+    "chi2_med": 16.6,
+    "on": [
+      1081,
+      1090
+    ],
+    "off": [
+      0,
+      1795
+    ],
+    "burst_pk": 1083,
+    "verdict": "FAIL"
+  },
+  "mahi": {
+    "U": 512,
+    "best_model": null,
+    "note": "unfittable: 54 time bins, burst at frame edge (peak@1) -> insufficient off-pulse for baseline/noise; pipeline NumbaTypeError on degenerate masked frame",
+    "verdict": "FAIL"
+  },
+  "isha": {
+    "U": 256,
+    "best_model": "fit_sn_power",
+    "note": "flagged NOT cleanly resolvable (upper-bound only)",
+    "bw_at_ref": 49.7,
+    "alpha": -8.5,
+    "alpha_err": 6.29,
+    "chi2_med": 768000.0,
+    "on": [
+      52,
+      57
+    ],
+    "off": [
+      0,
+      92
+    ],
+    "burst_pk": 54,
+    "verdict": "FAIL"
+  },
+  "_meta": {
+    "date": "2026-06-24",
+    "method": "npy_to_npz (flip+slice, no de-ripple; casey roundtrip byte-identical) + casey_chime.yaml-mirror config (full 400-800 MHz, num_subbands=4, fit_lagrange=1.0, poly-1 baseline, self-noise template on); per-burst on/off windows from nan-aware burst profile",
+    "casey_documented": "FAIL (README; power-law full alpha=8.0 chi=17.2, hi-band alpha=7.96 chi=5.25; ~117kHz peak was self-noise, rejected)",
+    "conclusion": "all 5 CHIME up-channelized sightlines FAIL the fit-validation contract; CHIME-band Dnu_d not contract-recoverable; two-screen Dnu(nu) rests on DSA band (resolved at 30.5 kHz) + CHIME upper limits consistent with the NE2025 Galactic floor"
+  }
+}

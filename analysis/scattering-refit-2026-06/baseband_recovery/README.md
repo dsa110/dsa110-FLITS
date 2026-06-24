@@ -220,8 +220,34 @@ lag-skipping ACF reported (R²=0.94) was self-noise, correctly rejected by the p
 
 **Implication:** casey is the *only* genuinely host-dominated CHIME case and the cleanest DSA input —
 if its CHIME scintle is not contract-recoverable, the phineas/whitney/mahi cases (MW-floor-dominated,
-narrower predicted scales) are very unlikely to fare better. The other four products are staged for
-the same fit pipeline but have not yet been fit through it.
+narrower predicted scales) are very unlikely to fare better.
+
+### All four remaining targets fit (2026-06-24) — all FAIL, as predicted
+
+The other four products were converted (`npy_to_npz.py <name> --U <U>`, no de-ripple — flip+slice
+only; byte-identical roundtrip verified for casey) and fit through the FLITS scint pipeline with a
+config mirroring `casey_chime.yaml` (full 400–800 MHz, num_subbands=4, fit_lagrange=1.0 MHz, poly-1
+baseline, self-noise template on; per-burst on/off windows auto-set from the nan-aware burst profile):
+
+| target | U | best ACF model | bw / γ₀ | α (scaling) | χ²_red | verdict |
+|--------|--:|----------------|---------|-------------|--------|---------|
+| whitney | 16 | *no successful fit* (sub-bands too narrow → defaulted to `lorentzian_component`) | — | — | — | **FAIL** |
+| phineas | 16 | Gaussian (`fit_sn_tpl_gauss`) | 8.9e5 MHz | 59.4 ± 24.2 | 16.6 | **FAIL** |
+| mahi | 512 | *unfittable* — 54 time bins, burst at frame edge (peak@1) → insufficient off-pulse for baseline/noise modeling (pipeline `NumbaTypeError` on the degenerate masked frame) | — | — | — | **FAIL** |
+| isha | 256 | power-law (`fit_sn_power`) | 49.7 MHz | −8.5 ± 6.3 | 7.7e5 | **FAIL** |
+
+None yields a clean diffractive Lorentzian: whitney has no successful sub-band ACF fit; phineas/isha
+prefer Gaussian/power-law with α far outside the physical 1.5<α<6.0 band and χ²_red ≫ 3; mahi is
+degenerate (the U=512 frame has only 54 time bins with the burst at the edge). **Conclusion: the
+CHIME-band diffractive scintle is not contract-recoverable for any of the five co-detection
+sightlines** at the achievable up-channelization. The two-screen Δν(ν) analysis therefore rests on the
+**DSA-band** measurements (where Δν_d *is* resolved at 30.5 kHz); the CHIME side contributes
+non-detections / upper limits consistent with the NE2025 Galactic floor, not measurements. This is the
+documented justification for excluding the CHIME band from the per-sightline Δν(ν) fits.
+
+Raw per-target fit outputs: `products/campaign_results.json` (this run); pipeline artifacts under the
+scratch run dir. The four `<name>_chime.npz` were produced by `npy_to_npz.py` from the h17 products
+(checksums above); they are gitignored (`*.npz` under `scintillation/data/` / `products/`).
 
 ## Data provenance — full chain
 

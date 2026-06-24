@@ -1,0 +1,51 @@
+{
+  "git_sha": "f8805813",
+  "git_dirty": true,
+  "n_bursts": 8,
+  "gate_policy": "E_iso is alpha-independent; energy gates on spec-z + calibrated fluence + physical (finite, c0>0) per-band c0/gamma. The scattering joint-fit FAIL verdict is INFORMATIONAL, not an energy exclusion (ADR-0003/0004, 3-expert panel 2026-06-24).",
+  "c0gamma_pbf": {
+    "chromatica": "mixed-legacy",
+    "hamilton": "mixed-legacy",
+    "isha": "mixed-legacy",
+    "oran": "mixed-legacy",
+    "phineas": "mixed-legacy",
+    "whitney": "mixed-legacy",
+    "wilhelm": "mixed-legacy",
+    "zach": "mixed-legacy"
+  },
+  "quality_flag": {
+    "chromatica": "MARGINAL",
+    "hamilton": "MARGINAL",
+    "isha": "MARGINAL",
+    "oran": "FAIL",
+    "phineas": "MARGINAL",
+    "whitney": "FAIL",
+    "wilhelm": "MARGINAL",
+    "zach": "MARGINAL"
+  },
+  "inputs_sha256": {
+    "chromatica_joint_fit.json": "095abdc1c9cad365",
+    "freya_joint_fit.json": "b2e4a0701e13abfb",
+    "hamilton_joint_fit.json": "321df064cb746887",
+    "isha_joint_fit.json": "488a4c0153ba704a",
+    "johndoeII_joint_fit.json": "11a6ff3a32e0ccd1",
+    "mahi_joint_fit.json": "f57d7ab3e75a99e6",
+    "oran_joint_fit.json": "93f55e8d4eb0abb8",
+    "phineas_joint_fit.json": "f34d2e46667ca902",
+    "whitney_joint_fit.json": "fde773adf5312b06",
+    "wilhelm_joint_fit.json": "bf07570d362a1a0e",
+    "zach_joint_fit.json": "93a0b749c6c97a6b",
+    "chromatica_joint_gate.json": "1b854532a9c56724",
+    "freya_joint_gate.json": "619397e5be649a6b",
+    "hamilton_joint_gate.json": "5bd33d29aa94edb7",
+    "isha_joint_gate.json": "94df576bf7985672",
+    "johndoeII_joint_gate.json": "f3408d82d520f94a",
+    "mahi_joint_gate.json": "d31644f2a174fa84",
+    "oran_joint_gate.json": "507c059b2f553642",
+    "phineas_joint_gate.json": "c5f1e25ef22801f2",
+    "whitney_joint_gate.json": "1e928d8945bad496",
+    "wilhelm_joint_gate.json": "81e478b288849054",
+    "zach_joint_gate.json": "00af319420bcc549"
+  },
+  "note": "git_sha is HEAD at generation; if git_dirty, the producing tree had uncommitted changes -- trust inputs_sha256 (the consumed joint_fit/gate JSONs) for exact reproducibility. all-exp campaign fits scattering only (no c0/gamma; verified local+HPCC 2026-06-24); c0/gamma are from the committed mixed-legacy-PBF joint fits, which is correct because the energy does not use the PBF alpha."
+}

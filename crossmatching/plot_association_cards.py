@@ -238,6 +238,24 @@ def _plot_position_panel(
     inset.set_xticks([])
     inset.set_yticks([])
     inset.set_title("beam 50%", fontsize=6, pad=1)
+    from matplotlib.font_manager import FontProperties
+    from mpl_toolkits.axes_grid1.anchored_artists import AnchoredSizeBar
+
+    inset.add_artist(
+        AnchoredSizeBar(
+            inset.transData,
+            30,
+            "30'",
+            loc="lower right",
+            frameon=False,
+            color="0.2",
+            size_vertical=0.8,
+            fontproperties=FontProperties(size=5),
+            pad=0.3,
+            borderpad=0.4,
+            sep=2,
+        )
+    )
 
 
 def plot_card(

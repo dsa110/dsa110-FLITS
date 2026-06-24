@@ -46,6 +46,8 @@ def rfi_flag(spec, n_sigma=5.0):
     med = float(np.nanmedian(spec))
     sig = float(_robust_std(spec))
     if not np.isfinite(sig) or sig == 0:
+        sig = float(np.nanstd(spec))
+    if not np.isfinite(sig) or sig == 0:
         return np.zeros(spec.shape, dtype=bool)
     return np.abs(spec - med) > n_sigma * sig
 
@@ -84,6 +86,8 @@ def _acf_masked(x, keep, denom, maxlag):
         sm = m.sum()
         if sm > 0:
             out[k - 1] = np.nansum(x[: n - k] * x[k:] * m) / (sm * denom)
+        else:
+            out[k - 1] = np.nan
     return out
 
 
@@ -152,10 +156,12 @@ def revalidate_dnu(
     ``off_pulse_mask``) sets Nimmo's ``(xmean-offspec_mean)²`` normalization. Returns
     ``nan`` if the fit does not converge.
     """
-    spec = np.asarray(spec, dtype=float)
-    keep = (~rfi_flag(spec, n_sigma=rfi_n_sigma)).astype(float)
+    spec_arr = np.asarray(spec, dtype=float)
+    keep = (~rfi_flag(spec_arr, n_sigma=rfi_n_sigma)).astype(float)
+    if isinstance(spec, np.ma.MaskedArray):
+        keep[spec.mask] = 0.0
     lags, acf, peak = _mean_normalized_acf(
-        spec, keep, channel_width_mhz, max_lag_mhz, first_lag, offspec_mean
+        spec_arr, keep, channel_width_mhz, max_lag_mhz, first_lag, offspec_mean
     )
     gamma_init = _hwhm_init(acf[len(acf) // 2 :], channel_width_mhz)
     m_init = float(np.sqrt(max(peak, 1e-3)))
@@ -166,7 +172,11 @@ def revalidate_dnu(
     result = model.fit(acf, x=lags, gamma=gamma_init, m=m_init, c=0.0)
     if not result.success:
         return float("nan")
-    return abs(float(result.params["gamma"].value))
+    gamma_val = abs(float(result.params["gamma"].value))
+    m_val = abs(float(result.params["m"].value))
+    if not (np.isfinite(gamma_val) and np.isfinite(m_val)):
+        return float("nan")
+    return gamma_val
 
 
 def fit_two_screen_acf(
@@ -185,10 +195,12 @@ def fit_two_screen_acf(
     constant C, NOT the observed lag-1 value — and ``center_omitted``. The amplitudes
     are ``nan`` if the fit fails.
     """
-    spec = np.asarray(spec, dtype=float)
-    keep = (~rfi_flag(spec, n_sigma=rfi_n_sigma)).astype(float)
+    spec_arr = np.asarray(spec, dtype=float)
+    keep = (~rfi_flag(spec_arr, n_sigma=rfi_n_sigma)).astype(float)
+    if isinstance(spec, np.ma.MaskedArray):
+        keep[spec.mask] = 0.0
     lags, acf, peak = _mean_normalized_acf(
-        spec, keep, channel_width_mhz, max_lag_mhz, first_lag, offspec_mean
+        spec_arr, keep, channel_width_mhz, max_lag_mhz, first_lag, offspec_mean
     )
     acf_pos = acf[len(acf) // 2 :]
     span = len(acf_pos) * channel_width_mhz
@@ -217,6 +229,15 @@ def fit_two_screen_acf(
     g2 = abs(float(result.params["gamma2"].value))
     m1 = abs(float(result.params["m1"].value))
     m2 = abs(float(result.params["m2"].value))
+    if not all(np.isfinite(v) for v in (g1, g2, m1, m2)):
+        return {
+            "dnu_wide_mhz": float("nan"),
+            "dnu_narrow_mhz": float("nan"),
+            "m_wide": float("nan"),
+            "m_narrow": float("nan"),
+            "m_total": float("nan"),
+            "center_omitted": True,
+        }
     # Order by scale: wide = larger Δν, narrow = smaller.
     (dnu_wide, m_wide), (dnu_narrow, m_narrow) = (
         ((g1, m1), (g2, m2)) if g1 >= g2 else ((g2, m2), (g1, m1))
@@ -403,10 +424,12 @@ def compare_components_from_spectrum(
     """Convenience wrapper: build the mean-normalized, lag-0-excluded ACF from a
     spectrum (as the other revalidation fits do) and run
     ``compare_lorentzian_components`` on it. Returns the same verdict dict."""
-    spec = np.asarray(spec, dtype=float)
-    keep = (~rfi_flag(spec, n_sigma=rfi_n_sigma)).astype(float)
+    spec_arr = np.asarray(spec, dtype=float)
+    keep = (~rfi_flag(spec_arr, n_sigma=rfi_n_sigma)).astype(float)
+    if isinstance(spec, np.ma.MaskedArray):
+        keep[spec.mask] = 0.0
     lags, acf, _peak = _mean_normalized_acf(
-        spec, keep, channel_width_mhz, max_lag_mhz, first_lag, offspec_mean
+        spec_arr, keep, channel_width_mhz, max_lag_mhz, first_lag, offspec_mean
     )
     return compare_lorentzian_components(lags, acf, max_components=max_components, **kw)
 

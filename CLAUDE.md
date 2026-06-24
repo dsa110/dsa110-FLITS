@@ -102,6 +102,26 @@ A session shall not be completed while deferred tasks remain that the agent can 
 
 `.claude/settings.json` registers a `Stop` hook (`.claude/hooks/deferred-task-gate.sh`) that blocks while any unchecked `@agent` item exists. To clear: **finish the work** and check it off, or — only if it genuinely cannot be done by the agent now — retag it `@human` / `@decision` / `@separate-lane`. Do not retag agent-doable work just to pass the gate; that defeats the policy. Add new follow-ups to the ledger as they arise, tagged honestly.
 
+## Concurrent agents: one agent per working tree (avoids cross-lane Stop-gate blocks)
+
+The `Stop` gates above (figure-review, deferred-task) scan the on-disk tree of whatever branch is
+currently checked out — they have no notion of *which* session produced what. So if two agents run
+against the **same** checkout, each one's end-of-turn can be blocked by the *other* agent's
+in-progress unreviewed figures or unchecked `@agent` items — a separate lane it must not touch.
+(Observed in practice: the main checkout's branch flipping between agents mid-session.)
+
+Rule: **one agent per git worktree; never run two live agents in the main checkout.** Give each
+concurrent agent its own tree, so each gate scans only that agent's own work:
+
+```bash
+git worktree add ~/Developer/scratch/worktrees/flits-<lane> -b <branch> origin/main
+cd ~/Developer/scratch/worktrees/flits-<lane> && claude   # CLAUDE_PROJECT_DIR resolves here; gates scan only this tree
+```
+
+The gates are correct per-tree; the isolation is the filesystem boundary they already respect.
+Hardening the hooks to detect a shared checkout is possible but weakens the gate (it risks a
+false-pass on genuinely-unreviewed work), so prefer worktree isolation over a hook change.
+
 ## Protected-branch commit guard (will block the commit)
 
 `.claude/settings.json` registers a `PreToolUse` Bash hook (`.claude/hooks/no-commit-to-protected-branch.sh`) that **refuses `git commit` while `HEAD` is `main`/`master`**. Branch hygiene was otherwise prose-only, and `origin/main` already carries direct non-PR commits. To proceed: branch first (`git switch -c <feature-branch>`), then commit. The guard fails open when it cannot prove the branch is protected (not a repo, detached HEAD) and only sees the agent's own commits — an external auto-committer is a separate path.

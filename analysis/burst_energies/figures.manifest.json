@@ -1,5 +1,6 @@
 {
   "generated_by": "analysis/burst_energies/plot_bandpass_check.py",
+  "manuscript_order": 10,
   "figures": [
     {
       "path": "bandpass_check.png",

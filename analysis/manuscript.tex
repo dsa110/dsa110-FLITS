@@ -1,0 +1,12 @@
+% Auto-assembled by analysis/build_manuscript.py -- do not hand-edit; edit the per-section *.tex.
+% Compile from the analysis/ directory (graphicspath + \input are relative to it):
+%   cd analysis && pdflatex manuscript.tex
+\documentclass{article}
+\usepackage{graphicx,amsmath}
+\usepackage[margin=1in]{geometry}
+\graphicspath{{burst_energies/}{chime_dm/}}
+\begin{document}
+\section*{CHIME--DSA co-detection: assembled sections}
+\input{burst_energies/burst_energies.tex}
+\input{chime_dm/chime_dm.tex}
+\end{document}

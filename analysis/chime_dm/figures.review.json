@@ -1,0 +1,11 @@
+{
+  "reviewed_by": "claude-opus-4-8 (figure-review gate, read chime_dm_grid.png @ TSMOOTH=12)",
+  "date": "2026-06-24",
+  "verdicts": [
+    {
+      "path": "chime_dm_grid.png",
+      "verdict": "match",
+      "notes": "12-panel grid with ~1 ms (12-bin) display-only boxcar time-smoothing on the waterfalls (DM regression untouched). TOP 8 (green, constrained): zach/casey/freya/hamilton are crisp bright vertical burst streaks; the faint rescued chromatica/isha/wilhelm/phineas now stand cleanly out of the speckle -- markedly more legible than the unsmoothed render. All 8 regression panels carry green sub-band points + a near-flat red fit, annotated dDM in [-0.84,+0.04] and sigma/n matching chime_dm_grid_fits.json; no steep positive (S/N-max-bias) slope anywhere. BOTTOM 4 (grey, DM='--'): whitney/mahi are noise; oran/johndoeII show smoothing-enhanced sub-threshold diagonal structure (n=1-2 sub-bands, below the >=3 gate) but correctly carry the 'non-detection (n<3 sub-bands)' box and NO fit -- honest, the label prevents misreading them as detections. Smoothing chosen as the s6/s12/s20 sweet spot: s20 over-emphasized the non-det artifacts. Axes 400.4-799.2 MHz, ms ranges sane, no empty constrained panels. Scientifically faithful to the 8/12 result."
+    }
+  ]
+}

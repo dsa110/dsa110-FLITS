@@ -1,0 +1,17 @@
+{
+  "generated_by": "analysis/chime_dm/plot_dm_grid.py (data: scripts/dump_grid_data.py, baseband docker)",
+  "manuscript_order": 20,
+  "regen": "python analysis/chime_dm/plot_dm_grid.py",
+  "figures": [
+    {
+      "path": "chime_dm_grid.png",
+      "expectation": "12-panel grid (4 cols x 3 rows), one cell per co-detected burst, ordered 8 constrained then 4 non-detections. Each cell: (top) coherent-dedispersed-at-DSA-DM waterfall nu[MHz] vs t[ms], magma z-score, with a ~1 ms (12-bin) boxcar time-smoothing applied for DISPLAY ONLY (does not touch the DM regression); (bottom) scatter-deconvolved sub-band arrival t0[ms] vs K_DM(nu^-2 - nu_ref^-2)[s] with a red weighted-linear fit whose slope is the residual DM offset. EXPECT: the 8 constrained bursts (zach, casey, freya, hamilton, chromatica, isha, wilhelm, phineas; titles green) show a visible dispersed burst in the waterfall and a regression with green points + red fit line annotated dDM and sigma; their slope is NEAR-FLAT (residual DM ~ 0 -> de-biased to DSA, |dDM| <= 0.84, all within the 1 pc/cm^3 floor). The 4 non-detections (whitney, oran, johndoeII, mahi; titles grey, DM='--') show a noise-dominated waterfall and a 'non-detection (n<3 sub-bands)' box instead of a fit. Confirm: no constrained panel has a steep positive slope (would be the old +2-3 S/N-max scattering bias); annotated dDM matches the visual slope sign; non-det panels genuinely lack a burst; axes ~400-800 MHz, sane ms ranges, no empty constrained panels."
+    }
+  ],
+  "result": {
+    "config": "coherent_dedisp at DSA DM; uniform TDS=32 / N_SB=6; MIN_SNR=4; MIN_GOOD=3 sub-bands; 1 pc/cm^3 agreement floor",
+    "constrained_8": {"zach": -0.84, "casey": -0.04, "freya": -0.12, "hamilton": 0.04, "chromatica": -0.28, "isha": -0.35, "wilhelm": -0.44, "phineas": -0.45},
+    "non_detections_4": ["whitney", "oran", "johndoeII", "mahi"],
+    "note": "dDM = DM_CHIME - DM_DSA [pc/cm^3]; statistical sigma is a lower bound for the 3-4 sub-band fits, the floor governs the consistency test."
+  }
+}

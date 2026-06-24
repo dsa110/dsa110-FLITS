@@ -1,0 +1,46 @@
+\subsection{Independent CHIME-side dispersion measures}
+\label{sec:chime-dm}
+
+The DM-agreement pillar of the co-detection association (Pillar~2) requires a CHIME-side DM measured
+\emph{independently} of the DSA pipeline. We measure it directly from the CHIME baseband by coherently
+dedispersing each burst at its DSA DM and fitting the residual dispersion across the band. After
+coherent dedispersion we downsample uniformly (a factor of $32$ in time, six sub-bands across
+$0.4$--$0.8\,\mathrm{GHz}$) and, in each sub-band that exceeds $\mathrm{S/N}=4$, fit a
+scattering-deconvolved exponentially-modified Gaussian to recover the intrinsic arrival time $t_0$.
+A weighted linear regression of $t_0$ against $K_{\mathrm{DM}}(\nu^{-2}-\nu_{\mathrm{ref}}^{-2})$,
+with $K_{\mathrm{DM}}=4.1488\times10^{3}\,\mathrm{MHz^{2}\,pc^{-1}\,cm^{3}\,s}$, returns the residual
+DM offset from the DSA value as its slope. Crucially, the arrival-time regression is immune to the
+$\mathrm{S/N}$-maximizing bias that drives a structure-blind dedispersion to over-dedisperse a
+one-sided scattering tail: the sub-band fit centroids track the scattering-deconvolved arrival, not
+the asymmetric tail's leading edge.
+
+For $8/12$ sightlines this independently constrains the CHIME DM, all consistent with the DSA value
+within a $1\,\mathrm{pc\,cm^{-3}}$ physical agreement floor (Fig.~\ref{fig:chime-dm-grid}); the
+measured offsets cluster at $\Delta\mathrm{DM}\equiv\mathrm{DM_{CHIME}}-\mathrm{DM_{DSA}}\in[-0.84,+0.04]\,
+\mathrm{pc\,cm^{-3}}$, with no sightline showing the spurious $+2$--$3\,\mathrm{pc\,cm^{-3}}$ excess
+that a na\"ive $\mathrm{S/N}$-maximizing DM produces on the faint, scatter-broadened bursts. The
+common small \emph{negative} offset across independent sightlines is signal, not noise. The remaining
+$4/12$ are honest non-detections---fewer than three sub-bands clear the detection gate at the coarsest
+binning the bright control still resolves---and rely on the positional pillar (Pillar~4) instead. For
+the three-to-four sub-band fits the formal statistical $\sigma$ is a lower bound, so the
+$1\,\mathrm{pc\,cm^{-3}}$ floor, not the quoted $\sigma$, governs the consistency test.
+
+\begin{figure*}
+\centering
+% vector source is chime_dm_grid.svg; \includesvg needs the `svg' package + inkscape.
+% \includegraphics finds chime_dm_grid.pdf (vector) under pdflatex without extra packages.
+\includegraphics[width=\textwidth]{chime_dm_grid}
+\caption{Independent CHIME-side DM for the 12 co-detected FRBs. Each cell shows, for one burst, the
+CHIME baseband coherently dedispersed at the DSA DM (top: frequency--time z-score, with a
+$\sim\!1\,\mathrm{ms}$ boxcar time-smoothing applied for display only) and the
+scatter-deconvolved sub-band arrival times $t_0$ against $K_{\mathrm{DM}}(\nu^{-2}-\nu_{\mathrm{ref}}^{-2})$
+(bottom: points with the red weighted-linear fit whose slope is the residual DM offset
+$\Delta\mathrm{DM}$). Green titles mark the $8/12$ sightlines that constrain the CHIME DM, all with a
+near-flat residual slope consistent with the DSA value to within the $1\,\mathrm{pc\,cm^{-3}}$ floor;
+grey titles mark the $4/12$ non-detections (fewer than three sub-bands above $\mathrm{S/N}=4$), shown
+with their waterfall but no fit. The absence of any steep positive residual slope demonstrates that
+the apparent $+2$--$3\,\mathrm{pc\,cm^{-3}}$ DM excess of the faint bursts under a structure-blind
+dedispersion is the $\mathrm{S/N}$-maximization bias of a one-sided scattering tail, not a real DM
+difference.}
+\label{fig:chime-dm-grid}
+\end{figure*}

@@ -15,7 +15,7 @@ The pair of well-separated observing frequencies (CHIME ~0.6 GHz, DSA ~1.4 GHz) 
 Pulse-broadening timescale referenced to 1 GHz, in ms. Fitted by the scattering kernel (`burstfit.py`, models M0–M3).
 
 **Scattering index** (α):
-Exponent in τ ∝ ν^(−α). Kolmogorov thin screen ≈ 4.0–4.4. Prior bounds 1.5–6.0; a fit railed at 6.0 means α is **unconstrained** (weak/unresolved scattering), not measured.
+Exponent in τ ∝ ν^(−α). Kolmogorov thin screen ≈ 4.0–4.4. Prior bounds typically 1.0–6.0. The operative joint-gate hard-FAIL floor is **1.5** (`gate_joint_committed.py:26`; `VALIDATION_THRESHOLDS.py`'s `ALPHA_MARGINAL_MIN=2.0` is a dead/unused constant), which [ADR-0004](docs/adr/0004-l1-sub-kolmogorov-alpha-floor.md) lowers to 1.0 (implementation deferred): 1.0 ≤ α < 2.0 becomes a flagged **sub-Kolmogorov** MARGINAL (physically admissible — multi-screen / anisotropic scattering), not a FAIL. A fit railed at *either* prior bound is **not a measurement** (weak/unresolved scattering), regardless of the value or how tight the posterior looks.
 _Avoid_: bare "alpha" — see Flagged ambiguities.
 
 **Scintillation bandwidth** (`dν`, Δν):
@@ -41,6 +41,26 @@ Partition of observed DM into MW ISM + MW halo + cosmic/IGM mean + intervening +
 
 **Quality flag**:
 Per-fit PASS / MARGINAL / FAIL from the FLITS 3-level validation contract. FAIL fits are withheld from science claims.
+
+**Burst designation**:
+Two name systems for the same burst — internal **nickname** (`zach`, keys files/configs/results) and **TNS** designation (`FRB 20220207C`, the only identifier in the manuscript and published figures). Canonical map and SSOT: [ADR-0002](docs/adr/0002-canonical-burst-naming.md) (`burst_metadata.py::_FALLBACK_TNS` + `configs/bursts.yaml`).
+_Avoid_: hand-maintaining a second map, or citing the gitignored `chimedsa_burst_specs.csv` as the registry.
+
+**Citable α**:
+A scattering index a fit is allowed to *quote* in the manuscript — distinct from a fit that merely ran. Requires: all-exp PBF ([ADR-0003](docs/adr/0003-single-exponential-pbf.md)), un-railed at both prior bounds, final component count confirmed, and a FINAL PASS or flagged MARGINAL verdict (not FAIL).
+_Avoid_: quoting a railed or mixed-PBF α.
+
+**PBF-insensitive** (α):
+An α whose value barely moves (|Δα| ≤ 0.1) between the mixed and single-exponential PBF — true for the well-constrained single-screen sightlines, where the PBF choice is immaterial. The opposite, **PBF-confounded**, is an α that *moves or reverses sign* with the PBF (e.g. zach's multiplicity correction), making it unreliable to cite. See [ADR-0003](docs/adr/0003-single-exponential-pbf.md).
+
+**Railed / unconstrained**:
+A posterior whose median sits within ~3σ of *either* prior bound. The number is **not a measurement** regardless of how tight the posterior looks — railing, not the value, is the disqualifier (flagged rail-MARGINAL). See the scattering-index entry and [ADR-0004](docs/adr/0004-l1-sub-kolmogorov-alpha-floor.md).
+
+**Well-constrained sightline**:
+A burst whose joint fit yields a citable α — single dominant screen, un-railed, PBF-insensitive, quality-passing. The set is locked by the all-exp campaign + final component counts, not by figure color.
+
+**Per-section sample rule**:
+Every manuscript subset analysis (energies, joint-α, scintillation, …) states *its own* sample and justifies excluded bursts; the 12-burst co-detection set is the superset, not the per-analysis denominator. See `plan-manuscript-completion.md`'s exclusion table.
 
 ## Relationships
 

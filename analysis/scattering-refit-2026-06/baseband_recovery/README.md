@@ -160,13 +160,51 @@ flips both axes). Do **not** pull the gigabyte `.h5` files.
 - **Figure-review Stop gate** (`.claude/hooks/figure-review-gate.sh`): any ACF/waterfall PNG by a
   `figures.manifest.json` must be **Read** (rendered) and recorded in `figures.review.json`.
 
-## Empirical result so far — casey (the best case) FAILS the contract
+## Upchannelization status — all 5 targets generated (2026-06-24)
 
-casey was upchannelized end-to-end on h17 (U=16, `_upchannel` direct path): `casey_chime_upchan.npy`
-= (12336, 1748), df=24.414 kHz exact, 92.2% finite. Converted to `scintillation/data/casey_chime.npz`
-and fit through the FLITS scint pipeline. Both the **full band** (`casey_chime.yaml`) and a
-**high-band focus** slice (`casey_chime_hi.yaml`, 711–799 MHz where a crude ACF looked cleanest) were
-run:
+All five targets were upchannelized end-to-end on h17 via the wrapper script
+`/data/research/astrophysics/frbs/chime-dsa-codetections/bin/baseband_analysis_python.sh`
+(which wraps `docker run --rm --entrypoint python -v /data:/data
+chimefrb/baseband-analysis:latest`). The h17 copy of the worker is byte-identical to
+the repo copy (sha256 `cd5f6e35…`, git rev `8732a695`).
+
+### Exact run commands (as executed on h17)
+
+```bash
+# recoverable targets (whitney + phineas native x16; mahi x512 slow path)
+ssh h17 '/data/research/astrophysics/frbs/chime-dsa-codetections/bin/baseband_analysis_python.sh \
+  /data/jfaber/upchannelize_chime.py whitney phineas mahi'
+
+# isha — lower-confidence upper bound (flagged NOT cleanly resolvable)
+ssh h17 '/data/research/astrophysics/frbs/chime-dsa-codetections/bin/baseband_analysis_python.sh \
+  /data/jfaber/upchannelize_chime.py isha --run-unresolvable'
+```
+
+(casey was generated earlier on 2026-06-23 via the same route; see provenance table below.)
+
+### Generated products
+
+All products at `/data/jfaber/upchan_codetections/` on h17. Shape convention:
+`(n_freq, n_time)`, frequency ascending, float32 Stokes-I.
+
+| target  | U   | shape (nfreq, ntime) | df (kHz) | dt (ms) | finite | upchan.npy sha256 (prefix) | generated |
+|---------|----:|----------------------|---------:|--------:|-------:|----------------------------|-----------|
+| casey   |  16 | (12336, 1748)        | 24.414   | 0.0819  | 92.2%  | `c6cdfa28…`                | 2026-06-23 16:47 |
+| whitney |  16 | (13808, 1748)        | 24.414   | 0.0819  | 92.3%  | `a50048d9…`                | 2026-06-24 12:01 |
+| phineas |  16 | (14512, 2276)        | 24.414   | 0.0819  | 88.2%  | `e77019ef…`                | 2026-06-24 12:10 |
+| mahi    | 512 | (387072, 54)         | 0.763    | 2.6214  | 92.3%  | `e7f96fa1…`                | 2026-06-24 12:14 |
+| isha*   | 256 | (210688, 109)        | 1.526    | 1.3107  | 91.7%  | `a4461e21…`                | 2026-06-24 12:18 |
+
+\* isha generated with `--run-unresolvable`; lower-confidence upper bound only (railed DSA
+input + 1.8 ms burst smears to <3 time elements at U=256). Do not publish as a measurement.
+
+Each target also has a matching `<name>_chime_freq.npy` (ascending MHz, 400–800 MHz band).
+
+### Casey fit result (the best case) — FAILS the contract
+
+casey was converted to `scintillation/data/casey_chime.npz` and fit through the FLITS scint
+pipeline. Both the **full band** (`casey_chime.yaml`) and a **high-band focus** slice
+(`casey_chime_hi.yaml`, 711–799 MHz) were run:
 
 | run | best ACF model | γ₀ (Δν_d) | α (scaling) | χ²_red | verdict |
 |-----|---|---|---|---|---|
@@ -182,12 +220,94 @@ lag-skipping ACF reported (R²=0.94) was self-noise, correctly rejected by the p
 
 **Implication:** casey is the *only* genuinely host-dominated CHIME case and the cleanest DSA input —
 if its CHIME scintle is not contract-recoverable, the phineas/whitney/mahi cases (MW-floor-dominated,
-narrower predicted scales) are very unlikely to fare better. Per the gating plan, the other targets
-were **not** upchannelized. The honest conclusion for task #3: CHIME diffractive-scintillation recovery
-for these co-detection sightlines is **not contract-feasible** at the resolution/SNR available — the
-skeptic verdict (above) borne out by data. casey stands as the empirical demonstration.
+narrower predicted scales) are very unlikely to fare better. The other four products are staged for
+the same fit pipeline but have not yet been fit through it.
 
-## What this plan deliberately does NOT do
+## Data provenance — full chain
 
-Only casey has been upchannelized + fit (above). whitney/phineas/mahi/isha were not run (casey's FAIL
-made proceeding unjustified) and no gigabyte `.h5` files were pulled to the repo. No commit.
+### Software
+
+| component | version / identifier |
+|-----------|---------------------|
+| worker script (repo) | `analysis/scattering-refit-2026-06/baseband_recovery/upchannelize_chime.py` |
+| worker git rev | `8732a695a2ef4b6e0fad5caf3c14893958a9a09f` (2026-06-23 18:33 -0700) |
+| worker sha256 | `cd5f6e353e0e49b8410b30bd21ba59fa24a4e52564a7ffbfb7ac6e4b8c9a851b` |
+| h17 copy sha256 | `cd5f6e35…` (byte-identical to repo) |
+| docker image | `chimefrb/baseband-analysis:latest` |
+| image digest | `sha256:f510909d892d0d5224c982c590cbe80967a49a59b79c396ab72bb710105c4c41` |
+| image id | `sha256:8c903ec6a5a836e8a97fe3468fd3ee02177c220ead84e6d1d25e8f41b735db4b` |
+| image created | 2026-03-25T14:19:50Z |
+| baseband_analysis | 1.9.0 |
+| h17 wrapper | `/data/research/astrophysics/frbs/chime-dsa-codetections/bin/baseband_analysis_python.sh` |
+
+### Raw baseband (input) — h17 staged copies
+
+All at `/data/research/astrophysics/frbs/chime-dsa-codetections/chime_singlebeam/`.
+Source: CADC arc `arc:projects/chime_frb/data/chime/baseband/processed/<date>/astro_<id>/singlebeam_<id>.h5`.
+
+| target  | CHIME id  | DM (pc cm⁻³) | size | h5 sha256 (prefix) |
+|---------|-----------|-------------:|-----:|---------------------|
+| casey   | 362593221 | 491.207 | 990M  | `ea15c60b…` |
+| whitney | 215063905 | 462.174 | 1.1G  | `e76950cc…` |
+| phineas | 274819243 | 610.274 | 1.5G  | `3ce7ab34…` |
+| mahi    | 354049284 | 960.128 | 970M  | `bcf3b157…` |
+| isha    | 252069198 | 411.568 | 1.1G  | `0dc5ec98…` |
+
+DMs/ids/FWHMs from `crossmatching/notebook_reproduction_fixture.json` (DMs also in `configs/bursts.yaml`).
+
+### Processing chain (per target)
+
+```
+staged singlebeam_<id>.h5
+  → BBData.from_file
+  → coherent_dedisp(dm, time_shift=True)        # exact de-chirp at burst DM
+  → _upchannel(fftsize=2U, downfreq=2)           # U = fftsize/downfreq; internal primitive
+  → Stokes I = |X|² + |Y|²                       # (npol, nblock, nfine) → (nfine, n_time)
+  → flip to frequency-ascending
+  → assert n_fine ≥ 1024, finite_frac > 0.3, df = 0.390625/U MHz (rtol 5%)
+  → np.save(<name>_chime_upchan.npy, float32)
+  → np.save(<name>_chime_freq.npy, float64)
+```
+
+No `incoherent_dedisp` step (coherent dedisp already de-chirps fully). No `waterfall_from_beamformed`
+(broken in v1.9.0 — see "API reality" above).
+
+### Products (output) — h17
+
+All at `/data/jfaber/upchan_codetections/`. Full sha256 checksums:
+
+| file | sha256 |
+|------|--------|
+| casey_chime_upchan.npy | `c6cdfa2812b79693215b889a87cee0d351a74cf4582783388378612fcfb23d73` |
+| casey_chime_freq.npy | `045c266606d2364479a55c4c108fb0d2f46001062eabb27e311e77bc21836e33` |
+| whitney_chime_upchan.npy | `a50048d9bcb8a0d1c6dae499b3bd8ab5f06ee18cfacc23b9963da4249eeafe81` |
+| whitney_chime_freq.npy | `3367d19d3507f959ac2fbdf786c8f2b96448f1c10435a8570dd0396c9f421e0f` |
+| phineas_chime_upchan.npy | `e77019ef756555996feb48cb585959129cabcf7163f43e678eb0a350fbdbb0f2` |
+| phineas_chime_freq.npy | `38efd87c3935a986c98d56bb1e7184e02207e88c9dd71132e107fbb2d3bef9e9` |
+| mahi_chime_upchan.npy | `e7f96fa18dcf67a3a6e1cae9a0ceba037595b8e1e0c8eb13cff0dffd8453a072` |
+| mahi_chime_freq.npy | `bddf6341c97d77bfb7ada3e62a3a95509858304bd9484233cf2a2a0265f41590` |
+| isha_chime_upchan.npy | `a4461e21f27172d60c2de373755f850f925a26c252e898eb4b2401fb54a8767d` |
+| isha_chime_freq.npy | `0f43476df77e4edbcad3e91818002d917dd88a924eec788005e3eaabcdc588db` |
+
+### Repo-local copies
+
+casey products are pulled to `analysis/scattering-refit-2026-06/baseband_recovery/products/`
+(gitignored — `*.npy`). The other four are on h17 only; pull with:
+
+```bash
+scp 'h17:/data/jfaber/upchan_codetections/{whitney,phineas,mahi,isha}_chime_*.npy' \
+    analysis/scattering-refit-2026-06/baseband_recovery/products/
+```
+
+Do **not** pull the gigabyte `.h5` baseband files — they stay on h17 (staged copies, not in repo).
+
+### Reproducing from scratch
+
+1. Ensure h17 has the docker image: `docker pull chimefrb/baseband-analysis:latest`.
+2. Stage the worker: `scp upchannelize_chime.py h17:/data/jfaber/`.
+3. Verify the 5 singlebeam `.h5` are staged under
+   `/data/research/astrophysics/frbs/chime-dsa-codetections/chime_singlebeam/` (or let the script
+   `vcp` them from arc — requires `~/.ssl/cadcproxy.pem`).
+4. Run the commands in "Exact run commands" above.
+5. Verify each output: `n_fine ≥ 1024`, `df = 0.390625/U MHz`, `finite_frac > 0.3` (the script's
+   built-in asserts enforce this; a clean exit means all gates passed).

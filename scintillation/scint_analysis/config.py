@@ -138,6 +138,32 @@ def load_config(burst_config_path, workspace_root: Optional[Union[str, Path]] = 
     merged_config['_workspace_root'] = str(workspace_root)
     merged_config['_config_dir'] = str(config_dir)
     
+    # Inject sky coordinates from the burst catalog when config['source'] lacks them.
+    # Per-burst configs do not carry ra_deg/dec_deg; the canonical coordinates live
+    # in configs/bursts.yaml keyed by burst_id. Without this, the Galactic floor
+    # wiring (floor_wiring.attach_galactic_floor_all) is silently skipped.
+    src = merged_config.setdefault("source", {}) or {}
+    if src.get("ra_deg") is None or src.get("dec_deg") is None:
+        burst_id = merged_config.get("burst_id")
+        if burst_id:
+            catalog_path = workspace_root / "configs" / "bursts.yaml"
+            if catalog_path.exists():
+                try:
+                    with open(catalog_path) as f:
+                        catalog = yaml.safe_load(f)
+                    entry = (catalog or {}).get("bursts", {}).get(burst_id, {})
+                    if "ra_deg" in entry and "dec_deg" in entry:
+                        src["ra_deg"] = float(entry["ra_deg"])
+                        src["dec_deg"] = float(entry["dec_deg"])
+                        merged_config["source"] = src
+                        log.info(
+                            "Injected %s sky position from burst catalog: "
+                            "ra=%.4f dec=%.4f",
+                            burst_id, src["ra_deg"], src["dec_deg"],
+                        )
+                except Exception:
+                    log.warning("Could not read burst catalog at %s", catalog_path)
+    
     log.info("Configurations successfully loaded and merged.")
     
     return merged_config

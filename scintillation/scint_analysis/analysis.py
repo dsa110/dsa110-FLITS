@@ -1221,24 +1221,28 @@ def scattering_scintillation_consistency(
     C_implied = 2 * np.pi * tau_d_s * delta_nu_hz
     result["C_implied"] = C_implied
 
-    # Check consistency (C should be in range ~0.5-2.5)
-    if 0.3 < C_implied < 3.0:
+    # Check consistency — C_implied = 2π τ Δν must satisfy the repo's mandatory
+    # physics gate τ·Δν ∈ [0.1, 2.0] (AGENTS.md), so C_implied ∈ [2π·0.1, 2π·2.0].
+    C_lo = 2 * np.pi * 0.1
+    C_hi = 2 * np.pi * 2.0
+    if C_lo < C_implied < C_hi:
         result["consistent"] = True
         result["interpretation"] = (
-            f"Consistent: implied C = {C_implied:.2f} is within expected range (0.5-2). "
+            f"Consistent: implied C = {C_implied:.2f} is within canonical range "
+            f"[{C_lo:.2f}, {C_hi:.2f}]. "
             f"τ_scint = {tau_from_scint_ms:.3f} ms, Δν_scat = {nu_from_scat_mhz:.4f} MHz"
         )
-    elif C_implied < 0.3:
+    elif C_implied <= C_lo:
         result["consistent"] = False
         result["interpretation"] = (
-            f"Inconsistent: C = {C_implied:.2f} << 1. "
+            f"Inconsistent: C = {C_implied:.2f} < {C_lo:.2f} (τ·Δν < 0.1). "
             "Scattering may be from different screen than scintillation, "
             "or one measurement may be affected by systematics."
         )
-    else:  # C > 3
+    else:  # C_implied >= C_hi
         result["consistent"] = False
         result["interpretation"] = (
-            f"Inconsistent: C = {C_implied:.2f} >> 1. "
+            f"Inconsistent: C = {C_implied:.2f} > {C_hi:.2f} (τ·Δν > 2.0). "
             "May indicate multiple scattering screens, anisotropic scattering, "
             "or measurement systematics."
         )
@@ -1470,9 +1474,13 @@ def analyze_scintillation_from_acfs(acf_results, config):
         # Error propagation: err(log10(y)) = err(y) / (y * ln(10))
         log_bw_errs = total_errs / (bws * np.log(10))
 
+        # Fall back to unweighted ODR when uncertainties are missing or zero
+        # (np.nan_to_num converts NaN→0, giving spurious infinite weight).
+        use_weights = bool(np.all(np.isfinite(log_bw_errs)) and np.all(log_bw_errs > 0))
+
         # Define a linear model: f(x) = slope*x + intercept
         linear_model = ModelODR(lambda B, x: B[0] * x + B[1])
-        data = RealData(log_freqs, log_bws, sy=log_bw_errs)
+        data = RealData(log_freqs, log_bws, sy=log_bw_errs if use_weights else None)
 
         # Initial guess: slope (alpha) = 4, intercept can be 0
         odr = ODR(data, linear_model, beta0=[4.0, 0.0])

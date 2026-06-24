@@ -1,0 +1,16 @@
+{
+  "reviewed_by": "figure-reviewer",
+  "verdicts": [
+    {
+      "path": "excess_sightline_attribution.png",
+      "verdict": "match",
+      "panels": {
+        "Wilhelm": "Top-left axes, title 'Wilhelm'. No scatter points, no prior bracket, no measured-excess line. Red two-line centered text 'no foreground systems / in committed catalog'. y-axis tau_scat at 1 GHz (ms), default 0.0-1.0 range with faint dotted gridlines; x-axis 'foreground system' with no categorical ticks.",
+        "Zach": "Top-right axes, title 'Zach'. Identical honest-null: red 'no foreground systems / in committed catalog' centered, no points/bracket/line. Same 0.0-1.0 ms y-range and 'foreground system' x-label.",
+        "Hamilton": "Bottom-left axes, title 'Hamilton'. Same honest-null rendering: red centered message, empty of data, y 0.0-1.0 ms, x 'foreground system'.",
+        "Chromatica": "Bottom-right axes, title 'Chromatica'. Same honest-null rendering: red centered message, empty of data, y 0.0-1.0 ms, x 'foreground system'."
+      },
+      "notes": "Independent pixel-level read. 2x2 grid, titles Wilhelm/Zach/Hamilton/Chromatica exactly matching the four EXCESS sightlines in the manifest. All four panels show the expected explicit null (red two-line 'no foreground systems in committed catalog' centered in each axes) with NO plotted data points, predicted-tau markers, prior brackets, or measured-excess lines -- consistent with zero committed foreground galaxies. Not silently empty: the null is communicated unambiguously in red in every panel. Axes sane and self-consistent: y = tau_scat at 1 GHz (ms), sensible default 0.0-1.0 range (no data to drive the scale), faint dotted horizontal gridlines; x = 'foreground system' with no categorical entries. Suptitle 'Single-system sufficiency on EXCESS sightlines: predicted intervening vs measured tau' present and correct. No clipping, no NaN/inf gaps, no artifacts, no spurious points where a null was expected. Matches the manifest expectation. Re-confirmed (independent re-read) when wiring this figure into the manuscript (sections/budget.tex)."
+    }
+  ]
+}

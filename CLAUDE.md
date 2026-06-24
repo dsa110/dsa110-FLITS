@@ -91,6 +91,21 @@ Use a dynamic workflow (say "use a workflow") instead of a serial pass, and pair
 
 `.claude/settings.json` registers a `Stop` hook (`.claude/hooks/figure-review-gate.sh`). Any dir with a `figures.manifest.json` newer than its `figures.review.json` blocks end-of-turn. To clear: actually **Read** each PNG (so it renders) and visually compare it to the manifest's stated expectation, then write `figures.review.json` with per-figure verdicts (`match` / `anomaly` / `skipped:<why>`). Fastest path: dispatch the `figure-reviewer` subagent on each unreviewed dir. A produced plot is never "validated" until it has been looked at.
 
+## Deferred tasks gate completion (will block you)
+
+A session shall not be completed while deferred tasks remain that the agent can execute or implement itself. Loose ends are tracked in `.agents/deferred-tasks.md` — a markdown checklist where every open `- [ ]` item carries exactly one tag:
+
+- `@agent` — the agent can do it now → **blocks** end-of-turn until it is finished (`- [x]`).
+- `@human` — needs a person or a one-way door (push / PR / publish) → does not block.
+- `@decision` — a pending product/science choice → does not block.
+- `@separate-lane` — belongs to another task's git lane → does not block.
+
+`.claude/settings.json` registers a `Stop` hook (`.claude/hooks/deferred-task-gate.sh`) that blocks while any unchecked `@agent` item exists. To clear: **finish the work** and check it off, or — only if it genuinely cannot be done by the agent now — retag it `@human` / `@decision` / `@separate-lane`. Do not retag agent-doable work just to pass the gate; that defeats the policy. Add new follow-ups to the ledger as they arise, tagged honestly.
+
+## Protected-branch commit guard (will block the commit)
+
+`.claude/settings.json` registers a `PreToolUse` Bash hook (`.claude/hooks/no-commit-to-protected-branch.sh`) that **refuses `git commit` while `HEAD` is `main`/`master`**. Branch hygiene was otherwise prose-only, and `origin/main` already carries direct non-PR commits. To proceed: branch first (`git switch -c <feature-branch>`), then commit. The guard fails open when it cannot prove the branch is protected (not a repo, detached HEAD) and only sees the agent's own commits — an external auto-committer is a separate path.
+
 ## Agent skills
 
 ### Issue tracker

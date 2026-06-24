@@ -61,7 +61,7 @@ Three analysis surfaces plus a shared package. The **canonical physics kernel** 
 - **Level 2 quality:** χ²_red (good 0.8–1.5, fail >3 or <0.3), R² (good >0.85), residuals random/normal/uncorrelated (Durbin-Watson ≈2), parameter rel-err < 0.5.
 - **Level 3 physics:** τ×Δν in [0.1, 2.0] (≈0.159 thin screen, ≈1.0 extended); α near 4.0 = Kolmogorov.
 
-Thresholds in code: `flits/fitting/VALIDATION_THRESHOLDS.py`, `scattering/scat_analysis/validation_thresholds.py`.
+Thresholds in code: `flits/fitting/VALIDATION_THRESHOLDS.py` (canonical, single source of truth).
 
 ## Code style: lazy-minimalist (ponytail)
 

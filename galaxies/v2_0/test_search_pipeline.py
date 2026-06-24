@@ -3,28 +3,101 @@ import math
 import numpy as np
 import pandas as pd
 
+from galaxies.v2_0 import scattering_predict as scat
 from galaxies.v2_0 import search as search_mod
 from galaxies.v2_0.config import COSMO
 from galaxies.v2_0.engines import _add_desi_stellar_mass
 from galaxies.v2_0.search import (
+    _cluster_impact_limit_kpc,
     _deduplicate_matches,
     _enrich_with_ps1_photometry,
     _foreground_mask,
 )
 
 
-def test_foreground_mask_uses_two_sigma_photo_z_error():
+def test_foreground_mask_photoz_point_estimate_not_rescued_by_error():
+    # Per-sightline adjudication (PI decision): a DESI VII/292 photo-z is foreground
+    # iff its POINT ESTIMATE is below z_frb. The 1-sigma error never rescues a
+    # background point estimate (the old capped-2-sigma cut did). z=0.46 < z_frb is
+    # kept even though z+e_zphot > z_frb (Wilhelm); z=0.545 > z_frb is dropped.
     df = pd.DataFrame(
         {
-            "z": [0.545, 0.610, 0.545],
-            "z_phot_err": [0.057, 0.057, math.nan],
-            "impact_kpc": [50.0, 50.0, 50.0],
+            "z": [0.46, 0.545],
+            "e_zphot": [0.057, 0.057],
+            "catalog": ["VII/292/north", "VII/292/north"],
+            "impact_kpc": [35.0, 35.0],
         }
     )
 
-    mask = _foreground_mask(df, z_frb=0.479, z_eps=0.01, impact_kpc=100.0)
+    mask = _foreground_mask(df, z_frb=0.510, z_eps=0.01, impact_kpc=100.0)
 
+    assert mask.tolist() == [True, False]
+
+
+def test_foreground_mask_drops_photoz_floor_keeps_spec_lowz():
+    # DESI photo-z floor junk (z~0.001, carries e_zphot) is dropped; a genuine
+    # nearby spec-z galaxy at the same redshift (no photo-z error) is kept.
+    df = pd.DataFrame(
+        {
+            "z": [0.001, 0.001, 0.30],
+            "z_phot_err": [0.8, math.nan, 0.04],
+            "impact_kpc": [50.0, 50.0, 50.0],
+        }
+    )
+    mask = _foreground_mask(df, z_frb=0.40, z_eps=0.01, impact_kpc=100.0)
+    assert mask.tolist() == [False, True, True]
+
+
+def test_foreground_mask_photoz_background_leak_rejected():
+    # A z=0.9 DESI photo-z behind a z=0.27 FRB carries an absurd e_zphot (sigma=1.0)
+    # that the old capped-2-sigma cut would rescue; the point-estimate rule rejects
+    # it outright. A genuine foreground photo-z (z=0.20) is kept.
+    df = pd.DataFrame(
+        {
+            "z": [0.90, 0.20],
+            "e_zphot": [1.0, 0.04],
+            "catalog": ["VII/292/north", "VII/292/north"],
+            "impact_kpc": [50.0, 50.0],
+        }
+    )
+    mask = _foreground_mask(df, z_frb=0.27, z_eps=0.01, impact_kpc=100.0)
+    assert mask.tolist() == [False, True]
+
+
+def test_foreground_mask_specz_velocity_offset_adjudication():
+    # Spec-z (GLADE+) rows are adjudicated by velocity offset, NOT the photo-z error
+    # path, even though GLADE+ carries a generic 0.015 z-error floor. Reproduces the
+    # Zach sightline (z_frb=0.043): the dv=667 km/s neighbour is a clean foreground;
+    # the dv=76 km/s neighbour is host-velocity ambiguous and dropped; a background
+    # spec-z (Chromatica-like, z>z_frb) is dropped.
+    df = pd.DataFrame(
+        {
+            "z": [0.04068, 0.042735, 0.0764],
+            "z_phot_err": [0.015, 0.015, 0.015],
+            "catalog": ["VII/291/gladep", "VII/291/gladep", "VII/291/gladep"],
+            "impact_kpc": [19.0, 24.0, 53.0],
+        }
+    )
+    mask = _foreground_mask(df, z_frb=0.043, z_eps=0.01, impact_kpc=100.0)
     assert mask.tolist() == [True, False, False]
+
+
+def test_foreground_mask_applies_cluster_impact_threshold():
+    # Same impact (1000 kpc): a galaxy is rejected (>100 kpc) but a cluster is
+    # kept (<5000 kpc). Cluster flagged via NED 'GClstr' / SDSS 'ClG' classifications.
+    df = pd.DataFrame(
+        {
+            "z": [0.10, 0.10, 0.10],
+            "impact_kpc": [1000.0, 1000.0, 1000.0],
+            "classification": ["G", "GClstr", "ClG"],
+        }
+    )
+
+    mask = _foreground_mask(
+        df, z_frb=0.479, z_eps=0.01, impact_kpc=100.0, cluster_impact_kpc=5000.0
+    )
+
+    assert mask.tolist() == [False, True, True]
 
 
 def test_deduplicate_matches_requires_close_redshift_and_prefers_better_source():
@@ -103,7 +176,7 @@ def test_add_desi_stellar_mass_from_fluxes_and_redshift():
 def test_glade_mass_source_is_catalog_when_mass_present():
     df = pd.DataFrame({"M_star": [10.2], "z": [0.1]})
 
-    result = _add_desi_stellar_mass(df.copy(), "VII/291/glade")
+    result = _add_desi_stellar_mass(df.copy(), "VII/291/gladep")
 
     assert result.loc[0, "mass_source"] == "catalog"
 
@@ -145,10 +218,42 @@ def test_enrich_with_ps1_handles_no_match(monkeypatch):
     # Faint high-z galaxy below PS1 depth -> no match -> columns stay NaN.
     matches = pd.DataFrame({"ra": [88.20], "dec": [74.20], "z": [0.965]})
 
-    monkeypatch.setattr(search_mod, "query_ps1_gi_mags", lambda coord, match_radius=None: (None, None, None))
+    monkeypatch.setattr(
+        search_mod, "query_ps1_gi_mags", lambda coord, match_radius=None: (None, None, None)
+    )
 
     result = _enrich_with_ps1_photometry(matches)
 
     assert np.isnan(result.loc[0, "gmag"])
     assert np.isnan(result.loc[0, "imag"])
     assert np.isnan(result.loc[0, "ps1_sep_arcsec"])
+
+
+def test_cluster_impact_limit_uses_r200_when_mass_present():
+    # A 5e14 Msun cluster at z=0.1: limit = 2 * r200(M200=1.3*M500).
+    df = pd.DataFrame(
+        {"classification": ["cluster"], "z": [0.1], "m500_msun": [5.0e14], "impact_kpc": [1.0]}
+    )
+    r200 = scat.r_delta_kpc(1.3 * 5.0e14, 0.1, 200)
+    limit = _cluster_impact_limit_kpc(df, impact_kpc=100.0, r200_factor=2.0, fallback_kpc=5000.0)
+    assert abs(limit.iloc[0] - 2.0 * r200) / (2.0 * r200) < 1e-9
+
+
+def test_cluster_impact_limit_falls_back_without_mass():
+    df = pd.DataFrame({"classification": ["GClstr"], "z": [0.1], "impact_kpc": [1.0]})
+    limit = _cluster_impact_limit_kpc(df, impact_kpc=100.0, r200_factor=2.0, fallback_kpc=5000.0)
+    assert limit.iloc[0] == 5000.0  # NED-Type cluster, no catalog mass
+
+
+def test_foreground_mask_r200_rejects_far_cluster_keeps_near():
+    # r200(1.3*5e14, z=0.1) ~ 2 Mpc; 2*r200 ~ 4 Mpc. 3 Mpc kept, 6 Mpc rejected.
+    df = pd.DataFrame(
+        {
+            "classification": ["cluster", "cluster"],
+            "z": [0.1, 0.1],
+            "m500_msun": [5.0e14, 5.0e14],
+            "impact_kpc": [3000.0, 6000.0],
+        }
+    )
+    mask = _foreground_mask(df, z_frb=0.5, z_eps=0.01, impact_kpc=100.0)
+    assert mask.tolist() == [True, False]

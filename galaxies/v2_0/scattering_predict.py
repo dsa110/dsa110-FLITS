@@ -2,8 +2,8 @@
 
 import math
 
-import numpy as np
 import astropy.units as u
+import numpy as np
 
 from .config import COSMO
 
@@ -81,7 +81,9 @@ def dm_halo_mnfw(
         # the mNFW profile to the hot baryon mass rather than an arbitrary rho0.
         return 4.0 * math.pi * r_kpc**2 * shape_density(r_kpc)
 
-    norm_integral, _ = quad(radial_mass_integrand, 0.0, r200_kpc, epsabs=0.0, epsrel=1e-6, limit=200)
+    norm_integral, _ = quad(
+        radial_mass_integrand, 0.0, r200_kpc, epsabs=0.0, epsrel=1e-6, limit=200
+    )
     if norm_integral <= 0.0 or not math.isfinite(norm_integral):
         return None
 
@@ -110,7 +112,9 @@ def dm_halo_mnfw(
         r_kpc = math.hypot(b_kpc, l_kpc)
         return ne_cm3(r_kpc)
 
-    column_ne_kpc_cm3, _ = quad(los_integrand, -l_half_kpc, l_half_kpc, epsabs=0.0, epsrel=1e-6, limit=200)
+    column_ne_kpc_cm3, _ = quad(
+        los_integrand, -l_half_kpc, l_half_kpc, epsabs=0.0, epsrel=1e-6, limit=200
+    )
     if not math.isfinite(column_ne_kpc_cm3):
         return None
 
@@ -123,7 +127,9 @@ def dm_halo_mnfw(
     return float(max(dm_obs, 0.0))
 
 
-def dm_cool(dm_halo: float, cool_covering_fraction: float, mgii_wr: float | None = None) -> float | None:
+def dm_cool(
+    dm_halo: float, cool_covering_fraction: float, mgii_wr: float | None = None
+) -> float | None:
     """Return a cool-photoionized CGM DM component scaled by coverage."""
     if _is_bad(dm_halo) or _is_bad(cool_covering_fraction):
         return None
@@ -382,3 +388,115 @@ def cool_covering_fraction(
     hi = _clamp(fc * 1.5 + (0.2 if (is_star_forming and phi_deg is not None) else 0.0), 0.0, 1.0)
     fc = _clamp(fc, lo, hi)
     return float(fc), float(lo), float(hi)
+
+
+# --- Cluster ICM dispersion (isothermal beta-model) --------------------------
+# Mohr+1999 ApJ 517,627 / Arnaud 2009: ICM beta ~ 0.6-0.7, core radius
+# r_c ~ 0.1-0.2 R500. Cavaliere & Fusco-Femiano 1976 A&A 49,137 set the form.
+CLUSTER_BETA = 0.65
+CLUSTER_RC_OVER_R500 = 0.15
+# Vikhlinin+2006 ApJ 640,691 / Pratt+2009 / Eckert+2019: hot-gas mass fraction
+# within R500 ~ 0.13 for massive clusters.
+CLUSTER_F_GAS_500 = 0.13
+# Fully ionized ICM mean molecular weight per electron (primordial-ish).
+CLUSTER_MU_E = 1.17
+# R200/R500 ~ 1.54 for a typical cluster NFW concentration (c500 ~ 1.5).
+CLUSTER_R200_OVER_R500 = 1.54
+
+
+def r_delta_kpc(m_delta_msun: float, z: float, delta: float) -> float:
+    """Spherical-overdensity radius R_Delta (kpc): M = (4/3) pi Delta rho_c(z) R^3.
+
+    For Delta=200 this equals the R200 used in get_rvir_and_rs
+    ((G M/(100 H^2))^(1/3)); written via the critical density to match the R200
+    derivation already in dm_halo_mnfw.
+    """
+    if any(_is_bad(x) for x in (m_delta_msun, z)) or float(m_delta_msun) <= 0.0:
+        return float("nan")
+    rho_crit = COSMO.critical_density(float(z)).to(u.Msun / u.kpc**3).value
+    if rho_crit <= 0.0 or not math.isfinite(rho_crit):
+        return float("nan")
+    radius = (3.0 * float(m_delta_msun) / (4.0 * math.pi * float(delta) * rho_crit)) ** (1.0 / 3.0)
+    return float(radius)
+
+
+def _beta_mass_integral_kpc3(beta: float, rc_kpc: float, r_max_kpc: float) -> float:
+    """Shape-only gas-mass integral int_0^Rmax 4 pi r^2 [1+(r/rc)^2]^(-3beta/2) dr (kpc^3)."""
+    from scipy.integrate import quad
+
+    integrand = lambda r: r * r * (1.0 + (r / rc_kpc) ** 2) ** (-1.5 * beta)  # noqa: E731
+    value, _ = quad(integrand, 0.0, r_max_kpc, epsabs=0.0, epsrel=1e-7, limit=200)
+    return 4.0 * math.pi * value
+
+
+def _beta_ne0_cm3(
+    m500_msun: float,
+    z: float,
+    r500_kpc: float,
+    beta: float,
+    rc_kpc: float,
+    f_gas: float = CLUSTER_F_GAS_500,
+) -> float:
+    """Central electron density (cm^-3) such that M_gas(<R500) = f_gas * M500.
+
+    M_gas = mu_e m_p n_e0 * int 4 pi r^2 shape(r) dr, so n_e0 follows from the
+    shape integral normalized to the catalog gas mass.
+    """
+    shape_int_kpc3 = _beta_mass_integral_kpc3(beta, rc_kpc, r500_kpc)
+    if shape_int_kpc3 <= 0.0 or not math.isfinite(shape_int_kpc3):
+        return float("nan")
+    m_gas_g = float(f_gas) * float(m500_msun) * u.Msun.to(u.g)
+    mu_e_mp_g = CLUSTER_MU_E * 1.67262192369e-24
+    kpc3_to_cm3 = (1.0 * u.kpc**3).to(u.cm**3).value
+    return m_gas_g / (mu_e_mp_g * shape_int_kpc3 * kpc3_to_cm3)
+
+
+def dm_cluster_beta_model(
+    m500_msun: float,
+    z: float,
+    impact_kpc: float,
+    r500_kpc: float | None = None,
+    beta: float = CLUSTER_BETA,
+    rc_over_r500: float = CLUSTER_RC_OVER_R500,
+    f_gas: float = CLUSTER_F_GAS_500,
+    r_trunc_factor: float = CLUSTER_R200_OVER_R500,
+) -> float:
+    """Observer-frame ICM dispersion measure (pc cm^-3) through a beta-model cluster.
+
+    Isothermal beta-model n_e(r) = n_e0 [1+(r/r_c)^2]^(-3beta/2) (Cavaliere &
+    Fusco-Femiano 1976), normalized so the hot gas within R500 is f_gas * M500
+    (Vikhlinin+2006). The column is projected at impact parameter b, truncated at
+    r_trunc_factor * R500, and divided by (1+z) for the observer frame
+    (Macquart+2020 convention). Returns 0.0 for b beyond truncation or bad inputs.
+    """
+    if any(_is_bad(x) for x in (m500_msun, z, impact_kpc)) or float(m500_msun) <= 0.0:
+        return 0.0
+    if r500_kpc is None or _is_bad(r500_kpc):
+        r500_kpc = r_delta_kpc(m500_msun, z, 500)
+    if _is_bad(r500_kpc) or float(r500_kpc) <= 0.0:
+        return 0.0
+    r500_kpc = float(r500_kpc)
+    rc = float(rc_over_r500) * r500_kpc
+    r_trunc = float(r_trunc_factor) * r500_kpc
+    b = float(impact_kpc)
+    if b >= r_trunc:
+        return 0.0
+    ne0 = _beta_ne0_cm3(m500_msun, z, r500_kpc, beta, rc, f_gas=f_gas)
+    if _is_bad(ne0):
+        return 0.0
+
+    from scipy.integrate import quad
+
+    l_half = math.sqrt(max(r_trunc**2 - b**2, 0.0))
+
+    def los(l_kpc: float) -> float:
+        r = math.hypot(b, l_kpc)
+        return ne0 * (1.0 + (r / rc) ** 2) ** (-1.5 * beta)
+
+    column_kpc_cm3, _ = quad(los, -l_half, l_half, epsabs=0.0, epsrel=1e-6, limit=200)
+    if not math.isfinite(column_kpc_cm3):
+        return 0.0
+    # 1 kpc of path contributes 1000 pc to the pc cm^-3 DM unit; /(1+z) for the
+    # observer frame (Macquart+2020).
+    dm_obs = column_kpc_cm3 * 1000.0 / (1.0 + float(z))
+    return float(max(dm_obs, 0.0))

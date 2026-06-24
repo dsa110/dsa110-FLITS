@@ -1,19 +1,13 @@
 import math
-import os
 
+import astropy.units as u
 import numpy as np
 import pandas as pd
 import pytest
 from astropy.coordinates import SkyCoord
-import astropy.units as u
 
+from galaxies.v2_0 import scattering_predict as scat
 from galaxies.v2_0.build_unified import build_for_target, build_unified_records
-
-
-RESULTS_DIR = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
-    "results",
-)
 
 
 def _sightline(ra_str, dec_str):
@@ -21,11 +15,23 @@ def _sightline(ra_str, dec_str):
     return coord.ra.deg, coord.dec.deg
 
 
-def test_zach_unified_columns_and_glade_mass():
+def test_glade_unified_columns_and_mass():
+    # GLADE+ (gladep) rows carry a catalog stellar mass -> mass_source
+    # 'glade_catalog'. Frozen inline fixture so the test is independent of the
+    # regenerated results/ snapshot (upstream catalog refreshes change it).
     sight_ra, sight_dec = _sightline("20h40m47.886s", "+72d52m56.378s")
-    matches = pd.read_csv(os.path.join(RESULTS_DIR, "zach_galaxies.csv"))
+    matches = pd.DataFrame(
+        {
+            "ra": [sight_ra + 0.002, sight_ra - 0.002],
+            "dec": [sight_dec + 0.001, sight_dec - 0.001],
+            "z": [0.040, 0.042],
+            "M_star": [9.5, 9.1],
+            "catalog": ["VII/291/gladep", "VII/291/gladep"],
+            "impact_kpc": [30.0, 45.0],
+        }
+    )
 
-    df = build_unified_records(matches, 0.043, sight_ra, sight_dec, enrich=False)
+    df = build_unified_records(matches, 0.30, sight_ra, sight_dec, enrich=False)
 
     expected_columns = {
         "logM_best",
@@ -65,9 +71,22 @@ def test_zach_unified_columns_and_glade_mass():
     assert int(df["scattering_rank"].min()) == 1
 
 
-def test_phineas_unified_mass_sources_and_predictions():
+def test_unified_mass_sources_ps1_and_assumed():
+    # Frozen inline fixture (independent of results/): row 0 carries PS1 g/i mags
+    # -> ps1_taylor; rows 1-2 have no photometry/catalog mass -> assumed default.
+    # Row 0 is foreground (z<z_frb); rows 1-2 are background (z>z_frb).
     sight_ra, sight_dec = _sightline("11h51m07.52s", "+71d41m44.3s")
-    matches = pd.read_csv(os.path.join(RESULTS_DIR, "phineas_galaxies.csv"))
+    matches = pd.DataFrame(
+        {
+            "ra": [sight_ra + 0.0008, sight_ra + 0.0016, sight_ra - 0.0008],
+            "dec": [sight_dec + 0.0008, sight_dec - 0.0008, sight_dec + 0.0016],
+            "z": [0.241, 0.519, 0.965],
+            "catalog": ["VII/292/north", "VII/292/north", "VII/292/north"],
+            "gmag": [20.177, math.nan, math.nan],
+            "imag": [18.844, math.nan, math.nan],
+            "impact_kpc": [30.0, 50.0, 60.0],
+        }
+    )
 
     df = build_unified_records(matches, 0.271, sight_ra, sight_dec, enrich=False)
 
@@ -187,7 +206,7 @@ def test_background_galaxy_tau_is_not_predictable_nan_not_zero():
         {
             "ra": [150.0, 150.0],
             "dec": [2.0, 2.0],
-            "z": [0.20, 0.50],          # foreground, background
+            "z": [0.20, 0.50],  # foreground, background
             "impact_kpc": [30.0, 30.0],
             "catalog": ["TEST", "TEST"],
         }
@@ -249,3 +268,37 @@ def test_unified_background_two_phase_tau_is_nan():
     assert np.isnan(r["pred_tau_hot_ms_1GHz"])
     assert np.isnan(r["pred_tau_cool_ms_1GHz"])
     assert r["cgm_extractable_flags"]["tau_scat"] == "NOT_PREDICTABLE"
+
+
+def test_cluster_row_uses_catalog_mass_and_beta_model_dm():
+    # A catalog cluster bypasses the stellar-mass ladder: M_halo = 1.3*M500,
+    # dm_halo from the beta-model ICM, and dm_cool / tau zeroed (DM not scattering).
+    matches = pd.DataFrame(
+        {
+            "ra": [312.5],
+            "dec": [72.1],
+            "z": [0.10],
+            "impact_kpc": [800.0],
+            "classification": ["cluster"],
+            "m500_msun": [5.0e14],
+            "r500_kpc": [1300.0],
+            "catalog": ["MCXC"],
+        }
+    )
+    out = build_unified_records(matches, 0.5, 312.4, 72.0, enrich=False)
+    row = out.iloc[0]
+    m200 = 1.3 * 5.0e14
+    assert abs(row["M_halo"] - m200) / m200 < 1e-9  # catalog mass, not stellar-derived
+    assert row["mass_source"] == "cluster_catalog"
+    dm_ref = scat.dm_cluster_beta_model(5.0e14, 0.10, 800.0, r500_kpc=1300.0)
+    assert abs(row["dm_halo"] - dm_ref) / dm_ref < 1e-9  # beta-model, not mNFW
+    assert row["dm_cool"] == 0.0  # no cool-CGM phase for clusters
+    assert row["pred_tau_scat_ms_1GHz"] == 0.0  # clusters negligible scatterers
+
+
+def test_galaxy_row_unchanged_by_cluster_path():
+    matches = pd.DataFrame(
+        {"ra": [312.5], "dec": [72.1], "z": [0.10], "impact_kpc": [50.0], "catalog": ["NED"]}
+    )
+    out = build_unified_records(matches, 0.5, 312.4, 72.0, enrich=False)
+    assert out.iloc[0]["mass_source"] != "cluster_catalog"  # galaxy path intact

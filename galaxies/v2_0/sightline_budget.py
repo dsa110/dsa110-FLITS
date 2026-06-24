@@ -29,6 +29,7 @@ DM_cosmic, parse_dm_obs, and read_measured_tau_ms are pure. The Galactic model
 (galactic_dm_tau) is offline but uses the compiled pygedm NE2001/YMW16 models;
 it is injectable so the test suite stays network- and pygedm-free.
 """
+
 from __future__ import annotations
 
 import glob
@@ -36,14 +37,15 @@ import json
 import math
 import os
 import sys
-from typing import Any, Callable, Mapping
+from collections.abc import Callable, Mapping
+from typing import Any
 
+import astropy.units as u
+import matplotlib
 import numpy as np
 import pandas as pd
 from astropy import constants as const
 from astropy.coordinates import SkyCoord
-import astropy.units as u
-import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -132,7 +134,9 @@ def dm_cosmic_macquart(z: float, f_igm: float = F_IGM, chi_e: float = CHI_E) -> 
     # Deng & Zhang 2014 ApJ 783,L35 / Macquart+2020 Nature 581,391:
     # <DM_cosmic> = n_e,0 * (c/H0) * int_0^z (1+z')/E(z') dz', with the present
     # diffuse-IGM electron density n_e,0 = f_IGM chi_e Omega_b rho_crit,0 / m_p.
-    n_e0 = (f_igm * chi_e * config.COSMO.Ob0 * config.COSMO.critical_density0 / const.m_p).to(u.cm**-3)
+    n_e0 = (f_igm * chi_e * config.COSMO.Ob0 * config.COSMO.critical_density0 / const.m_p).to(
+        u.cm**-3
+    )
     hubble_dist = (const.c / config.COSMO.H0).to(u.pc)
     integral, _ = quad(
         lambda zp: (1.0 + zp) / math.sqrt(config.COSMO.Om0 * (1.0 + zp) ** 3 + config.COSMO.Ode0),
@@ -427,8 +431,12 @@ def build_sightline_budget(
     tau_int = tau_int_lo = tau_int_hi = 0.0
     n_fg = n_isect = 0
     dom: dict[str, Any] = {
-        "best_z": math.nan, "best_b_over_rvir": math.nan, "best_g_scatt": math.nan,
-        "best_cool_fc": math.nan, "best_logM": math.nan, "best_mass_source": None,
+        "best_z": math.nan,
+        "best_b_over_rvir": math.nan,
+        "best_g_scatt": math.nan,
+        "best_cool_fc": math.nan,
+        "best_logM": math.nan,
+        "best_mass_source": None,
         "best_impact_kpc": math.nan,
     }
     best_tau = -1.0
@@ -460,9 +468,13 @@ def build_sightline_budget(
             m_halo = _f(row.get("M_halo"))
             rvir = _f(row.get("R_vir_kpc"))
             impact = _f(row.get("impact_kpc"))
-            if math.isfinite(bor) and bor < INTERIOR_B_OVER_RVIR and all(
-                math.isfinite(v) for v in (m_halo, rvir, impact)
-            ) and rvir > 0.0 and dh_raw > 0.0:
+            if (
+                math.isfinite(bor)
+                and bor < INTERIOR_B_OVER_RVIR
+                and all(math.isfinite(v) for v in (m_halo, rvir, impact))
+                and rvir > 0.0
+                and dh_raw > 0.0
+            ):
                 b_cap = max(impact, INTERIOR_B_OVER_RVIR * rvir)
                 dh_cap = _nz(_f(scat.dm_halo_mnfw(m_halo, z, b_cap)))
                 dc_cap = dc_raw * (dh_cap / dh_raw) if dh_raw > 0.0 else dc_raw
@@ -487,7 +499,9 @@ def build_sightline_budget(
                         "best_cool_fc": _f(row.get("cool_fc")),
                         "best_logM": _f(row.get("logM_best")),
                         "best_mass_source": (
-                            str(row.get("mass_source")) if row.get("mass_source") is not None else None
+                            str(row.get("mass_source"))
+                            if row.get("mass_source") is not None
+                            else None
                         ),
                         "best_impact_kpc": _f(row.get("impact_kpc")),
                     }
@@ -543,8 +557,14 @@ def build_sightline_budget(
         verdict_dm = _dm_verdict(
             dm_obs_f, dm_mw_ism, dm_mw_halo, dm_cosmic, dm_intervening_capped, dm_host_capped
         )
-        if dm_regime == "GALAXY_INTERIOR" and math.isfinite(dm_host) and dm_host < -0.05 * max(dm_obs_f, 1.0):
-            verdict_dm += "; raw intervening DM is core-extrapolated and exceeds the observed budget"
+        if (
+            dm_regime == "GALAXY_INTERIOR"
+            and math.isfinite(dm_host)
+            and dm_host < -0.05 * max(dm_obs_f, 1.0)
+        ):
+            verdict_dm += (
+                "; raw intervening DM is core-extrapolated and exceeds the observed budget"
+            )
 
     flags = {
         "z_frb": "PLACEHOLDER" if z_is_placeholder else "MEASURED",
@@ -556,9 +576,13 @@ def build_sightline_budget(
         "dm_intervening_capped": f"PREDICTED ({dm_regime})",
         "dm_host": "RESIDUAL" if math.isfinite(dm_host) else "NOT_AVAILABLE",
         "tau_obs": (
-            f"MEASURED ({tau_obs_quality})" if math.isfinite(tau_obs_f)
-            else (f"WITHHELD ({tau_obs_quality})" if tau_obs_quality not in (None, "PASS", "INJECTED")
-                  else "NOT_AVAILABLE")
+            f"MEASURED ({tau_obs_quality})"
+            if math.isfinite(tau_obs_f)
+            else (
+                f"WITHHELD ({tau_obs_quality})"
+                if tau_obs_quality not in (None, "PASS", "INJECTED")
+                else "NOT_AVAILABLE"
+            )
         ),
         "tau_mw": "MODEL" if math.isfinite(_f(tau_mw_ms)) else "NOT_AVAILABLE",
         "tau_intervening": "PREDICTED",
@@ -627,9 +651,17 @@ def build_all_budgets(
         tau_obs = tau_obs_map.get(name) if tau_obs_map is not None else None
         rows.append(
             build_sightline_budget(
-                name, ra_str, dec_str, z_frb,
-                results_dir=results_dir, configs_dir=configs_dir, bursts_dir=bursts_dir,
-                enrich=enrich, dm_mw_fn=dm_mw_fn, dm_obs=dm_obs, tau_obs=tau_obs,
+                name,
+                ra_str,
+                dec_str,
+                z_frb,
+                results_dir=results_dir,
+                configs_dir=configs_dir,
+                bursts_dir=bursts_dir,
+                enrich=enrich,
+                dm_mw_fn=dm_mw_fn,
+                dm_obs=dm_obs,
+                tau_obs=tau_obs,
             )
         )
     return pd.DataFrame(rows)
@@ -638,9 +670,19 @@ def build_all_budgets(
 def format_budget_table(df: pd.DataFrame) -> str:
     """Render the DM + scattering budget as a GitHub-flavored markdown table."""
     headers = [
-        "Sightline", "z", "DM_obs", "DM_MW", "DM_cosmic", "DM_interv_raw",
-        "DM_interv_cap", "regime", "interv_mass", "DM_host_cap", "tau_obs(ms)",
-        "tau_interv(ms)", "scattering attribution",
+        "Sightline",
+        "z",
+        "DM_obs",
+        "DM_MW",
+        "DM_cosmic",
+        "DM_interv_raw",
+        "DM_interv_cap",
+        "regime",
+        "interv_mass",
+        "DM_host_cap",
+        "tau_obs(ms)",
+        "tau_interv(ms)",
+        "scattering attribution",
     ]
     lines = ["| " + " | ".join(headers) + " |", "|" + "|".join(["---"] * len(headers)) + "|"]
 
@@ -687,14 +729,22 @@ def make_budget_figure(df: pd.DataFrame):
     y = np.arange(len(d))[::-1]
 
     fig, (ax_dm, ax_tau) = plt.subplots(
-        1, 2, figsize=(14, max(3.5, 0.55 * len(d) + 1.6)), dpi=150,
-        facecolor=BG_LIGHT, gridspec_kw={"width_ratios": [1.7, 1.0]},
+        1,
+        2,
+        figsize=(14, max(3.5, 0.55 * len(d) + 1.6)),
+        dpi=150,
+        facecolor=BG_LIGHT,
+        gridspec_kw={"width_ratios": [1.7, 1.0]},
     )
     for ax in (ax_dm, ax_tau):
         ax.set_facecolor(BG_LIGHT)
 
     def col(name):
-        return pd.to_numeric(d.get(name, pd.Series(np.nan, index=d.index)), errors="coerce").fillna(0.0).to_numpy(float)
+        return (
+            pd.to_numeric(d.get(name, pd.Series(np.nan, index=d.index)), errors="coerce")
+            .fillna(0.0)
+            .to_numpy(float)
+        )
 
     mw = col("dm_mw_ism")
     halo = col("dm_mw_halo")
@@ -712,7 +762,9 @@ def make_budget_figure(df: pd.DataFrame):
         (interv, INTERV_COLOR, "intervening CGM (b>=0.1Rvir cap)"),
         (host, HOST_COLOR, "host (residual)"),
     ):
-        ax_dm.barh(y, vals, left=left, color=color, edgecolor="white", linewidth=0.6, label=label, zorder=3)
+        ax_dm.barh(
+            y, vals, left=left, color=color, edgecolor="white", linewidth=0.6, label=label, zorder=3
+        )
         left = left + vals
 
     dm_obs = col("dm_obs")
@@ -725,8 +777,14 @@ def make_budget_figure(df: pd.DataFrame):
         if reg == "GALAXY_INTERIOR" and raw > cap:
             ax_dm.annotate(
                 f"raw interv DM={raw:.0f} (core-extrap.)",
-                xy=(0, yi), xytext=(4, -2), textcoords="offset points",
-                va="top", ha="left", fontsize=7, color=HOST_COLOR, zorder=6,
+                xy=(0, yi),
+                xytext=(4, -2),
+                textcoords="offset points",
+                va="top",
+                ha="left",
+                fontsize=7,
+                color=HOST_COLOR,
+                zorder=6,
             )
 
     # Mark sightlines whose host redshift is a placeholder (no cosmic/host budget).
@@ -735,15 +793,28 @@ def make_budget_figure(df: pd.DataFrame):
         if ph:
             ax_dm.annotate(
                 "z placeholder — no cosmic/host budget",
-                xy=(max(xo, 1.0), yi), xytext=(6, 0), textcoords="offset points",
-                va="center", ha="left", fontsize=7, color=COSMIC_COLOR, zorder=6,
+                xy=(max(xo, 1.0), yi),
+                xytext=(6, 0),
+                textcoords="offset points",
+                va="center",
+                ha="left",
+                fontsize=7,
+                color=COSMIC_COLOR,
+                zorder=6,
             )
     ax_dm.set_yticks(y)
     ax_dm.set_yticklabels(names, fontsize=10)
     ax_dm.set_xlabel("DM (pc cm$^{-3}$)", fontsize=11, fontweight="bold", color=TEXT_DARK)
-    ax_dm.set_title("DM budget per sightline  (black bar = observed DM)",
-                    fontsize=12, fontweight="bold", color=DARK_BLUE, pad=10)
-    ax_dm.legend(loc="lower right", fontsize=8, frameon=True, facecolor="white", edgecolor=GRID_COLOR)
+    ax_dm.set_title(
+        "DM budget per sightline  (black bar = observed DM)",
+        fontsize=12,
+        fontweight="bold",
+        color=DARK_BLUE,
+        pad=10,
+    )
+    ax_dm.legend(
+        loc="lower right", fontsize=8, frameon=True, facecolor="white", edgecolor=GRID_COLOR
+    )
     ax_dm.grid(True, axis="x", linestyle=":", color=GRID_COLOR, alpha=0.8, zorder=0)
 
     tau_obs = col("tau_obs_ms")
@@ -752,17 +823,48 @@ def make_budget_figure(df: pd.DataFrame):
     tau_hi = col("tau_intervening_hi")
     for yi, to, ti, tl, th in zip(y, tau_obs, tau_int, tau_lo, tau_hi):
         if ti > 0:
-            ax_tau.plot([max(tl, 1e-7), max(th, 1e-7)], [yi, yi], color=INTERV_COLOR, lw=2, zorder=2)
-            ax_tau.scatter([ti], [yi], color=INTERV_COLOR, s=45, zorder=3,
-                           label="predicted intervening" if yi == y[0] else None)
+            ax_tau.plot(
+                [max(tl, 1e-7), max(th, 1e-7)], [yi, yi], color=INTERV_COLOR, lw=2, zorder=2
+            )
+            ax_tau.scatter(
+                [ti],
+                [yi],
+                color=INTERV_COLOR,
+                s=45,
+                zorder=3,
+                label="predicted intervening" if yi == y[0] else None,
+            )
         if to > 0:
-            tlo = _f(d["tau_obs_err_minus"].iloc[list(y).index(yi)]) if "tau_obs_err_minus" in d.columns else math.nan
-            thi = _f(d["tau_obs_err_plus"].iloc[list(y).index(yi)]) if "tau_obs_err_plus" in d.columns else math.nan
+            tlo = (
+                _f(d["tau_obs_err_minus"].iloc[list(y).index(yi)])
+                if "tau_obs_err_minus" in d.columns
+                else math.nan
+            )
+            thi = (
+                _f(d["tau_obs_err_plus"].iloc[list(y).index(yi)])
+                if "tau_obs_err_plus" in d.columns
+                else math.nan
+            )
             if math.isfinite(tlo) and math.isfinite(thi) and (tlo > 0 or thi > 0):
-                ax_tau.errorbar([to], [yi], xerr=[[max(tlo, 0)], [max(thi, 0)]], fmt="none",
-                                ecolor=TEXT_DARK, elinewidth=1.2, capsize=3, zorder=4)
-            ax_tau.scatter([to], [yi], marker="D", color=TEXT_DARK, s=55, zorder=5,
-                           label="measured burst (PASS)" if yi == y[0] else None)
+                ax_tau.errorbar(
+                    [to],
+                    [yi],
+                    xerr=[[max(tlo, 0)], [max(thi, 0)]],
+                    fmt="none",
+                    ecolor=TEXT_DARK,
+                    elinewidth=1.2,
+                    capsize=3,
+                    zorder=4,
+                )
+            ax_tau.scatter(
+                [to],
+                [yi],
+                marker="D",
+                color=TEXT_DARK,
+                s=55,
+                zorder=5,
+                label="measured burst (PASS)" if yi == y[0] else None,
+            )
 
     # Mark sightlines with a fit present but withheld by the quality gate.
     quality = [str(v) for v in d.get("tau_obs_quality", pd.Series([""] * len(d)))]
@@ -770,25 +872,45 @@ def make_budget_figure(df: pd.DataFrame):
     for yi, q, ti in zip(y, quality, tau_int):
         if q in ("FAIL", "MARGINAL", "UNKNOWN"):
             x_at = max(ti, 1e-6)
-            ax_tau.scatter([x_at], [yi], marker="x", color=HOST_COLOR, s=50, zorder=4,
-                           label="fit withheld (failed gate)" if not withheld_labeled else None)
+            ax_tau.scatter(
+                [x_at],
+                [yi],
+                marker="x",
+                color=HOST_COLOR,
+                s=50,
+                zorder=4,
+                label="fit withheld (failed gate)" if not withheld_labeled else None,
+            )
             withheld_labeled = True
 
     ax_tau.set_yticks(y)
     ax_tau.set_yticklabels([])
-    positive = np.concatenate([tau_obs[tau_obs > 0], tau_int[tau_int > 0]]) if len(d) else np.array([])
+    positive = (
+        np.concatenate([tau_obs[tau_obs > 0], tau_int[tau_int > 0]]) if len(d) else np.array([])
+    )
     if positive.size:
         ax_tau.set_xscale("log")
-    ax_tau.set_xlabel(r"$\tau_{\rm scat}$ at 1 GHz (ms)", fontsize=11, fontweight="bold", color=TEXT_DARK)
-    ax_tau.set_title("Scattering: predicted intervening vs measured",
-                     fontsize=12, fontweight="bold", color=DARK_BLUE, pad=10)
+    ax_tau.set_xlabel(
+        r"$\tau_{\rm scat}$ at 1 GHz (ms)", fontsize=11, fontweight="bold", color=TEXT_DARK
+    )
+    ax_tau.set_title(
+        "Scattering: predicted intervening vs measured",
+        fontsize=12,
+        fontweight="bold",
+        color=DARK_BLUE,
+        pad=10,
+    )
     handles, labels = ax_tau.get_legend_handles_labels()
     if handles:
         ax_tau.legend(loc="best", fontsize=8, frameon=True, facecolor="white", edgecolor=GRID_COLOR)
     ax_tau.grid(True, axis="x", linestyle=":", color=GRID_COLOR, alpha=0.8)
 
-    fig.suptitle("FRB sightline DM & scattering budgets (priors + measurements)",
-                 fontsize=13, fontweight="bold", color=DARK_BLUE)
+    fig.suptitle(
+        "FRB sightline DM & scattering budgets (priors + measurements)",
+        fontsize=13,
+        fontweight="bold",
+        color=DARK_BLUE,
+    )
     fig.tight_layout(rect=(0, 0, 1, 0.97))
     return fig
 
@@ -803,8 +925,9 @@ def main():
         results_dir=results_dir, configs_dir=configs_dir, bursts_dir=bursts_dir, enrich=False
     )
 
-    # Emit TNS designations (not internal nicknames) in the CSV, table, and figure.
+    # Emit TNS designations (not internal nicknames) in the CSV, table, and figure (#26).
     from scattering.scat_analysis.burst_metadata import load_tns_name
+
     df["name"] = [load_tns_name(n) for n in df["name"]]
 
     csv_path = os.path.join(results_dir, "sightline_dm_scattering_budget.csv")

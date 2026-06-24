@@ -6,14 +6,13 @@ import math
 import os
 from typing import Any
 
+import astropy.units as u
 import numpy as np
 import pandas as pd
 from astropy.coordinates import SkyCoord
-import astropy.units as u
 
 from galaxies.v2_0 import cgm_observables as cgm
-from galaxies.v2_0 import config
-from galaxies.v2_0 import enrichers
+from galaxies.v2_0 import config, enrichers
 from galaxies.v2_0 import scattering_predict as scat
 from galaxies.v2_0.generate_galaxy_plots import (
     estimate_halo_mass,
@@ -22,13 +21,13 @@ from galaxies.v2_0.generate_galaxy_plots import (
     nfw_enclosed_mass,
 )
 
-
 MASS_PRIORITY = (
     "glade_catalog",
     "xsc_kband",
     "desi_ls_sed",
     "wise_w1",
     "ps1_taylor",
+    "cluster_catalog",
     "assumed",
 )
 
@@ -243,7 +242,9 @@ _UNIFIED_COLUMNS = (
 )
 
 
-def build_unified_records(matches, z_frb, sight_ra, sight_dec, enrich=True, enrich_fn=None) -> pd.DataFrame:
+def build_unified_records(
+    matches, z_frb, sight_ra, sight_dec, enrich=True, enrich_fn=None
+) -> pd.DataFrame:
     """Build one unified per-galaxy DataFrame from foreground matches."""
     if matches is None:
         matches = pd.DataFrame()
@@ -273,7 +274,11 @@ def build_unified_records(matches, z_frb, sight_ra, sight_dec, enrich=True, enri
             except (ArithmeticError, ValueError, RuntimeError, OverflowError):
                 m_halo = logm_halo = r_vir = r_s = concentration = math.nan
 
-        b_over_rvir = impact_kpc / r_vir if _finite(impact_kpc) and _finite(r_vir) and r_vir > 0.0 else math.nan
+        b_over_rvir = (
+            impact_kpc / r_vir
+            if _finite(impact_kpc) and _finite(r_vir) and r_vir > 0.0
+            else math.nan
+        )
         intersects_rvir = bool(_finite(impact_kpc) and _finite(r_vir) and impact_kpc <= r_vir)
 
         gmag = _num(row, "gmag")
@@ -308,7 +313,9 @@ def build_unified_records(matches, z_frb, sight_ra, sight_dec, enrich=True, enri
         gal_ra = _num(row, "ra")
         gal_dec = _num(row, "dec")
         phi = (
-            _or_nan(cgm.azimuthal_angle_phi_deg(gal_ra, gal_dec, position_angle, sight_ra, sight_dec))
+            _or_nan(
+                cgm.azimuthal_angle_phi_deg(gal_ra, gal_dec, position_angle, sight_ra, sight_dec)
+            )
             if _finite(position_angle)
             else math.nan
         )
@@ -325,7 +332,9 @@ def build_unified_records(matches, z_frb, sight_ra, sight_dec, enrich=True, enri
         galex_ebv = _num(row, "galex_ebv")
 
         sfr_w3 = _or_nan(cgm.sfr_wise_w3(w3mag, z_gal))
-        sfr_uv = _or_nan(cgm.sfr_uv_nuv(galex_nuv, z_gal, ebv=galex_ebv if _finite(galex_ebv) else 0.0))
+        sfr_uv = _or_nan(
+            cgm.sfr_uv_nuv(galex_nuv, z_gal, ebv=galex_ebv if _finite(galex_ebv) else 0.0)
+        )
         sfr_best = sfr_w3 if _finite(sfr_w3) else sfr_uv
         sfr_is_limit = not (_finite(w3mag) or _finite(galex_nuv))
         metallicity = _or_nan(cgm.metallicity_mzr(logm_best, z_gal))
@@ -375,13 +384,23 @@ def build_unified_records(matches, z_frb, sight_ra, sight_dec, enrich=True, enri
             )
             tau_lo = _or_nan(
                 scat.tau_scat_two_phase(
-                    f_tilde_lo, g_scatt, dm_halo, dm_cool, z_gal, nu_ghz=1.0,
+                    f_tilde_lo,
+                    g_scatt,
+                    dm_halo,
+                    dm_cool,
+                    z_gal,
+                    nu_ghz=1.0,
                     cool_clump_boost=scat.COOL_CLUMP_BOOST_LO,
                 )
             )
             tau_hi = _or_nan(
                 scat.tau_scat_two_phase(
-                    f_tilde_hi, g_scatt, dm_halo, dm_cool, z_gal, nu_ghz=1.0,
+                    f_tilde_hi,
+                    g_scatt,
+                    dm_halo,
+                    dm_cool,
+                    z_gal,
+                    nu_ghz=1.0,
                     cool_clump_boost=scat.COOL_CLUMP_BOOST_HI,
                 )
             )
@@ -389,7 +408,9 @@ def build_unified_records(matches, z_frb, sight_ra, sight_dec, enrich=True, enri
         else:
             tau = tau_hot = tau_cool = tau_lo = tau_hi = scint_bw = math.nan
 
-        desi_emission_measured = _has(row, "desi_emission_matched") and _boolish(row["desi_emission_matched"])
+        desi_emission_measured = _has(row, "desi_emission_matched") and _boolish(
+            row["desi_emission_matched"]
+        )
         flags = {
             "stellar_mass": "MEASURED" if mass_source in set(MASS_PRIORITY[:-1]) else "PREDICTED",
             "morphology": "MEASURED" if _finite(axis_ratio) else "NOT_AVAILABLE",
@@ -401,6 +422,50 @@ def build_unified_records(matches, z_frb, sight_ra, sight_dec, enrich=True, enri
             "tau_scat": "PREDICTED" if screen_predictable else "NOT_PREDICTABLE",
             "cool_covering": "PREDICTED",
         }
+
+        # Catalog cluster (m500_msun present): override the galaxy derivation with
+        # a catalog-M200 halo and a beta-model ICM DM. Clusters contribute DM but
+        # negligible scattering (Connor 2023; Lee 2023), so cool-CGM / tau are
+        # zeroed and the stellar-mass ladder is bypassed.
+        m500_msun = _num(row, "m500_msun")
+        if _finite(m500_msun) and m500_msun > 0.0:
+            m_halo = config.CLUSTER_M500_TO_M200 * m500_msun
+            logm_best = logm_halo = math.log10(m_halo)
+            mass_source, mass_method = "cluster_catalog", "cluster_catalog_m500"
+            r_vir = scat.r_delta_kpc(m_halo, z_gal, 200)
+            r_s = concentration = math.nan
+            b_over_rvir = (
+                impact_kpc / r_vir
+                if _finite(impact_kpc) and _finite(r_vir) and r_vir > 0.0
+                else math.nan
+            )
+            intersects_rvir = bool(_finite(impact_kpc) and _finite(r_vir) and impact_kpc <= r_vir)
+            r500_kpc = _num(row, "r500_kpc")
+            dm_halo = _or_nan(
+                scat.dm_cluster_beta_model(
+                    m500_msun,
+                    z_gal,
+                    impact_kpc,
+                    r500_kpc=(r500_kpc if _finite(r500_kpc) else None),
+                )
+            )
+            dm_cool = 0.0
+            pred_mgii_wr = math.nan
+            cool_fc = cool_fc_lo = cool_fc_hi = 0.0
+            f_tilde = f_tilde_lo = f_tilde_hi = math.nan
+            tau = tau_lo = tau_hi = tau_hot = tau_cool = 0.0
+            scint_bw = math.nan
+            flags = {
+                "stellar_mass": "MEASURED",  # catalog M500
+                "morphology": "NOT_AVAILABLE",
+                "sfr": "NOT_AVAILABLE",
+                "wise": "NOT_AVAILABLE",
+                "desi_spectro": "NOT_AVAILABLE",
+                "dm_halo": "PREDICTED",
+                "dm_cool": "NOT_APPLICABLE",
+                "tau_scat": "NOT_APPLICABLE",
+                "cool_covering": "NOT_APPLICABLE",
+            }
 
         records.append(
             {
@@ -476,14 +541,23 @@ def build_unified_records(matches, z_frb, sight_ra, sight_dec, enrich=True, enri
 
 def _scattering_ranks(values: pd.Series) -> list[int]:
     numeric = pd.to_numeric(values, errors="coerce")
-    order = sorted(range(len(numeric)), key=lambda i: (not np.isfinite(numeric.iloc[i]), -numeric.iloc[i] if np.isfinite(numeric.iloc[i]) else 0.0, i))
+    order = sorted(
+        range(len(numeric)),
+        key=lambda i: (
+            not np.isfinite(numeric.iloc[i]),
+            -numeric.iloc[i] if np.isfinite(numeric.iloc[i]) else 0.0,
+            i,
+        ),
+    )
     ranks = [0] * len(numeric)
     for rank, idx in enumerate(order, start=1):
         ranks[idx] = rank
     return ranks
 
 
-def build_for_target(name, ra_str, dec_str, z_frb, results_dir="results", enrich=True) -> pd.DataFrame:
+def build_for_target(
+    name, ra_str, dec_str, z_frb, results_dir="results", enrich=True
+) -> pd.DataFrame:
     """Read a target match CSV, write its lower-case unified CSV, and return it."""
     base = name.lower()
     input_path = os.path.join(results_dir, f"{base}_galaxies.csv")

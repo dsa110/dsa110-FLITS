@@ -1,10 +1,10 @@
 import json
 import math
 
+import matplotlib
 import numpy as np
 import pandas as pd
 import pytest
-import matplotlib
 
 matplotlib.use("Agg")
 
@@ -28,7 +28,9 @@ def test_dm_cosmic_macquart_zero_monotonic_and_scale():
 
 
 def test_parse_dm_obs_from_filenames():
-    assert sb.parse_dm_obs("data/chime/casey_chime_I_491_2085_32000b_cntr_bpc.npy") == pytest.approx(491.0)
+    assert sb.parse_dm_obs(
+        "data/chime/casey_chime_I_491_2085_32000b_cntr_bpc.npy"
+    ) == pytest.approx(491.0)
     # DSA paths used a lowercase 'l' where Stokes I was meant.
     assert sb.parse_dm_obs("zach_dsa_l_262_368_2500b_cntr_bpc.npy") == pytest.approx(262.0)
     assert sb.parse_dm_obs("phineas_chime_I_610_2894_32000b_cntr_bpc.npy") == pytest.approx(610.0)
@@ -49,14 +51,20 @@ def test_read_measured_tau_ms(tmp_path):
 
 def test_read_tau_fit_prefers_percentiles_and_reads_quality(tmp_path):
     p = tmp_path / "x_fit_results.json"
-    p.write_text(json.dumps({
-        "best_model": "M3",
-        "best_params": {"tau_1ghz": 0.20},
-        "best_params_percentiles": {"tau_1ghz": {"median": 0.194, "err_minus": 0.02, "err_plus": 0.03}},
-        "goodness_of_fit": {"chi2_reduced": 1.36, "quality_flag": "PASS"},
-    }))
+    p.write_text(
+        json.dumps(
+            {
+                "best_model": "M3",
+                "best_params": {"tau_1ghz": 0.20},
+                "best_params_percentiles": {
+                    "tau_1ghz": {"median": 0.194, "err_minus": 0.02, "err_plus": 0.03}
+                },
+                "goodness_of_fit": {"chi2_reduced": 1.36, "quality_flag": "PASS"},
+            }
+        )
+    )
     fit = sb.read_tau_fit(str(p))
-    assert fit["tau"] == pytest.approx(0.194)        # median preferred over point estimate
+    assert fit["tau"] == pytest.approx(0.194)  # median preferred over point estimate
     assert fit["err_minus"] == pytest.approx(0.02)
     assert fit["err_plus"] == pytest.approx(0.03)
     assert fit["quality_flag"] == "PASS"
@@ -66,31 +74,53 @@ def test_read_tau_fit_prefers_percentiles_and_reads_quality(tmp_path):
 def test_budget_withholds_tau_when_fit_quality_fails(tmp_path):
     # A FAIL fit on disk -> tau is withheld from the budget, with the reason.
     (tmp_path / "ggg").mkdir()
-    (tmp_path / "ggg" / "ggg_chime_fit_results.json").write_text(json.dumps({
-        "best_params": {"tau_1ghz": 0.019},
-        "goodness_of_fit": {"chi2_reduced": 69.0, "quality_flag": "FAIL"},
-    }))
-    b = sb.build_sightline_budget(
-        "Ggg", "20h40m47.886s", "+72d52m56.378s", 0.30,
-        results_dir=str(tmp_path), bursts_dir=str(tmp_path),
-        dm_mw_fn=_stub_dm_mw(), dm_obs=400.0, enrich=False,
+    (tmp_path / "ggg" / "ggg_chime_fit_results.json").write_text(
+        json.dumps(
+            {
+                "best_params": {"tau_1ghz": 0.019},
+                "goodness_of_fit": {"chi2_reduced": 69.0, "quality_flag": "FAIL"},
+            }
+        )
     )
-    assert math.isnan(b["tau_obs_ms"])               # withheld, not ingested
+    b = sb.build_sightline_budget(
+        "Ggg",
+        "20h40m47.886s",
+        "+72d52m56.378s",
+        0.30,
+        results_dir=str(tmp_path),
+        bursts_dir=str(tmp_path),
+        dm_mw_fn=_stub_dm_mw(),
+        dm_obs=400.0,
+        enrich=False,
+    )
+    assert math.isnan(b["tau_obs_ms"])  # withheld, not ingested
     assert b["tau_obs_quality"] == "FAIL"
     assert "not locked in" in b["verdict_scattering"].lower()
 
 
 def test_budget_ingests_passing_fit_with_uncertainty(tmp_path):
     (tmp_path / "hhh").mkdir()
-    (tmp_path / "hhh" / "hhh_chime_fit_results.json").write_text(json.dumps({
-        "best_params": {"tau_1ghz": 0.20},
-        "best_params_percentiles": {"tau_1ghz": {"median": 0.194, "err_minus": 0.02, "err_plus": 0.03}},
-        "goodness_of_fit": {"chi2_reduced": 1.36, "quality_flag": "PASS"},
-    }))
+    (tmp_path / "hhh" / "hhh_chime_fit_results.json").write_text(
+        json.dumps(
+            {
+                "best_params": {"tau_1ghz": 0.20},
+                "best_params_percentiles": {
+                    "tau_1ghz": {"median": 0.194, "err_minus": 0.02, "err_plus": 0.03}
+                },
+                "goodness_of_fit": {"chi2_reduced": 1.36, "quality_flag": "PASS"},
+            }
+        )
+    )
     b = sb.build_sightline_budget(
-        "Hhh", "20h40m47.886s", "+72d52m56.378s", 0.30,
-        results_dir=str(tmp_path), bursts_dir=str(tmp_path),
-        dm_mw_fn=_stub_dm_mw(), dm_obs=400.0, enrich=False,
+        "Hhh",
+        "20h40m47.886s",
+        "+72d52m56.378s",
+        0.30,
+        results_dir=str(tmp_path),
+        bursts_dir=str(tmp_path),
+        dm_mw_fn=_stub_dm_mw(),
+        dm_obs=400.0,
+        enrich=False,
     )
     assert b["tau_obs_ms"] == pytest.approx(0.194)
     assert b["tau_obs_err_minus"] == pytest.approx(0.02)
@@ -100,15 +130,26 @@ def test_budget_ingests_passing_fit_with_uncertainty(tmp_path):
 
 def _write_glade_csv(path, z=0.10, impact_kpc=20.0, mstar=10.8):
     pd.DataFrame(
-        [{"ra": 310.20, "dec": 72.87, "z": z, "impact_kpc": impact_kpc,
-          "catalog": "VII/291/glade", "M_star": mstar}]
+        [
+            {
+                "ra": 310.20,
+                "dec": 72.87,
+                "z": z,
+                "impact_kpc": impact_kpc,
+                "catalog": "VII/291/glade",
+                "M_star": mstar,
+            }
+        ]
     ).to_csv(path, index=False)
 
 
 def test_build_sightline_budget_dm_closure(tmp_path):
     _write_glade_csv(tmp_path / "aaa_galaxies.csv")
     b = sb.build_sightline_budget(
-        "Aaa", "20h40m47.886s", "+72d52m56.378s", 0.30,
+        "Aaa",
+        "20h40m47.886s",
+        "+72d52m56.378s",
+        0.30,
         results_dir=str(tmp_path),
         dm_mw_fn=_stub_dm_mw(dm_ne=80.0),
         dm_obs=400.0,
@@ -117,7 +158,9 @@ def test_build_sightline_budget_dm_closure(tmp_path):
     )
     # Intervening DM is the sum of the foreground galaxy's hot + cool columns.
     assert math.isfinite(b["dm_intervening"])
-    assert b["dm_intervening"] == pytest.approx(b["dm_intervening_hot"] + b["dm_intervening_cool"], rel=1e-9)
+    assert b["dm_intervening"] == pytest.approx(
+        b["dm_intervening_hot"] + b["dm_intervening_cool"], rel=1e-9
+    )
     assert b["dm_mw_ism"] == pytest.approx(80.0)
     assert b["dm_cosmic"] == pytest.approx(sb.dm_cosmic_macquart(0.30))
     # The residual host DM closes the observed budget exactly (raw intervening).
@@ -130,7 +173,9 @@ def test_build_sightline_budget_dm_closure(tmp_path):
     # Capped intervening DM never exceeds the raw value and closes its own budget.
     assert b["dm_intervening_capped"] <= b["dm_intervening"] + 1e-9
     assert b["dm_intervening_regime"] in {"CGM", "GALAXY_INTERIOR", "none"}
-    expected_host_cap = 400.0 - b["dm_mw_ism"] - b["dm_mw_halo"] - b["dm_cosmic"] - b["dm_intervening_capped"]
+    expected_host_cap = (
+        400.0 - b["dm_mw_ism"] - b["dm_mw_halo"] - b["dm_cosmic"] - b["dm_intervening_capped"]
+    )
     assert b["dm_host_capped"] == pytest.approx(expected_host_cap, rel=1e-9)
 
     # The dominant intervening screen here has a measured (GLADE) mass.
@@ -143,8 +188,14 @@ def test_placeholder_redshift_withholds_cosmic_and_host(tmp_path):
     # z_frb == 1.0 is the unknown-host-redshift placeholder in this sample.
     _write_glade_csv(tmp_path / "ddd_galaxies.csv", z=0.30, impact_kpc=30.0)
     b = sb.build_sightline_budget(
-        "Ddd", "20h40m47.886s", "+72d52m56.378s", 1.0,
-        results_dir=str(tmp_path), dm_mw_fn=_stub_dm_mw(), dm_obs=900.0, enrich=False,
+        "Ddd",
+        "20h40m47.886s",
+        "+72d52m56.378s",
+        1.0,
+        results_dir=str(tmp_path),
+        dm_mw_fn=_stub_dm_mw(),
+        dm_obs=900.0,
+        enrich=False,
     )
     assert b["z_is_placeholder"] is True
     assert math.isnan(b["dm_cosmic"])
@@ -155,8 +206,14 @@ def test_placeholder_redshift_withholds_cosmic_and_host(tmp_path):
 
     # A real redshift still produces a finite cosmic term.
     b2 = sb.build_sightline_budget(
-        "Eee", "20h40m47.886s", "+72d52m56.378s", 0.30,
-        results_dir=str(tmp_path), dm_mw_fn=_stub_dm_mw(), dm_obs=400.0, enrich=False,
+        "Eee",
+        "20h40m47.886s",
+        "+72d52m56.378s",
+        0.30,
+        results_dir=str(tmp_path),
+        dm_mw_fn=_stub_dm_mw(),
+        dm_obs=400.0,
+        enrich=False,
     )
     assert b2["z_is_placeholder"] is False
     assert math.isfinite(b2["dm_cosmic"])
@@ -164,8 +221,14 @@ def test_placeholder_redshift_withholds_cosmic_and_host(tmp_path):
 
 def test_no_screen_has_no_mass_confidence(tmp_path):
     b = sb.build_sightline_budget(
-        "Fff", "20h40m47.886s", "+72d52m56.378s", 0.30,
-        results_dir=str(tmp_path), dm_mw_fn=_stub_dm_mw(), dm_obs=300.0, enrich=False,
+        "Fff",
+        "20h40m47.886s",
+        "+72d52m56.378s",
+        0.30,
+        results_dir=str(tmp_path),
+        dm_mw_fn=_stub_dm_mw(),
+        dm_obs=300.0,
+        enrich=False,
     )
     assert b["n_foreground"] == 0
     assert b["intervening_mass_confidence"] == "none"
@@ -177,7 +240,10 @@ def test_scattering_verdict_host_dominated_when_intervening_tiny(tmp_path):
     # host/MW must dominate.
     _write_glade_csv(tmp_path / "bbb_galaxies.csv", impact_kpc=250.0, mstar=9.5)
     b = sb.build_sightline_budget(
-        "Bbb", "20h40m47.886s", "+72d52m56.378s", 0.30,
+        "Bbb",
+        "20h40m47.886s",
+        "+72d52m56.378s",
+        0.30,
         results_dir=str(tmp_path),
         dm_mw_fn=_stub_dm_mw(tau_ms=1.0e-4),
         dm_obs=400.0,
@@ -192,7 +258,10 @@ def test_scattering_verdict_host_dominated_when_intervening_tiny(tmp_path):
 def test_scattering_verdict_no_measurement_and_no_screen(tmp_path):
     # No galaxies CSV -> no intervening screen; no tau_obs -> no measurement.
     b = sb.build_sightline_budget(
-        "Ccc", "20h40m47.886s", "+72d52m56.378s", 0.30,
+        "Ccc",
+        "20h40m47.886s",
+        "+72d52m56.378s",
+        0.30,
         results_dir=str(tmp_path),
         dm_mw_fn=_stub_dm_mw(),
         dm_obs=300.0,
@@ -201,7 +270,9 @@ def test_scattering_verdict_no_measurement_and_no_screen(tmp_path):
     )
     assert b["n_foreground"] == 0
     assert b["tau_intervening_ms"] == pytest.approx(0.0)
-    assert b["tau_obs_ms"] is None or (isinstance(b["tau_obs_ms"], float) and math.isnan(b["tau_obs_ms"]))
+    assert b["tau_obs_ms"] is None or (
+        isinstance(b["tau_obs_ms"], float) and math.isnan(b["tau_obs_ms"])
+    )
     assert "no" in b["verdict_scattering"].lower()  # "no scattering measurement"
 
 
@@ -212,13 +283,25 @@ def test_build_all_budgets_covers_targets(tmp_path):
         ("Bbb", "11h51m07.52s", "+71d41m44.3s", 0.30),  # no CSV
     ]
     df = sb.build_all_budgets(
-        targets=targets, results_dir=str(tmp_path),
-        dm_mw_fn=_stub_dm_mw(), dm_obs_map={"Aaa": 400.0, "Bbb": 350.0},
-        tau_obs_map={"Aaa": 0.05}, enrich=False,
+        targets=targets,
+        results_dir=str(tmp_path),
+        dm_mw_fn=_stub_dm_mw(),
+        dm_obs_map={"Aaa": 400.0, "Bbb": 350.0},
+        tau_obs_map={"Aaa": 0.05},
+        enrich=False,
     )
     assert len(df) == 2
-    for col in ("name", "dm_obs", "dm_mw_ism", "dm_cosmic", "dm_intervening",
-                "dm_host", "tau_obs_ms", "tau_intervening_ms", "verdict_scattering"):
+    for col in (
+        "name",
+        "dm_obs",
+        "dm_mw_ism",
+        "dm_cosmic",
+        "dm_intervening",
+        "dm_host",
+        "tau_obs_ms",
+        "tau_intervening_ms",
+        "verdict_scattering",
+    ):
         assert col in df.columns
     aaa = df[df["name"] == "Aaa"].iloc[0]
     assert aaa["n_foreground"] == 1
@@ -230,7 +313,9 @@ def test_format_budget_table_is_markdown(tmp_path):
     df = sb.build_all_budgets(
         targets=[("Zzz", "20h40m47.886s", "+72d52m56.378s", 0.30)],
         results_dir=str(tmp_path),
-        dm_mw_fn=_stub_dm_mw(), dm_obs_map={"Zzz": 300.0}, enrich=False,
+        dm_mw_fn=_stub_dm_mw(),
+        dm_obs_map={"Zzz": 300.0},
+        enrich=False,
     )
     table = sb.format_budget_table(df)
     assert "|" in table and "---" in table and "Zzz" in table
@@ -238,10 +323,14 @@ def test_format_budget_table_is_markdown(tmp_path):
 
 def test_make_budget_figure_smoke(tmp_path):
     df = sb.build_all_budgets(
-        targets=[("Zzz", "20h40m47.886s", "+72d52m56.378s", 0.30),
-                 ("Yyy", "11h51m07.52s", "+71d41m44.3s", 0.50)],
+        targets=[
+            ("Zzz", "20h40m47.886s", "+72d52m56.378s", 0.30),
+            ("Yyy", "11h51m07.52s", "+71d41m44.3s", 0.50),
+        ],
         results_dir=str(tmp_path),
-        dm_mw_fn=_stub_dm_mw(), dm_obs_map={"Zzz": 300.0, "Yyy": 500.0}, enrich=False,
+        dm_mw_fn=_stub_dm_mw(),
+        dm_obs_map={"Zzz": 300.0, "Yyy": 500.0},
+        enrich=False,
     )
     fig = sb.make_budget_figure(df)
     out = tmp_path / "budget.png"
@@ -259,3 +348,33 @@ def test_galactic_dm_tau_pygedm_offline():
     assert 20.0 < dm_ne < 300.0
     assert dm_yw > 0.0
     assert 0.0 <= tau_ms < 1.0
+
+
+def test_cluster_budget_is_measured_and_dm_only(tmp_path):
+    # A foreground catalog cluster contributes measured-mass DM with zero tau.
+    csv = tmp_path / "x_galaxies.csv"
+    pd.DataFrame(
+        {
+            "ra": [312.5],
+            "dec": [72.1],
+            "z": [0.10],
+            "impact_kpc": [800.0],
+            "classification": ["cluster"],
+            "m500_msun": [5.0e14],
+            "r500_kpc": [1300.0],
+            "catalog": ["MCXC"],
+        }
+    ).to_csv(csv, index=False)
+    rec = sb.build_sightline_budget(
+        "X",
+        "20h50m00s",
+        "+72d06m00s",
+        0.5,
+        results_dir=str(tmp_path),
+        dm_obs=600.0,
+        tau_obs=None,
+        dm_mw_fn=_stub_dm_mw(50.0, 60.0, 0.0),
+    )
+    assert rec["intervening_mass_confidence"] == "measured"
+    assert rec["dm_intervening"] > 0.0
+    assert rec["tau_intervening_ms"] == 0.0

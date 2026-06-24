@@ -1,5 +1,7 @@
 """Additional opt-in catalog engines for galaxy searches."""
 
+import os
+
 import numpy as np
 import pandas as pd
 import pyvo
@@ -7,7 +9,6 @@ from astropy import units as u
 from astropy.coordinates import SkyCoord
 
 from .engines import BaseEngine, VizierEngine
-
 
 NOIRLAB_TAP_URL = "https://datalab.noirlab.edu/tap"
 
@@ -65,11 +66,7 @@ def _tap_box_query(
         if where is not None:
             predicates.append(f"({where})")
 
-        adql = (
-            f"SELECT {', '.join(columns)} "
-            f"FROM {table} "
-            f"WHERE {' AND '.join(predicates)}"
-        )
+        adql = f"SELECT {', '.join(columns)} FROM {table} WHERE {' AND '.join(predicates)}"
         df = _tap_search_to_dataframe(tap_url, adql)
         if df.empty:
             return pd.DataFrame()
@@ -219,3 +216,145 @@ class XscEngine(BaseEngine):
             }
         )
         return _ensure_standard_columns(df, "2MASS_XSC")
+
+
+# Per-catalog column maps for all-sky cluster catalogs:
+# catalog_id -> (ra_col, dec_col, z_col, m500_col_1e14, r500_col_mpc_or_None).
+_CLUSTER_COLUMN_MAPS = {
+    "J/A+A/594/A27/psz2": ("RAdeg", "DEdeg", "z", "MSZ", None),
+    "J/A+A/534/A109/mcxc": ("RAJ2000", "DEJ2000", "z", "M500", "R500"),
+    "J/A+A/688/A187/mcxcii": ("RAJ2000", "DEJ2000", "z", "M500", "R500"),
+}
+
+
+def _standardize_cluster_columns(df: pd.DataFrame, catalog_id: str) -> pd.DataFrame:
+    """Standardize a cluster catalog frame to ra/dec/z/m500_msun/r500_kpc/classification."""
+    out = df.copy()
+    cols = _CLUSTER_COLUMN_MAPS.get(catalog_id)
+    if cols is None:
+        out["classification"] = "cluster"
+        out["catalog"] = catalog_id
+        return out
+    ra_c, dec_c, z_c, m_c, r_c = cols
+    lower = {c.lower(): c for c in out.columns}
+    rename = {}
+    for src, std in ((ra_c, "ra"), (dec_c, "dec"), (z_c, "z")):
+        if src.lower() in lower:
+            rename[lower[src.lower()]] = std
+    out = out.rename(columns=rename)
+    m500 = pd.to_numeric(out.get(m_c), errors="coerce") if m_c in out.columns else np.nan
+    out["m500_msun"] = m500 * 1.0e14
+    if r_c is not None and r_c in out.columns:
+        out["r500_kpc"] = pd.to_numeric(out[r_c], errors="coerce") * 1000.0  # Mpc -> kpc
+    else:
+        out["r500_kpc"] = np.nan
+    out["classification"] = "cluster"
+    out["catalog"] = catalog_id
+    return out
+
+
+class ClusterEngine(BaseEngine):
+    """All-sky galaxy-cluster engine (PSZ2 + MCXC + MCXC-II via Vizier).
+
+    Only all-sky cluster catalogs cover the sample's high declination; each
+    catalog supplies redshift + M500 (and R500 where available) so the search can
+    apply an r200-relative impact cut and a beta-model ICM dispersion measure.
+    """
+
+    def __init__(self, catalogs=None):
+        if catalogs is None:
+            from .config import CLUSTER_VIZIER_CATALOGS
+
+            catalogs = CLUSTER_VIZIER_CATALOGS
+        self.catalogs = dict(catalogs)
+
+    def query(self, coord, radius) -> pd.DataFrame:
+        frames = []
+        for cat_id in self.catalogs.values():
+            raw = VizierEngine(cat_id).query(coord, radius)
+            if raw.empty:
+                continue
+            std = _standardize_cluster_columns(raw, cat_id)
+            keep = [
+                c
+                for c in ("ra", "dec", "z", "m500_msun", "r500_kpc", "classification", "catalog")
+                if c in std.columns
+            ]
+            frames.append(std[keep])
+        if not frames:
+            return pd.DataFrame()
+        return pd.concat(frames, ignore_index=True)
+
+
+NED_TAP_URL = "https://ned.ipac.caltech.edu/tap/"
+
+
+def _is_extragalactic_ned_type(classification) -> bool:
+    """True for NED object types that are galaxies / galaxy systems.
+
+    NEDTAP.objdir is a mixed catalog: stars (prefphytype '*'), the FRB transient
+    itself (untyped/blank), and Galactic sources sit alongside galaxies. Stars
+    carry junk near-zero redshifts (~1e-4) and the FRB self-entry sits at z_FRB,
+    so both slip past a bare z<z_FRB foreground cut and inflate the intervening DM
+    budget. Keep only galaxy types: NED's galaxy/group/cluster/pair/triple codes
+    all start with 'G' (excluding 'GammaS', a gamma-ray source) plus QSO/AGN.
+    """
+    s = str(classification).strip().upper()
+    if s in ("", "NAN", "NONE", "GAMMAS"):
+        return False
+    return s.startswith("G") or s in {"QSO", "QGROUP", "AGN", "Q", "ABLS", "EMLS"}
+
+
+def _standardize_ned_tap(df: pd.DataFrame) -> pd.DataFrame:
+    """Map NED TAP objdir columns to the search schema (name/ra/dec/z/classification).
+
+    prefname -> name, prefphytype -> classification (NED object type, e.g. 'GClstr');
+    ra/dec/z pass through; catalog tagged 'NED'. Non-galaxy types (stars, the FRB
+    self-entry, other Galactic sources) are dropped — see _is_extragalactic_ned_type.
+    """
+    out = df.rename(columns={"prefname": "name", "prefphytype": "classification"})
+    out["catalog"] = "NED"
+    if "classification" in out.columns:
+        out = out[out["classification"].map(_is_extragalactic_ned_type)].reset_index(drop=True)
+    keep = [c for c in ("name", "ra", "dec", "z", "classification", "catalog") if c in out.columns]
+    return out[keep]
+
+
+class NedTapEngine(BaseEngine):
+    """NED foreground engine via the VO TAP service (synchronous).
+
+    Replaces the deprecated astroquery legacy objsearch path, which omits data
+    ingested after 2026-01 and was unreachable during testing. NED's async TAP
+    result host (rc.ned.ipac.caltech.edu) is itself unreachable, so this uses the
+    synchronous endpoint. Sync NED TAP caps server-side near 60s, so the cone is
+    capped at FLITS_NED_TAP_MAX_DEG (default 0.5deg; NEDTAP.objdir timings:
+    0.3deg~9s, 0.5deg~27s, 0.7deg~39s, >=1deg fails at 60s). That cap is >10x the
+    search's foreground-galaxy footprint (100 kpc impact <= ~0.05deg even at the
+    sample's lowest z, z~0.04), and clusters now come from ClusterEngine, so the
+    cap drops no galaxy of interest. Output schema matches NedEngine.
+    """
+
+    def __init__(self, tap_url: str = NED_TAP_URL, max_radius_deg: float | None = None):
+        self.tap_url = tap_url
+        self.max_radius_deg = (
+            max_radius_deg
+            if max_radius_deg is not None
+            else float(os.environ.get("FLITS_NED_TAP_MAX_DEG", "0.5"))
+        )
+
+    def query(self, coord, radius) -> pd.DataFrame:
+        ra0, dec0 = coord.ra.deg, coord.dec.deg
+        sr = min(radius.to(u.deg).value, self.max_radius_deg)
+        adql = (
+            "SELECT prefname, ra, dec, z, prefphytype FROM NEDTAP.objdir "
+            f"WHERE CONTAINS(POINT('ICRS', ra, dec), "
+            f"CIRCLE('ICRS', {ra0:.8f}, {dec0:.8f}, {sr:.8f})) = 1"
+        )
+        try:
+            df = _tap_search_to_dataframe(self.tap_url, adql)
+        except Exception as e:
+            print(f"NED TAP query failed: {e}")
+            return pd.DataFrame()
+        if df.empty:
+            return pd.DataFrame()
+        return _standardize_ned_tap(df)

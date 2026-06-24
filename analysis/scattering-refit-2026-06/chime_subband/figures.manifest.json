@@ -1,0 +1,11 @@
+{
+  "generated_by": "analysis/scattering-refit-2026-06/chime_subband_compare.py (reuses within_chime_test.py profiling; data: CHIME baseband per configs/<burst>_chime_run.yaml)",
+  "manuscript_order": 30,
+  "regen": "python analysis/scattering-refit-2026-06/chime_subband_compare.py",
+  "figures": [
+    {
+      "path": "chime_subband_compare.png",
+      "expectation": "2 columns (johndoeII left, wilhelm right) x 4 CHIME sub-bands (0.400-0.480, 0.507-0.587, 0.614-0.694, 0.720-0.800 GHz). Each panel: baseline-subtracted on-pulse profile (black) vs time (ms), title annotated with w_rms and w_tail (ms). EXPECT: johndoeII shows a clear scattered pulse at ~28 ms whose core tightens toward higher sub-bands; wilhelm's TOP 0.40-0.48 GHz panel is EMPTY (w_rms=nan, w_tail=nan, flat line at 0.00) because that sub-band has no data, the lower three sub-bands show the pulse. Confirm: pulse arrival consistent across panels, annotated widths match the visible profile widths, axes/scales sane, no spurious artifacts."
+    }
+  ]
+}

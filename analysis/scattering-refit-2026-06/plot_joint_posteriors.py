@@ -19,6 +19,7 @@ import numpy as np
 matplotlib.use("Agg")
 import corner
 import matplotlib.pyplot as plt
+from _figsave import save_fig
 from dynesty.utils import resample_equal
 
 RUNS = os.environ.get("FLITS_RUNS", "/central/scratch/jfaber/flits-runs")
@@ -73,8 +74,7 @@ def corner_one(b):
         axd.axvline(e, color="r", ls=":", lw=1)  # alpha prior edges
     a_med = float(np.median(sub[:, 1]))
     fig.suptitle(f"{b}: joint corner  (alpha~U{abnd}, median={a_med:.2f})", fontsize=12)
-    fp = f"{OUT}/{b}_corner.png"
-    fig.savefig(fp, dpi=110, bbox_inches="tight")
+    fp = save_fig(fig, f"{OUT}/{b}_corner", dpi=110)
     plt.close(fig)
     print(f"  wrote {fp}  alpha_med={a_med:.2f}")
     return names, eq
@@ -105,8 +105,7 @@ def tau_ladder(bursts_data):
     ax.set_title(r"Joint-fit $\tau(\nu)=\tau_{1\,\rm GHz}\,\nu^{-\alpha}$ ladder (68% band)")
     ax.legend(fontsize=9)
     ax.grid(alpha=0.3, which="both")
-    fp = f"{OUT}/tau_nu_ladder.png"
-    fig.savefig(fp, dpi=120, bbox_inches="tight")
+    fp = save_fig(fig, f"{OUT}/tau_nu_ladder", dpi=120)
     plt.close(fig)
     print(f"  wrote {fp}")
 

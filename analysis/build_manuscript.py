@@ -111,6 +111,11 @@ def build_gallery(secs: list[dict]) -> int:
     for s in secs:
         d, cap = s["dir"], _caption(s["tex"])
         for f in s["man"].get("figures", []):
+            if (
+                "path" not in f
+            ):  # foreign-schema / malformed manifest entry -> skip, don't crash the build
+                print(f"[skip] {d.name}: figure entry without 'path' ({f.get('file', f)})")
+                continue
             fig = _svg_or(d / f["path"])
             note = cap or f.get("expectation", "")
             if fig.exists():

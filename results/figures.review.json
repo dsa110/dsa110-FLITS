@@ -11,6 +11,11 @@
         "Chromatica": "Bottom-right axes, title 'Chromatica'. Same honest-null rendering: red centered message, empty of data, y 0.0-1.0 ms, x 'foreground system'."
       },
       "notes": "Independent pixel-level read. 2x2 grid, titles Wilhelm/Zach/Hamilton/Chromatica exactly matching the four EXCESS sightlines in the manifest. All four panels show the expected explicit null (red two-line 'no foreground systems in committed catalog' centered in each axes) with NO plotted data points, predicted-tau markers, prior brackets, or measured-excess lines -- consistent with zero committed foreground galaxies. Not silently empty: the null is communicated unambiguously in red in every panel. Axes sane and self-consistent: y = tau_scat at 1 GHz (ms), sensible default 0.0-1.0 range (no data to drive the scale), faint dotted horizontal gridlines; x = 'foreground system' with no categorical entries. Suptitle 'Single-system sufficiency on EXCESS sightlines: predicted intervening vs measured tau' present and correct. No clipping, no NaN/inf gaps, no artifacts, no spurious points where a null was expected. Matches the manifest expectation. Re-confirmed (independent re-read) when wiring this figure into the manuscript (sections/budget.tex)."
+    },
+    {
+      "path": "chime_subband_compare.png",
+      "verdict": "match",
+      "notes": "Independent render of the regenerated VECTOR figure (in-repo generator chime_subband_compare.py, reusing within_chime_test's profiling). 4 rows x 2 cols: johndoeII (left), wilhelm (right) across CHIME sub-bands 0.400-0.480 / 0.507-0.587 / 0.614-0.694 / 0.720-0.800 GHz. Each panel: black baseline-subtracted profile vs time (ms), title carries w_rms and w_tail. johndoeII shows a clear scattered pulse at ~28 ms that narrows toward higher sub-bands (w_rms 1.40 -> tighter cores at 0.61-0.69 GHz); wilhelm's TOP 0.40-0.48 GHz panel is empty (w_rms=nan w_tail=nan, flat line at 0.00) as expected for absent data, lower three sub-bands show the pulse. Pulse arrival consistent across panels, axes/scales sane, annotated widths match the visible widths, no artifacts. Matches expectation."
     }
   ]
 }

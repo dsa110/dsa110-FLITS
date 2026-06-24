@@ -25,6 +25,7 @@ import yaml
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from _figsave import save_fig
 from scat_analysis.burstfit import FRBParams
 from scat_analysis.config_utils import load_telescope_block
 from scat_analysis.pipeline.io import BurstDataset
@@ -144,8 +145,9 @@ def main():
         a.legend(fontsize=8)
     fig.suptitle(f"{b}: joint alpha={al:.2f}, tau_1GHz={tau:.3f} ms")
     fig.tight_layout()
-    fp = f"{out}/{b}_joint_ppc.png"
-    fig.savefig(fp, dpi=110)
+    fp = save_fig(
+        fig, f"{out}/{b}_joint_ppc", dpi=110, bbox_inches=None
+    )  # keep original (untight) crop; montage assembles these
     print(f"  wrote {fp}")
     json.dump(
         {"burst": b, "alpha": al, "tau_1ghz": tau, "chi2_chime": chiC, "chi2_dsa": chiD},

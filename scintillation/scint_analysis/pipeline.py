@@ -272,6 +272,15 @@ class ScintillationAnalysis:
         # (no-op unless config['source'] carries τ / screen distances). Nimmo et al. 2025.
         analysis.attach_scintillation_interpretation(self.final_results, self.config)
 
+        # Attach the NE2025 MW scattering floor + extragalactic-excess flag when the
+        # burst sky position is in config['source'] (no-op without it or the optional
+        # mwprop/pygedm dep).
+        src = self.config.get("source", {})
+        if src.get("ra_deg") is not None and src.get("dec_deg") is not None:
+            from .floor_wiring import attach_galactic_floor_all
+
+            attach_galactic_floor_all(self.final_results, src["ra_deg"], src["dec_deg"])
+
         # --- 2D GLOBAL SCINTILLATION FIT ---
         self.fit_2d_result = None
         fit_2d_config = self.config.get("analysis", {}).get("fit_2d", {})

@@ -3,30 +3,46 @@
 
 Reads <RUNS>/data/joint/<b>_joint_samples.npz (samples, weights, param_names,
 alpha_bounds) written by run_joint_fit.py. Produces:
-  <OUT>/<b>_corner.png      focused corner: tau_1ghz, alpha, zeta_C/D, dDM_C/D
+  <OUT>/<b>_corner.png      focused corner: tau_1ghz, alpha, the fit's zeta params
+                            (shared zeta_1ghz/x_zeta or per-band zeta_C/D), dDM_C/D
   <OUT>/tau_nu_ladder.png   tau(nu)=tau_1ghz*nu^-alpha, all sightlines, 68% band
 
   python plot_joint_posteriors.py [b1 b2 ...]
 """
+
 import os
 import sys
-import numpy as np
+
 import matplotlib
+import numpy as np
+
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt
 import corner
+import matplotlib.pyplot as plt
 from dynesty.utils import resample_equal
 
 RUNS = os.environ.get("FLITS_RUNS", "/central/scratch/jfaber/flits-runs")
 OUT = f"{RUNS}/data/joint"
 BURSTS = sys.argv[1:] or ["johndoeII", "wilhelm", "phineas", "oran"]
 
-FOCUS = ["tau_1ghz", "alpha", "zeta_C", "zeta_D", "delta_dm_C", "delta_dm_D"]
 LABELS = {
-    "tau_1ghz": r"$\tau_{1\,\rm GHz}$ (ms)", "alpha": r"$\alpha$",
-    "zeta_C": r"$\zeta_{\rm C}$", "zeta_D": r"$\zeta_{\rm D}$",
-    "delta_dm_C": r"$\delta{\rm DM}_{\rm C}$", "delta_dm_D": r"$\delta{\rm DM}_{\rm D}$",
+    "tau_1ghz": r"$\tau_{1\,\rm GHz}$ (ms)",
+    "alpha": r"$\alpha$",
+    "zeta_C": r"$\zeta_{\rm C}$",
+    "zeta_D": r"$\zeta_{\rm D}$",
+    "zeta_1ghz": r"$\zeta_{1\,\rm GHz}$",
+    "x_zeta": r"$x_\zeta$",
+    "delta_dm_C": r"$\delta{\rm DM}_{\rm C}$",
+    "delta_dm_D": r"$\delta{\rm DM}_{\rm D}$",
 }
+
+
+def focus_for(names):
+    # shared zeta(nu) fit carries zeta_1ghz/x_zeta; per-band fit carries zeta_C/D
+    z = ["zeta_1ghz", "x_zeta"] if "zeta_1ghz" in names else ["zeta_C", "zeta_D"]
+    return ["tau_1ghz", "alpha", *z, "delta_dm_C", "delta_dm_D"]
+
+
 COLORS = {"johndoeII": "C0", "wilhelm": "C1", "phineas": "C2", "oran": "C3"}
 
 
@@ -39,13 +55,18 @@ def load(b):
 
 def corner_one(b):
     names, eq, abnd = load(b)
-    idx = [names.index(n) for n in FOCUS]
+    focus = focus_for(names)
+    idx = [names.index(n) for n in focus]
     sub = eq[:, idx]
-    K = len(FOCUS)
+    K = len(focus)
     fig = corner.corner(
-        sub, labels=[LABELS[n] for n in FOCUS], show_titles=True,
-        title_fmt=".2f", quantiles=[0.16, 0.5, 0.84],
-        title_kwargs={"fontsize": 9}, label_kwargs={"fontsize": 10},
+        sub,
+        labels=[LABELS[n] for n in focus],
+        show_titles=True,
+        title_fmt=".2f",
+        quantiles=[0.16, 0.5, 0.84],
+        title_kwargs={"fontsize": 9},
+        label_kwargs={"fontsize": 10},
     )
     axd = fig.axes[1 * K + 1]  # alpha diagonal panel (FOCUS idx 1)
     for e in abnd:

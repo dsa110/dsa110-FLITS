@@ -108,13 +108,18 @@ def main():
         help="run the multi-component likelihood even at C1D1, so its lnZ "
         "is normalization-matched to C2/D2 runs (model-selection baseline)",
     )
+    # Shared zeta is the DEFAULT: ONE frequency-evolving intrinsic width
+    # zeta(nu)=zeta_1ghz*nu^x_zeta across both bands models a single coherent
+    # burst over the full CHIME+DSA band, which is the physically motivated
+    # baseline (the writeup concluded per-band zeta over-fits intrinsic width).
+    # Pass --per-band-zeta to give each band its own zeta (the old default).
     ap.add_argument(
-        "--shared-zeta",
+        "--per-band-zeta",
         dest="shared_zeta",
-        action="store_true",
-        help="ONE frequency-evolving intrinsic width zeta(nu)=zeta_1ghz*nu^x_zeta "
-        "shared across both bands (gain-marginal, 8-dim) instead of per-band zeta; "
-        "gives a single coherent burst across the full band",
+        action="store_false",
+        default=True,
+        help="give CHIME and DSA each their own intrinsic width zeta instead of "
+        "the default single shared zeta(nu) across both bands",
     )
     # Per-band PBF (DEFAULT): CHIME and DSA are separate FRBModel instances, so each
     # carries its own pulse-broadening function. The wilhelm test showed the bands want
@@ -186,7 +191,7 @@ def main():
         "burst": a.burst,
         "marginalize_gain": bool(a.marginalize_gain),
         "marginalize_gain_gp": bool(a.marginalize_gain_gp),
-        "shared_zeta": bool(a.shared_zeta),
+        "shared_zeta": bool(a.shared_zeta) and not multi,  # shared zeta is a no-op for multi
         "alpha": {"median": a_m, "err_minus": a_lo, "err_plus": a_hi},
         "tau_1ghz": {"median": t_m, "err_minus": t_lo, "err_plus": t_hi},
         "log_evidence": res["log_evidence"],
@@ -271,8 +276,10 @@ def main():
 
     if multi:
         tag = f"_C{a.components_C}D{a.components_D}"
-    elif a.shared_zeta:
-        tag = "_sharedzeta"  # keep the per-band baseline json/npz for comparison
+    elif not a.shared_zeta:
+        tag = (
+            "_perbandzeta"  # non-default per-band run kept beside the canonical shared-zeta output
+        )
     else:
         tag = ""
     out = f"{out_dir}/{a.burst}_joint_fit{tag}.json"

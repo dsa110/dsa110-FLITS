@@ -837,6 +837,9 @@ def fit_joint_scattering(
     verbose: bool = True,
     marginalize_gain: bool = False,
     marginalize_gain_gp: bool = False,
+    # NOTE: the run_joint_fit.py CLI defaults shared_zeta=True (--per-band-zeta opts out),
+    # but this library entry point keeps it False so direct callers are unchanged. Pass
+    # shared_zeta=True explicitly to match the CLI's canonical single-zeta(nu) fit.
     shared_zeta: bool = False,
     x_zeta_bounds: tuple[float, float] = (-4.0, 2.0),
     mu_degree: int = 1,

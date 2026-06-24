@@ -13,10 +13,10 @@ docs/index.html.
 
   python build_joint_deck.py
 """
-import os
-import json
-import glob
+
 import base64
+import json
+import os
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 FIG = os.path.join(HERE, "dsa_figs")
@@ -25,8 +25,20 @@ OUT = "/Users/jakobfaber/Developer/repos/github.com/dsa110/dsa110-FLITS/docs/joi
 
 ALO, AHI = 1.0, 6.0
 # co-detected sample order (CHIME alphabetical-ish); casey last (non-standard binning)
-ORDER = ["johndoeII", "wilhelm", "phineas", "oran", "chromatica", "freya",
-         "hamilton", "isha", "mahi", "whitney", "zach", "casey"]
+ORDER = [
+    "johndoeII",
+    "wilhelm",
+    "phineas",
+    "oran",
+    "chromatica",
+    "freya",
+    "hamilton",
+    "isha",
+    "mahi",
+    "whitney",
+    "zach",
+    "casey",
+]
 NOTES = {
     "johndoeII": "Headline: sub-Kolmogorov alpha, clean both bands. Strongest measurement.",
     "wilhelm": "Good fit; resolved scint band-width implies a DIFFERENT screen than the broadening tau.",
@@ -47,7 +59,10 @@ def load_fit(b):
     d = json.load(open(f))
     p = d["percentiles"]
     a, t = p["alpha"], p["tau_1ghz"]
-    zc, zd = p["zeta_C"]["median"], p["zeta_D"]["median"]
+    if d.get("shared_zeta"):
+        zc = zd = p["zeta_1ghz"]["median"]  # shared zeta(nu): the 1-GHz width
+    else:
+        zc, zd = p["zeta_C"]["median"], p["zeta_D"]["median"]
     lnz = d.get("log_evidence", float("nan"))
     # status, worst-first: prior rails and unphysical intrinsic width are
     # disqualifying; a wide posterior or an anomalous evidence is a warning.
@@ -64,10 +79,20 @@ def load_fit(b):
     else:
         status, scls = "clean", "ok"
     return dict(
-        burst=b, a=a["median"], alo=a["lower"], ahi=a["upper"],
-        tau=t["median"], tlo=t["lower"], thi=t["upper"],
-        ddmC=p["delta_dm_C"]["median"], ddmD=p["delta_dm_D"]["median"],
-        zc=zc, zd=zd, lnz=lnz, status=status, scls=scls,
+        burst=b,
+        a=a["median"],
+        alo=a["lower"],
+        ahi=a["upper"],
+        tau=t["median"],
+        tlo=t["lower"],
+        thi=t["upper"],
+        ddmC=p["delta_dm_C"]["median"],
+        ddmD=p["delta_dm_D"]["median"],
+        zc=zc,
+        zd=zd,
+        lnz=lnz,
+        status=status,
+        scls=scls,
     )
 
 
@@ -81,7 +106,11 @@ def load_chi2(b):
 
 def figs_for(b):
     out = {}
-    for key, suff in [("waterfall", "fullband_waterfall"), ("ppc", "joint_ppc"), ("corner", "corner")]:
+    for key, suff in [
+        ("waterfall", "fullband_waterfall"),
+        ("ppc", "joint_ppc"),
+        ("corner", "corner"),
+    ]:
         p = os.path.join(FIG, f"{b}_{suff}.png")
         if os.path.exists(p):
             out[key] = b64(p)
@@ -144,7 +173,7 @@ slides.append(f"""
   <table class="summary">
     <tr><th>burst</th><th>&alpha; [p16,p84]</th><th>&tau;<sub>1GHz</sub> (ms)</th>
         <th>&zeta; C/D</th><th>&chi;&sup2; C/D</th><th>lnZ</th><th>status</th></tr>
-    {''.join(rows)}
+    {"".join(rows)}
   </table>
   <p class="foot">Only <span class="ok">clean</span> rows are usable. A rail (&alpha; pinned to a prior edge) or &zeta; runaway (intrinsic width &gt; 3 ms &mdash; the model absorbing un-fittable CHIME structure) is not a measurement. casey: job timed out.</p>
 </section>""")
@@ -165,7 +194,7 @@ for b, v in fits.items():
         continue
     cC, cD = load_chi2(b)
     chi = f"&chi;&sup2; = {cC:.2f} (C) / {cD:.2f} (D)" if cC else ""
-    note = NOTES.get(b) or f'status: {esc(v["status"])}.'
+    note = NOTES.get(b) or f"status: {esc(v['status'])}."
     imgs = ""
     if "waterfall" in fg:
         imgs += f'<img src="{fg["waterfall"]}" class="wide"/>'
@@ -178,8 +207,8 @@ for b, v in fits.items():
         imgs += f'<div class="pair">{pair}</div>'
     slides.append(f"""
 <section class="slide">
-  <h2>{esc(b)} &mdash; &alpha; = {v['a']:.2f} <span class="pm">[{v['alo']:.2f}, {v['ahi']:.2f}]</span>,
-      &tau;<sub>1GHz</sub> = {v['tau']:.3f} ms</h2>
+  <h2>{esc(b)} &mdash; &alpha; = {v["a"]:.2f} <span class="pm">[{v["alo"]:.2f}, {v["ahi"]:.2f}]</span>,
+      &tau;<sub>1GHz</sub> = {v["tau"]:.3f} ms</h2>
   <p class="note">{chi} &nbsp; {note}</p>
   {imgs}
 </section>""")
@@ -196,7 +225,7 @@ slides.append(f"""
     <li><b>Sample reality:</b> only ~4 sightlines give a clean &alpha;. Several <b>rail the &alpha;=6 ceiling</b> (chromatica, freya, hamilton, mahi) or carry <b>unphysical &zeta;</b> (isha &zeta;&asymp;87, oran &zeta;&asymp;63) &mdash; the model absorbing un-fittable CHIME structure, not measuring &alpha;&gt;6.</li>
     <li><b>casey:</b> job <b>timed out</b> (non-standard f32/t4 binning, too slow for 30&nbsp;min) &mdash; re-run with a longer limit, and re-bin before comparing.</li>
     <li><b>Next:</b> diagnose the railed CHIME bands (quality / multi-component / the &alpha;-ceiling &times; &zeta; degeneracy) before trusting any steep &alpha;.</li>
-    <li><b>Pending figures:</b> {esc(', '.join(pending)) if pending else 'none'}.</li>
+    <li><b>Pending figures:</b> {esc(", ".join(pending)) if pending else "none"}.</li>
   </ul>
 </section>""")
 
@@ -239,7 +268,7 @@ html = f"""<!DOCTYPE html>
 <body>
 <div class="barwrap"><div id="bar"></div></div>
 <div class="deck" id="deck">
-{''.join(slides)}
+{"".join(slides)}
 </div>
 <div class="nav">
   <button onclick="go(-1)">Prev</button>
@@ -269,5 +298,7 @@ html = f"""<!DOCTYPE html>
 
 with open(OUT, "w") as f:
     f.write(html)
-print(f"wrote {OUT}  ({n} slides; {n_fit} sightlines fit, "
-      f"{sum(1 for b in fits if figs_for(b))} with figures)")
+print(
+    f"wrote {OUT}  ({n} slides; {n_fit} sightlines fit, "
+    f"{sum(1 for b in fits if figs_for(b))} with figures)"
+)

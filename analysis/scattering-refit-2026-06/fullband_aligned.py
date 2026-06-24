@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 """Full-band absolute-TOA UNIFIED-model waterfall for a co-detected burst.
 
-Reads the SHARED-zeta(nu) joint fit (<burst>_joint_fit_sharedzeta.json): one
-source intrinsic-width law zeta(nu) = zeta_1ghz * nu^x_zeta and one scattering
+Reads the SHARED-zeta(nu) joint fit (<burst>_joint_fit.json, the canonical
+default since shared zeta became the run_joint_fit default): one source
+intrinsic-width law zeta(nu) = zeta_1ghz * nu^x_zeta and one scattering
 law tau(nu) = tau_1ghz * nu^-alpha spanning BOTH telescopes. The model is a
 single coherent burst from the DSA top (~1.50 GHz) through the unobserved
 0.80-1.31 GHz gap to the CHIME bottom (~0.40 GHz) -- not two per-band fits
@@ -139,7 +140,7 @@ def main():
     out = f"{RUNS}/data/joint"
     mC = prep(f"{RUNS}/configs/{b}_chime_run.yaml", f"{b}_chime")
     mD = prep(f"{RUNS}/configs/{b}_dsa_run.yaml", f"{b}_dsa")
-    d = json.load(open(f"{out}/{b}_joint_fit_sharedzeta.json"))
+    d = json.load(open(f"{out}/{b}_joint_fit.json"))
     p = {k: v["median"] for k, v in d["percentiles"].items()}
     tau, al, z1, xz = p["tau_1ghz"], p["alpha"], p["zeta_1ghz"], p["x_zeta"]
     cm = json.load(open(f"{REPO}/crossmatching/toa_crossmatch_results.json"))[b]

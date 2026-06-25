@@ -15,12 +15,13 @@ Literature synthesis for the N=12 CHIME/FRB–DSA-110 co-detection sample.
 | `dual-band-frb-scattering-report.md` | Report from 50-paper search: ranked questions, prior art, N=12 sufficiency, paper structure |
 | `dual-band-frb-scattering-localization-deep-search.md` | Full deep-search export (goal, summary, ranked paper list with relevance) |
 | `dual-band-frb-scattering-localization-deep-search.csv` | Deep-search bibliographic table (with abstracts) |
-| `dual-band-frb-scattering-localization.bib` | BibTeX for deep-search result set |
-| `project-library-papers.bib` | BibTeX for entire project library (51 papers) |
+| `dual-band-frb-scattering-localization.bib` | BibTeX partial export from Undermind deep search (**34** entries; CSV/MD hold all **50**) |
+| `project-library-papers.bib` | BibTeX for entire project library (**51** papers; superset of deep-search set) |
 | `chat-brainstorm-short-take.md` | Initial chat brainstorm before deep search |
 
 ## Notes
 
+- Undermind deep-search BibTeX export is incomplete vs CSV/Markdown (34 vs 50); use CSV or `project-library-papers.bib` for full cite keys.
 - Undermind library also holds 51 PDFs (not exported here — remain in Undermind).
 - Treat α-related claims with pipeline PBF context: `docs/adr/0001-two-band-leverage-positioning.md`, `docs/adr/0003-single-exponential-pbf.md`.
 - Related local plan: `docs/codetection-science-plan.md`.

@@ -23,7 +23,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))  # repo root
 from scattering.scat_analysis.burstfit import classify_fit_quality  # noqa: E402
 
-ALPHA_MIN, ALPHA_MAX = 1.5, 6.0  # Level-1 physical gate (strict)
+ALPHA_MIN, ALPHA_MAX = 1.0, 6.0  # Level-1 physical gate (ADR-0004 floor)
+SUB_KOLM_LO = 2.0  # 1.0 <= alpha < SUB_KOLM_LO => sub-Kolmogorov (L3 MARGINAL)
 TAU_MIN, TAU_MAX = 1e-4, 100.0  # ms
 RAIL_EDGE = 0.1  # alpha within this of a prior bound => prior-railed (unconstrained)
 KOLM_LO, KOLM_HI = 3.5, 4.5  # Level-3 PASS-consistent alpha window (Kolmogorov ref 4.0)
@@ -43,8 +44,8 @@ def gate_one(burst, fit, ppc):
 
     # Level 1 -- physical bounds (any failure => FAIL, regardless of chi2)
     l1_fail = []
-    if not (ALPHA_MIN < alpha < ALPHA_MAX):
-        l1_fail.append(f"alpha={alpha:.3f} outside ({ALPHA_MIN},{ALPHA_MAX})")
+    if not (ALPHA_MIN <= alpha < ALPHA_MAX):
+        l1_fail.append(f"alpha={alpha:.3f} outside [{ALPHA_MIN},{ALPHA_MAX})")
     if not (TAU_MIN < tau < TAU_MAX):
         l1_fail.append(f"tau={tau:.4g}ms outside ({TAU_MIN},{TAU_MAX})")
     l1 = "FAIL" if l1_fail else "PASS"
@@ -63,11 +64,18 @@ def gate_one(burst, fit, ppc):
         l2 = _worst(fc, fd)
         l2_note = f"chi2_C={cc:.2f}({fc}) chi2_D={cd:.2f}({fd})"
 
-    # Level 3 -- alpha physics consistency. Physical bounds are Level 1's job
-    # (don't re-impose a second, stricter alpha cut here); Level 3 only judges
-    # closeness to Kolmogorov: in-window => PASS-consistent, else MARGINAL
-    # (off-Kolmogorov). tau x dnu not evaluable here (no per-sightline dnu_d).
-    l3 = "PASS" if KOLM_LO <= alpha <= KOLM_HI else "MARGINAL"
+    # Level 3 -- alpha physics consistency. Physical bounds are Level 1's job;
+    # Level 3 flags Kolmogorov proximity and the sub-Kolmogorov band (ADR-0004).
+    # tau x dnu not evaluable here (no per-sightline dnu_d).
+    if KOLM_LO <= alpha <= KOLM_HI:
+        l3 = "PASS"
+        l3_tag = None
+    elif ALPHA_MIN <= alpha < SUB_KOLM_LO:
+        l3 = "MARGINAL"
+        l3_tag = "sub-Kolmogorov"
+    else:
+        l3 = "MARGINAL"
+        l3_tag = "off-Kolmogorov"
 
     # A prior-railed alpha is unconstrained -- the fit pinned the prior bound
     # rather than measuring alpha -- so it is never better than MARGINAL even if
@@ -88,7 +96,10 @@ def gate_one(burst, fit, ppc):
         if l2 == "MARGINAL":
             bits.append("L2 " + l2_note)
         if l3 == "MARGINAL":
-            bits.append(f"L3 alpha={alpha:.2f} off Kolmogorov")
+            if ALPHA_MIN <= alpha < SUB_KOLM_LO:
+                bits.append(f"L3 alpha={alpha:.2f} sub-Kolmogorov")
+            else:
+                bits.append(f"L3 alpha={alpha:.2f} off Kolmogorov")
         if not bits:  # passed every evaluable level; MARGINAL only because of the cap
             bits.append("L3 tau x dnu not evaluable (no dnu_d) -> capped at MARGINAL")
         reason = "; ".join(bits)

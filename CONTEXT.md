@@ -15,7 +15,7 @@ The pair of well-separated observing frequencies (CHIME ~0.6 GHz, DSA ~1.4 GHz) 
 Pulse-broadening timescale referenced to 1 GHz, in ms. Fitted by the scattering kernel (`burstfit.py`, models M0–M3).
 
 **Scattering index** (α):
-Exponent in τ ∝ ν^(−α). Kolmogorov thin screen ≈ 4.0–4.4. Prior bounds typically 1.0–6.0. The operative joint-gate hard-FAIL floor is **1.5** (`gate_joint_committed.py:26`; `VALIDATION_THRESHOLDS.py`'s `ALPHA_MARGINAL_MIN=2.0` is a dead/unused constant), which [ADR-0004](docs/adr/0004-l1-sub-kolmogorov-alpha-floor.md) lowers to 1.0 (implementation deferred): 1.0 ≤ α < 2.0 becomes a flagged **sub-Kolmogorov** MARGINAL (physically admissible — multi-screen / anisotropic scattering), not a FAIL. A fit railed at *either* prior bound is **not a measurement** (weak/unresolved scattering), regardless of the value or how tight the posterior looks.
+Exponent in τ ∝ ν^(−α). Kolmogorov thin screen ≈ 4.0–4.4. Prior bounds typically 1.0–6.0. The operative joint-gate hard-FAIL floor is **1.0** (`gate_joint_committed.py:26`; [ADR-0004](docs/adr/0004-l1-sub-kolmogorov-alpha-floor.md)): 1.0 ≤ α < 2.0 is a flagged **sub-Kolmogorov** L3 MARGINAL (physically admissible — multi-screen / anisotropic scattering), not a FAIL. A fit railed at *either* prior bound is **not a measurement** (weak/unresolved scattering), regardless of the value or how tight the posterior looks.
 _Avoid_: bare "alpha" — see Flagged ambiguities.
 
 **Scintillation bandwidth** (`dν`, Δν):

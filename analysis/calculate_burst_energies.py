@@ -61,7 +61,7 @@ sys.path.insert(0, str(REPO))
 import astropy.units as u  # noqa: E402
 
 from analysis.flux_cal import joint_band_fluence_jy_ms_hz, joint_c0_gamma  # noqa: E402
-from galaxies.v2_0.config import COSMO, TARGETS  # noqa: E402
+from galaxies.foreground.config import COSMO, TARGETS  # noqa: E402
 
 JOINT_DIR = REPO / "analysis" / "scattering-refit-2026-06" / "joint_json"
 TEL_CFG = REPO / "configs" / "telescopes.yaml"

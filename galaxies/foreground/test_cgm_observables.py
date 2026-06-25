@@ -4,7 +4,7 @@ import math
 
 import pytest
 
-from galaxies.v2_0 import cgm_observables as cgm
+from galaxies.foreground import cgm_observables as cgm
 
 
 def test_axis_ratio_from_ellipticity_handles_rounder_and_bad_inputs():

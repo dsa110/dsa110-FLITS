@@ -11,10 +11,10 @@ import numpy as np
 import pandas as pd
 from astropy.coordinates import SkyCoord
 
-from galaxies.v2_0 import cgm_observables as cgm
-from galaxies.v2_0 import config, enrichers
-from galaxies.v2_0 import scattering_predict as scat
-from galaxies.v2_0.generate_galaxy_plots import (
+from galaxies.foreground import cgm_observables as cgm
+from galaxies.foreground import config, enrichers
+from galaxies.foreground import scattering_predict as scat
+from galaxies.foreground.generate_galaxy_plots import (
     estimate_halo_mass,
     estimate_logmstar_from_photometry,
     get_rvir_and_rs,

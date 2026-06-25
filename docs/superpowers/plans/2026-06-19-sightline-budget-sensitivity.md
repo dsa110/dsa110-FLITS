@@ -4,26 +4,26 @@
 
 **Goal:** Add a literature-anchored prior-predictive sensitivity runner for the CHIME/DSA FRB sightline DM and scattering budget.
 
-**Architecture:** Keep the deterministic budget in `galaxies/v2_0/sightline_budget.py` unchanged and add a focused sensitivity layer in `galaxies/v2_0/sightline_sensitivity.py`. The sensitivity layer samples nuisance astrophysics, recomputes derived DM/scattering quantities from the existing per-sightline budget and foreground catalogs, writes draw-level and summary artifacts, and labels results as prior-predictive robustness checks rather than posterior inference.
+**Architecture:** Keep the deterministic budget in `galaxies/foreground/sightline_budget.py` unchanged and add a focused sensitivity layer in `galaxies/foreground/sightline_sensitivity.py`. The sensitivity layer samples nuisance astrophysics, recomputes derived DM/scattering quantities from the existing per-sightline budget and foreground catalogs, writes draw-level and summary artifacts, and labels results as prior-predictive robustness checks rather than posterior inference.
 
-**Tech Stack:** Python 3.12, NumPy, pandas, scipy/astropy via existing modules, pytest, matplotlib Agg, project package `galaxies.v2_0`.
+**Tech Stack:** Python 3.12, NumPy, pandas, scipy/astropy via existing modules, pytest, matplotlib Agg, project package `galaxies.foreground`.
 
 ---
 
 ## File Structure
 
-- Create `galaxies/v2_0/sightline_sensitivity.py`
+- Create `galaxies/foreground/sightline_sensitivity.py`
   - Owns prior family definitions, correlated draw generation, deterministic recomputation for one budget record, summary metrics, markdown formatting, plots, and CLI entrypoint.
   - Does not query network catalogs or run scattering fits.
   - Calls existing helpers from `sightline_budget.py`, `build_unified.py`, and `scattering_predict.py`.
-- Create `galaxies/v2_0/test_sightline_sensitivity.py`
+- Create `galaxies/foreground/test_sightline_sensitivity.py`
   - Network-free unit tests with small temporary CSV fixtures and injected deterministic budgets.
-- Modify `galaxies/v2_0/sightline_budget.py`
+- Modify `galaxies/foreground/sightline_budget.py`
   - Only if needed, extract one pure helper for recomputing host residuals from component values.
   - Do not alter current deterministic budget outputs unless a test shows a bug.
 - Modify `pyproject.toml`
   - Optional: add a console script only if the CLI is useful enough as `flits-sightline-sensitivity`.
-  - Otherwise use `python -m galaxies.v2_0.sightline_sensitivity`.
+  - Otherwise use `python -m galaxies.foreground.sightline_sensitivity`.
 - Generated outputs from the final runner:
   - `results/sightline_budget_sensitivity_draws.csv`
   - `results/sightline_budget_sensitivity_summary.csv`
@@ -69,8 +69,8 @@ The first version should support reproducible seeded draws and one-parameter kno
 ### Task 1: Prior Family Data Model
 
 **Files:**
-- Create: `galaxies/v2_0/sightline_sensitivity.py`
-- Test: `galaxies/v2_0/test_sightline_sensitivity.py`
+- Create: `galaxies/foreground/sightline_sensitivity.py`
+- Test: `galaxies/foreground/test_sightline_sensitivity.py`
 
 - [ ] **Step 1: Write failing tests for prior families**
 
@@ -82,7 +82,7 @@ import math
 import numpy as np
 import pytest
 
-from galaxies.v2_0 import sightline_sensitivity as ss
+from galaxies.foreground import sightline_sensitivity as ss
 
 
 def test_default_prior_families_have_expected_names_and_bounds():
@@ -130,14 +130,14 @@ def test_sample_nuisance_draws_are_reproducible_and_finite():
 Run:
 
 ```bash
-conda run -n flits pytest galaxies/v2_0/test_sightline_sensitivity.py -q
+conda run -n flits pytest galaxies/foreground/test_sightline_sensitivity.py -q
 ```
 
 Expected: FAIL with `ImportError` or `AttributeError` because `sightline_sensitivity.py` and its functions do not exist.
 
 - [ ] **Step 3: Implement prior dataclasses and sampler**
 
-Create `galaxies/v2_0/sightline_sensitivity.py` with:
+Create `galaxies/foreground/sightline_sensitivity.py` with:
 
 ```python
 """Prior-predictive sensitivity runs for FRB sightline DM/scattering budgets."""
@@ -152,7 +152,7 @@ from typing import Mapping
 import numpy as np
 import pandas as pd
 
-from galaxies.v2_0 import sightline_budget as sb
+from galaxies.foreground import sightline_budget as sb
 
 
 @dataclass(frozen=True)
@@ -294,7 +294,7 @@ def sample_nuisance_draws(family: PriorFamily, n: int, seed: int | None = None) 
 Run:
 
 ```bash
-conda run -n flits pytest galaxies/v2_0/test_sightline_sensitivity.py -q
+conda run -n flits pytest galaxies/foreground/test_sightline_sensitivity.py -q
 ```
 
 Expected: PASS for the two tests.
@@ -302,15 +302,15 @@ Expected: PASS for the two tests.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add galaxies/v2_0/sightline_sensitivity.py galaxies/v2_0/test_sightline_sensitivity.py
+git add galaxies/foreground/sightline_sensitivity.py galaxies/foreground/test_sightline_sensitivity.py
 git commit -m "feat(galaxies): add sightline sensitivity prior families"
 ```
 
 ### Task 2: Draw-Level Budget Recompute
 
 **Files:**
-- Modify: `galaxies/v2_0/sightline_sensitivity.py`
-- Modify: `galaxies/v2_0/test_sightline_sensitivity.py`
+- Modify: `galaxies/foreground/sightline_sensitivity.py`
+- Modify: `galaxies/foreground/test_sightline_sensitivity.py`
 
 - [ ] **Step 1: Add failing tests for recompute semantics**
 
@@ -374,7 +374,7 @@ def test_apply_draw_to_budget_with_placeholder_redshift_is_hypothetical():
 Run:
 
 ```bash
-conda run -n flits pytest galaxies/v2_0/test_sightline_sensitivity.py::test_apply_draw_to_budget_with_measured_redshift_keeps_real_z galaxies/v2_0/test_sightline_sensitivity.py::test_apply_draw_to_budget_with_placeholder_redshift_is_hypothetical -q
+conda run -n flits pytest galaxies/foreground/test_sightline_sensitivity.py::test_apply_draw_to_budget_with_measured_redshift_keeps_real_z galaxies/foreground/test_sightline_sensitivity.py::test_apply_draw_to_budget_with_placeholder_redshift_is_hypothetical -q
 ```
 
 Expected: FAIL with missing `apply_draw_to_budget` and `scaled_dm_cosmic`.
@@ -481,7 +481,7 @@ def apply_draw_to_budget(budget: Mapping[str, object], draw: Mapping[str, object
 Run:
 
 ```bash
-conda run -n flits pytest galaxies/v2_0/test_sightline_sensitivity.py -q
+conda run -n flits pytest galaxies/foreground/test_sightline_sensitivity.py -q
 ```
 
 Expected: PASS.
@@ -489,15 +489,15 @@ Expected: PASS.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add galaxies/v2_0/sightline_sensitivity.py galaxies/v2_0/test_sightline_sensitivity.py
+git add galaxies/foreground/sightline_sensitivity.py galaxies/foreground/test_sightline_sensitivity.py
 git commit -m "feat(galaxies): apply sensitivity draws to sightline budgets"
 ```
 
 ### Task 3: Multi-Family Runner And Summary Labels
 
 **Files:**
-- Modify: `galaxies/v2_0/sightline_sensitivity.py`
-- Modify: `galaxies/v2_0/test_sightline_sensitivity.py`
+- Modify: `galaxies/foreground/sightline_sensitivity.py`
+- Modify: `galaxies/foreground/test_sightline_sensitivity.py`
 
 - [ ] **Step 1: Add failing summary tests**
 
@@ -558,7 +558,7 @@ def test_summarize_sensitivity_labels_placeholder_and_prior_dominated():
 Run:
 
 ```bash
-conda run -n flits pytest galaxies/v2_0/test_sightline_sensitivity.py::test_run_sensitivity_returns_draws_for_each_family galaxies/v2_0/test_sightline_sensitivity.py::test_summarize_sensitivity_labels_placeholder_and_prior_dominated -q
+conda run -n flits pytest galaxies/foreground/test_sightline_sensitivity.py::test_run_sensitivity_returns_draws_for_each_family galaxies/foreground/test_sightline_sensitivity.py::test_summarize_sensitivity_labels_placeholder_and_prior_dominated -q
 ```
 
 Expected: FAIL with missing `run_sensitivity` and `summarize_sensitivity`.
@@ -653,7 +653,7 @@ def summarize_sensitivity(draws: pd.DataFrame) -> pd.DataFrame:
 Run:
 
 ```bash
-conda run -n flits pytest galaxies/v2_0/test_sightline_sensitivity.py -q
+conda run -n flits pytest galaxies/foreground/test_sightline_sensitivity.py -q
 ```
 
 Expected: PASS.
@@ -661,15 +661,15 @@ Expected: PASS.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add galaxies/v2_0/sightline_sensitivity.py galaxies/v2_0/test_sightline_sensitivity.py
+git add galaxies/foreground/sightline_sensitivity.py galaxies/foreground/test_sightline_sensitivity.py
 git commit -m "feat(galaxies): summarize sightline sensitivity robustness"
 ```
 
 ### Task 4: Real Budget Integration And Artifacts
 
 **Files:**
-- Modify: `galaxies/v2_0/sightline_sensitivity.py`
-- Modify: `galaxies/v2_0/test_sightline_sensitivity.py`
+- Modify: `galaxies/foreground/sightline_sensitivity.py`
+- Modify: `galaxies/foreground/test_sightline_sensitivity.py`
 - Optional modify: `pyproject.toml`
 
 - [ ] **Step 1: Add failing artifact tests**
@@ -736,7 +736,7 @@ def test_write_sensitivity_artifacts_creates_expected_files(tmp_path):
 Run:
 
 ```bash
-conda run -n flits pytest galaxies/v2_0/test_sightline_sensitivity.py::test_format_summary_markdown_declares_prior_predictive galaxies/v2_0/test_sightline_sensitivity.py::test_write_sensitivity_artifacts_creates_expected_files -q
+conda run -n flits pytest galaxies/foreground/test_sightline_sensitivity.py::test_format_summary_markdown_declares_prior_predictive galaxies/foreground/test_sightline_sensitivity.py::test_write_sensitivity_artifacts_creates_expected_files -q
 ```
 
 Expected: FAIL with missing formatting/writer functions.
@@ -843,7 +843,7 @@ if __name__ == "__main__":
 Run:
 
 ```bash
-conda run -n flits pytest galaxies/v2_0/test_sightline_sensitivity.py -q
+conda run -n flits pytest galaxies/foreground/test_sightline_sensitivity.py -q
 ```
 
 Expected: PASS.
@@ -853,7 +853,7 @@ Expected: PASS.
 Run:
 
 ```bash
-conda run -n flits python -m galaxies.v2_0.sightline_sensitivity --n-per-family 5 --seed 7 --output-dir /tmp/flits-sensitivity-smoke
+conda run -n flits python -m galaxies.foreground.sightline_sensitivity --n-per-family 5 --seed 7 --output-dir /tmp/flits-sensitivity-smoke
 ```
 
 Expected output includes:
@@ -868,15 +868,15 @@ Wrote priors_yaml: /tmp/flits-sensitivity-smoke/sightline_budget_sensitivity_pri
 - [ ] **Step 7: Commit**
 
 ```bash
-git add galaxies/v2_0/sightline_sensitivity.py galaxies/v2_0/test_sightline_sensitivity.py
+git add galaxies/foreground/sightline_sensitivity.py galaxies/foreground/test_sightline_sensitivity.py
 git commit -m "feat(galaxies): write sightline sensitivity artifacts"
 ```
 
 ### Task 5: Knob Sweeps And Plot
 
 **Files:**
-- Modify: `galaxies/v2_0/sightline_sensitivity.py`
-- Modify: `galaxies/v2_0/test_sightline_sensitivity.py`
+- Modify: `galaxies/foreground/sightline_sensitivity.py`
+- Modify: `galaxies/foreground/test_sightline_sensitivity.py`
 
 - [ ] **Step 1: Add failing tests for knob sweeps**
 
@@ -909,7 +909,7 @@ def test_knob_sweep_varies_one_parameter_for_iconic_sightline():
 Run:
 
 ```bash
-conda run -n flits pytest galaxies/v2_0/test_sightline_sensitivity.py::test_knob_sweep_varies_one_parameter_for_iconic_sightline -q
+conda run -n flits pytest galaxies/foreground/test_sightline_sensitivity.py::test_knob_sweep_varies_one_parameter_for_iconic_sightline -q
 ```
 
 Expected: FAIL with missing `one_parameter_sweep`.
@@ -998,8 +998,8 @@ After writing artifacts in `main`, add:
 Run:
 
 ```bash
-conda run -n flits pytest galaxies/v2_0/test_sightline_sensitivity.py -q
-conda run -n flits python -m galaxies.v2_0.sightline_sensitivity --n-per-family 5 --seed 7 --output-dir /tmp/flits-sensitivity-smoke
+conda run -n flits pytest galaxies/foreground/test_sightline_sensitivity.py -q
+conda run -n flits python -m galaxies.foreground.sightline_sensitivity --n-per-family 5 --seed 7 --output-dir /tmp/flits-sensitivity-smoke
 ```
 
 Expected: tests PASS and smoke output includes `Wrote knobs_png`.
@@ -1007,7 +1007,7 @@ Expected: tests PASS and smoke output includes `Wrote knobs_png`.
 - [ ] **Step 6: Commit**
 
 ```bash
-git add galaxies/v2_0/sightline_sensitivity.py galaxies/v2_0/test_sightline_sensitivity.py
+git add galaxies/foreground/sightline_sensitivity.py galaxies/foreground/test_sightline_sensitivity.py
 git commit -m "feat(galaxies): add sightline sensitivity knob plots"
 ```
 
@@ -1025,7 +1025,7 @@ git commit -m "feat(galaxies): add sightline sensitivity knob plots"
 Run:
 
 ```bash
-conda run -n flits pytest galaxies/v2_0/test_sightline_sensitivity.py galaxies/v2_0/test_sightline_budget.py galaxies/v2_0/test_scattering_predict.py -q
+conda run -n flits pytest galaxies/foreground/test_sightline_sensitivity.py galaxies/foreground/test_sightline_budget.py galaxies/foreground/test_scattering_predict.py -q
 ```
 
 Expected: PASS.
@@ -1035,7 +1035,7 @@ Expected: PASS.
 Run:
 
 ```bash
-conda run -n flits pytest galaxies/v2_0 -q
+conda run -n flits pytest galaxies/foreground -q
 ```
 
 Expected: PASS.
@@ -1045,7 +1045,7 @@ Expected: PASS.
 Run:
 
 ```bash
-conda run -n flits python -m galaxies.v2_0.sightline_sensitivity --n-per-family 1000 --seed 20260619 --output-dir results
+conda run -n flits python -m galaxies.foreground.sightline_sensitivity --n-per-family 1000 --seed 20260619 --output-dir results
 ```
 
 Expected output includes all five generated result files.
@@ -1069,7 +1069,7 @@ Expected: a 12-row table with no missing `host_budget_label` or `robustness_labe
 Run:
 
 ```bash
-mskill tool agent-closeout-check --repo /Users/jakobfaber/Developer/repos/github.com/dsa110/dsa110-FLITS --touched galaxies/v2_0/sightline_sensitivity.py --touched galaxies/v2_0/test_sightline_sensitivity.py --touched results/sightline_budget_sensitivity_summary.md
+mskill tool agent-closeout-check --repo /Users/jakobfaber/Developer/repos/github.com/dsa110/dsa110-FLITS --touched galaxies/foreground/sightline_sensitivity.py --touched galaxies/foreground/test_sightline_sensitivity.py --touched results/sightline_budget_sensitivity_summary.md
 ```
 
 Expected: PASS or a concrete dirty-state/restart packet request. If it requests a dirty-state handoff because the repo already has unrelated modified DSA YAMLs, prepare that packet and keep those YAMLs out of the sensitivity commit.
@@ -1079,14 +1079,14 @@ Expected: PASS or a concrete dirty-state/restart packet request. If it requests 
 If generated artifacts are intended to be versioned, commit them with the code:
 
 ```bash
-git add galaxies/v2_0/sightline_sensitivity.py galaxies/v2_0/test_sightline_sensitivity.py results/sightline_budget_sensitivity_draws.csv results/sightline_budget_sensitivity_summary.csv results/sightline_budget_sensitivity_summary.md results/sightline_budget_sensitivity_knobs.png results/sightline_budget_sensitivity_priors.yaml
+git add galaxies/foreground/sightline_sensitivity.py galaxies/foreground/test_sightline_sensitivity.py results/sightline_budget_sensitivity_draws.csv results/sightline_budget_sensitivity_summary.csv results/sightline_budget_sensitivity_summary.md results/sightline_budget_sensitivity_knobs.png results/sightline_budget_sensitivity_priors.yaml
 git commit -m "feat(galaxies): add prior-predictive sightline sensitivity results"
 ```
 
 If draw-level artifacts are too large or should remain regenerated products, commit only code, tests, summary markdown, plot, and priors YAML:
 
 ```bash
-git add galaxies/v2_0/sightline_sensitivity.py galaxies/v2_0/test_sightline_sensitivity.py results/sightline_budget_sensitivity_summary.csv results/sightline_budget_sensitivity_summary.md results/sightline_budget_sensitivity_knobs.png results/sightline_budget_sensitivity_priors.yaml
+git add galaxies/foreground/sightline_sensitivity.py galaxies/foreground/test_sightline_sensitivity.py results/sightline_budget_sensitivity_summary.csv results/sightline_budget_sensitivity_summary.md results/sightline_budget_sensitivity_knobs.png results/sightline_budget_sensitivity_priors.yaml
 git commit -m "feat(galaxies): add prior-predictive sightline sensitivity results"
 ```
 

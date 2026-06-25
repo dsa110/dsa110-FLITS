@@ -61,7 +61,7 @@ def test_pygedm_floor_finite_positive(model):
     swapped electron-density model yields a usable floor."""
     # pygedm bare-imports raise on SciPy>=1.14 (integrate.simps removed); the
     # _load_pygedm shim is the only working entry, so skip on its result.
-    from galaxies.v2_0.sightline_budget import _load_pygedm
+    from galaxies.foreground.sightline_budget import _load_pygedm
 
     if not _load_pygedm():
         pytest.skip("pygedm unavailable")

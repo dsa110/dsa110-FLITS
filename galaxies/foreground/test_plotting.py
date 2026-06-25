@@ -4,7 +4,7 @@ matplotlib.use("Agg")
 
 import pandas as pd
 
-from galaxies.v2_0.plotting import _split_galaxies_clusters, plot_sightline
+from galaxies.foreground.plotting import _split_galaxies_clusters, plot_sightline
 
 
 def test_split_galaxies_clusters_separates_by_classification():

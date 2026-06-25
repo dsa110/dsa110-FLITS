@@ -6,8 +6,8 @@ import pandas as pd
 import pytest
 from astropy.coordinates import SkyCoord
 
-from galaxies.v2_0 import scattering_predict as scat
-from galaxies.v2_0.build_unified import build_for_target, build_unified_records
+from galaxies.foreground import scattering_predict as scat
+from galaxies.foreground.build_unified import build_for_target, build_unified_records
 
 
 def _sightline(ra_str, dec_str):

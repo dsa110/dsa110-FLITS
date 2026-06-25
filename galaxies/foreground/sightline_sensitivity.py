@@ -10,7 +10,7 @@ from typing import Mapping
 import numpy as np
 import pandas as pd
 
-from galaxies.v2_0 import sightline_budget as sb
+from galaxies.foreground import sightline_budget as sb
 
 
 @dataclass(frozen=True)

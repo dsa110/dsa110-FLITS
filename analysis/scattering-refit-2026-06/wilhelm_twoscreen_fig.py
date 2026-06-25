@@ -23,7 +23,7 @@ Numbers + provenance (all in-repo unless flagged):
   dnu_d (CHIME)   : 0.060 MHz @ 0.684 GHz -- BELOW CHIME native 0.39 MHz channel
                     => UNRESOLVED, shown as an upper limit only.
   l,b             : 107.14, 16.69 (astropy, ICRS->Galactic).
-  host z         : z=0.5100 (spectroscopic; Connor+2024), galaxies/v2_0/config.py.
+  host z         : z=0.5100 (spectroscopic; Connor+2024), galaxies/foreground/config.py.
   FIDUCIAL/FLAGGED: NE2001 MW dnu_d (~few MHz at 1.4 GHz) not yet run (mwprop
                     absent); annotated as such.
 """
@@ -192,7 +192,7 @@ def fig():
 
     z_fid = 0.5100
     D_A_src_mpc = (
-        1311.2  # D_A(z=0.5100), Planck18 (spectroscopic; Connor+2024, galaxies/v2_0/config.py)
+        1311.2  # D_A(z=0.5100), Planck18 (spectroscopic; Connor+2024, galaxies/foreground/config.py)
     )
     nu_hz = F_DSA * 1e9
     dnu1, dnu2 = DNU_DSA_BROAD * 1e6, DNU_DSA_NARROW * 1e6

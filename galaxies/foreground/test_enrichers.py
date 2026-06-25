@@ -3,7 +3,7 @@ import math
 import numpy as np
 import pandas as pd
 
-from galaxies.v2_0 import enrichers as enr
+from galaxies.foreground import enrichers as enr
 
 
 def _matches(n=1, catalog=None):

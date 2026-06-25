@@ -1,4 +1,4 @@
-"""Utility functions for galaxy search v2.0."""
+"""Utility functions for foreground galaxy search."""
 
 import numpy as np
 from astropy import units as u

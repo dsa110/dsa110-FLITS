@@ -8,8 +8,8 @@ import math
 
 import pandas as pd
 
-from galaxies.v2_0 import attribute_excess as ax
-from galaxies.v2_0 import sightline_budget as sb
+from galaxies.foreground import attribute_excess as ax
+from galaxies.foreground import sightline_budget as sb
 from scattering.scat_analysis.burst_metadata import load_tns_name
 
 _NAME = "Wilhelm"

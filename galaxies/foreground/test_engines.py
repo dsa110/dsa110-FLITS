@@ -10,9 +10,9 @@ from astropy.coordinates import SkyCoord
 # Add project root to sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
-from galaxies.v2_0 import engines as eng
-from galaxies.v2_0.config import VIZIER_CATALOGS
-from galaxies.v2_0.engines import NedEngine, VizierEngine
+from galaxies.foreground import engines as eng
+from galaxies.foreground.config import VIZIER_CATALOGS
+from galaxies.foreground.engines import NedEngine, VizierEngine
 
 
 def test_glade_catalog_id_is_gladep():

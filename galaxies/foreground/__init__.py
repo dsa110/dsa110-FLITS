@@ -1,4 +1,4 @@
-"""Galaxies module v2.0 for FLITS."""
+"""Foreground galaxy search module for FLITS."""
 
 from .config import TARGETS
 from .search import run_search

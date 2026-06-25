@@ -511,8 +511,8 @@ def main():
 
     # Import targets from config
     sys.path.insert(0, base_dir)
-    from galaxies.v2_0.config import TARGETS
-    from galaxies.v2_0.plotting import _split_galaxies_clusters
+    from galaxies.foreground.config import TARGETS
+    from galaxies.foreground.plotting import _split_galaxies_clusters
 
     target_sections = []
 

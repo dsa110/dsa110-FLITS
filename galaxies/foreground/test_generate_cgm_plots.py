@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from galaxies.v2_0 import generate_cgm_plots as cgm
+from galaxies.foreground import generate_cgm_plots as cgm
 
 
 def _assert_png_b64(b64):

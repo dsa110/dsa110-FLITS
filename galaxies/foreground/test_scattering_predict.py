@@ -4,7 +4,7 @@ import math
 
 import pytest
 
-from galaxies.v2_0 import scattering_predict as sp
+from galaxies.foreground import scattering_predict as sp
 
 
 def test_dm_halo_mnfw_is_positive_decreasing_and_handles_edges():
@@ -167,7 +167,7 @@ def test_tau_scat_two_phase_adds_clumpy_cool_component():
 
 def test_r_delta_kpc_matches_overdensity_definition():
     # R200 from r_delta must equal the existing get_rvir_and_rs R200 (both 200*rho_c).
-    from galaxies.v2_0.generate_galaxy_plots import get_rvir_and_rs
+    from galaxies.foreground.generate_galaxy_plots import get_rvir_and_rs
 
     m200, z = 1.0e14, 0.2
     r200_ref, _, _ = get_rvir_and_rs(m200, z)

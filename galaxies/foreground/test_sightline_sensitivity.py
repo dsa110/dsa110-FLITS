@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from galaxies.v2_0 import sightline_sensitivity as ss
+from galaxies.foreground import sightline_sensitivity as ss
 
 
 def test_default_prior_families_have_expected_names_and_bounds():

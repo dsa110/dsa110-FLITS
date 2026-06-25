@@ -8,7 +8,7 @@ import pytest
 
 matplotlib.use("Agg")
 
-from galaxies.v2_0 import sightline_budget as sb
+from galaxies.foreground import sightline_budget as sb
 
 
 def _stub_dm_mw(dm_ne=80.0, dm_yw=85.0, tau_ms=5.0e-4):

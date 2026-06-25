@@ -5,7 +5,7 @@ from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astropy.table import MaskedColumn, Table
 
-from galaxies.v2_0 import engines_extra as ee
+from galaxies.foreground import engines_extra as ee
 
 
 def test_tap_box_query_filters_circle_masks_sentinels_and_uses_between(monkeypatch):

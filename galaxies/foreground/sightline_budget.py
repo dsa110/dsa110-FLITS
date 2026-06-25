@@ -56,9 +56,9 @@ try:
     from .build_unified import MASS_PRIORITY, build_unified_records
 except ImportError:  # pragma: no cover - supports direct script execution.
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-    from galaxies.v2_0 import config
-    from galaxies.v2_0 import scattering_predict as scat
-    from galaxies.v2_0.build_unified import MASS_PRIORITY, build_unified_records
+    from galaxies.foreground import config
+    from galaxies.foreground import scattering_predict as scat
+    from galaxies.foreground.build_unified import MASS_PRIORITY, build_unified_records
 
 
 # Every MASS_PRIORITY source except the trailing "assumed" default is a real

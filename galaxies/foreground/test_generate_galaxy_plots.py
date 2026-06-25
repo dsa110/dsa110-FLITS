@@ -4,7 +4,7 @@ matplotlib.use("Agg")
 
 import numpy as np
 
-from galaxies.v2_0.generate_galaxy_plots import _moster_log_mstar, estimate_halo_mass
+from galaxies.foreground.generate_galaxy_plots import _moster_log_mstar, estimate_halo_mass
 
 
 def test_estimate_halo_mass_clamps_degenerate_stellar_mass():

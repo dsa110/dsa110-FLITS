@@ -11,7 +11,7 @@ excess tau, using the same pred/obs >= 0.5 threshold the budget tool uses.
 Honest-null caveat: with the *committed* catalogs every one of the four excess
 sightlines has zero committed foreground galaxies (results/search_summary.csv:
 Zach/Wilhelm/Hamilton/Chromatica num_galaxies=0; no {name}_galaxies.csv on disk).
-A positive single-system attribution would require re-running galaxies/v2_0/search.py
+A positive single-system attribution would require re-running galaxies/foreground/search.py
 with ENABLE_EXTRA_ENGINES / ENABLE_ENRICHERS = True (a network-bound step not run
 here). This wrapper is the reusable harness + the null it currently returns.
 """
@@ -35,9 +35,9 @@ try:
     from .build_unified import build_unified_records
 except ImportError:  # pragma: no cover - direct script execution.
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-    from galaxies.v2_0 import config
-    from galaxies.v2_0 import sightline_budget as sb
-    from galaxies.v2_0.build_unified import build_unified_records
+    from galaxies.foreground import config
+    from galaxies.foreground import sightline_budget as sb
+    from galaxies.foreground.build_unified import build_unified_records
 
 # The four sightlines flagged EXCESS in results/excess_survival_models.csv.
 EXCESS_SIGHTLINES = ("Wilhelm", "Zach", "Hamilton", "Chromatica")
@@ -285,7 +285,7 @@ def main():
         print(
             "NULL RESULT: zero committed foreground systems on any excess sightline; "
             "no single intervening system can be tested. A positive attribution "
-            "requires a network re-run of galaxies/v2_0/search.py with "
+            "requires a network re-run of galaxies/foreground/search.py with "
             "ENABLE_EXTRA_ENGINES / ENABLE_ENRICHERS = True (not performed)."
         )
 

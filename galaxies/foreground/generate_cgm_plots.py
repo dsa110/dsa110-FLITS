@@ -27,7 +27,7 @@ try:
     from .scattering_predict import predict_mgii_wr
 except ImportError:  # pragma: no cover - supports direct script execution.
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-    from galaxies.v2_0.scattering_predict import predict_mgii_wr
+    from galaxies.foreground.scattering_predict import predict_mgii_wr
 
 # --------------- styling ---------------
 DARK_BLUE = "#1B365D"
@@ -500,7 +500,7 @@ def main():
     docs_dir = os.path.join(base_dir, "docs")
 
     sys.path.insert(0, base_dir)
-    from galaxies.v2_0.config import TARGETS
+    from galaxies.foreground.config import TARGETS
 
     target_sections = []
     for name, ra_str, dec_str, z_frb in TARGETS:

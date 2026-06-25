@@ -3,11 +3,11 @@ import math
 import numpy as np
 import pandas as pd
 
-from galaxies.v2_0 import scattering_predict as scat
-from galaxies.v2_0 import search as search_mod
-from galaxies.v2_0.config import COSMO
-from galaxies.v2_0.engines import _add_desi_stellar_mass
-from galaxies.v2_0.search import (
+from galaxies.foreground import scattering_predict as scat
+from galaxies.foreground import search as search_mod
+from galaxies.foreground.config import COSMO
+from galaxies.foreground.engines import _add_desi_stellar_mass
+from galaxies.foreground.search import (
     _cluster_impact_limit_kpc,
     _deduplicate_matches,
     _enrich_with_ps1_photometry,

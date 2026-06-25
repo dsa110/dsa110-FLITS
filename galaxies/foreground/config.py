@@ -1,4 +1,4 @@
-"""Configuration and target list for galaxy search v2.0."""
+"""Configuration and target list for foreground galaxy search."""
 
 from astropy.cosmology import Planck18
 

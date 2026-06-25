@@ -53,6 +53,8 @@ Thumbs.db
 !/data-manifest.csv
 # ...and the small flux-calibration input tables (SEFD, pointing) — config/provenance, not bulk data
 !/analysis/burst_energies/*.csv
+# Undermind literature exports (small bibliographic tables, not data dumps)
+!/docs/literature/undermind/**/*.csv
 # FITS (astronomy images)
 *.fits
 *.fit

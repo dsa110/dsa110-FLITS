@@ -34,10 +34,10 @@ except ImportError:
     pq = None
     HAS_PYARROW = False
 
-# Shared sightline list + cosmology from the canonical v2.0 config module.
+# Shared sightline list + cosmology from the canonical foreground config module.
 # TARGETS is (name, ra, dec, z_max); D_A is computed directly from COSMO
-# (called once on the 12 sightlines, so the v1.0 interpolation table is moot).
-sys.path.insert(0, str(pathlib.Path(__file__).parent.parent / "v2_0"))
+# (called once on the 12 sightlines, so the v1 interpolation table is moot).
+sys.path.insert(0, str(pathlib.Path(__file__).parent.parent / "foreground"))
 from config import TARGETS, COSMO, DEFAULT_IMPACT_KPC
 
 # ───────────────────────────── CONFIGURATION ──────────────────────────────

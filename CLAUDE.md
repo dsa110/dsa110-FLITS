@@ -42,7 +42,7 @@ Three analysis surfaces plus a shared package. The **canonical physics kernel** 
 - **`scattering/scat_analysis/`** — scattering pipeline. `burstfit.py` (`FRBModel`, `FRBFitter`, `FRBParams`, `build_priors` — emcee MCMC), `burstfit_modelselect.py` (`fit_models_bic`), `burstfit_robust.py` (sub-band consistency, leave-one-out influence), `burstfit_nested.py` (dynesty, optional), `burstfit_joint.py` (joint multi-telescope fits). `pipeline/` is the OO orchestrator (core/io/optimization/diagnostics). CLI: `scattering/run_scat_analysis.py`.
 - **`scintillation/scint_analysis/`** — scintillation pipeline (ACF, 2D fitting, NE2001). CLI: `run_analysis.py`.
 - **`simulation/`** — forward simulator (`engine.py`, `wave_optics.py`) + sim↔fit bridge (`sim_fit_bridge.py`) and validation scripts. Used to validate the fitter against known-truth injections.
-- **`flits/`** — shared package: `batch/` (batch runner over many bursts → SQLite `results_db`, `joint_analysis`, summary plots), `fitting/` (diagnostics, `VALIDATION_THRESHOLDS`), `orchestration/`, plus thin model/param/sampler re-exports.
+- **`flits/`** — shared package: `batch/` (batch runner over many bursts → SQLite `results_db`, `joint_analysis`, summary plots), `fitting/` (diagnostics, `VALIDATION_THRESHOLDS`), plus thin model/param/sampler re-exports.
 - **`galaxies/`**, **`crossmatching/`**, **`dispersion/`** — host-galaxy / multi-telescope cross-match (TOA + geometric delay) / DM-budget tooling.
 
 ### Scattering models (`FRBFitter`)

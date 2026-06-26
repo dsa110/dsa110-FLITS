@@ -37,7 +37,7 @@ Assigning a screen to Galactic vs host-CGM vs intervening, from the frequency sc
 The per-burst policy: always attempt the cheapest handle (consistency + ν-scaling); add effective-distance D_eff where a scintillation timescale is measurable; attempt a forward two-screen fit only where data quality supports it. Each burst is constrained as far as its data allows.
 
 **DM budget decomposition**:
-Partition of observed DM into MW ISM + MW halo + cosmic/IGM mean + intervening + host (residual). Produced by `galaxies/v2_0`.
+Partition of observed DM into MW ISM + MW halo + cosmic/IGM mean + intervening + host (residual). Produced by `galaxies/foreground`.
 
 **Quality flag**:
 Per-fit PASS / MARGINAL / FAIL from the FLITS 3-level validation contract. FAIL fits are withheld from science claims.

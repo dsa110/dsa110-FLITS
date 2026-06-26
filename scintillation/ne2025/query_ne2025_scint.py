@@ -66,7 +66,7 @@ def _tau_sbw_1ghz(gl, gb, model):
     """Return (tau_ms, sbw_MHz) @1 GHz of the MW floor toward Galactic (gl, gb).
 
     model='ne2025' uses NE2025's native TAU and SBW (the existing path).
-    model in {'ne2001','ymw16'} reuses galaxies.v2_0.sightline_budget.galactic_dm_tau
+    model in {'ne2001','ymw16'} reuses galaxies.foreground.sightline_budget.galactic_dm_tau
     (compiled pygedm NE2001/YMW16, with the scipy.simps shim + bare-float fallback) for
     tau @1 GHz to the SAME Galactic edge distance (EDGE_KPC). pygedm returns no
     scintillation bandwidth, so Dnu_d is derived from
@@ -81,7 +81,7 @@ def _tau_sbw_1ghz(gl, gb, model):
             ldeg=gl, bdeg=gb, dmd=EDGE_KPC, ndir=-1, classic=False, dmd_only=False
         )
         return Dv["TAU"], Dv["SBW"]
-    from galaxies.v2_0.sightline_budget import galactic_dm_tau
+    from galaxies.foreground.sightline_budget import galactic_dm_tau
 
     *_, tau_ms = galactic_dm_tau(gl, gb, method=model, dist_pc=EDGE_KPC * 1e3)  # kpc -> pc
     if math.isnan(tau_ms):

@@ -142,19 +142,10 @@ def _plot_timing_panel(ax, nickname: str, toa: dict, chime_row: dict):
     ax.axvline(0, color="0.05", lw=1.1)
     ax.errorbar(0, 1.0, xerr=err, fmt="o", color="#2563eb", capsize=3, label="CHIME reference")
     ax.errorbar(residual, 0.0, xerr=err, fmt="o", color="#dc2626", capsize=3, label="DSA residual")
-    ax.annotate(
-        f"DSA - CHIME = {residual:+.2f} ms",
-        xy=(residual, 0.0),
-        xytext=(8, -18),
-        textcoords="offset points",
-        fontsize=7,
-        color="0.15",
-    )
     ax.set_xlim(-xlim, xlim)
     ax.set_ylim(-0.7, 1.7)
     ax.set_yticks([0, 1], ["DSA", "CHIME"])
-    ax.set_xlabel("Residual at 400 MHz reference (ms)")
-    ax.set_title("Timing and dispersion", loc="left", pad=3)
+    ax.set_xlabel(r"$\Delta t_{400\,\mathrm{MHz}}$ (ms)")
     ax.text(
         0.02,
         0.96,
@@ -163,12 +154,6 @@ def _plot_timing_panel(ax, nickname: str, toa: dict, chime_row: dict):
         ha="left",
         va="top",
         fontsize=8,
-        bbox={
-            "boxstyle": "round,pad=0.25",
-            "facecolor": "white",
-            "edgecolor": "0.85",
-            "alpha": 0.92,
-        },
     )
     ax.grid(axis="x", alpha=0.25)
     _dm_inset(ax, chime_row, toa)
@@ -213,13 +198,12 @@ def _plot_position_panel(
             "alpha": 0.92,
         },
     )
-    ax.set_aspect("equal", adjustable="box")
+    ax.set_aspect("equal", adjustable="datalim")
     lim = span_deg * 30.0
     ax.set_xlim(lim, -lim)
     ax.set_ylim(-lim, lim)
     ax.set_xlabel(r"$\Delta$RA cos Dec (arcmin)")
     ax.set_ylabel(r"$\Delta$Dec (arcmin)")
-    ax.set_title("Position and beams", loc="left", pad=3)
     ax.grid(alpha=0.20)
     handles, labels = ax.get_legend_handles_labels()
     ax.legend(handles, labels, loc="upper right", fontsize=5.6, framealpha=0.92, borderpad=0.3)
@@ -254,12 +238,31 @@ def _plot_position_panel(
     inset.set_xticks([])
     inset.set_yticks([])
     inset.set_title("beam 50%", fontsize=6, pad=1)
+    from matplotlib.font_manager import FontProperties
+    from mpl_toolkits.axes_grid1.anchored_artists import AnchoredSizeBar
+
+    inset.add_artist(
+        AnchoredSizeBar(
+            inset.transData,
+            30,
+            "30'",
+            loc="lower right",
+            frameon=False,
+            color="0.2",
+            size_vertical=0.8,
+            fontproperties=FontProperties(size=5),
+            pad=0.3,
+            borderpad=0.4,
+            sep=2,
+        )
+    )
 
 
 def plot_card(
     nickname: str, toa: dict, chime_row: dict, fixture_row: dict, assoc_row: dict, dsa_interp
 ):
-    fig, axes = plt.subplots(1, 2, figsize=(7.2, 3.05), constrained_layout=True)
+    fig, axes = plt.subplots(1, 2, figsize=(7.2, 3.05))
+    fig.subplots_adjust(left=0.085, right=0.985, top=0.94, bottom=0.17, wspace=0.30)
     _plot_timing_panel(axes[0], nickname, toa, chime_row)
     _plot_position_panel(axes[1], nickname, fixture_row, chime_row, assoc_row, dsa_interp)
     return fig

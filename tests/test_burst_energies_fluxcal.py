@@ -56,16 +56,65 @@ def test_dsa_burst_config_resolves():
     assert f_factor == 384 and t_factor == 2
 
 
-def test_fail_gated_joint_fits_excluded_from_eiso():
-    # Trust boundary: a joint fit the committed-fit quality gate marks FAIL
-    # (prior-railed / unphysical shared alpha) must not flow into E_iso. Wired to
-    # the #34 *_joint_gate.json sidecars. Reads JSON only -> data-independent.
+def test_energy_gate_is_alpha_independent():
+    # Trust boundary (ADR-0003/0004; 3-expert panel 2026-06-24). E_iso is
+    # alpha-INDEPENDENT: band_integral uses only per-band c0/gamma + band edges, so
+    # energy citability must NOT gate on the scattering joint-fit quality_flag (the
+    # shared-alpha L1 verdict). The gate is on the energy's OWN inputs: a fit is kept
+    # iff its per-band c0/gamma are finite and c0 > 0; quality_flag rides along as an
+    # informational column. Reads JSON only -> data-independent.
     flags = E.load_gate_flags()
-    kept = set(E.load_joint_params())
+    params = E.load_joint_params()
+    kept = set(params)
     live_fail = {b for b, f in flags.items() if f == "FAIL"}
     assert live_fail, "no live FAIL verdict to exercise the gate"
-    assert not (live_fail & kept), f"FAIL joint fit leaked into E_iso: {sorted(live_fail & kept)}"
-    assert all(flags.get(b) != "FAIL" for b in kept)
+    # decouple is real: at least one FAIL-flagged burst is retained (physical c0/gamma)
+    assert live_fail & kept, (
+        "expected FAIL-but-physical bursts retained for E_iso (energy is alpha-independent), "
+        f"but every FAIL burst was dropped: live_fail={sorted(live_fail)}"
+    )
+    # the actual gate: every kept burst has physical energy inputs, and quality_flag
+    # is metadata only (never the exclusion criterion)
+    for nick, p in params.items():
+        assert all(np.isfinite(p[k]) for k in ("c0_C", "gamma_C", "c0_D", "gamma_D")), nick
+        assert p["c0_C"] > 0 and p["c0_D"] > 0, f"non-physical c0 kept: {nick}"
+        assert p["quality_flag"] == flags.get(nick)
+
+
+def test_gate_drops_nonphysical_and_skips_amplitudeless(tmp_path, monkeypatch):
+    # The live sidecars are all physical, so --check / the test above never hit the
+    # drop or skip branches. Synthetic fits exercise them directly: a FAIL-but-physical
+    # fit is KEPT (quality_flag is metadata, not an exclusion); c0<=0 or non-finite is
+    # DROPPED; a fit with no per-band c0/gamma keys (all-exp/scattering-only) is SKIPPED.
+    import json
+
+    def _fit(burst, c0c=1.0, gc=-3.0, c0d=1.0, gd=-3.0, ampless=False):
+        pct = (
+            {}
+            if ampless
+            else {
+                "c0_C": {"median": c0c},
+                "gamma_C": {"median": gc},
+                "c0_D": {"median": c0d},
+                "gamma_D": {"median": gd},
+            }
+        )
+        return {"burst": burst, "percentiles": pct}
+
+    fits = {
+        "keepfail": _fit("keepfail"),  # physical -> kept even though flagged FAIL
+        "dropneg": _fit("dropneg", c0c=-1.0),  # c0 <= 0 -> dropped
+        "dropnan": _fit("dropnan", gd=float("nan")),  # non-finite -> dropped
+        "skipnoamp": _fit("skipnoamp", ampless=True),  # no c0/gamma -> skipped
+    }
+    for nick, d in fits.items():
+        (tmp_path / f"{nick}_joint_fit.json").write_text(json.dumps(d))
+    monkeypatch.setattr(E, "JOINT_DIR", tmp_path)
+    monkeypatch.setattr(E, "load_gate_flags", lambda: {"keepfail": "FAIL"})
+
+    kept = E.load_joint_params()
+    assert set(kept) == {"keepfail"}, f"expected only the physical fit kept, got {sorted(kept)}"
+    assert kept["keepfail"]["quality_flag"] == "FAIL"  # FAIL retained as metadata
 
 
 def test_z_provenance_flags_unpublished_hosts():

@@ -34,7 +34,7 @@ fluence and redshift provenance.
 
 ### Redshift storage — no quality flag
 - All 8 E_iso host redshifts come from one place:
-  `galaxies/v2_0/config.py:16-29`, `TARGETS = [(name, RA, Dec, z), …]`. The
+  `galaxies/foreground/config.py:16-29`, `TARGETS = [(name, RA, Dec, z), …]`. The
   tuple has **no spec/phot field**.
 - `analysis/calculate_burst_energies.py:107-109` `load_redshifts()` returns a
   bare `{nick: z}`; the only quality mechanism is `PLACEHOLDER_Z = 1.0`

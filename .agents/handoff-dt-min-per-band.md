@@ -59,7 +59,7 @@
 
 The working tree contains a **second, unrelated lane** authored by another active session
 (`entire session list` shows a session "active now" in this worktree):
-- `galaxies/v2_0/{config,engines,search,test_search_pipeline}.py` (modified, +200/-101)
+- `galaxies/foreground/{config,engines,search,test_search_pipeline}.py` (modified, +200/-101)
 - `analysis/burst_energies/`, `analysis/calculate_burst_energies.py` (untracked)
 - `scratch/codetection/why_missed.py` (untracked)
 

@@ -1,0 +1,149 @@
+{
+  "generated_by": "scripts/migration/audit_h23_delta.py",
+  "entries": [
+    {
+      "id": "h23_chime_bursts",
+      "source_path": "/media/ubuntu/ssd/jfaber/chime_dsa_codetections/bursts",
+      "target_path": "/Users/iacobus/Research/CHIME_DSA_Codetections/burst_npys",
+      "source": {
+        "exists": true,
+        "files": 166,
+        "kib": 7836932
+      },
+      "target": {
+        "exists": true,
+        "files": 218,
+        "kib": 29983596
+      },
+      "recommendation": "skip"
+    },
+    {
+      "id": "h23_stokes_i_npys",
+      "source_path": "/media/ubuntu/ssd/jfaber/chime_dsa_codetections/data/stokes_I_npys",
+      "target_path": "/Users/iacobus/Research/CHIME_DSA_Codetections/dsa_fullstokes_waterfalls",
+      "source": {
+        "exists": true,
+        "files": 2,
+        "kib": 1006088
+      },
+      "target": {
+        "exists": true,
+        "files": 58,
+        "kib": 6259724
+      },
+      "recommendation": "skip"
+    },
+    {
+      "id": "h23_dm_budget",
+      "source_path": "/media/ubuntu/ssd/jfaber/chime_dsa_codetections/dm_budget",
+      "target_path": "/Users/iacobus/Research/CHIME_DSA_Codetections/dm_budget/h23_dm_budget",
+      "source": {
+        "exists": true,
+        "files": 846,
+        "kib": 336784
+      },
+      "target": {
+        "exists": true,
+        "files": 847,
+        "kib": 336720
+      },
+      "recommendation": "rsync_delta"
+    },
+    {
+      "id": "h23_scattering",
+      "source_path": "/media/ubuntu/ssd/jfaber/chime_dsa_codetections/scattering",
+      "target_path": "/Users/iacobus/Research/CHIME_DSA_Codetections/scattering_results",
+      "source": {
+        "exists": true,
+        "files": 21,
+        "kib": 24240
+      },
+      "target": {
+        "exists": true,
+        "files": 112,
+        "kib": 87992
+      },
+      "recommendation": "skip"
+    },
+    {
+      "id": "h23_dm",
+      "source_path": "/media/ubuntu/ssd/jfaber/chime_dsa_codetections/dm",
+      "target_path": "/Users/iacobus/Research/CHIME_DSA_Codetections/dm_budget",
+      "source": {
+        "exists": true,
+        "files": 2,
+        "kib": 732
+      },
+      "target": {
+        "exists": true,
+        "files": 1644,
+        "kib": 466804
+      },
+      "recommendation": "skip"
+    },
+    {
+      "id": "h23_localizations",
+      "source_path": "/media/ubuntu/ssd/jfaber/chime_dsa_codetections/localizations",
+      "target_path": "/Users/iacobus/Research/CHIME_DSA_Codetections/metadata",
+      "source": {
+        "exists": true,
+        "files": 2,
+        "kib": 8
+      },
+      "target": {
+        "exists": true,
+        "files": 7,
+        "kib": 584
+      },
+      "recommendation": "skip"
+    },
+    {
+      "id": "h23_old_chime_archive",
+      "source_path": "/media/ubuntu/ssd/jfaber/archive/OLD_CHIME_DSA_Codetections",
+      "target_path": "/Users/iacobus/Research/CHIME_DSA_Codetections/archive/OLD_CHIME_DSA_Codetections",
+      "source": {
+        "exists": true,
+        "files": 281,
+        "kib": 81796348
+      },
+      "target": {
+        "exists": true,
+        "files": 384,
+        "kib": 110247172
+      },
+      "recommendation": "dedupe_first"
+    },
+    {
+      "id": "h23_burstprop_bursts",
+      "source_path": "/media/ubuntu/ssd/jfaber/burstprop_paper/bursts",
+      "target_path": "/Users/iacobus/Research/CHIME_DSA_Codetections/archive/burstprop_paper",
+      "source": {
+        "exists": true,
+        "files": 132,
+        "kib": 43541476
+      },
+      "target": {
+        "exists": true,
+        "files": 187,
+        "kib": 50956144
+      },
+      "recommendation": "skip"
+    },
+    {
+      "id": "h23_dsa110_scat_archive",
+      "source_path": "/media/ubuntu/ssd/jfaber/archive/dsa110-scat",
+      "target_path": "/Users/iacobus/Research/CHIME_DSA_Codetections/archive/dsa110-scat",
+      "source": {
+        "exists": true,
+        "files": 314,
+        "kib": 6145744
+      },
+      "target": {
+        "exists": true,
+        "files": 314,
+        "kib": 6212768
+      },
+      "recommendation": "skip"
+    }
+  ]
+}

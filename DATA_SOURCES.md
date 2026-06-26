@@ -33,6 +33,22 @@ DATA_DIR=/arc/home/jfaber/baseband_morphologies/chime_dsa_codetections/data/DSA_
 python scattering/scripts/verify_fits.py <OUT_DIR> --csv <OUT_DIR>/summary.csv
 ```
 
+## CANFAR compute and GPU access
+
+Important: `vos`/`vls` access to `arc:` is storage-only. That limitation was
+previously mistaken for "CANFAR has no GPU access for us." After installing the
+`canfar` CLI and authenticating with `~/.ssl/cadcproxy.pem`, GPU sessions were
+verified live on 2026-06-25:
+
+```bash
+canfar create headless skaha/astroml-cuda:latest --gpu 1 -n gpu-smoke-test -- nvidia-smi
+```
+
+The session completed and `canfar logs` showed `NVIDIA A100-PCIE-40GB` with CUDA
+12.8, exposed as a MIG slice (~20 GiB). Existing notebook sessions that were
+created without `--gpu` still have `requestedGPUCores: "0"`; recreate the
+session with `--gpu N` when accelerator access is needed.
+
 ## Local replica (only if remote latency bites)
 
 ```bash

@@ -8,6 +8,12 @@ import numpy as np
 import pandas as pd
 
 from galaxies.foreground.census_registry import build_intervening_census_registry
+from galaxies.foreground.config import TARGETS
+from galaxies.foreground.scintillation_bridge import (
+    build_scintillation_source_block,
+    format_two_screen_coherence,
+)
+from galaxies.foreground.sightline_budget import build_sightline_budget
 from galaxies.foreground.tau_consistency import (
     ALPHA_CONSISTENCY,
     CHIME_REF_MHZ,
@@ -71,9 +77,39 @@ def _registry_foreground_summary(registry: pd.DataFrame, nickname: str) -> dict:
     }
 
 
+def _coherence_from_legacy_dnu(burst: str, dnu: dict) -> str:
+    chime = dnu.get("dnu_chime_mhz")
+    dsa = dnu.get("dnu_dsa_mhz")
+    if not (
+        isinstance(chime, (int, float))
+        and isinstance(dsa, (int, float))
+        and np.isfinite(chime)
+        and np.isfinite(dsa)
+    ):
+        return "N/A — multi-scale dnu not wired"
+    comp = {"dnu_wide_mhz": float(max(chime, dsa)), "dnu_narrow_mhz": float(min(chime, dsa))}
+    block = build_scintillation_source_block(burst)
+    dist = block.get("distance_mpc", np.nan)
+    return format_two_screen_coherence(comp, float(dist), CHIME_REF_MHZ)
+
+
+def _dm_budget_from_registry(burst: str) -> str:
+    target = next((t for t in TARGETS if t[0].lower() == burst.lower()), None)
+    if target is None:
+        return "N/A — target not in TARGETS"
+    name, ra, dec, z = target
+
+    def _stub_mw(*_args, **_kwargs):
+        return (0.0, 0.0, 0.0)
+
+    budget = build_sightline_budget(name, ra, dec, z, dm_mw_fn=_stub_mw, use_registry=True)
+    return f"DM: {budget['verdict_dm']}; scatter: {budget['verdict_scattering']}"
+
+
 def _multi_screen_triggers(
     tau_row: dict,
     dnu: dict,
+    burst: str,
 ) -> dict:
     triggers: list[str] = []
     tau_c = tau_row.get("tau_consistency_chime_ms")
@@ -115,7 +151,7 @@ def _multi_screen_triggers(
             else np.nan
         ),
         "multi_screen_triggers": "|".join(triggers) if triggers else "",
-        "two_screen_coherence": "N/A — multi-scale dnu not wired",
+        "two_screen_coherence": _coherence_from_legacy_dnu(burst, dnu),
         "constraint_level": _constraint_level(triggers, dnu),
     }
 
@@ -141,7 +177,7 @@ def build_attribution_matrix(
         tau_row = build_tau_consistency_row(burst)
         dnu = _dnu_cells(burst)
         fg = _registry_foreground_summary(registry, burst)
-        screen = _multi_screen_triggers(tau_row, dnu)
+        screen = _multi_screen_triggers(tau_row, dnu, burst)
         rows.append(
             {
                 "nickname": burst,
@@ -160,7 +196,7 @@ def build_attribution_matrix(
                 **fg,
                 **screen,
                 "scattering_screen": "undetermined",
-                "dm_budget_verdict": "N/A — sightline_budget not wired to registry",
+                "dm_budget_verdict": _dm_budget_from_registry(burst),
                 "cross_check_notes": "",
             }
         )

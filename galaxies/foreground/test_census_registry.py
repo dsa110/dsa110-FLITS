@@ -4,6 +4,7 @@
 from galaxies.foreground.census_registry import (
     budget_eligible,
     build_intervening_census_registry,
+    registry_to_matches,
     scratch_codetection_dir,
 )
 
@@ -40,3 +41,12 @@ def test_registry_budget_eligible_counts():
     clusters = eligible[eligible.type == "cluster"]
     assert len(clusters) == 1
     assert clusters.iloc[0].nickname == "phineas"
+
+
+def test_registry_to_matches_budget_eligible_only():
+    reg = build_intervening_census_registry()
+    matches = registry_to_matches(reg, "phineas", z_frb=0.271)
+    assert len(matches) >= 1
+    assert (matches.z < 0.271).all()
+    ineligible = registry_to_matches(reg, "phineas", z_frb=0.271)
+    assert "catalog" in ineligible.columns

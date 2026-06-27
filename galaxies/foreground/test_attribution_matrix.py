@@ -56,3 +56,16 @@ def test_joint_tau_loaded_for_casey():
     df = build_attribution_matrix()
     casey = df[df.nickname == "casey"].iloc[0]
     assert math.isfinite(casey.tau_joint_1ghz_ms)
+
+
+def test_dm_budget_wired_to_registry():
+    df = build_attribution_matrix()
+    wilhelm = df[df.nickname == "wilhelm"].iloc[0]
+    assert str(wilhelm.dm_budget_verdict).startswith("DM:")
+    assert "sightline_budget not wired" not in wilhelm.dm_budget_verdict
+
+
+def test_wilhelm_two_screen_coherence_computed():
+    df = build_attribution_matrix()
+    wilhelm = df[df.nickname == "wilhelm"].iloc[0]
+    assert "kpc^2" in str(wilhelm.two_screen_coherence)

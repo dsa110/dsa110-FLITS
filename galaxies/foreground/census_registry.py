@@ -111,6 +111,16 @@ def build_intervening_census_registry(scratch_dir: Path | str | None = None) -> 
         b_over_r500 = (
             float(fg.b_over_r500) if fg is not None and pd.notna(fg.b_over_r500) else np.nan
         )
+        m500 = (
+            float(fg.m500_1e14msun)
+            if fg is not None and pd.notna(getattr(fg, "m500_1e14msun", np.nan))
+            else np.nan
+        )
+        r500 = (
+            float(fg.r500_mpc)
+            if fg is not None and pd.notna(getattr(fg, "r500_mpc", np.nan))
+            else np.nan
+        )
         verdict = str(r.final_verdict)
         rows.append(
             {
@@ -124,6 +134,8 @@ def build_intervening_census_registry(scratch_dir: Path | str | None = None) -> 
                 "dec_deg": float(r.dec_deg),
                 "impact_kpc": round(impact, 1) if np.isfinite(impact) else np.nan,
                 "b_over_r500": round(b_over_r500, 2) if np.isfinite(b_over_r500) else np.nan,
+                "m500_1e14msun": round(m500, 3) if np.isfinite(m500) else np.nan,
+                "r500_mpc": round(r500, 3) if np.isfinite(r500) else np.nan,
                 "best_z": round(z, 4) if np.isfinite(z) else np.nan,
                 "best_z_err": round(zerr, 4) if np.isfinite(zerr) else np.nan,
                 "best_z_source": zsrc,
@@ -138,6 +150,45 @@ def build_intervening_census_registry(scratch_dir: Path | str | None = None) -> 
             }
         )
 
+    return pd.DataFrame(rows)
+
+
+def load_intervening_census_registry(path: Path | str | None = None) -> pd.DataFrame:
+    csv_path = Path(path) if path is not None else DATA_DIR / "intervening_census_registry.csv"
+    if csv_path.is_file():
+        return pd.read_csv(csv_path)
+    return build_intervening_census_registry()
+
+
+def registry_to_matches(
+    registry: pd.DataFrame,
+    nickname: str,
+    z_frb: float,
+) -> pd.DataFrame:
+    """Budget-eligible confirmed registry rows as a ``build_unified_records`` matches table."""
+    sub = registry[
+        (registry.nickname.str.lower() == nickname.lower())
+        & (registry.final_verdict == "confirmed")
+        & (registry.budget_eligible)
+    ]
+    rows: list[dict] = []
+    for _, r in sub.iterrows():
+        z = float(r.best_z)
+        if not (np.isfinite(z) and z < float(z_frb)):
+            continue
+        row: dict = {
+            "ra": float(r.ra_deg),
+            "dec": float(r.dec_deg),
+            "z": z,
+            "impact_kpc": float(r.impact_kpc) if np.isfinite(r.impact_kpc) else np.nan,
+            "catalog": f"registry:{r.survey}",
+            "classification": "GClstr" if r.type == "cluster" else str(r.classification),
+        }
+        if r.type == "cluster" and np.isfinite(r.get("m500_1e14msun", np.nan)):
+            row["m500_msun"] = float(r.m500_1e14msun) * 1e14
+        if np.isfinite(r.get("r500_mpc", np.nan)):
+            row["R500_mpc"] = float(r.r500_mpc)
+        rows.append(row)
     return pd.DataFrame(rows)
 
 

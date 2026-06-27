@@ -381,7 +381,7 @@ def generate_corner_plot(
     print(f"Saved corner plot to: {corner_path}")
 
     if show:
-        # plt.show()
+        plt.show()
     else:
         plt.close(fig_corner)
 

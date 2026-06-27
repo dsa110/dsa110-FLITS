@@ -1,0 +1,370 @@
+{
+  "generated_by": "scripts/migration/map_chime_bursts_namespaces.py",
+  "generated_date": "2026-06-26",
+  "arc_root": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts",
+  "iacobus_burst_npys": "/Users/iacobus/Research/CHIME_DSA_Codetections/burst_npys",
+  "row_count": 51,
+  "codetection_npy_rows": 48,
+  "iacobus_linked_rows": 48,
+  "exact_basename_overlap": 0,
+  "policy": "read-only map; no bulk rsync/vcp/delete",
+  "rows": [
+    {
+      "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts/dmphase/analysis_20260619_055230",
+      "arc_basename": "analysis_20260619_055230",
+      "burst_nickname_guess": "",
+      "iacobus_match": "",
+      "notes": "CANFAR analysis session dir; no iacobus counterpart expected"
+    },
+    {
+      "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts/dmphase/analysis_20260619_060505",
+      "arc_basename": "analysis_20260619_060505",
+      "burst_nickname_guess": "",
+      "iacobus_match": "",
+      "notes": "CANFAR analysis session dir; no iacobus counterpart expected"
+    },
+    {
+      "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts/dmphase/analysis_20260619_075220",
+      "arc_basename": "analysis_20260619_075220",
+      "burst_nickname_guess": "",
+      "iacobus_match": "",
+      "notes": "CANFAR analysis session dir; no iacobus counterpart expected"
+    },
+    {
+      "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts/dmtransform/uncorrected/casey_I_491_207_32000b.npy",
+      "arc_basename": "casey_I_491_207_32000b.npy",
+      "burst_nickname_guess": "casey",
+      "iacobus_match": "casey_14000_16500.npy; casey_240229aaad",
+      "notes": "nickname casey \u2194 2 iacobus entry/entries; TNS date code 240229; namespace differs from arc _chime_I_ fit naming"
+    },
+    {
+      "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts/dmphase/uncorrected/casey_I_491_2085_32000b.npy",
+      "arc_basename": "casey_I_491_2085_32000b.npy",
+      "burst_nickname_guess": "casey",
+      "iacobus_match": "casey_14000_16500.npy; casey_240229aaad",
+      "notes": "nickname casey \u2194 2 iacobus entry/entries; TNS date code 240229; namespace differs from arc _chime_I_ fit naming"
+    },
+    {
+      "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts/dmtransform/casey_chime_I_491_207_32000b_cntr_bpc.npy",
+      "arc_basename": "casey_chime_I_491_207_32000b_cntr_bpc.npy",
+      "burst_nickname_guess": "casey",
+      "iacobus_match": "casey_14000_16500.npy; casey_240229aaad",
+      "notes": "nickname casey \u2194 2 iacobus entry/entries; TNS date code 240229; namespace differs from arc _chime_I_ fit naming"
+    },
+    {
+      "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts/dmphase/casey_chime_I_491_2085_32000b_cntr_bpc.npy",
+      "arc_basename": "casey_chime_I_491_2085_32000b_cntr_bpc.npy",
+      "burst_nickname_guess": "casey",
+      "iacobus_match": "casey_14000_16500.npy; casey_240229aaad",
+      "notes": "nickname casey \u2194 2 iacobus entry/entries; TNS date code 240229; namespace differs from arc _chime_I_ fit naming"
+    },
+    {
+      "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts/dmphase/uncorrected/chromatica_I_272_6382_32000b.npy",
+      "arc_basename": "chromatica_I_272_6382_32000b.npy",
+      "burst_nickname_guess": "chromatica",
+      "iacobus_match": "chromatica_240203aacl",
+      "notes": "nickname chromatica \u2194 1 iacobus entry/entries; TNS date code 240203; namespace differs from arc _chime_I_ fit naming"
+    },
+    {
+      "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts/dmtransform/uncorrected/chromatica_I_272_664_32000b.npy",
+      "arc_basename": "chromatica_I_272_664_32000b.npy",
+      "burst_nickname_guess": "chromatica",
+      "iacobus_match": "chromatica_240203aacl",
+      "notes": "nickname chromatica \u2194 1 iacobus entry/entries; TNS date code 240203; namespace differs from arc _chime_I_ fit naming"
+    },
+    {
+      "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts/dmphase/chromatica_chime_I_272_6382_32000b_cntr_bpc.npy",
+      "arc_basename": "chromatica_chime_I_272_6382_32000b_cntr_bpc.npy",
+      "burst_nickname_guess": "chromatica",
+      "iacobus_match": "chromatica_240203aacl",
+      "notes": "nickname chromatica \u2194 1 iacobus entry/entries; TNS date code 240203; namespace differs from arc _chime_I_ fit naming"
+    },
+    {
+      "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts/dmtransform/chromatica_chime_I_272_664_32000b_cntr_bpc.npy",
+      "arc_basename": "chromatica_chime_I_272_664_32000b_cntr_bpc.npy",
+      "burst_nickname_guess": "chromatica",
+      "iacobus_match": "chromatica_240203aacl",
+      "notes": "nickname chromatica \u2194 1 iacobus entry/entries; TNS date code 240203; namespace differs from arc _chime_I_ fit naming"
+    },
+    {
+      "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts/dmphase/uncorrected/freya_I_912_4067_32000b.npy",
+      "arc_basename": "freya_I_912_4067_32000b.npy",
+      "burst_nickname_guess": "freya",
+      "iacobus_match": "I_230325aaag_freya.npy; freya_230325aaag",
+      "notes": "nickname freya \u2194 2 iacobus entry/entries; TNS date code 230325; namespace differs from arc _chime_I_ fit naming"
+    },
+    {
+      "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts/dmtransform/uncorrected/freya_I_912_4_32000b.npy",
+      "arc_basename": "freya_I_912_4_32000b.npy",
+      "burst_nickname_guess": "freya",
+      "iacobus_match": "I_230325aaag_freya.npy; freya_230325aaag",
+      "notes": "nickname freya \u2194 2 iacobus entry/entries; TNS date code 230325; namespace differs from arc _chime_I_ fit naming"
+    },
+    {
+      "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts/dmphase/freya_chime_I_912_4067_32000b_cntr_bpc.npy",
+      "arc_basename": "freya_chime_I_912_4067_32000b_cntr_bpc.npy",
+      "burst_nickname_guess": "freya",
+      "iacobus_match": "I_230325aaag_freya.npy; freya_230325aaag",
+      "notes": "nickname freya \u2194 2 iacobus entry/entries; TNS date code 230325; namespace differs from arc _chime_I_ fit naming"
+    },
+    {
+      "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts/dmtransform/freya_chime_I_912_4_32000b_cntr_bpc.npy",
+      "arc_basename": "freya_chime_I_912_4_32000b_cntr_bpc.npy",
+      "burst_nickname_guess": "freya",
+      "iacobus_match": "I_230325aaag_freya.npy; freya_230325aaag",
+      "notes": "nickname freya \u2194 2 iacobus entry/entries; TNS date code 230325; namespace differs from arc _chime_I_ fit naming"
+    },
+    {
+      "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts/dmtransform/uncorrected/hamilton_I_518_799_32000b.npy",
+      "arc_basename": "hamilton_I_518_799_32000b.npy",
+      "burst_nickname_guess": "hamilton",
+      "iacobus_match": "hamilton_14000_16500.npy; hamilton_230913aaao",
+      "notes": "nickname hamilton \u2194 2 iacobus entry/entries; TNS date code 230913; namespace differs from arc _chime_I_ fit naming"
+    },
+    {
+      "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts/dmphase/uncorrected/hamilton_I_518_8007_32000b.npy",
+      "arc_basename": "hamilton_I_518_8007_32000b.npy",
+      "burst_nickname_guess": "hamilton",
+      "iacobus_match": "hamilton_14000_16500.npy; hamilton_230913aaao",
+      "notes": "nickname hamilton \u2194 2 iacobus entry/entries; TNS date code 230913; namespace differs from arc _chime_I_ fit naming"
+    },
+    {
+      "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts/dmtransform/hamilton_chime_I_518_799_32000b_cntr_bpc.npy",
+      "arc_basename": "hamilton_chime_I_518_799_32000b_cntr_bpc.npy",
+      "burst_nickname_guess": "hamilton",
+      "iacobus_match": "hamilton_14000_16500.npy; hamilton_230913aaao",
+      "notes": "nickname hamilton \u2194 2 iacobus entry/entries; TNS date code 230913; namespace differs from arc _chime_I_ fit naming"
+    },
+    {
+      "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts/dmphase/hamilton_chime_I_518_8007_32000b_cntr_bpc.npy",
+      "arc_basename": "hamilton_chime_I_518_8007_32000b_cntr_bpc.npy",
+      "burst_nickname_guess": "hamilton",
+      "iacobus_match": "hamilton_14000_16500.npy; hamilton_230913aaao",
+      "notes": "nickname hamilton \u2194 2 iacobus entry/entries; TNS date code 230913; namespace differs from arc _chime_I_ fit naming"
+    },
+    {
+      "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts/dmphase/uncorrected/isha_I_411_4359_32000b.npy",
+      "arc_basename": "isha_I_411_4359_32000b.npy",
+      "burst_nickname_guess": "isha",
+      "iacobus_match": "isha_14000_16500.npy; isha_221113aaao",
+      "notes": "nickname isha \u2194 2 iacobus entry/entries; TNS date code 221113; namespace differs from arc _chime_I_ fit naming"
+    },
+    {
+      "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts/dmtransform/uncorrected/isha_I_411_568_32000b.npy",
+      "arc_basename": "isha_I_411_568_32000b.npy",
+      "burst_nickname_guess": "isha",
+      "iacobus_match": "isha_14000_16500.npy; isha_221113aaao",
+      "notes": "nickname isha \u2194 2 iacobus entry/entries; TNS date code 221113; namespace differs from arc _chime_I_ fit naming"
+    },
+    {
+      "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts/dmphase/isha_chime_I_411_4359_32000b_cntr_bpc.npy",
+      "arc_basename": "isha_chime_I_411_4359_32000b_cntr_bpc.npy",
+      "burst_nickname_guess": "isha",
+      "iacobus_match": "isha_14000_16500.npy; isha_221113aaao",
+      "notes": "nickname isha \u2194 2 iacobus entry/entries; TNS date code 221113; namespace differs from arc _chime_I_ fit naming"
+    },
+    {
+      "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts/dmtransform/isha_chime_I_411_568_32000b_cntr_bpc.npy",
+      "arc_basename": "isha_chime_I_411_568_32000b_cntr_bpc.npy",
+      "burst_nickname_guess": "isha",
+      "iacobus_match": "isha_14000_16500.npy; isha_221113aaao",
+      "notes": "nickname isha \u2194 2 iacobus entry/entries; TNS date code 221113; namespace differs from arc _chime_I_ fit naming"
+    },
+    {
+      "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts/dmtransform/uncorrected/johndoeII_I_696_506_32000b.npy",
+      "arc_basename": "johndoeII_I_696_506_32000b.npy",
+      "burst_nickname_guess": "johndoeii",
+      "iacobus_match": "johndoe_230814aaas",
+      "notes": "nickname johndoeii \u2194 1 iacobus entry/entries; TNS date code 230814; namespace differs from arc _chime_I_ fit naming"
+    },
+    {
+      "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts/dmphase/uncorrected/johndoeII_I_696_5184_32000b.npy",
+      "arc_basename": "johndoeII_I_696_5184_32000b.npy",
+      "burst_nickname_guess": "johndoeii",
+      "iacobus_match": "johndoe_230814aaas",
+      "notes": "nickname johndoeii \u2194 1 iacobus entry/entries; TNS date code 230814; namespace differs from arc _chime_I_ fit naming"
+    },
+    {
+      "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts/dmtransform/johndoeII_chime_I_696_506_32000b_cntr_bpc.npy",
+      "arc_basename": "johndoeII_chime_I_696_506_32000b_cntr_bpc.npy",
+      "burst_nickname_guess": "johndoeii",
+      "iacobus_match": "johndoe_230814aaas",
+      "notes": "nickname johndoeii \u2194 1 iacobus entry/entries; TNS date code 230814; namespace differs from arc _chime_I_ fit naming"
+    },
+    {
+      "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts/dmphase/johndoeII_chime_I_696_5184_32000b_cntr_bpc.npy",
+      "arc_basename": "johndoeII_chime_I_696_5184_32000b_cntr_bpc.npy",
+      "burst_nickname_guess": "johndoeii",
+      "iacobus_match": "johndoe_230814aaas",
+      "notes": "nickname johndoeii \u2194 1 iacobus entry/entries; TNS date code 230814; namespace differs from arc _chime_I_ fit naming"
+    },
+    {
+      "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts/dmtransform/uncorrected/mahi_I_960_128_32000b.npy",
+      "arc_basename": "mahi_I_960_128_32000b.npy",
+      "burst_nickname_guess": "mahi",
+      "iacobus_match": "mahi_14000_16500.npy; mahi_240122aaag",
+      "notes": "nickname mahi \u2194 2 iacobus entry/entries; TNS date code 240122; namespace differs from arc _chime_I_ fit naming"
+    },
+    {
+      "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts/dmphase/uncorrected/mahi_I_960_1316_32000b.npy",
+      "arc_basename": "mahi_I_960_1316_32000b.npy",
+      "burst_nickname_guess": "mahi",
+      "iacobus_match": "mahi_14000_16500.npy; mahi_240122aaag",
+      "notes": "nickname mahi \u2194 2 iacobus entry/entries; TNS date code 240122; namespace differs from arc _chime_I_ fit naming"
+    },
+    {
+      "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts/dmtransform/mahi_chime_I_960_128_32000b_cntr_bpc.npy",
+      "arc_basename": "mahi_chime_I_960_128_32000b_cntr_bpc.npy",
+      "burst_nickname_guess": "mahi",
+      "iacobus_match": "mahi_14000_16500.npy; mahi_240122aaag",
+      "notes": "nickname mahi \u2194 2 iacobus entry/entries; TNS date code 240122; namespace differs from arc _chime_I_ fit naming"
+    },
+    {
+      "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts/dmphase/mahi_chime_I_960_1316_32000b_cntr_bpc.npy",
+      "arc_basename": "mahi_chime_I_960_1316_32000b_cntr_bpc.npy",
+      "burst_nickname_guess": "mahi",
+      "iacobus_match": "mahi_14000_16500.npy; mahi_240122aaag",
+      "notes": "nickname mahi \u2194 2 iacobus entry/entries; TNS date code 240122; namespace differs from arc _chime_I_ fit naming"
+    },
+    {
+      "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts/dmtransform/uncorrected/oran_I_396_882_32000b.npy",
+      "arc_basename": "oran_I_396_882_32000b.npy",
+      "burst_nickname_guess": "oran",
+      "iacobus_match": "oran_220506aabd",
+      "notes": "nickname oran \u2194 1 iacobus entry/entries; TNS date code 220506; namespace differs from arc _chime_I_ fit naming"
+    },
+    {
+      "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts/dmphase/uncorrected/oran_I_397_0153_32000b.npy",
+      "arc_basename": "oran_I_397_0153_32000b.npy",
+      "burst_nickname_guess": "oran",
+      "iacobus_match": "oran_220506aabd",
+      "notes": "nickname oran \u2194 1 iacobus entry/entries; TNS date code 220506; namespace differs from arc _chime_I_ fit naming"
+    },
+    {
+      "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts/dmtransform/oran_chime_I_396_882_32000b_cntr_bpc.npy",
+      "arc_basename": "oran_chime_I_396_882_32000b_cntr_bpc.npy",
+      "burst_nickname_guess": "oran",
+      "iacobus_match": "oran_220506aabd",
+      "notes": "nickname oran \u2194 1 iacobus entry/entries; TNS date code 220506; namespace differs from arc _chime_I_ fit naming"
+    },
+    {
+      "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts/dmphase/oran_chime_I_397_0153_32000b_cntr_bpc.npy",
+      "arc_basename": "oran_chime_I_397_0153_32000b_cntr_bpc.npy",
+      "burst_nickname_guess": "oran",
+      "iacobus_match": "oran_220506aabd",
+      "notes": "nickname oran \u2194 1 iacobus entry/entries; TNS date code 220506; namespace differs from arc _chime_I_ fit naming"
+    },
+    {
+      "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts/dmtransform/uncorrected/phineas_I_610_274_32000b.npy",
+      "arc_basename": "phineas_I_610_274_32000b.npy",
+      "burst_nickname_guess": "phineas",
+      "iacobus_match": "phineas_0_5121.npy; phineas_230307aaao",
+      "notes": "nickname phineas \u2194 2 iacobus entry/entries; TNS date code 230307; namespace differs from arc _chime_I_ fit naming"
+    },
+    {
+      "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts/dmphase/uncorrected/phineas_I_610_2894_32000b.npy",
+      "arc_basename": "phineas_I_610_2894_32000b.npy",
+      "burst_nickname_guess": "phineas",
+      "iacobus_match": "phineas_0_5121.npy; phineas_230307aaao",
+      "notes": "nickname phineas \u2194 2 iacobus entry/entries; TNS date code 230307; namespace differs from arc _chime_I_ fit naming"
+    },
+    {
+      "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts/dmtransform/phineas_chime_I_610_274_32000b_cntr_bpc.npy",
+      "arc_basename": "phineas_chime_I_610_274_32000b_cntr_bpc.npy",
+      "burst_nickname_guess": "phineas",
+      "iacobus_match": "phineas_0_5121.npy; phineas_230307aaao",
+      "notes": "nickname phineas \u2194 2 iacobus entry/entries; TNS date code 230307; namespace differs from arc _chime_I_ fit naming"
+    },
+    {
+      "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts/dmphase/phineas_chime_I_610_2894_32000b_cntr_bpc.npy",
+      "arc_basename": "phineas_chime_I_610_2894_32000b_cntr_bpc.npy",
+      "burst_nickname_guess": "phineas",
+      "iacobus_match": "phineas_0_5121.npy; phineas_230307aaao",
+      "notes": "nickname phineas \u2194 2 iacobus entry/entries; TNS date code 230307; namespace differs from arc _chime_I_ fit naming"
+    },
+    {
+      "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts/dmtransform/uncorrected/whitney_I_462_174_32000b.npy",
+      "arc_basename": "whitney_I_462_174_32000b.npy",
+      "burst_nickname_guess": "whitney",
+      "iacobus_match": "whitney_220310aaam",
+      "notes": "nickname whitney \u2194 1 iacobus entry/entries; TNS date code 220310; namespace differs from arc _chime_I_ fit naming"
+    },
+    {
+      "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts/dmphase/uncorrected/whitney_I_462_1891_32000b.npy",
+      "arc_basename": "whitney_I_462_1891_32000b.npy",
+      "burst_nickname_guess": "whitney",
+      "iacobus_match": "whitney_220310aaam",
+      "notes": "nickname whitney \u2194 1 iacobus entry/entries; TNS date code 220310; namespace differs from arc _chime_I_ fit naming"
+    },
+    {
+      "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts/dmtransform/whitney_chime_I_462_174_32000b_cntr_bpc.npy",
+      "arc_basename": "whitney_chime_I_462_174_32000b_cntr_bpc.npy",
+      "burst_nickname_guess": "whitney",
+      "iacobus_match": "whitney_220310aaam",
+      "notes": "nickname whitney \u2194 1 iacobus entry/entries; TNS date code 220310; namespace differs from arc _chime_I_ fit naming"
+    },
+    {
+      "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts/dmphase/whitney_chime_I_462_1891_32000b_cntr_bpc.npy",
+      "arc_basename": "whitney_chime_I_462_1891_32000b_cntr_bpc.npy",
+      "burst_nickname_guess": "whitney",
+      "iacobus_match": "whitney_220310aaam",
+      "notes": "nickname whitney \u2194 1 iacobus entry/entries; TNS date code 220310; namespace differs from arc _chime_I_ fit naming"
+    },
+    {
+      "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts/dmtransform/uncorrected/wilhelm_I_602_346_32000b.npy",
+      "arc_basename": "wilhelm_I_602_346_32000b.npy",
+      "burst_nickname_guess": "wilhelm",
+      "iacobus_match": "wilhelm_221203aaaa",
+      "notes": "nickname wilhelm \u2194 1 iacobus entry/entries; TNS date code 221203; namespace differs from arc _chime_I_ fit naming"
+    },
+    {
+      "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts/dmphase/uncorrected/wilhelm_I_602_3809_32000b.npy",
+      "arc_basename": "wilhelm_I_602_3809_32000b.npy",
+      "burst_nickname_guess": "wilhelm",
+      "iacobus_match": "wilhelm_221203aaaa",
+      "notes": "nickname wilhelm \u2194 1 iacobus entry/entries; TNS date code 221203; namespace differs from arc _chime_I_ fit naming"
+    },
+    {
+      "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts/dmtransform/wilhelm_chime_I_602_346_32000b_cntr_bpc.npy",
+      "arc_basename": "wilhelm_chime_I_602_346_32000b_cntr_bpc.npy",
+      "burst_nickname_guess": "wilhelm",
+      "iacobus_match": "wilhelm_221203aaaa",
+      "notes": "nickname wilhelm \u2194 1 iacobus entry/entries; TNS date code 221203; namespace differs from arc _chime_I_ fit naming"
+    },
+    {
+      "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts/dmphase/wilhelm_chime_I_602_3809_32000b_cntr_bpc.npy",
+      "arc_basename": "wilhelm_chime_I_602_3809_32000b_cntr_bpc.npy",
+      "burst_nickname_guess": "wilhelm",
+      "iacobus_match": "wilhelm_221203aaaa",
+      "notes": "nickname wilhelm \u2194 1 iacobus entry/entries; TNS date code 221203; namespace differs from arc _chime_I_ fit naming"
+    },
+    {
+      "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts/dmphase/uncorrected/zach_I_262_3621_32000b.npy",
+      "arc_basename": "zach_I_262_3621_32000b.npy",
+      "burst_nickname_guess": "zach",
+      "iacobus_match": "zach_220207aabh",
+      "notes": "nickname zach \u2194 1 iacobus entry/entries; TNS date code 220207; namespace differs from arc _chime_I_ fit naming"
+    },
+    {
+      "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts/dmtransform/uncorrected/zach_I_262_368_32000b.npy",
+      "arc_basename": "zach_I_262_368_32000b.npy",
+      "burst_nickname_guess": "zach",
+      "iacobus_match": "zach_220207aabh",
+      "notes": "nickname zach \u2194 1 iacobus entry/entries; TNS date code 220207; namespace differs from arc _chime_I_ fit naming"
+    },
+    {
+      "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts/dmphase/zach_chime_I_262_3621_32000b_cntr_bpc.npy",
+      "arc_basename": "zach_chime_I_262_3621_32000b_cntr_bpc.npy",
+      "burst_nickname_guess": "zach",
+      "iacobus_match": "zach_220207aabh",
+      "notes": "nickname zach \u2194 1 iacobus entry/entries; TNS date code 220207; namespace differs from arc _chime_I_ fit naming"
+    },
+    {
+      "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/CHIME_bursts/dmtransform/zach_chime_I_262_368_32000b_cntr_bpc.npy",
+      "arc_basename": "zach_chime_I_262_368_32000b_cntr_bpc.npy",
+      "burst_nickname_guess": "zach",
+      "iacobus_match": "zach_220207aabh",
+      "notes": "nickname zach \u2194 1 iacobus entry/entries; TNS date code 220207; namespace differs from arc _chime_I_ fit naming"
+    }
+  ]
+}

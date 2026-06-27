@@ -6,8 +6,8 @@
   "tau": 0.4859766379421074,
   "alpha": 1.4581137120977927,
   "alpha_railed": false,
-  "quality_flag": "FAIL",
+  "quality_flag": "MARGINAL",
   "notes": [
-    "L1 alpha=1.458 outside (1.5,6.0)"
+    "L2 chi2_C=1.15(PASS) chi2_D=1.68(MARGINAL); L3 alpha=1.46 sub-Kolmogorov"
   ]
 }

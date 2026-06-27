@@ -1,0 +1,21 @@
+Acronyms:
+PBF — Pulse Broadening Function
+
+**Findings**
+1. [analysis/calculate_burst_energies.py](/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS/analysis/calculate_burst_energies.py:457): `--check` does not exercise the dropped-nonphysical branch. It only checks that live kept fits are physical. If someone removed the `if not physical: continue` block, or broke the dropped-list behavior, this check would still pass as long as the current live sidecars are all physical. This directly misses one of the claimed regression cases. The smallest fix is one monkeypatch/temp fixture around `JOINT_DIR` or `Path.glob/read_text` with one valid FAIL fit and one `c0_C <= 0` or `gamma_C = NaN` fit.
+
+2. [analysis/calculate_burst_energies.py](/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS/analysis/calculate_burst_energies.py:173): missing c0/gamma is silently skipped, not reported as dropped and not represented in provenance. The log says “missing/non-physical”, but `except KeyError: continue` bypasses `dropped.append(nick)`. A malformed or schema-shifted fit can disappear from the energy sample with no stderr entry and no sidecar record. That is a provenance bug for exactly the edge case the new policy claims to gate.
+
+3. [analysis/burst_energies/burst_energies.provenance.json](/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS/analysis/burst_energies/burst_energies.provenance.json:2): `git_sha` is misleading for generated provenance. The sidecar says `6a66b237`, and local `git rev-parse --short HEAD` is also `6a66b237`, but the reviewed outputs and script are uncommitted (`M`/`??`). So the SHA points to a tree that does not contain this provenance file or the new gate behavior. If this is committed as-is, the sidecar will still identify the pre-change commit. Minimal fix: include `git_dirty: true` plus hashes/paths of the consumed joint fit/gate JSONs, or generate the sidecar in CI after commit.
+
+4. [analysis/calculate_burst_energies.py](/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS/analysis/calculate_burst_energies.py:29): the module docstring still states FAIL fits are dropped because alpha is wrong. That contradicts the new implementation and the provenance policy. This is not runtime breakage, but it is a real reproducibility/review hazard because it documents the old exclusion rule at the top of the executable artifact.
+
+**Checks Against Your Questions**
+The alpha-independence claim is upheld by the energy calculation path I inspected: `band_integral`, `band_energy_erg`, and `analysis.flux_cal.joint_band_fluence_jy_ms_hz` consume c0/gamma, band frequencies, noise/flux calibration, distance, and redshift, but do not read alpha. Positive gamma is not a bug; with positive c0 and ascending positive band edges, the power-law integral remains positive for either gamma sign.
+
+The new physical gate handles live NaN/inf and `c0 <= 0` in the intended place, but it is brittle for schema edge cases: absent keys silently vanish, and non-numeric/null medians can raise rather than be classified as dropped.
+
+I could not execute `python3 analysis/calculate_burst_energies.py --check` in this read-only sandbox because importing the galaxy config pulls in Matplotlib, which requires a writable cache/temp directory. Direct JSON inspection showed the current retained energy rows include Oran and Whitney as `quality_flag=FAIL`, with finite gamma and positive c0 values; the sidecars also have a third FAIL, `johndoeII`, excluded later by placeholder redshift rather than by the energy gate.
+
+No evidence found that alpha itself still enters E_iso.
+

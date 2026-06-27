@@ -269,8 +269,18 @@ class ScintillationAnalysis:
         )
 
         # Attach two-screen / emission-size / consistency interpretation per component
-        # (no-op unless config['source'] carries τ / screen distances). Nimmo et al. 2025.
-        analysis.attach_scintillation_interpretation(self.final_results, self.config)
+        # (bridge fills config['source'] from tau_consistency + optional multi-scale Δν).
+        from galaxies.foreground.scintillation_bridge import attach_interpretation_with_bridge
+
+        nick = self.config.get("burst_id") or (self.config.get("source") or {}).get("nickname")
+        self.config = attach_interpretation_with_bridge(
+            self.final_results,
+            self.config,
+            nickname=nick,
+            acf_results=self.acf_results,
+            masked_spectrum=self.masked_spectrum,
+            burst_lims=burst_lims,
+        )
 
         # Attach the NE2025 MW scattering floor + extragalactic-excess flag when the
         # burst sky position is in config['source'] (no-op without it or the optional

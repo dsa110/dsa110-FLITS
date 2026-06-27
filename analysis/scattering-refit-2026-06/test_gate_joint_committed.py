@@ -12,12 +12,18 @@ def _fit(alpha, tau=0.3, bounds=(1.0, 6.0)):
     }
 
 
-def test_alpha_below_floor_fails_level1_but_not_prior_railed():
-    # whitney/oran/johndoeii case: converged to an unphysical alpha (<1.5) with
-    # good chi2, but 0.4 above the 1.0 prior floor -> L1 FAIL, rail=False.
-    v = gate_one("x", _fit(1.4), {"chi2_chime": 1.0, "chi2_dsa": 1.0})
+def test_alpha_below_floor_fails_level1():
+    # alpha < 1.0 => achromatic limit; L1 FAIL (ADR-0004).
+    v = gate_one("x", _fit(0.95), {"chi2_chime": 1.0, "chi2_dsa": 1.0})
     assert v["final"] == "FAIL" and "alpha" in v["reason"].lower()
-    assert v["rail"] is False
+
+
+def test_sub_kolmogorov_passes_l1_is_marginal_l3():
+    # 1.0 <= alpha < 2.0: L1 PASS, L3 sub-Kolmogorov MARGINAL (not L1 FAIL).
+    v = gate_one("x", _fit(1.4), {"chi2_chime": 1.0, "chi2_dsa": 1.0})
+    assert v["l1"] == "PASS"
+    assert v["final"] == "MARGINAL"
+    assert "sub-Kolmogorov" in v["reason"]
 
 
 def test_alpha_at_ceiling_fails_level1():
@@ -45,7 +51,7 @@ def test_elevated_chi2_is_marginal():
 
 
 def test_alpha_off_kolmogorov_is_marginal():
-    # physical (1.5<a<6) and good chi2, but a=2.7 deviates from 3.5-4.5 -> MARGINAL (L3)
+    # physical (1.0<=a<6) and good chi2, but a=2.7 deviates from 3.5-4.5 -> MARGINAL (L3)
     v = gate_one("x", _fit(2.7), {"chi2_chime": 1.0, "chi2_dsa": 1.0})
     assert v["final"] == "MARGINAL"
 

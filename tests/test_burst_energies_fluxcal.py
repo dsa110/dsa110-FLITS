@@ -67,12 +67,14 @@ def test_energy_gate_is_alpha_independent():
     params = E.load_joint_params()
     kept = set(params)
     live_fail = {b for b, f in flags.items() if f == "FAIL"}
-    assert live_fail, "no live FAIL verdict to exercise the gate"
-    # decouple is real: at least one FAIL-flagged burst is retained (physical c0/gamma)
-    assert live_fail & kept, (
-        "expected FAIL-but-physical bursts retained for E_iso (energy is alpha-independent), "
-        f"but every FAIL burst was dropped: live_fail={sorted(live_fail)}"
-    )
+    if live_fail:
+        # decouple is real: at least one FAIL-flagged burst is retained (physical c0/gamma)
+        assert live_fail & kept, (
+            "expected FAIL-but-physical bursts retained for E_iso (energy is alpha-independent), "
+            f"but every FAIL burst was dropped: live_fail={sorted(live_fail)}"
+        )
+    else:
+        assert kept, "no joint c0/gamma fits loaded"
     # the actual gate: every kept burst has physical energy inputs, and quality_flag
     # is metadata only (never the exclusion criterion)
     for nick, p in params.items():

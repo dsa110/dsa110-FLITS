@@ -1,0 +1,15 @@
+chore(test): wire pytest-cov for repeatable dead-code coverage sweeps
+
+Makes coverage.py a standing tool (the validation_thresholds shim removed
+in #40 was found via an ad-hoc sweep; this makes it repeatable):
+
+- pytest-cov>=4.0 in the 'test' dependency-group
+- [tool.coverage] config: source = flits/scattering/scintillation, omit
+  tests+scripts, show_missing; deliberately no fail_under gate (coverage
+  here nominates dead code, it does not police CI)
+- 'nox -s cov' session mirroring the 'tests' extras
+
+'pytest --cov' now works with no flags.
+
+Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01GQbpq4cd1zoAEhKx3D6Krd

@@ -1,0 +1,28 @@
+{
+  "reviewed_by": "claude (read every PNG; cross-checked chi2 printouts)",
+  "date": "2026-06-23",
+  "figures": [
+    {"file": "zach_overlay_C2D3.png", "verdict": "match", "notes": "model tracks both bands; 2 CHIME + 3 DSA comps at sub-peaks; CHIME chi2/pt 1.54 slight peak residual."},
+    {"file": "phineas_overlay_C3D3.png", "verdict": "match", "notes": "clean both bands, 1.02/1.34."},
+    {"file": "oran_overlay_C2D1.png", "verdict": "match", "notes": "noisy CHIME but tracked; DSA broad pulse; 1.04/1.13."},
+    {"file": "isha_overlay_C2D1.png", "verdict": "match", "notes": "DSA broad+low-SNR explains the wide alpha posterior; 1.33/0.89."},
+    {"file": "mahi_overlay_C1D1.png", "verdict": "match", "notes": "clean single comp each; 1.04/0.84."},
+    {"file": "johndoeII_overlay_C2D2.png", "verdict": "match", "notes": "profile fits well but alpha=1.95 is the problem, not the fit."},
+    {"file": "hamilton_overlay_C4D1.png", "verdict": "anomaly", "notes": "DIAGNOSTIC: DSA band essentially noise, CHIME one narrow spike -> no lever arm -> alpha rails 1.5."},
+    {"file": "whitney_overlay_C2D1.png", "verdict": "match", "notes": "component model fits both bands (1.13/1.41) but alpha railed 1.52."},
+    {"file": "freya_joint_ppc_sharedzeta.png", "verdict": "match", "notes": "exemplar clean fit, 1.30/1.03, alpha=4.36."},
+    {"file": "casey_joint_ppc_sharedzeta.png", "verdict": "match", "notes": "clean, 1.41/0.99."},
+    {"file": "chromatica_joint_ppc_sharedzeta.png", "verdict": "match", "notes": "clean; DSA tail mildly under-fit; 1.14/1.16."},
+    {"file": "wilhelm_joint_ppc_sharedzeta.png", "verdict": "anomaly", "notes": "DSA chi2=4.55 (>3 fail); shape mismatch at high SNR. DOWNGRADE PASS->MARGINAL."},
+    {"file": "whitney_joint_ppc.png", "verdict": "anomaly", "notes": "base single-comp model flat, misses CHIME multi-peak, chi2=2.88. base alpha=3.75 not clean. whitney -> full FAIL."},
+
+    {"file": "zach_2d_C2D3.png", "verdict": "match", "notes": "2D model reproduces CHIME freq-time scattering sweep + DSA narrow spikes; residual noise-like (mild structure at brightest CHIME pixels)."},
+    {"file": "phineas_2d_C3D3.png", "verdict": "match", "notes": "2D model captures CHIME broadening tail + DSA burst; residuals clean. 1.02/1.34."},
+    {"file": "oran_2d_C2D1.png", "verdict": "match", "notes": "2D model tracks; 1.04/1.13 (reviewed in detail in 1D overlay)."},
+    {"file": "isha_2d_C2D1.png", "verdict": "match", "notes": "2D: DSA is a broad weak low-SNR blob -> poor alpha constraint; CHIME residual blob at peak. 1.33/0.89."},
+    {"file": "mahi_2d_C1D1.png", "verdict": "match", "notes": "2D model tracks both bands; 1.04/0.84 (reviewed in 1D)."},
+    {"file": "johndoeII_2d_C2D2.png", "verdict": "match", "notes": "2D model reproduces both bands' scattering sweep; residuals noise; alpha=1.95 the only issue. 1.03/1.19."},
+    {"file": "hamilton_2d_C4D1.png", "verdict": "anomaly", "notes": "2D makes failure unmistakable: DSA panel is pure noise, model blank there; CHIME one spike. No lever arm."},
+    {"file": "whitney_2d_C2D1.png", "verdict": "match", "notes": "2D shows mechanism: broad multi-peak CHIME vs clean narrow DSA spike -> single tau~nu^-alpha rails alpha to 1.52. Model reproduces both. 1.13/1.41."}
+  ]
+}

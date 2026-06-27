@@ -1,0 +1,5 @@
+SAFE_TO_DELETE pr-1 tip=5bd7072 docs: add dsa110-FLITS vs FLITS_GBT comparison; ancestor_exit=0; rev-list_count=0; cherry=empty status=0; ls-remote=status 124 timed out over origin git@github.com:jakobtfaber/dsa110-FLITS.git, no live result, already-fetched refs/remotes/origin/pr-1 absent show-ref exit=1; worktree_binding=none, checked-out branches are refs/heads/main and refs/heads/feat/joint-fit-gate
+
+SAFE_TO_DELETE worktree-agent-aba0094bff939a565 tip=cc64b7b feat(assoc): activate association pillars 2 & 4 with CHIME-side DM + localization (#29); ancestor_exit=0; rev-list_count=0; cherry=empty status=0; ls-remote=status 124 timed out over origin git@github.com:jakobtfaber/dsa110-FLITS.git, no live result, already-fetched refs/remotes/origin/worktree-agent-aba0094bff939a565 absent show-ref exit=1; worktree_binding=none, checked-out branches are refs/heads/main and refs/heads/feat/joint-fit-gate
+
+OVERALL: SAFE

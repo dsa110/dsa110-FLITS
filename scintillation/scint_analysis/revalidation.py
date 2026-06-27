@@ -268,6 +268,12 @@ def _n_lorentzian_model(n):
     return model
 
 
+def _param_stderr(param):
+    """lmfit parameter 1σ stderr as a float, or nan when unavailable."""
+    e = param.stderr
+    return float(e) if e is not None else float("nan")
+
+
 def compare_lorentzian_components(
     lags, acf, max_components=3, acf_err=None, delta_bic_strong=6.0, p_thresh=0.05
 ):
@@ -354,11 +360,18 @@ def compare_lorentzian_components(
         except Exception:
             fits.append({"n": n, "success": False, "bic": np.inf, "chi2": np.inf})
             continue
+
         comps = sorted(
             (
-                (abs(res_n.params[f"l{i}_gamma"].value), abs(res_n.params[f"l{i}_m"].value))
+                {
+                    "dnu_mhz": abs(res_n.params[f"l{i}_gamma"].value),
+                    "m": abs(res_n.params[f"l{i}_m"].value),
+                    "dnu_err": _param_stderr(res_n.params[f"l{i}_gamma"]),
+                    "m_err": _param_stderr(res_n.params[f"l{i}_m"]),
+                }
                 for i in range(n)
             ),
+            key=lambda c: c["dnu_mhz"],
             reverse=True,
         )
         fits.append(
@@ -371,7 +384,7 @@ def compare_lorentzian_components(
                 "redchi": float(res_n.redchi),
                 "n_params": int(res_n.nvarys),
                 "ndata": int(res_n.ndata),
-                "components": [{"dnu_mhz": g, "m": m} for g, m in comps],
+                "components": comps,
             }
         )
 

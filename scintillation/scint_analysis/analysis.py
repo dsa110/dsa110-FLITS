@@ -1298,6 +1298,110 @@ def _select_overall_best_model(all_subband_fits):
     return best_model
 
 
+def _determine_n_components(acf_results, max_components=3):
+    """Burst-level Lorentzian component count from the BIC + nested-F-test selector
+    (``revalidation.compare_lorentzian_components``) run on each sub-band ACF and
+    aggregated by plurality (ties → fewer components, the conservative default).
+
+    The pipeline feeds its OWN ACFs (``calculate_acf``) to the selector, so this does
+    not compromise the cross-check independence of the revalidation ACF estimator —
+    only the model-selection statistic is shared. Returns ``(n_components, per_subband)``.
+    """
+    from .revalidation import compare_lorentzian_components
+
+    per = []
+    for i in range(len(acf_results["subband_acfs"])):
+        lags = np.asarray(acf_results["subband_lags_mhz"][i], dtype=float)
+        acf = np.asarray(acf_results["subband_acfs"][i], dtype=float)
+        try:
+            per.append(compare_lorentzian_components(lags, acf, max_components=max_components))
+        except Exception as e:  # a single bad sub-band must not sink the burst
+            log.debug(f"component-count selector failed on sub-band {i}: {e}")
+            per.append({"n_preferred": 1})
+    if not per:
+        return 1, per
+    votes = {}
+    for v in per:
+        k = int(v.get("n_preferred", 1))
+        votes[k] = votes.get(k, 0) + 1
+    top = max(votes.values())
+    return min(k for k, c in votes.items() if c == top), per  # plurality, ties → fewer
+
+
+# Two Δν-sorted components are treated as the same (unresolvable) screen when their
+# widths are closer than this factor and their errors are unknown — below it the
+# ascending-Δν identity assignment is not trustworthy.
+_MIN_DNU_RATIO = 2.0
+
+
+def _components_ambiguous(comps):
+    """True if any adjacent pair of Δν-sorted components is statistically
+    inseparable. The ``_MIN_DNU_RATIO`` resolvability floor is applied
+    unconditionally — formally tiny fit errors routinely understate the real
+    degeneracy of two closely-spaced Lorentzians, so non-overlap of the reported
+    errors is not trusted to override it — and, when errors are available, an
+    additional combined-1σ overlap test catches wider-but-uncertain pairs. Such a
+    sub-band cannot reliably assign components to screens by Δν order, so it is
+    dropped from the extraction."""
+    for a, b in zip(comps[:-1], comps[1:], strict=False):
+        da, db = a["dnu_mhz"], b["dnu_mhz"]
+        if da > 0 and db / da < _MIN_DNU_RATIO:  # resolvability floor, always
+            return True
+        ea, eb = a.get("dnu_err", np.nan), b.get("dnu_err", np.nan)
+        if np.isfinite(ea) and np.isfinite(eb) and abs(db - da) < (ea + eb):
+            return True
+    return False
+
+
+def _extract_multi_component(per_subband, num_comps, n_subbands):
+    """params_per_comp from each sub-band's N-Lorentzian fit (the selector's ``fits``
+    entry for n=num_comps). Components are ordered by ascending Δν so component k is
+    the same screen across sub-bands (the per-component power-law then tracks one
+    screen). A sub-band contributes a component only when its OWN selector justified
+    >= num_comps components and the Δν-sorted split is unambiguous; otherwise (failed
+    N-fit, under-justified, ambiguous, or non-physical k-th component) it gets a
+    ``{}`` placeholder, which the downstream consumer skips."""
+    params_per_comp = [[] for _ in range(num_comps)]
+    for i in range(n_subbands):
+        verdict = per_subband[i] if per_subband and i < len(per_subband) else None
+        # Only borrow a sub-band's N-Lorentzian split if that sub-band's own selector
+        # justified >= num_comps — else its forced N-fit manufactures statistically
+        # unjustified components (per-sub-band justification, not just burst plurality).
+        justified = bool(verdict and int(verdict.get("n_preferred", 1)) >= num_comps)
+        fit_n = (
+            next(
+                (
+                    f
+                    for f in verdict.get("fits", [])
+                    if f.get("n") == num_comps and f.get("success")
+                ),
+                None,
+            )
+            if justified
+            else None
+        )
+        comps = sorted(fit_n["components"], key=lambda c: c["dnu_mhz"]) if fit_n else []
+        if comps and _components_ambiguous(comps):
+            comps = []  # inseparable widths → drop rather than mislabel screens
+        gof = {"bic": fit_n["bic"], "redchi": fit_n["redchi"]} if (fit_n and comps) else {}
+        for c in range(num_comps):
+            cc = comps[c] if c < len(comps) else None
+            if cc and np.isfinite(cc["dnu_mhz"]) and cc["dnu_mhz"] > 0:
+                params_per_comp[c].append(
+                    {
+                        "bw": cc["dnu_mhz"],
+                        "mod": cc["m"],
+                        "bw_err": cc.get("dnu_err", np.nan),
+                        "mod_err": cc.get("m_err", np.nan),
+                        "finite_err": np.nan,
+                        "gof": gof,
+                    }
+                )
+            else:
+                params_per_comp[c].append({})
+    return params_per_comp
+
+
 def analyze_scintillation_from_acfs(acf_results, config):
     """
     Main analysis orchestrator. Fits multiple ACF models, selects the best one,
@@ -1354,11 +1458,13 @@ def analyze_scintillation_from_acfs(acf_results, config):
         # If no model is forced, use the automatic selection.
         best_model_name = auto_best_model
 
-    # Logic for determining the number of components was not robust.
-    if "3c" in best_model_name:
-        num_comps = 3
-    elif "2c" in best_model_name or "unresolved" in best_model_name:
-        num_comps = 2
+    # Determine the statistically-justified number of Lorentzian components via the
+    # BIC + nested-F-test selector (aggregated across sub-bands). Only Lorentzian-
+    # family bursts are eligible; gauss/power/lor_gen stay single-component. This
+    # replaces a dead "2c"/"3c"-in-name heuristic that no model ever emitted.
+    n_comp_detail = None
+    if best_model_name.endswith("lor"):
+        num_comps, n_comp_detail = _determine_n_components(acf_results, max_components=3)
     else:
         num_comps = 1
 
@@ -1441,12 +1547,37 @@ def analyze_scintillation_from_acfs(acf_results, config):
         for comp_list in params_per_comp[1:]:
             comp_list.append({})
 
+    # When the selector found >1 Lorentzian component, replace the single-component
+    # extraction above with per-component measurements from each sub-band's
+    # N-Lorentzian fit (component identity fixed by ascending Δν).
+    if num_comps > 1:
+        params_per_comp = _extract_multi_component(n_comp_detail, num_comps, len(all_fits))
+
     final_results = {"best_model": best_model_name, "components": {}}
+    final_results["n_components"] = num_comps
+    if n_comp_detail is not None:
+        final_results["component_selection"] = {
+            "n_per_subband": [int(v.get("n_preferred", 1)) for v in n_comp_detail],
+            "criterion": n_comp_detail[0].get("criterion") if n_comp_detail else None,
+        }
     all_powerlaw_fits = {}
 
     for i, params_list in enumerate(params_per_comp):
         name = f"component_{i + 1}" if num_comps > 1 else "scint_scale"
         measurements = [p for p in params_list if "bw" in p]
+
+        # A 2-parameter power law needs >= 2 sub-band points; fewer (e.g. a forced
+        # multi-component split that only a couple of sub-bands actually justified)
+        # gives a degenerate/singular ODR, so report failure instead of fitting.
+        if len(measurements) < 2:
+            log.warning(
+                f"Skipping power-law fit for {name}: <2 valid sub-band measurements "
+                f"({len(measurements)})."
+            )
+            final_results["components"][name] = {
+                "power_law_fit_report": "Fit failed: <2 measurements"
+            }
+            continue
 
         # Check for non-positive values before taking log
         if not all(p.get("bw", -1) > 0 for p in measurements):

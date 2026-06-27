@@ -1,5 +1,5 @@
 {
-  "git_sha": "c6f76ce",
+  "git_sha": "5a0ba9b",
   "git_dirty": true,
   "n_bursts": 8,
   "gate_policy": "E_iso is alpha-independent; energy gates on spec-z + calibrated fluence + physical (finite, c0>0) per-band c0/gamma. The scattering joint-fit FAIL verdict is INFORMATIONAL, not an energy exclusion (ADR-0003/0004, 3-expert panel 2026-06-24).",

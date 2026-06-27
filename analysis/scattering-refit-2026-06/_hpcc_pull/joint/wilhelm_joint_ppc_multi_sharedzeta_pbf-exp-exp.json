@@ -1,0 +1,10 @@
+{
+  "burst": "wilhelm",
+  "alpha": 2.5572297431514692,
+  "tau_1ghz": 0.2510924218489369,
+  "chi2_chime": 1.1386893634297912,
+  "chi2_dsa": 4.545551880036082,
+  "components_C": 1,
+  "components_D": 1,
+  "suffix": "_sharedzeta_pbf-exp-exp"
+}

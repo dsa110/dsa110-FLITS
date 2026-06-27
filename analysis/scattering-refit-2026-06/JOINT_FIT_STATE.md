@@ -42,7 +42,7 @@ Best joint-fit candidates (both bands clean M3 detections): oran, johndoeII, wil
     downsample f_factor=384 -> 16 ch (df=11.719 MHz); t_factor=2 -> dt=65.536 us (1250 t).
   - YES downsampled both axes. 16 ch comes from f_factor ONLY (not t_factor). outer_trim=0.15 then crops 15%/end (res unchanged).
   - 16 ch is coarse for within-band alpha -> the cross-band shared-tau joint fit IS the alpha instrument.
-- venv /home/jfaber/flits/venv (spack py3.11.6 + dynesty 3.0.0). sbatch: run_burst.sbatch (BLAS pinned). submit: sbatch -A radiolab --job-name=<b>-<tel> run_burst.sbatch <cfg>. nproc=8 sweet spot.
+- venv `${FLITS_VENV:-/central/scratch/jfaber/envs/flits-joint}` (symlink → quarantine spack py3.11.6 + dynesty 3.0.0). `run_joint.sbatch` / `run_burst.sbatch` prepend venv to `PATH` (avoid broken `source activate` when `/home/jfaber/flits` is missing). sbatch: run_burst.sbatch (BLAS pinned). submit: sbatch -A radiolab --job-name=<b>-<tel> run_burst.sbatch <cfg>. nproc=8 sweet spot.
 - Mac scratch: /Users/jakobfaber/Developer/scratch/2026-06/flits-refit/ {good_fit_diag.py, build_deck.py, build_site.py, gen_dsa_configs.py, check_freq_order*.py}
 
 ## Key code facts

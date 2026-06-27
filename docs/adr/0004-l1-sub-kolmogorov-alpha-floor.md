@@ -1,6 +1,7 @@
 # L1 sub-Kolmogorov α-floor policy
 
-**Status:** accepted (panel recommendation 2026-06-24; code/verdict implementation deferred)
+**Status:** accepted (panel recommendation 2026-06-24; **implemented** 2026-06-25 —
+`gate_joint_committed.py` floor 1.0, sub-Kolmogorov L3 flag, verdict regen)
 
 ## Context
 
@@ -43,15 +44,11 @@ MARGINAL).
 ## Consequences
 
 - Sets johndoeII into the citable-α set as a flagged sub-Kolmogorov result, and
-  couples to the energies sample (oran α=1.44, whitney-single-comp α=1.46 also fall
-  in the new 1.0–2.0 sub-Kolmogorov MARGINAL band — currently FAIL on the 1.5
-  gate per `joint_gate_verdicts.md`) — see the decision map #4/#6.
-- **Implementation deferred** (tracked): the gate still hardcodes `ALPHA_MIN = 1.5`
-  in `gate_joint_committed.py`; changing it to 1.0 regenerates *every* gated joint
-  verdict, so it must be done as a reviewed pass with full regeneration (+ updating
-  `test_gate_joint_committed.py` and the contradictory `VALIDATION_THRESHOLDS.py` /
-  contract prose), not a silent one-line edit. Until then, code and this ADR are
-  knowingly inconsistent.
+  reclassifies oran (α=1.44) and whitney single-comp (α=1.46) from L1 FAIL to
+  sub-Kolmogorov MARGINAL — see the decision map #4/#6.
+- **Implemented 2026-06-25:** `gate_joint_committed.py` floor 1.0, L3 sub-Kolmogorov
+  tag, verdict regen (`joint_gate_verdicts.md`: 0 L1 FAIL). Figure pass 2
+  (`alpha_pbf_systematic`) remains separate.
 - The manuscript states the floor and its physical justification in one sentence
   ("α ≥ 1 required for a meaningful τ ∝ ν^−α scaling; 1 ≤ α < 2 admitted as
   sub-Kolmogorov, attributed to multi-screen/anisotropic scattering") so the

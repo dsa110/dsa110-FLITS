@@ -38,6 +38,7 @@ import math
 import os
 import sys
 from collections.abc import Callable, Mapping
+from pathlib import Path
 from typing import Any
 
 import astropy.units as u
@@ -391,6 +392,8 @@ def build_sightline_budget(
     dm_obs: float | None = None,
     tau_obs: float | None = None,
     dm_mw_halo: float = DM_MW_HALO,
+    registry_path: str | Path | None = None,
+    use_registry: bool = True,
 ) -> dict:
     """Assemble the full DM + scattering budget for one FRB sightline."""
     sight = SkyCoord(ra_str, dec_str, unit=(u.hourangle, u.deg))
@@ -442,8 +445,24 @@ def build_sightline_budget(
     best_tau = -1.0
 
     csv_path = os.path.join(results_dir, f"{name.lower()}_galaxies.csv")
-    if os.path.exists(csv_path):
-        matches = pd.read_csv(csv_path)
+    matches: pd.DataFrame | None = None
+    if use_registry:
+        try:
+            from galaxies.foreground.census_registry import (
+                load_intervening_census_registry,
+                registry_to_matches,
+            )
+
+            registry = load_intervening_census_registry(registry_path)
+            matches = registry_to_matches(registry, name, z_frb)
+        except (ImportError, OSError, ValueError):
+            matches = None
+    if matches is None or matches.empty:
+        if os.path.exists(csv_path):
+            matches = pd.read_csv(csv_path)
+        else:
+            matches = pd.DataFrame()
+    if len(matches):
         unified = build_unified_records(
             matches, z_frb=z_frb, sight_ra=sight.ra.deg, sight_dec=sight.dec.deg, enrich=enrich
         )

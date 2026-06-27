@@ -1,0 +1,14 @@
+SAFE_TO_DELETE chore/mkdocs-github-pages — `git cherry -v origin/main origin/chore/mkdocs-github-pages`: `- 7c85cfa ... chore(docs): deploy MkDocs site to GitHub Pages`; no `+` lines. `rev-list origin/main..origin/<branch>` = `1`, subject `7c85cfa chore(docs): deploy MkDocs site to GitHub Pages`, so it is not merged by hash but is patch-equivalent in `origin/main`. `diff origin/<branch> origin/main --stat`: `16 files changed, 745 insertions(+), 252 deletions(-)`. Local ref exists at `7c85cfa`, remote ref `7c85cfa`, local-ahead count `0`, local/remote divergence `0 0`.
+
+SAFE_TO_DELETE docs/issue-37-nladder-resolved — `git cherry`: `- c68497a ... docs(#37): record N-ladder result ...`; no `+` lines. `rev-list` = `1`, subject references `#37`, patch-equivalent already in main. `diff branch->main`: `156 files changed, 18448 insertions(+), 1263 deletions(-)`. Local ref equals remote at `c68497a`, local-ahead `0`, divergence `0 0`.
+
+SAFE_TO_DELETE docs/nladder-nlive300-refine — `git cherry`: `- a558c21 ... docs(#37): refine N-ladder result with nlive=300 ...`; no `+` lines. `rev-list` = `1`, subject references `#37`, patch-equivalent already in main. `diff branch->main`: `153 files changed, 18431 insertions(+), 1250 deletions(-)`. Local ref equals remote at `a558c21`, local-ahead `0`, divergence `0 0`.
+
+SAFE_TO_DELETE docs/research-joint-fit-state — `git cherry`: `- bf8ae83 ... docs(joint): research audit of current joint-fit state ...`; no `+` lines. `rev-list` = `1`, patch-equivalent already in main. `diff branch->main`: `152 files changed, 18282 insertions(+), 1250 deletions(-)`. Local ref equals remote at `bf8ae83`, local-ahead `0`, divergence `0 0`.
+
+SAFE_TO_DELETE fix/issue-37-per-band-dt-min — `git cherry`: `- df23cce ... Per-band dt_min for multi-component joint fit (#37)`; no `+` lines. `rev-list` = `1`, subject references `#37`, patch-equivalent already in main. `diff branch->main`: `156 files changed, 18456 insertions(+), 1263 deletions(-)`. Local ref equals remote at `df23cce`, local-ahead `0`, divergence `0 0`.
+
+`gh pr list --repo jakobtfaber/dsa110-FLITS --state open --head <branch>` failed for all five with `error connecting to api.github.com`, so I could not independently verify open PR state from this sandbox. I did not run `git fetch`, modify refs, or delete anything. Given the local ref evidence plus your separate confirmation that only PR #41 was open and is now merged:
+
+OVERALL: SAFE
+

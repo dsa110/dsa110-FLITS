@@ -1,0 +1,17 @@
+VERDICT: SAFE_TO_DELETE
+
+Evidence:
+
+- `scattering/scat_analysis/validation_thresholds.py` contains only a docstring plus `from flits.fitting.VALIDATION_THRESHOLDS import *`; no assignments, functions, classes, or local constants. See [validation_thresholds.py](/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS/scattering/scat_analysis/validation_thresholds.py:1).
+- Static import searches found no importer of `scattering.scat_analysis.validation_thresholds`, `from .validation_thresholds`, or `import validation_thresholds` in tracked code/tests/notebooks/configs. The only non-cache live lowercase reference was `CLAUDE.md` documentation listing the file as a threshold location.
+- Dynamic/string-reference searches for `importlib.import_module`, `__import__(`, `spec_from_file_location`, plugin/registry strings, `entry_points`, and `console_scripts` found no reference to this module path. The only dynamic imports found were unrelated test helpers.
+- `scattering/scat_analysis/__init__.py` does not import or expose `validation_thresholds`; its `__all__` only lists model/pipeline/diagnostic/plotting symbols. See [__init__.py](/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS/scattering/scat_analysis/__init__.py:10).
+- `pyproject.toml` console scripts point to `scattering.run_scat_analysis`, `scintillation.scint_analysis.run_analysis`, `flits.batch.cli`, and `flits.batch.config_generator`; none point at the shim. See [pyproject.toml](/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS/pyproject.toml:56).
+- `flits/fitting/__init__.py` re-exports the canonical threshold module as `VALIDATION_THRESHOLDS`, not the scattering shim. See [flits/fitting/__init__.py](/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS/flits/fitting/__init__.py:4).
+- AST inspection: shim imports only `from flits.fitting.VALIDATION_THRESHOLDS import *` and assigns no symbols; canonical file assigns 36 uppercase constants.
+- Runtime export comparison, avoiding `flits.__init__` side effects in the read-only sandbox, showed `shim_upper_count = 36`, `canon_upper_count = 36`, `shim_minus_canon = []`, `canon_minus_shim = []`, and `value_mismatches = []`.
+- `flits.egg-info/SOURCES.txt` does mention the file, but `git ls-files flits.egg-info/SOURCES.txt` returned nothing, so that is untracked generated metadata, not a committed importer or public API.
+- The two threshold sources cannot legitimately diverge while this shim remains as-is: the shim has no constants to diverge; it forwards whatever `flits.fitting.VALIDATION_THRESHOLDS` exports. Separate caveat: repo workflow/docs indicate `VALIDATION_THRESHOLDS.py` itself is superseded by `burstfit.py classify_fit_quality` for some fit-quality gates, but that is independent of this shim and does not make the shim necessary.
+
+I modified nothing. The only cleanup I would pair with deletion is removing/updating the stale documentation mention in `CLAUDE.md:64` so future agents do not keep treating the shim as an active threshold source.
+

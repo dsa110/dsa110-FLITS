@@ -128,6 +128,50 @@ not across the column.)
   (`fig:pbf_evidence`, §jointfit "the two bands require different PBFs") is revised
   to drop the per-band PBF as unphysical-and-immaterial.
 
+## Manuscript joint figures — regeneration runbook
+
+Three manuscript figures live in `analysis/scattering-refit-2026-06/dsa_figs/`:
+`tau_nu_ladder.png`, `joint_ppc_montage.png`, and the per-burst `*_joint_ppc.png`.
+**The committed PNGs are base/mixed-PBF (CHIME powerlaw / DSA exp) and are
+SUPERSEDED by ADR-0003 — they must be regenerated from the all-exp family before
+manuscript use.** This is the runbook; the underlying α science is the rest of
+this doc + `LADDER_SUMMARY.md`. Do not overwrite `dsa_figs/` until the
+`@decision` gates in `.agents/deferred-tasks.md` (#32/#33) clear.
+
+**Canonical input set.** All-exp single-exp PBF (`--pbf-C exp --pbf-D exp`), each
+burst at its own best-model — the family is **heterogeneous**, not uniform (e.g.
+johndoeII C2D1, oran C2D1, wilhelm sharedzeta, phineas C3D3). The per-burst chosen
+model is the `chosen` map in `joint_ladder/_figs.py`. Fits + samples:
+`<burst>_joint_fit_<tag>_pbf-exp-exp.{json,npz}` on
+`hpcc:/central/scratch/jfaber/flits-runs/data/joint/`; locally under
+`joint_ladder/allexp_json/` (currently only zach pulled — pull the rest first).
+
+**Scripts.** `_figs.py` (tau_nu_ladder, reads `*_joint_fit*.json`) ·
+`joint_ppc.py <burst>` (per-burst PPC, writes `<burst>_joint_ppc.{png,json}`) ·
+`plot_joint_posteriors.py`. The `joint_ppc_montage` assembler is **not committed**
+(staged in the #33 scratchpad) — commit it on the feature branch when adjudicated.
+
+**χ² convention + the crop reproducibility gap (read before regenerating).**
+- Each PPC panel's per-band reduced χ² is computed **at the fit medians on the
+  fit's on-pulse-crop window**. The joint fits ran with crop **ON**
+  (`FLITS_ONPULSE_CROP` default `"1"` in `run_joint_fit.py:47` and `joint_ppc.py:45`;
+  **no override exists on HPCC** — verified by grep). Reproduce χ² with the same
+  crop or the numbers move (e.g. oran DSA 5.32 crop-ON → 1.14 crop-OFF).
+- **The crop/prep setting is NOT recorded in the fit JSONs** — a known gap. The
+  regen pass **should stamp `onpulse_crop` + prep settings into the PPC JSON** so
+  χ² is reproducible without re-deriving the flag.
+- **Display vs χ² window:** panels should ideally *display* the full uncropped
+  0–60 ms profile for inspection while χ² stays on the crop window. A crop-OFF
+  re-prepare for display only was prototyped, but `outer_trim`/downsampling also
+  narrows the window — the crop flag alone does **not** give a full-window view;
+  the prep's trim must also be handled.
+
+**α values vs citable status.** The α *values* are renderable now from the all-exp
+`.npz`. Their **quoted/citable status is gated** on the ADR-0004 `ALPHA_MIN`
+1.5→1.0 verdict regen (`.agents/deferred-tasks.md` #4, `@human`): which all-exp α
+are MARGINAL vs quotable is not yet locked. Render values; do not stamp "citable"
+until that gate clears.
+
 ## Verdict
 
 The physical all-exp PBF **confirms seven well-constrained bursts** (freya, casey,

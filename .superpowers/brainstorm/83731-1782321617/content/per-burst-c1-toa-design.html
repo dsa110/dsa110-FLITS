@@ -1,0 +1,75 @@
+<h2>Per-Burst C1 Association Card</h2>
+<p class="subtitle">Draft hierarchy: timing evidence first, spatial agreement second, DM and chance as compact support.</p>
+
+<div class="mockup">
+  <div class="mockup-header">Example burst card: TOA residual axis, not stacked timeseries as the primary evidence</div>
+  <div class="mockup-body">
+    <div style="display:grid;grid-template-columns:1.35fr 1fr;gap:18px;align-items:stretch">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div style="border:1px solid #d7dde8;border-radius:8px;padding:14px;background:#fff">
+          <div class="label">TOA alignment</div>
+          <div style="position:relative;height:132px;margin-top:12px;border-left:1px solid #cbd5e1;border-bottom:1px solid #cbd5e1;background:linear-gradient(90deg,#f8fafc,#fff)">
+            <div style="position:absolute;left:50%;top:0;bottom:0;border-left:2px solid #111827"></div>
+            <div style="position:absolute;left:43%;right:37%;top:0;bottom:0;background:rgba(59,130,246,.10);border-left:1px solid rgba(59,130,246,.35);border-right:1px solid rgba(59,130,246,.35)"></div>
+            <div style="position:absolute;left:50%;bottom:-22px;transform:translateX(-50%);font-size:12px;color:#475569">0 ms common reference</div>
+            <div style="position:absolute;left:31%;top:34px;width:42px;height:12px;border-left:2px solid #2563eb;border-right:2px solid #2563eb"></div>
+            <div style="position:absolute;left:34%;top:29px;width:12px;height:12px;border-radius:50%;background:#2563eb"></div>
+            <div style="position:absolute;left:38%;top:26px;font-size:13px;color:#1e3a8a">CHIME</div>
+            <div style="position:absolute;left:53%;top:82px;width:34px;height:12px;border-left:2px solid #dc2626;border-right:2px solid #dc2626"></div>
+            <div style="position:absolute;left:56%;top:77px;width:12px;height:12px;border-radius:50%;background:#dc2626"></div>
+            <div style="position:absolute;left:61%;top:74px;font-size:13px;color:#7f1d1d">DSA</div>
+            <div style="position:absolute;left:8px;bottom:8px;font-size:12px;color:#64748b">-10 ms</div>
+            <div style="position:absolute;right:8px;bottom:8px;font-size:12px;color:#64748b">+10 ms</div>
+          </div>
+          <div style="margin-top:28px;font-size:14px;color:#334155">Residual: <b>+2.4 ms</b> inside combined timing budget</div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div style="border:1px solid #d7dde8;border-radius:8px;padding:14px;background:#fff;min-height:118px">
+            <div class="label">DM agreement</div>
+            <div style="margin-top:14px;height:42px;position:relative;border-bottom:1px solid #cbd5e1">
+              <div style="position:absolute;left:22%;right:34%;top:12px;height:10px;background:rgba(37,99,235,.2);border:1px solid #2563eb"></div>
+              <div style="position:absolute;left:38%;right:26%;top:25px;height:10px;background:rgba(220,38,38,.18);border:1px solid #dc2626"></div>
+            </div>
+            <div style="font-size:13px;color:#334155;margin-top:12px">Intervals overlap; constrained when available.</div>
+          </div>
+          <div style="border:1px solid #d7dde8;border-radius:8px;padding:14px;background:#fff;min-height:118px">
+            <div class="label">Chance coincidence</div>
+            <div style="font-size:28px;font-weight:700;margin-top:16px;color:#111827">P = 3e-9</div>
+            <div style="font-size:13px;color:#334155;margin-top:8px">Per-burst association probability.</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="border:1px solid #d7dde8;border-radius:8px;padding:14px;background:#fff;min-height:360px">
+        <div class="label">Position and beam</div>
+        <div style="position:relative;height:310px;margin-top:12px;background:radial-gradient(ellipse at 55% 48%,rgba(14,165,233,.22),rgba(14,165,233,.08) 35%,rgba(255,255,255,0) 58%),#f8fafc;border:1px solid #e2e8f0;overflow:hidden">
+          <div style="position:absolute;left:55%;top:48%;width:220px;height:135px;border:2px dashed rgba(14,116,144,.65);border-radius:50%;transform:translate(-50%,-50%) rotate(-18deg)"></div>
+          <div style="position:absolute;left:45%;top:46%;width:118px;height:72px;border:3px solid #2563eb;border-radius:50%;transform:translate(-50%,-50%) rotate(24deg);background:rgba(37,99,235,.06)"></div>
+          <div style="position:absolute;left:53%;top:50%;width:12px;height:12px;border-radius:50%;background:#dc2626;transform:translate(-50%,-50%)"></div>
+          <div style="position:absolute;left:45%;top:46%;width:8px;height:8px;border-radius:50%;background:#2563eb;transform:translate(-50%,-50%)"></div>
+          <div style="position:absolute;left:49%;top:48%;width:42px;border-top:2px solid #111827;transform:rotate(10deg);transform-origin:left center"></div>
+          <div style="position:absolute;left:12px;bottom:12px;font-size:12px;color:#475569;background:rgba(255,255,255,.8);padding:4px 6px;border-radius:4px">Separation: 1.4 arcmin</div>
+          <div style="position:absolute;right:12px;top:12px;font-size:12px;color:#475569;background:rgba(255,255,255,.8);padding:4px 6px;border-radius:4px">Dashed: DSA primary beam</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="options">
+  <div class="option" data-choice="toa-primary-good" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Use This Hierarchy</h3>
+      <p>TOA residual axis is the main timing panel; profiles are optional insets only.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="profile-stack-primary" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Make Profiles Primary</h3>
+      <p>Lead with stacked CHIME/DSA profiles and keep residuals as an annotation.</p>
+    </div>
+  </div>
+</div>

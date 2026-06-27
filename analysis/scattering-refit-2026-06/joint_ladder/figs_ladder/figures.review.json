@@ -1,0 +1,21 @@
+{
+  "reviewed_by": "claude (visual read + jq cross-check of plotted values)",
+  "date": "2026-06-23",
+  "figures": [
+    {
+      "file": "alpha_gate.png",
+      "verdict": "match",
+      "notes": "Matches data. hamilton at 1.5, johndoeII ~1.95 (red, in shaded fail band), isha amber with error bar reaching ~3.4-5.9, 8 green points 2.4-4.4. whitney plotted red at 3.75 (base alpha) = burst-level FAIL verdict, not a bad alpha value - relies on caption to disambiguate."
+    },
+    {
+      "file": "alpha_vs_components.png",
+      "verdict": "match",
+      "notes": "zach monotonic 3.32->2.41 and hamilton flat-railed at 1.5 both render clearly. Known caveat: x=total components conflates C1D2 with C2D1 (e.g. oran's two x=3 points), so the oran/isha lines are slightly ambiguous; trend-level read only."
+    },
+    {
+      "file": "s2_signflip.png",
+      "verdict": "match",
+      "notes": "Plotted values confirmed against raw JSON via jq. whitney -5.3/+1.7/-4.6, johndoeII +151/-126/+120, phineas +1.7/+6.2/-1.2 all sign-flip. zach C2D2-C2D1 = -1073/+2/+1107 (verified: zach C2D2 lnZ 35443/36549/37597 monotonic in s2, err +-0.6 -> genuine prior-dependence, not a non-converged fit). zach C2D3-C2D2 all strongly + (D3 robust). NOTE: C2D1-C1D1 transitions for oran/isha/mahi/zach pending the resubmitted C1D1 grid."
+    }
+  ]
+}

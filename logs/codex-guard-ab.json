@@ -1,0 +1,8 @@
+Choose **A**.
+
+It is the safer and more correct fix because the hook is making its decision from the wrong repository context. A commit guard should protect the branch being committed to, not whichever checkout happens to be the process root. Fixing that keeps the active main-checkout lane untouched and preserves the safety policy: commits to `main`/`master` still fail, commits to a feature worktree pass.
+
+Avoid **B** unless there is no practical way to patch the hook. Switching the main checkout’s `HEAD` while 141 active-lane files are dirty creates needless shared-state motion, and it is exactly the kind of maneuver that can race with a parallel process writing in that tree.
+
+Key risk to watch: **do not turn the hook into a bypass.** After the hook change, verify both cases: `git commit` from the main checkout on `main` is still blocked, and `git -C <feature-worktree> commit -- <your 4 paths>` is allowed on the feature branch.
+

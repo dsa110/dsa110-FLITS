@@ -1,0 +1,17 @@
+{
+  "generated_by": "analysis/scattering-refit-2026-06/joint_ladder/_figs.py",
+  "figures": [
+    {
+      "file": "alpha_gate.png",
+      "expectation": "Final shared CHIME-DSA alpha per burst (chosen model), colored PASS(green)/MARGINAL(amber)/FAIL(red). hamilton at floor 1.5, johndoeII ~1.95 in red fail band, isha amber with huge error bar; 8 green in 2.4-4.4. alpha<2 band shaded red, Kolmogorov alpha=4 dotted."
+    },
+    {
+      "file": "alpha_vs_components.png",
+      "expectation": "Profiled alpha vs total components (C+D) for multi-comp bursts. zach decreasing 3.32->2.41 (profile bias). hamilton flat-railed at 1.5. phineas stable ~3.3-3.8. CAVEAT: x-axis lumps configs with same C+D (C1D2 vs C2D1)."
+    },
+    {
+      "file": "s2_signflip.png",
+      "expectation": "Fixed-s2 cross-N Bayes factor DeltalnZ across s2={1,10,100}, symlog. whitney/johndoeII/phineas sign-flip (not real). zach C2D3-C2D2 all strongly + (D3 real); zach C2D2-C2D1 swings -1073/+2/+1107 (D2 prior-dependent, NOT robust) - verified against raw jq, not an outlier."
+    }
+  ]
+}

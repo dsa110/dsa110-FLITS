@@ -792,7 +792,7 @@ def make_budget_figure(df: pd.DataFrame):
     for yi, ph, xo in zip(y, placeholder, dm_obs):
         if ph:
             ax_dm.annotate(
-                "z placeholder — no cosmic/host budget",
+                "z placeholder - no cosmic/host budget",
                 xy=(max(xo, 1.0), yi),
                 xytext=(6, 0),
                 textcoords="offset points",

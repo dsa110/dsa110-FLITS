@@ -1,0 +1,101 @@
+Acronyms:
+CHIME — Canadian Hydrogen Intensity Mapping Experiment  
+C1 — Scintillation decorrelation constant in `Delta_nu_d = C1 / (2 pi tau)`  
+DM — Dispersion Measure  
+DSA — Deep Synoptic Array  
+GLADE — Galaxy List for the Advanced Detector Era  
+ICM — Intracluster Medium  
+NED — NASA/IPAC Extragalactic Database  
+SEFD — System Equivalent Flux Density  
+
+**Verdict**
+
+Claim (A): **FALSE / PARTIAL**. The branch is largely superseded, but not fully. Abandoning `feature/cluster-catalog-engine` as-is would lose committed physics/referee-correction work, especially `d19b62a`.
+
+Claim (B): **NOT MOOT**. The deferred ledger item `@human Push feature/cluster-catalog-engine and open a PR` is only moot if (A) is true. Since (A) is false/partial, do not prune it yet. Better rename/scope it to the remaining unsuperseded work.
+
+**Commands Run**
+
+- `git cherry -v origin/main feature/cluster-catalog-engine`
+  - Key output: `plus=48 minus=1 total=49`
+  - The one `-` commit was `a558c21 docs(#37): refine N-ladder result...`
+  - The 48 `+` commits include the flux lane, galaxies lane, policy/provenance commits, and `d19b62a fix(physics): CHIME–DSA referee corrections...`
+
+- `rtk git diff --shortstat origin/main feature/cluster-catalog-engine`
+  - `155 files changed, 4016 insertions(+), 12733 deletions(-)`
+  - This is divergent history, not a clean ancestor relationship.
+
+- `gh pr list -R jakobtfaber/dsa110-FLITS --head feature/cluster-catalog-engine --state all`
+  - Failed in this sandbox: `error connecting to api.github.com`
+  - So I cannot state open/closed PR state from GitHub; the command was attempted.
+
+**Lanes Already on `origin/main`**
+
+Flux-cal / radiometer / energetics lane: **superseded, and `origin/main` is newer**.
+
+Evidence:
+- Both refs have `analysis/flux_cal.py`, `analysis/calculate_burst_energies.py`, `scattering/configs/telescopes.yaml`, `tests/test_flux_cal.py`, `tests/test_burst_energies_fluxcal.py`.
+- `origin/main` has `analysis.flux_cal.joint_band_fluence_jy_ms_hz` and routes both CHIME and DSA via `fluxcal`.
+- `feature/cluster-catalog-engine` still has `scattering/configs/telescopes.yaml` with `flux_jy_per_unit: null` for both bands, while `origin/main` has `flux_jy_per_unit: fluxcal`.
+- `origin/main:analysis/calculate_burst_energies.py` imports `joint_band_fluence_jy_ms_hz`; feature imports only `dsa_band_fluence_jy_ms_hz`.
+- Diff over the flux paths is `173 insertions / 521 deletions` from main to feature, meaning the branch would roll back newer main content.
+
+Agent-policy and joint-summary provenance lanes: **mostly superseded by `origin/main`**.
+
+Evidence:
+- Files exist on both refs: `.claude/hooks/deferred-task-gate.sh`, `.claude/hooks/no-commit-to-protected-branch.sh`, `.claude/settings.json`, `CLAUDE.md`, `.agents/deferred-tasks.md`, `analysis/scattering-refit-2026-06/gen_joint_summary.py`, `tests/test_joint_summary_reproducible.py`, `results/joint_fit_summary.md`.
+- There are still textual differences, but the PR #35/#36 end-state surfaces are present on `origin/main`.
+
+Cluster-catalog engine / NED / GLADE / r200 lane: **engine itself is on `origin/main`**.
+
+Evidence:
+- `origin/main` has `galaxies/v2_0/engines_extra.py:class ClusterEngine`.
+- `origin/main` has `class NedTapEngine`.
+- `origin/main` has GLADE+ table `VII/291/gladep`.
+- `origin/main` has MCXC-II `J/A+A/688/A187/mcxcii`.
+- `origin/main` has `_cluster_impact_limit_kpc`, r200-relative tests, cluster plotting, mass injection, NED star filtering, and broader test coverage.
+- The branch’s explicit `MAX_PHOTOZ_Z_ERR` cap is not present on `origin/main`, but `origin/main` has a later stricter point-estimate photo-z adjudication that appears to supersede that cap rather than lose it.
+
+**Work NOT Fully on `origin/main`**
+
+Referee physics corrections in `d19b62a`: **not fully superseded**.
+
+Specific unmerged/lost pieces:
+
+- Runtime joint alpha quality gate:
+  - Feature has `scattering/scat_analysis/burstfit_joint.py:def joint_quality_flag`.
+  - `origin/main` does **not** have `joint_quality_flag`.
+  - Feature has `tests/test_joint_quality_flag.py`; `origin/main` does not.
+  - Feature default `fit_joint(... alpha_bounds=(1.5, 6.0))`; `origin/main` still shows `alpha_bounds=(2.0, 6.0)` in `burstfit_joint.py`.
+
+- Energy trust-boundary filtering:
+  - Feature `analysis/calculate_burst_energies.py` imports/calls `joint_quality_flag`, stamps `quality_flag`, and refuses failed joint fits.
+  - `git grep` for `quality_flag|joint_quality_flag` on `origin/main -- analysis/calculate_burst_energies.py scattering/scat_analysis/burstfit_joint.py` returned no matches.
+  - This is not represented by the separate committed-fit gate alone.
+
+- C1 correction:
+  - `origin/main` still has C1=1.0 in places such as `analysis/scattering-refit-2026-06/lorentzian_fit_fig.py`, `scint_acf.py`, and `scint_evidence.py`.
+  - Feature changes these to C1=1.16 with Cordes & Rickett 1998 comments.
+
+- Intervening-screen redshift correction:
+  - `origin/main:galaxies/v2_0/scattering_predict.py` still documents/uses an extra `(1+z_l)^-2` style factor in `g_scatt`.
+  - Feature removes the double count and documents the canonical `(1+z_l)^-3` convention applied once in `tau_scat_ms`.
+
+- ICM bound/prose correction:
+  - Both refs have ICM beta-model machinery, but feature adds explicit upper-bound framing and changed constants/prose around the beta-model correction.
+  - This is not fully equivalent on `origin/main`.
+
+**Recommendation**
+
+Do **not** abandon the branch yet. Instead, salvage the remaining branch-only physics/referee corrections into a small fresh branch from `origin/main`, probably centered on `d19b62a`, but do not blindly cherry-pick the whole commit because it touches regenerated artifacts and files that have diverged heavily.
+
+Minimal salvage target:
+- `scattering/scat_analysis/burstfit_joint.py`
+- `tests/test_joint_quality_flag.py`
+- the relevant `analysis/calculate_burst_energies.py` trust-boundary pieces
+- C1 changes in `analysis/scattering-refit-2026-06/{lorentzian_fit_fig.py,multiscale_fit.py,scint_acf.py,scint_evidence.py}`
+- redshift/ICM corrections in `galaxies/v2_0/scattering_predict.py` and any necessary regenerated budget outputs, if still desired
+
+**Bottom Line**
+
+`feature/cluster-catalog-engine` is mostly superseded, but **not safely abandonable** until the `d19b62a` referee physics corrections are ported or explicitly rejected.  

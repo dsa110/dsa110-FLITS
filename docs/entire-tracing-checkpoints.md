@@ -324,3 +324,818 @@ preserving for future agents.
 - `origin` `entire/*` refs:
   - entire/checkpoints/v1 -> d594bc0
 - note: `.entire/` remains host-local runtime state; only this ledger is tracked.
+
+## 2026-06-24T12:26:51-07:00 — jakob
+- repo: `/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS`
+- branch: ``
+- head: `7e4c0c97`
+- origin/main: `90557658`
+- worktree: clean
+- note: watched path changed: analysis/scattering-refit-2026-06/baseband_recovery/README.md
+- tracked status: clean
+- local `entire/*` refs:
+  - entire/0cc8a90-e3b0c4 -> 16d2565c
+  - entire/12a929e-e3b0c4 -> 746c927b
+  - entire/18520fb-e3b0c4 -> 3dfcd2f3
+  - entire/1bf078a-e3b0c4 -> 66e40d11
+  - entire/1d2f28b-e3b0c4 -> 8d9722a7
+  - entire/258d643-e3b0c4 -> d553c648
+  - entire/2963885-e3b0c4 -> 4ef72ea7
+  - entire/2a04537-e3b0c4 -> ef4c295e
+  - entire/2ad704b-e3b0c4 -> 99a3ff7e
+  - entire/30a21f5-e3b0c4 -> 69a665dd
+  - entire/3c13a71-e3b0c4 -> 51f7da8a
+  - entire/48f63b7-e3b0c4 -> 1491a141
+  - entire/4b041e2-e3b0c4 -> fcde5011
+  - entire/4b8f41d-e3b0c4 -> f04dacb4
+  - entire/51791c0-e3b0c4 -> c79c7aba
+  - entire/53194a6-e3b0c4 -> d3fc0e1c
+  - entire/66795c0-e3b0c4 -> 061405de
+  - entire/6a66b23-e3b0c4 -> 5320a054
+  - entire/6bf7895-e3b0c4 -> eb56c54b
+  - entire/725b34e-e3b0c4 -> 11860bc8
+  - entire/7ae7c93-e3b0c4 -> 0c10c4ea
+  - entire/867ecd5-e3b0c4 -> 261a7c0b
+  - entire/8b864e3-e3b0c4 -> 2359cb77
+  - entire/8bbaf90-e3b0c4 -> 07e0f6b2
+  - entire/8ca87f7-e3b0c4 -> 61e3979c
+  - entire/8d37540-e3b0c4 -> 3e52d926
+  - entire/90ff6fd-e3b0c4 -> bcd111d9
+  - entire/a25bce0-e3b0c4 -> 0ae2439e
+  - entire/abe332d-e3b0c4 -> 9029e69c
+  - entire/b3d8d1c-e3b0c4 -> 0aeed469
+  - entire/bc89489-e3b0c4 -> ea8df01d
+  - entire/checkpoints/v1 -> 13878e65
+  - entire/d78efae-e3b0c4 -> e4060327
+  - entire/d8c3cb1-e3b0c4 -> 68d71ebc
+  - entire/dffbd51-e3b0c4 -> 8a83a84d
+  - entire/e753bb6-e3b0c4 -> 73feaf8e
+  - entire/ea91839-e3b0c4 -> 57e22464
+  - entire/ebd68e5-e3b0c4 -> 9ab88abd
+  - entire/ff0dbb9-e3b0c4 -> 859b2f1b
+- `origin` `entire/*` refs:
+  - entire/checkpoints/v1 -> c350126
+- note: `.entire/` remains host-local runtime state; only this ledger is tracked.
+
+## 2026-06-24T12:26:54-07:00 — jakob
+- repo: `/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS`
+- branch: `main`
+- head: `7e4c0c97`
+- origin/main: `90557658`
+- worktree: dirty
+- note: watched path changed: analysis/scattering-refit-2026-06/baseband_recovery/README.md
+- tracked status:
+  - M docs/entire-tracing-checkpoints.md
+- local `entire/*` refs:
+  - entire/0cc8a90-e3b0c4 -> 16d2565c
+  - entire/12a929e-e3b0c4 -> 746c927b
+  - entire/18520fb-e3b0c4 -> 3dfcd2f3
+  - entire/1bf078a-e3b0c4 -> 66e40d11
+  - entire/1d2f28b-e3b0c4 -> 8d9722a7
+  - entire/258d643-e3b0c4 -> d553c648
+  - entire/2963885-e3b0c4 -> 4ef72ea7
+  - entire/2a04537-e3b0c4 -> ef4c295e
+  - entire/2ad704b-e3b0c4 -> 99a3ff7e
+  - entire/30a21f5-e3b0c4 -> 69a665dd
+  - entire/3c13a71-e3b0c4 -> 51f7da8a
+  - entire/48f63b7-e3b0c4 -> 1491a141
+  - entire/4b041e2-e3b0c4 -> fcde5011
+  - entire/4b8f41d-e3b0c4 -> f04dacb4
+  - entire/51791c0-e3b0c4 -> c79c7aba
+  - entire/53194a6-e3b0c4 -> d3fc0e1c
+  - entire/66795c0-e3b0c4 -> 061405de
+  - entire/6a66b23-e3b0c4 -> 5320a054
+  - entire/6bf7895-e3b0c4 -> eb56c54b
+  - entire/725b34e-e3b0c4 -> 11860bc8
+  - entire/7ae7c93-e3b0c4 -> 0c10c4ea
+  - entire/7e4c0c9-e3b0c4 -> 0aeed469
+  - entire/867ecd5-e3b0c4 -> 261a7c0b
+  - entire/8b864e3-e3b0c4 -> 2359cb77
+  - entire/8bbaf90-e3b0c4 -> 07e0f6b2
+  - entire/8ca87f7-e3b0c4 -> 61e3979c
+  - entire/8d37540-e3b0c4 -> 3e52d926
+  - entire/90ff6fd-e3b0c4 -> bcd111d9
+  - entire/a25bce0-e3b0c4 -> 0ae2439e
+  - entire/abe332d-e3b0c4 -> 9029e69c
+  - entire/bc89489-e3b0c4 -> ea8df01d
+  - entire/checkpoints/v1 -> 13878e65
+  - entire/d78efae-e3b0c4 -> e4060327
+  - entire/d8c3cb1-e3b0c4 -> 68d71ebc
+  - entire/dffbd51-e3b0c4 -> 8a83a84d
+  - entire/e753bb6-e3b0c4 -> 73feaf8e
+  - entire/ea91839-e3b0c4 -> 57e22464
+  - entire/ebd68e5-e3b0c4 -> 9ab88abd
+  - entire/ff0dbb9-e3b0c4 -> 859b2f1b
+- `origin` `entire/*` refs:
+  - entire/checkpoints/v1 -> c350126
+- note: `.entire/` remains host-local runtime state; only this ledger is tracked.
+
+## 2026-06-25T01:26:48-07:00 — jakob
+- repo: `/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS`
+- branch: `main`
+- head: `30976a52`
+- origin/main: `749eadbe`
+- worktree: dirty
+- note: watched path changed: docs/literature/undermind/2026-06-chime-dsa-frb-open-questions/README.md
+- tracked status:
+  - M .agents/deferred-tasks.md
+  -  M .claude/hooks/no-commit-to-protected-branch.sh
+  -  M DATA_LOCATIONS.md
+  -  M DATA_SOURCES.md
+  -  M analysis/burst_energies/burst_energies.json
+  -  M analysis/burst_energies/burst_energies.tex
+  -  M analysis/burst_energies/figures.review.json
+  -  M analysis/calculate_burst_energies.py
+  -  M analysis/scattering-refit-2026-06/baseband_recovery/README.md
+  -  M analysis/scattering-refit-2026-06/joint_ladder/ALLEXP_PBF_RUN.md
+  -  M docs/entire-tracing-checkpoints.md
+  -  M galaxies/v2_0/sightline_budget.py
+- local `entire/*` refs:
+  - entire/0cc8a90-e3b0c4 -> 16d2565c
+  - entire/12a929e-e3b0c4 -> 746c927b
+  - entire/18520fb-e3b0c4 -> 3dfcd2f3
+  - entire/1bf078a-e3b0c4 -> 66e40d11
+  - entire/1d2f28b-e3b0c4 -> 8d9722a7
+  - entire/258d643-e3b0c4 -> d553c648
+  - entire/2963885-e3b0c4 -> 4ef72ea7
+  - entire/2a04537-e3b0c4 -> ef4c295e
+  - entire/2ad704b-e3b0c4 -> 99a3ff7e
+  - entire/30a21f5-e3b0c4 -> 69a665dd
+  - entire/3c13a71-e3b0c4 -> 51f7da8a
+  - entire/48f63b7-e3b0c4 -> 1491a141
+  - entire/4b041e2-e3b0c4 -> fcde5011
+  - entire/4b8f41d-e3b0c4 -> f04dacb4
+  - entire/51791c0-e3b0c4 -> c79c7aba
+  - entire/53194a6-e3b0c4 -> d3fc0e1c
+  - entire/66795c0-e3b0c4 -> 061405de
+  - entire/6bf7895-e3b0c4 -> eb56c54b
+  - entire/725b34e-e3b0c4 -> 11860bc8
+  - entire/7ae7c93-e3b0c4 -> 0c10c4ea
+  - entire/7e4c0c9-e3b0c4 -> 415dd3dc
+  - entire/867ecd5-e3b0c4 -> 261a7c0b
+  - entire/8b864e3-e3b0c4 -> 2359cb77
+  - entire/8bbaf90-e3b0c4 -> 07e0f6b2
+  - entire/8ca87f7-e3b0c4 -> 61e3979c
+  - entire/8d37540-e3b0c4 -> 3e52d926
+  - entire/90ff6fd-e3b0c4 -> bcd111d9
+  - entire/a25bce0-e3b0c4 -> 0ae2439e
+  - entire/abe332d-e3b0c4 -> 9029e69c
+  - entire/bc89489-e3b0c4 -> ea8df01d
+  - entire/checkpoints/v1 -> 08b99faa
+  - entire/d78efae-e3b0c4 -> e4060327
+  - entire/d8c3cb1-e3b0c4 -> 68d71ebc
+  - entire/dffbd51-e3b0c4 -> 8a83a84d
+  - entire/e753bb6-e3b0c4 -> 73feaf8e
+  - entire/ea91839-e3b0c4 -> 57e22464
+  - entire/ebd68e5-e3b0c4 -> 9ab88abd
+  - entire/ff0dbb9-e3b0c4 -> 859b2f1b
+- `origin` `entire/*` refs:
+  - entire/checkpoints/v1 -> 09d5e9b
+- note: `.entire/` remains host-local runtime state; only this ledger is tracked.
+
+## 2026-06-25T01:49:32-07:00 — jakob
+- repo: `/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS`
+- branch: `main`
+- head: `9e653372`
+- origin/main: `749eadbe`
+- worktree: dirty
+- note: watched path changed: docs/literature/undermind/2026-06-chime-dsa-frb-open-questions/README.md
+- tracked status:
+  - M .agents/deferred-tasks.md
+  -  M .claude/hooks/no-commit-to-protected-branch.sh
+  -  M DATA_LOCATIONS.md
+  -  M DATA_SOURCES.md
+  -  M analysis/burst_energies/burst_energies.json
+  -  M analysis/burst_energies/burst_energies.tex
+  -  M analysis/burst_energies/figures.review.json
+  -  M analysis/calculate_burst_energies.py
+  -  M analysis/scattering-refit-2026-06/baseband_recovery/README.md
+  -  M analysis/scattering-refit-2026-06/joint_ladder/ALLEXP_PBF_RUN.md
+  -  M docs/entire-tracing-checkpoints.md
+  -  M galaxies/v2_0/sightline_budget.py
+- local `entire/*` refs:
+  - entire/0cc8a90-e3b0c4 -> 16d2565c
+  - entire/12a929e-e3b0c4 -> 746c927b
+  - entire/18520fb-e3b0c4 -> 3dfcd2f3
+  - entire/1bf078a-e3b0c4 -> 66e40d11
+  - entire/1d2f28b-e3b0c4 -> 8d9722a7
+  - entire/258d643-e3b0c4 -> d553c648
+  - entire/2963885-e3b0c4 -> 4ef72ea7
+  - entire/2a04537-e3b0c4 -> ef4c295e
+  - entire/2ad704b-e3b0c4 -> 99a3ff7e
+  - entire/30976a5-e3b0c4 -> 66cc1554
+  - entire/30a21f5-e3b0c4 -> 69a665dd
+  - entire/3c13a71-e3b0c4 -> 51f7da8a
+  - entire/48f63b7-e3b0c4 -> 1491a141
+  - entire/4b041e2-e3b0c4 -> fcde5011
+  - entire/4b8f41d-e3b0c4 -> f04dacb4
+  - entire/51791c0-e3b0c4 -> c79c7aba
+  - entire/53194a6-e3b0c4 -> d3fc0e1c
+  - entire/66795c0-e3b0c4 -> 061405de
+  - entire/6bf7895-e3b0c4 -> eb56c54b
+  - entire/725b34e-e3b0c4 -> 11860bc8
+  - entire/7ae7c93-e3b0c4 -> 0c10c4ea
+  - entire/867ecd5-e3b0c4 -> 261a7c0b
+  - entire/8b864e3-e3b0c4 -> 2359cb77
+  - entire/8bbaf90-e3b0c4 -> 07e0f6b2
+  - entire/8ca87f7-e3b0c4 -> 61e3979c
+  - entire/8d37540-e3b0c4 -> 3e52d926
+  - entire/90ff6fd-e3b0c4 -> bcd111d9
+  - entire/9e65337-e3b0c4 -> 7f99b86b
+  - entire/a25bce0-e3b0c4 -> 0ae2439e
+  - entire/abe332d-e3b0c4 -> 9029e69c
+  - entire/bc89489-e3b0c4 -> ea8df01d
+  - entire/checkpoints/v1 -> d7374e51
+  - entire/d78efae-e3b0c4 -> e4060327
+  - entire/d8c3cb1-e3b0c4 -> 68d71ebc
+  - entire/dffbd51-e3b0c4 -> 8a83a84d
+  - entire/e753bb6-e3b0c4 -> 73feaf8e
+  - entire/ea91839-e3b0c4 -> 57e22464
+  - entire/ebd68e5-e3b0c4 -> 9ab88abd
+  - entire/ff0dbb9-e3b0c4 -> 859b2f1b
+- `origin` `entire/*` refs:
+  - entire/checkpoints/v1 -> 09d5e9b
+- note: `.entire/` remains host-local runtime state; only this ledger is tracked.
+
+## 2026-06-26T14:09:52-07:00 — jakob
+- repo: `/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS`
+- branch: `migration/phase1-easy-wins`
+- head: `47d7edb3`
+- origin/main: `749eadbe`
+- worktree: dirty
+- note: watched path changed: DATA_LOCATIONS.md
+- tracked status:
+  - M .agents/deferred-tasks.md
+  -  M .claude/hooks/no-commit-to-protected-branch.sh
+  -  M DATA_SOURCES.md
+  -  M analysis/burst_energies/burst_energies.json
+  -  M analysis/burst_energies/burst_energies.tex
+  -  M analysis/burst_energies/figures.review.json
+  -  M analysis/calculate_burst_energies.py
+  -  M analysis/scattering-refit-2026-06/baseband_recovery/README.md
+  -  M analysis/scattering-refit-2026-06/joint_ladder/ALLEXP_PBF_RUN.md
+  -  M docs/entire-tracing-checkpoints.md
+  -  M galaxies/v2_0/sightline_budget.py
+- local `entire/*` refs:
+  - entire/0cc8a90-e3b0c4 -> 16d2565c
+  - entire/12a929e-e3b0c4 -> 746c927b
+  - entire/18520fb-e3b0c4 -> 3dfcd2f3
+  - entire/1bf078a-e3b0c4 -> 66e40d11
+  - entire/1d2f28b-e3b0c4 -> 8d9722a7
+  - entire/258d643-e3b0c4 -> d553c648
+  - entire/2963885-e3b0c4 -> 4ef72ea7
+  - entire/2a04537-e3b0c4 -> ef4c295e
+  - entire/2ad704b-e3b0c4 -> 99a3ff7e
+  - entire/30976a5-e3b0c4 -> 66cc1554
+  - entire/30a21f5-e3b0c4 -> 69a665dd
+  - entire/3c13a71-e3b0c4 -> 51f7da8a
+  - entire/47d7edb-e3b0c4 -> bfbb0992
+  - entire/48f63b7-e3b0c4 -> 1491a141
+  - entire/4b041e2-e3b0c4 -> fcde5011
+  - entire/4b8f41d-e3b0c4 -> f04dacb4
+  - entire/51791c0-e3b0c4 -> c79c7aba
+  - entire/53194a6-e3b0c4 -> d3fc0e1c
+  - entire/66795c0-e3b0c4 -> 061405de
+  - entire/6bf7895-e3b0c4 -> eb56c54b
+  - entire/725b34e-e3b0c4 -> 11860bc8
+  - entire/7ae7c93-e3b0c4 -> 0c10c4ea
+  - entire/867ecd5-e3b0c4 -> 261a7c0b
+  - entire/8b864e3-e3b0c4 -> 2359cb77
+  - entire/8bbaf90-e3b0c4 -> 07e0f6b2
+  - entire/8ca87f7-e3b0c4 -> 61e3979c
+  - entire/8d37540-e3b0c4 -> 3e52d926
+  - entire/90ff6fd-e3b0c4 -> bcd111d9
+  - entire/9e65337-e3b0c4 -> 7a0cff38
+  - entire/a25bce0-e3b0c4 -> 0ae2439e
+  - entire/abe332d-e3b0c4 -> 9029e69c
+  - entire/bc89489-e3b0c4 -> ea8df01d
+  - entire/checkpoints/v1 -> f7f043f6
+  - entire/d78efae-e3b0c4 -> e4060327
+  - entire/d8c3cb1-e3b0c4 -> 68d71ebc
+  - entire/dffbd51-e3b0c4 -> 8a83a84d
+  - entire/e753bb6-e3b0c4 -> 73feaf8e
+  - entire/ea91839-e3b0c4 -> 57e22464
+  - entire/ebd68e5-e3b0c4 -> 9ab88abd
+  - entire/ff0dbb9-e3b0c4 -> 859b2f1b
+- `origin` `entire/*` refs:
+  - entire/checkpoints/v1 -> 09d5e9b
+- note: `.entire/` remains host-local runtime state; only this ledger is tracked.
+
+## 2026-06-26T17:44:02-06:00 — jakob
+- repo: `/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS`
+- branch: `main`
+- head: `b6dfe448`
+- origin/main: `a8c2b004`
+- worktree: dirty
+- note: watched path changed: CLAUDE.md
+- tracked status:
+  - M .agents/deferred-tasks.md
+  -  M DATA_SOURCES.md
+  -  M analysis/burst_energies/figures.review.json
+  -  M analysis/scattering-refit-2026-06/joint_ladder/ALLEXP_PBF_RUN.md
+  -  M docs/entire-tracing-checkpoints.md
+- local `entire/*` refs:
+  - entire/0cc8a90-e3b0c4 -> 16d2565c
+  - entire/12a929e-e3b0c4 -> 746c927b
+  - entire/18520fb-e3b0c4 -> 3dfcd2f3
+  - entire/1bf078a-e3b0c4 -> 66e40d11
+  - entire/1d2f28b-e3b0c4 -> 8d9722a7
+  - entire/258d643-e3b0c4 -> d553c648
+  - entire/2963885-e3b0c4 -> 4ef72ea7
+  - entire/2a04537-e3b0c4 -> ef4c295e
+  - entire/2ad704b-e3b0c4 -> 99a3ff7e
+  - entire/30976a5-e3b0c4 -> 66cc1554
+  - entire/30a21f5-e3b0c4 -> 69a665dd
+  - entire/3c13a71-e3b0c4 -> 51f7da8a
+  - entire/47d7edb-e3b0c4 -> 301a3a6a
+  - entire/48f63b7-e3b0c4 -> 1491a141
+  - entire/4b041e2-e3b0c4 -> fcde5011
+  - entire/4b8f41d-e3b0c4 -> f04dacb4
+  - entire/51791c0-e3b0c4 -> c79c7aba
+  - entire/53194a6-e3b0c4 -> d3fc0e1c
+  - entire/66795c0-e3b0c4 -> 061405de
+  - entire/6bf7895-e3b0c4 -> eb56c54b
+  - entire/725b34e-e3b0c4 -> 11860bc8
+  - entire/7ae7c93-e3b0c4 -> 0c10c4ea
+  - entire/867ecd5-e3b0c4 -> 261a7c0b
+  - entire/8b864e3-e3b0c4 -> 2359cb77
+  - entire/8bbaf90-e3b0c4 -> 07e0f6b2
+  - entire/8ca87f7-e3b0c4 -> 61e3979c
+  - entire/8d37540-e3b0c4 -> 3e52d926
+  - entire/90ff6fd-e3b0c4 -> bcd111d9
+  - entire/9e65337-e3b0c4 -> 7a0cff38
+  - entire/a25bce0-e3b0c4 -> 0ae2439e
+  - entire/abe332d-e3b0c4 -> 9029e69c
+  - entire/bc89489-e3b0c4 -> ea8df01d
+  - entire/checkpoints/v1 -> f7f043f6
+  - entire/d78efae-e3b0c4 -> e4060327
+  - entire/d8c3cb1-e3b0c4 -> 68d71ebc
+  - entire/dffbd51-e3b0c4 -> 8a83a84d
+  - entire/e753bb6-e3b0c4 -> 73feaf8e
+  - entire/ea91839-e3b0c4 -> 57e22464
+  - entire/ebd68e5-e3b0c4 -> 9ab88abd
+  - entire/ff0dbb9-e3b0c4 -> 859b2f1b
+- `origin` `entire/*` refs:
+  - entire/checkpoints/v1 -> f7f043f
+- note: `.entire/` remains host-local runtime state; only this ledger is tracked.
+
+## 2026-06-26T17:45:01-06:00 — jakob
+- repo: `/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS`
+- branch: `docs/post-migration-deferred`
+- head: `68bf9e99`
+- origin/main: `a8c2b004`
+- worktree: dirty
+- note: watched path changed: DATA_SOURCES.md
+- tracked status:
+  - M .agents/deferred-tasks.md
+  -  M analysis/burst_energies/figures.review.json
+  -  M analysis/scattering-refit-2026-06/joint_ladder/ALLEXP_PBF_RUN.md
+  -  M docs/entire-tracing-checkpoints.md
+  -  M galaxies/foreground/sightline_budget.py
+- local `entire/*` refs:
+  - entire/0cc8a90-e3b0c4 -> 16d2565c
+  - entire/12a929e-e3b0c4 -> 746c927b
+  - entire/18520fb-e3b0c4 -> 3dfcd2f3
+  - entire/1bf078a-e3b0c4 -> 66e40d11
+  - entire/1d2f28b-e3b0c4 -> 8d9722a7
+  - entire/258d643-e3b0c4 -> d553c648
+  - entire/2963885-e3b0c4 -> 4ef72ea7
+  - entire/2a04537-e3b0c4 -> ef4c295e
+  - entire/2ad704b-e3b0c4 -> 99a3ff7e
+  - entire/30976a5-e3b0c4 -> 66cc1554
+  - entire/30a21f5-e3b0c4 -> 69a665dd
+  - entire/3c13a71-e3b0c4 -> 51f7da8a
+  - entire/47d7edb-e3b0c4 -> 301a3a6a
+  - entire/48f63b7-e3b0c4 -> 1491a141
+  - entire/4b041e2-e3b0c4 -> fcde5011
+  - entire/4b8f41d-e3b0c4 -> f04dacb4
+  - entire/51791c0-e3b0c4 -> c79c7aba
+  - entire/53194a6-e3b0c4 -> d3fc0e1c
+  - entire/66795c0-e3b0c4 -> 061405de
+  - entire/68bf9e9-e3b0c4 -> 98ee9ad8
+  - entire/6bf7895-e3b0c4 -> eb56c54b
+  - entire/725b34e-e3b0c4 -> 11860bc8
+  - entire/7ae7c93-e3b0c4 -> 0c10c4ea
+  - entire/867ecd5-e3b0c4 -> 261a7c0b
+  - entire/8b864e3-e3b0c4 -> 2359cb77
+  - entire/8bbaf90-e3b0c4 -> 07e0f6b2
+  - entire/8ca87f7-e3b0c4 -> 61e3979c
+  - entire/8d37540-e3b0c4 -> 3e52d926
+  - entire/90ff6fd-e3b0c4 -> bcd111d9
+  - entire/9e65337-e3b0c4 -> 7a0cff38
+  - entire/a25bce0-e3b0c4 -> 0ae2439e
+  - entire/abe332d-e3b0c4 -> 9029e69c
+  - entire/bc89489-e3b0c4 -> ea8df01d
+  - entire/checkpoints/v1 -> af19c22c
+  - entire/d78efae-e3b0c4 -> e4060327
+  - entire/d8c3cb1-e3b0c4 -> 68d71ebc
+  - entire/dffbd51-e3b0c4 -> 8a83a84d
+  - entire/e753bb6-e3b0c4 -> 73feaf8e
+  - entire/ea91839-e3b0c4 -> 57e22464
+  - entire/ebd68e5-e3b0c4 -> 9ab88abd
+  - entire/ff0dbb9-e3b0c4 -> 859b2f1b
+- `origin` `entire/*` refs:
+  - entire/checkpoints/v1 -> f7f043f
+- note: `.entire/` remains host-local runtime state; only this ledger is tracked.
+
+## 2026-06-26T22:45:39-06:00 — jakob
+- repo: `/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS`
+- branch: `docs/post-migration-deferred`
+- head: `ef2b5148`
+- origin/main: `10031268`
+- worktree: clean
+- note: watched path changed: analysis/burst_energies/figures.review.json
+- tracked status: clean
+- local `entire/*` refs:
+  - entire/07b6b71-b8b577 -> d9f2ee2e
+  - entire/0cc8a90-e3b0c4 -> 16d2565c
+  - entire/12a929e-e3b0c4 -> 746c927b
+  - entire/18520fb-e3b0c4 -> 3dfcd2f3
+  - entire/1bf078a-e3b0c4 -> 66e40d11
+  - entire/1d2f28b-e3b0c4 -> 8d9722a7
+  - entire/258d643-e3b0c4 -> d553c648
+  - entire/2963885-e3b0c4 -> 4ef72ea7
+  - entire/2a04537-e3b0c4 -> ef4c295e
+  - entire/2ad704b-e3b0c4 -> 99a3ff7e
+  - entire/30976a5-e3b0c4 -> 66cc1554
+  - entire/30a21f5-e3b0c4 -> 69a665dd
+  - entire/3c13a71-e3b0c4 -> 51f7da8a
+  - entire/47d7edb-e3b0c4 -> 301a3a6a
+  - entire/48f63b7-e3b0c4 -> 1491a141
+  - entire/4b041e2-e3b0c4 -> fcde5011
+  - entire/4b8f41d-e3b0c4 -> f04dacb4
+  - entire/51791c0-e3b0c4 -> c79c7aba
+  - entire/53194a6-e3b0c4 -> d3fc0e1c
+  - entire/66795c0-e3b0c4 -> 061405de
+  - entire/68bf9e9-e3b0c4 -> 03e220e9
+  - entire/6bf7895-e3b0c4 -> eb56c54b
+  - entire/725b34e-e3b0c4 -> 11860bc8
+  - entire/7ae7c93-e3b0c4 -> 0c10c4ea
+  - entire/867ecd5-e3b0c4 -> 261a7c0b
+  - entire/8b864e3-e3b0c4 -> 2359cb77
+  - entire/8bbaf90-e3b0c4 -> 07e0f6b2
+  - entire/8ca87f7-e3b0c4 -> 61e3979c
+  - entire/8d37540-e3b0c4 -> 3e52d926
+  - entire/8ea6272-b0c1d5 -> 0955a4ba
+  - entire/90ff6fd-e3b0c4 -> bcd111d9
+  - entire/9e65337-e3b0c4 -> 7a0cff38
+  - entire/a25bce0-e3b0c4 -> 0ae2439e
+  - entire/abe332d-e3b0c4 -> 9029e69c
+  - entire/bc89489-e3b0c4 -> ea8df01d
+  - entire/checkpoints/v1 -> 17ba0d97
+  - entire/d78efae-e3b0c4 -> e4060327
+  - entire/d8c3cb1-e3b0c4 -> 68d71ebc
+  - entire/dffbd51-e3b0c4 -> 8a83a84d
+  - entire/e753bb6-e3b0c4 -> 73feaf8e
+  - entire/ea91839-e3b0c4 -> 57e22464
+  - entire/ebd68e5-e3b0c4 -> 9ab88abd
+  - entire/ef2b514-e3b0c4 -> 45736c8d
+  - entire/ff0dbb9-e3b0c4 -> 859b2f1b
+- `origin` `entire/*` refs:
+  - entire/checkpoints/v1 -> af19c22
+- note: `.entire/` remains host-local runtime state; only this ledger is tracked.
+
+## 2026-06-26T22:45:49-06:00 — jakob
+- repo: `/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS`
+- branch: `docs/post-migration-deferred`
+- head: `c38bf250`
+- origin/main: `10031268`
+- worktree: clean
+- note: watched path changed: analysis/burst_energies/figures.review.json
+- tracked status: clean
+- local `entire/*` refs:
+  - entire/07b6b71-b8b577 -> d9f2ee2e
+  - entire/0cc8a90-e3b0c4 -> 16d2565c
+  - entire/12a929e-e3b0c4 -> 746c927b
+  - entire/18520fb-e3b0c4 -> 3dfcd2f3
+  - entire/1bf078a-e3b0c4 -> 66e40d11
+  - entire/1d2f28b-e3b0c4 -> 8d9722a7
+  - entire/258d643-e3b0c4 -> d553c648
+  - entire/2963885-e3b0c4 -> 4ef72ea7
+  - entire/2a04537-e3b0c4 -> ef4c295e
+  - entire/2ad704b-e3b0c4 -> 99a3ff7e
+  - entire/30976a5-e3b0c4 -> 66cc1554
+  - entire/30a21f5-e3b0c4 -> 69a665dd
+  - entire/3c13a71-e3b0c4 -> 51f7da8a
+  - entire/47d7edb-e3b0c4 -> 301a3a6a
+  - entire/48f63b7-e3b0c4 -> 1491a141
+  - entire/4b041e2-e3b0c4 -> fcde5011
+  - entire/4b8f41d-e3b0c4 -> f04dacb4
+  - entire/51791c0-e3b0c4 -> c79c7aba
+  - entire/53194a6-e3b0c4 -> d3fc0e1c
+  - entire/66795c0-e3b0c4 -> 061405de
+  - entire/68bf9e9-e3b0c4 -> 03e220e9
+  - entire/6bf7895-e3b0c4 -> eb56c54b
+  - entire/725b34e-e3b0c4 -> 11860bc8
+  - entire/7ae7c93-e3b0c4 -> 0c10c4ea
+  - entire/867ecd5-e3b0c4 -> 261a7c0b
+  - entire/8b864e3-e3b0c4 -> 2359cb77
+  - entire/8bbaf90-e3b0c4 -> 07e0f6b2
+  - entire/8ca87f7-e3b0c4 -> 61e3979c
+  - entire/8d37540-e3b0c4 -> 3e52d926
+  - entire/8ea6272-b0c1d5 -> 0955a4ba
+  - entire/90ff6fd-e3b0c4 -> bcd111d9
+  - entire/9e65337-e3b0c4 -> 7a0cff38
+  - entire/a25bce0-e3b0c4 -> 0ae2439e
+  - entire/abe332d-e3b0c4 -> 9029e69c
+  - entire/bc89489-e3b0c4 -> ea8df01d
+  - entire/checkpoints/v1 -> 17ba0d97
+  - entire/d78efae-e3b0c4 -> e4060327
+  - entire/d8c3cb1-e3b0c4 -> 68d71ebc
+  - entire/dffbd51-e3b0c4 -> 8a83a84d
+  - entire/e753bb6-e3b0c4 -> 73feaf8e
+  - entire/ea91839-e3b0c4 -> 57e22464
+  - entire/ebd68e5-e3b0c4 -> 9ab88abd
+  - entire/ef2b514-e3b0c4 -> 45736c8d
+  - entire/ff0dbb9-e3b0c4 -> 859b2f1b
+- `origin` `entire/*` refs:
+  - entire/checkpoints/v1 -> af19c22
+- note: `.entire/` remains host-local runtime state; only this ledger is tracked.
+
+## 2026-06-26T22:45:51-06:00 — jakob
+- repo: `/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS`
+- branch: `docs/post-migration-deferred`
+- head: `c38bf250`
+- origin/main: `10031268`
+- worktree: dirty
+- note: watched path changed: analysis/burst_energies/figures.review.json
+- tracked status:
+  - M docs/entire-tracing-checkpoints.md
+- local `entire/*` refs:
+  - entire/07b6b71-b8b577 -> d9f2ee2e
+  - entire/0cc8a90-e3b0c4 -> 16d2565c
+  - entire/12a929e-e3b0c4 -> 746c927b
+  - entire/18520fb-e3b0c4 -> 3dfcd2f3
+  - entire/1bf078a-e3b0c4 -> 66e40d11
+  - entire/1d2f28b-e3b0c4 -> 8d9722a7
+  - entire/258d643-e3b0c4 -> d553c648
+  - entire/2963885-e3b0c4 -> 4ef72ea7
+  - entire/2a04537-e3b0c4 -> ef4c295e
+  - entire/2ad704b-e3b0c4 -> 99a3ff7e
+  - entire/30976a5-e3b0c4 -> 66cc1554
+  - entire/30a21f5-e3b0c4 -> 69a665dd
+  - entire/3c13a71-e3b0c4 -> 51f7da8a
+  - entire/47d7edb-e3b0c4 -> 301a3a6a
+  - entire/48f63b7-e3b0c4 -> 1491a141
+  - entire/4b041e2-e3b0c4 -> fcde5011
+  - entire/4b8f41d-e3b0c4 -> f04dacb4
+  - entire/51791c0-e3b0c4 -> c79c7aba
+  - entire/53194a6-e3b0c4 -> d3fc0e1c
+  - entire/66795c0-e3b0c4 -> 061405de
+  - entire/68bf9e9-e3b0c4 -> 03e220e9
+  - entire/6bf7895-e3b0c4 -> eb56c54b
+  - entire/725b34e-e3b0c4 -> 11860bc8
+  - entire/7ae7c93-e3b0c4 -> 0c10c4ea
+  - entire/867ecd5-e3b0c4 -> 261a7c0b
+  - entire/8b864e3-e3b0c4 -> 2359cb77
+  - entire/8bbaf90-e3b0c4 -> 07e0f6b2
+  - entire/8ca87f7-e3b0c4 -> 61e3979c
+  - entire/8d37540-e3b0c4 -> 3e52d926
+  - entire/8ea6272-b0c1d5 -> 0955a4ba
+  - entire/90ff6fd-e3b0c4 -> bcd111d9
+  - entire/9e65337-e3b0c4 -> 7a0cff38
+  - entire/a25bce0-e3b0c4 -> 0ae2439e
+  - entire/abe332d-e3b0c4 -> 9029e69c
+  - entire/bc89489-e3b0c4 -> ea8df01d
+  - entire/c38bf25-e3b0c4 -> 45736c8d
+  - entire/checkpoints/v1 -> 17ba0d97
+  - entire/d78efae-e3b0c4 -> e4060327
+  - entire/d8c3cb1-e3b0c4 -> 68d71ebc
+  - entire/dffbd51-e3b0c4 -> 8a83a84d
+  - entire/e753bb6-e3b0c4 -> 73feaf8e
+  - entire/ea91839-e3b0c4 -> 57e22464
+  - entire/ebd68e5-e3b0c4 -> 9ab88abd
+  - entire/ff0dbb9-e3b0c4 -> 859b2f1b
+- `origin` `entire/*` refs:
+  - entire/checkpoints/v1 -> af19c22
+- note: `.entire/` remains host-local runtime state; only this ledger is tracked.
+
+## 2026-06-26T22:46:02-06:00 — jakob
+- repo: `/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS`
+- branch: `docs/post-migration-deferred`
+- head: `5f8e3c86`
+- origin/main: `10031268`
+- worktree: clean
+- note: watched path changed: analysis/burst_energies/figures.review.json
+- tracked status: clean
+- local `entire/*` refs:
+  - entire/07b6b71-b8b577 -> d9f2ee2e
+  - entire/0cc8a90-e3b0c4 -> 16d2565c
+  - entire/12a929e-e3b0c4 -> 746c927b
+  - entire/18520fb-e3b0c4 -> 3dfcd2f3
+  - entire/1bf078a-e3b0c4 -> 66e40d11
+  - entire/1d2f28b-e3b0c4 -> 8d9722a7
+  - entire/258d643-e3b0c4 -> d553c648
+  - entire/2963885-e3b0c4 -> 4ef72ea7
+  - entire/2a04537-e3b0c4 -> ef4c295e
+  - entire/2ad704b-e3b0c4 -> 99a3ff7e
+  - entire/30976a5-e3b0c4 -> 66cc1554
+  - entire/30a21f5-e3b0c4 -> 69a665dd
+  - entire/3c13a71-e3b0c4 -> 51f7da8a
+  - entire/47d7edb-e3b0c4 -> 301a3a6a
+  - entire/48f63b7-e3b0c4 -> 1491a141
+  - entire/4b041e2-e3b0c4 -> fcde5011
+  - entire/4b8f41d-e3b0c4 -> f04dacb4
+  - entire/51791c0-e3b0c4 -> c79c7aba
+  - entire/53194a6-e3b0c4 -> d3fc0e1c
+  - entire/66795c0-e3b0c4 -> 061405de
+  - entire/68bf9e9-e3b0c4 -> 03e220e9
+  - entire/6bf7895-e3b0c4 -> eb56c54b
+  - entire/725b34e-e3b0c4 -> 11860bc8
+  - entire/7ae7c93-e3b0c4 -> 0c10c4ea
+  - entire/867ecd5-e3b0c4 -> 261a7c0b
+  - entire/8b864e3-e3b0c4 -> 2359cb77
+  - entire/8bbaf90-e3b0c4 -> 07e0f6b2
+  - entire/8ca87f7-e3b0c4 -> 61e3979c
+  - entire/8d37540-e3b0c4 -> 3e52d926
+  - entire/8ea6272-b0c1d5 -> 0955a4ba
+  - entire/90ff6fd-e3b0c4 -> bcd111d9
+  - entire/9e65337-e3b0c4 -> 7a0cff38
+  - entire/a25bce0-e3b0c4 -> 0ae2439e
+  - entire/abe332d-e3b0c4 -> 9029e69c
+  - entire/bc89489-e3b0c4 -> ea8df01d
+  - entire/c38bf25-e3b0c4 -> 45736c8d
+  - entire/checkpoints/v1 -> 371cb94d
+  - entire/d78efae-e3b0c4 -> e4060327
+  - entire/d8c3cb1-e3b0c4 -> 68d71ebc
+  - entire/dffbd51-e3b0c4 -> 8a83a84d
+  - entire/e753bb6-e3b0c4 -> 73feaf8e
+  - entire/ea91839-e3b0c4 -> 57e22464
+  - entire/ebd68e5-e3b0c4 -> 9ab88abd
+  - entire/ff0dbb9-e3b0c4 -> 859b2f1b
+- `origin` `entire/*` refs:
+  - entire/checkpoints/v1 -> af19c22
+- note: `.entire/` remains host-local runtime state; only this ledger is tracked.
+
+## 2026-06-26T22:46:04-06:00 — jakob
+- repo: `/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS`
+- branch: `docs/post-migration-deferred`
+- head: `5f8e3c86`
+- origin/main: `10031268`
+- worktree: dirty
+- note: watched path changed: analysis/burst_energies/figures.review.json
+- tracked status:
+  - M docs/entire-tracing-checkpoints.md
+- local `entire/*` refs:
+  - entire/07b6b71-b8b577 -> d9f2ee2e
+  - entire/0cc8a90-e3b0c4 -> 16d2565c
+  - entire/12a929e-e3b0c4 -> 746c927b
+  - entire/18520fb-e3b0c4 -> 3dfcd2f3
+  - entire/1bf078a-e3b0c4 -> 66e40d11
+  - entire/1d2f28b-e3b0c4 -> 8d9722a7
+  - entire/258d643-e3b0c4 -> d553c648
+  - entire/2963885-e3b0c4 -> 4ef72ea7
+  - entire/2a04537-e3b0c4 -> ef4c295e
+  - entire/2ad704b-e3b0c4 -> 99a3ff7e
+  - entire/30976a5-e3b0c4 -> 66cc1554
+  - entire/30a21f5-e3b0c4 -> 69a665dd
+  - entire/3c13a71-e3b0c4 -> 51f7da8a
+  - entire/47d7edb-e3b0c4 -> 301a3a6a
+  - entire/48f63b7-e3b0c4 -> 1491a141
+  - entire/4b041e2-e3b0c4 -> fcde5011
+  - entire/4b8f41d-e3b0c4 -> f04dacb4
+  - entire/51791c0-e3b0c4 -> c79c7aba
+  - entire/53194a6-e3b0c4 -> d3fc0e1c
+  - entire/5f8e3c8-e3b0c4 -> 45736c8d
+  - entire/66795c0-e3b0c4 -> 061405de
+  - entire/68bf9e9-e3b0c4 -> 03e220e9
+  - entire/6bf7895-e3b0c4 -> eb56c54b
+  - entire/725b34e-e3b0c4 -> 11860bc8
+  - entire/7ae7c93-e3b0c4 -> 0c10c4ea
+  - entire/867ecd5-e3b0c4 -> 261a7c0b
+  - entire/8b864e3-e3b0c4 -> 2359cb77
+  - entire/8bbaf90-e3b0c4 -> 07e0f6b2
+  - entire/8ca87f7-e3b0c4 -> 61e3979c
+  - entire/8d37540-e3b0c4 -> 3e52d926
+  - entire/8ea6272-b0c1d5 -> 0955a4ba
+  - entire/90ff6fd-e3b0c4 -> bcd111d9
+  - entire/9e65337-e3b0c4 -> 7a0cff38
+  - entire/a25bce0-e3b0c4 -> 0ae2439e
+  - entire/abe332d-e3b0c4 -> 9029e69c
+  - entire/bc89489-e3b0c4 -> ea8df01d
+  - entire/checkpoints/v1 -> 371cb94d
+  - entire/d78efae-e3b0c4 -> e4060327
+  - entire/d8c3cb1-e3b0c4 -> 68d71ebc
+  - entire/dffbd51-e3b0c4 -> 8a83a84d
+  - entire/e753bb6-e3b0c4 -> 73feaf8e
+  - entire/ea91839-e3b0c4 -> 57e22464
+  - entire/ebd68e5-e3b0c4 -> 9ab88abd
+  - entire/ff0dbb9-e3b0c4 -> 859b2f1b
+- `origin` `entire/*` refs:
+  - entire/checkpoints/v1 -> af19c22
+- note: `.entire/` remains host-local runtime state; only this ledger is tracked.
+
+## 2026-06-26T22:46:11-06:00 — jakob
+- repo: `/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS`
+- branch: `docs/post-migration-deferred`
+- head: `aedb4829`
+- origin/main: `10031268`
+- worktree: clean
+- note: watched path changed: analysis/burst_energies/figures.review.json
+- tracked status: clean
+- local `entire/*` refs:
+  - entire/07b6b71-b8b577 -> d9f2ee2e
+  - entire/0cc8a90-e3b0c4 -> 16d2565c
+  - entire/12a929e-e3b0c4 -> 746c927b
+  - entire/18520fb-e3b0c4 -> 3dfcd2f3
+  - entire/1bf078a-e3b0c4 -> 66e40d11
+  - entire/1d2f28b-e3b0c4 -> 8d9722a7
+  - entire/258d643-e3b0c4 -> d553c648
+  - entire/2963885-e3b0c4 -> 4ef72ea7
+  - entire/2a04537-e3b0c4 -> ef4c295e
+  - entire/2ad704b-e3b0c4 -> 99a3ff7e
+  - entire/30976a5-e3b0c4 -> 66cc1554
+  - entire/30a21f5-e3b0c4 -> 69a665dd
+  - entire/3c13a71-e3b0c4 -> 51f7da8a
+  - entire/47d7edb-e3b0c4 -> 301a3a6a
+  - entire/48f63b7-e3b0c4 -> 1491a141
+  - entire/4b041e2-e3b0c4 -> fcde5011
+  - entire/4b8f41d-e3b0c4 -> f04dacb4
+  - entire/51791c0-e3b0c4 -> c79c7aba
+  - entire/53194a6-e3b0c4 -> d3fc0e1c
+  - entire/5f8e3c8-e3b0c4 -> 45736c8d
+  - entire/66795c0-e3b0c4 -> 061405de
+  - entire/68bf9e9-e3b0c4 -> 03e220e9
+  - entire/6bf7895-e3b0c4 -> eb56c54b
+  - entire/725b34e-e3b0c4 -> 11860bc8
+  - entire/7ae7c93-e3b0c4 -> 0c10c4ea
+  - entire/867ecd5-e3b0c4 -> 261a7c0b
+  - entire/8b864e3-e3b0c4 -> 2359cb77
+  - entire/8bbaf90-e3b0c4 -> 07e0f6b2
+  - entire/8ca87f7-e3b0c4 -> 61e3979c
+  - entire/8d37540-e3b0c4 -> 3e52d926
+  - entire/8ea6272-b0c1d5 -> 0955a4ba
+  - entire/90ff6fd-e3b0c4 -> bcd111d9
+  - entire/9e65337-e3b0c4 -> 7a0cff38
+  - entire/a25bce0-e3b0c4 -> 0ae2439e
+  - entire/abe332d-e3b0c4 -> 9029e69c
+  - entire/bc89489-e3b0c4 -> ea8df01d
+  - entire/checkpoints/v1 -> b8799057
+  - entire/d78efae-e3b0c4 -> e4060327
+  - entire/d8c3cb1-e3b0c4 -> 68d71ebc
+  - entire/dffbd51-e3b0c4 -> 8a83a84d
+  - entire/e753bb6-e3b0c4 -> 73feaf8e
+  - entire/ea91839-e3b0c4 -> 57e22464
+  - entire/ebd68e5-e3b0c4 -> 9ab88abd
+  - entire/ff0dbb9-e3b0c4 -> 859b2f1b
+- `origin` `entire/*` refs:
+  - entire/checkpoints/v1 -> af19c22
+- note: `.entire/` remains host-local runtime state; only this ledger is tracked.
+
+## 2026-06-26T22:46:14-06:00 — jakob
+- repo: `/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS`
+- branch: `docs/post-migration-deferred`
+- head: `aedb4829`
+- origin/main: `10031268`
+- worktree: dirty
+- note: watched path changed: analysis/burst_energies/figures.review.json
+- tracked status:
+  - M docs/entire-tracing-checkpoints.md
+- local `entire/*` refs:
+  - entire/07b6b71-b8b577 -> d9f2ee2e
+  - entire/0cc8a90-e3b0c4 -> 16d2565c
+  - entire/12a929e-e3b0c4 -> 746c927b
+  - entire/18520fb-e3b0c4 -> 3dfcd2f3
+  - entire/1bf078a-e3b0c4 -> 66e40d11
+  - entire/1d2f28b-e3b0c4 -> 8d9722a7
+  - entire/258d643-e3b0c4 -> d553c648
+  - entire/2963885-e3b0c4 -> 4ef72ea7
+  - entire/2a04537-e3b0c4 -> ef4c295e
+  - entire/2ad704b-e3b0c4 -> 99a3ff7e
+  - entire/30976a5-e3b0c4 -> 66cc1554
+  - entire/30a21f5-e3b0c4 -> 69a665dd
+  - entire/3c13a71-e3b0c4 -> 51f7da8a
+  - entire/47d7edb-e3b0c4 -> 301a3a6a
+  - entire/48f63b7-e3b0c4 -> 1491a141
+  - entire/4b041e2-e3b0c4 -> fcde5011
+  - entire/4b8f41d-e3b0c4 -> f04dacb4
+  - entire/51791c0-e3b0c4 -> c79c7aba
+  - entire/53194a6-e3b0c4 -> d3fc0e1c
+  - entire/66795c0-e3b0c4 -> 061405de
+  - entire/68bf9e9-e3b0c4 -> 03e220e9
+  - entire/6bf7895-e3b0c4 -> eb56c54b
+  - entire/725b34e-e3b0c4 -> 11860bc8
+  - entire/7ae7c93-e3b0c4 -> 0c10c4ea
+  - entire/867ecd5-e3b0c4 -> 261a7c0b
+  - entire/8b864e3-e3b0c4 -> 2359cb77
+  - entire/8bbaf90-e3b0c4 -> 07e0f6b2
+  - entire/8ca87f7-e3b0c4 -> 61e3979c
+  - entire/8d37540-e3b0c4 -> 3e52d926
+  - entire/8ea6272-b0c1d5 -> 0955a4ba
+  - entire/90ff6fd-e3b0c4 -> bcd111d9
+  - entire/9e65337-e3b0c4 -> 7a0cff38
+  - entire/a25bce0-e3b0c4 -> 0ae2439e
+  - entire/abe332d-e3b0c4 -> 9029e69c
+  - entire/aedb482-e3b0c4 -> 45736c8d
+  - entire/bc89489-e3b0c4 -> ea8df01d
+  - entire/checkpoints/v1 -> b8799057
+  - entire/d78efae-e3b0c4 -> e4060327
+  - entire/d8c3cb1-e3b0c4 -> 68d71ebc
+  - entire/dffbd51-e3b0c4 -> 8a83a84d
+  - entire/e753bb6-e3b0c4 -> 73feaf8e
+  - entire/ea91839-e3b0c4 -> 57e22464
+  - entire/ebd68e5-e3b0c4 -> 9ab88abd
+  - entire/ff0dbb9-e3b0c4 -> 859b2f1b
+- `origin` `entire/*` refs:
+  - entire/checkpoints/v1 -> af19c22
+- note: `.entire/` remains host-local runtime state; only this ledger is tracked.

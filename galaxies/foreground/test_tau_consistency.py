@@ -11,6 +11,8 @@ from galaxies.foreground.tau_consistency import (
     _joint_fit_scalar,
     _posterior_median,
     find_allexp_joint_json,
+    load_allexp_joint_tau_for_budget,
+    load_citable_budget_nicknames,
     load_joint_free_alpha,
     tau_consistency_from_refit,
 )
@@ -32,6 +34,25 @@ def test_tau_consistency_from_refit_scalar():
     row = tau_consistency_from_refit({"tau_1ghz": 0.1, "alpha": 4.0})
     assert row["tau_consistency_1ghz_ms"] == 0.1
     assert row["refit_status"] == "alpha4_joint_complete"
+
+
+def test_load_allexp_joint_tau_for_budget_casey():
+    row = load_allexp_joint_tau_for_budget("casey")
+    assert row is not None
+    assert row["source"] == "allexp_joint"
+    assert row["tau"] == pytest.approx(0.06086799947757, rel=1e-4)
+    assert row["quality_flag"] in ("PASS", "MARGINAL")
+    assert row["err_minus"] > 0
+
+
+def test_load_allexp_joint_tau_excluded_burst():
+    assert load_allexp_joint_tau_for_budget("mahi") is None
+
+
+def test_citable_budget_nicknames_includes_whitney():
+    names = load_citable_budget_nicknames()
+    assert "whitney" in names
+    assert "mahi" not in names
 
 
 def test_load_joint_free_alpha_scalar_json(tmp_path, monkeypatch):

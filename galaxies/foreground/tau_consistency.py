@@ -18,7 +18,9 @@ CHIME_REF_MHZ = 600.0
 DSA_REF_MHZ = 1400.0
 
 JOINT_GATE_CSV = REPO_ROOT / "analysis" / "scattering-refit-2026-06" / "joint_gate_verdicts.csv"
-ALLEXP_FITS_DIR = REPO_ROOT / "analysis" / "scattering-refit-2026-06" / "_a1_fits"
+REFIT_DIR = REPO_ROOT / "analysis" / "scattering-refit-2026-06"
+ALLEXP_FITS_DIR = REFIT_DIR / "_a1_fits"
+CITABLE_ROSTER_JSON = REFIT_DIR / "citable_alpha_roster.json"
 TAU_CONSISTENCY_DIR = DATA_DIR / "tau_consistency"
 
 
@@ -84,13 +86,116 @@ def find_allexp_joint_json(burst: str, search_dir: Path | None = None) -> Path |
     root = search_dir or ALLEXP_FITS_DIR
     if not root.is_dir():
         return None
-    matches = sorted(root.glob(f"{burst}_joint*pbf-exp-exp.json"))
+    matches = [
+        p
+        for p in sorted(root.glob("*_joint*pbf-exp-exp.json"))
+        if p.name.lower().startswith(f"{burst}_joint") and "ppc" not in p.name.lower()
+    ]
     if not matches:
-        matches = sorted(root.glob(f"*{burst}*joint*pbf-exp-exp.json"))
-    if not matches:
+        matches = [
+            p
+            for p in sorted(root.glob("*joint*pbf-exp-exp.json"))
+            if burst in p.name.lower() and "ppc" not in p.name.lower()
+        ]
+    return matches[0] if matches else None
+
+
+def load_citable_budget_nicknames() -> frozenset[str]:
+    """Nicknames eligible for all-exp τ on fig:budget (ADR-0005 Tier A/B + whitney)."""
+    if not CITABLE_ROSTER_JSON.exists():
+        return frozenset()
+    with open(CITABLE_ROSTER_JSON) as fh:
+        roster = json.load(fh)
+    names = {str(e["nickname"]).lower() for e in roster.get("tier_a_fully_adjudicated", [])}
+    names |= {str(e["nickname"]).lower() for e in roster.get("tier_b_provisional_pending_s2", [])}
+    exemplar = roster.get("multiplicity_exemplar") or {}
+    if exemplar.get("nickname"):
+        names.add(str(exemplar["nickname"]).lower())
+    return frozenset(names)
+
+
+def find_citable_joint_json(burst: str) -> Path | None:
+    """Canonical all-exp joint fit JSON for a citable-roster burst."""
+    burst = _normalize_burst(burst)
+    if CITABLE_ROSTER_JSON.exists():
+        with open(CITABLE_ROSTER_JSON) as fh:
+            roster = json.load(fh)
+        exemplar = roster.get("multiplicity_exemplar") or {}
+        if str(exemplar.get("nickname", "")).lower() == burst:
+            override = exemplar.get("fit_json")
+            if override:
+                path = REPO_ROOT / str(override)
+                if path.exists():
+                    return path
+    return find_allexp_joint_json(burst)
+
+
+def _find_joint_ppc_json(fit_path: Path) -> Path | None:
+    if "_joint_fit" not in fit_path.name:
         return None
-    non_ppc = [m for m in matches if "ppc" not in m.name.lower()]
-    return non_ppc[0] if non_ppc else matches[0]
+    burst, tag = fit_path.name.split("_joint_fit", 1)
+    ppc_path = fit_path.parent / f"{burst}_joint_ppc_multi{tag}"
+    if ppc_path.exists():
+        return ppc_path
+    prefix = burst.lower()
+    for candidate in sorted(fit_path.parent.glob("*_joint_ppc_multi*.json")):
+        if candidate.name.lower().startswith(f"{prefix}_joint_ppc_multi"):
+            return candidate
+    return None
+
+
+def _joint_tau_posterior(fit: dict) -> tuple[float, float, float]:
+    pct = fit.get("percentiles") or {}
+    block = fit.get("tau_1ghz")
+    if not isinstance(block, dict):
+        block = pct.get("tau_1ghz")
+    tau = _posterior_median(block)
+    err_minus = _posterior_median(block, "err_minus") if isinstance(block, dict) else np.nan
+    err_plus = _posterior_median(block, "err_plus") if isinstance(block, dict) else np.nan
+    return float(tau), float(err_minus), float(err_plus)
+
+
+def _import_gate_one():
+    import sys
+
+    refit_str = str(REFIT_DIR)
+    if refit_str not in sys.path:
+        sys.path.insert(0, refit_str)
+    from gate_joint_committed import gate_one
+
+    return gate_one
+
+
+def load_allexp_joint_tau_for_budget(burst: str) -> dict | None:
+    """All-exp joint τ + ADR-0004 gate for fig:budget overlay (citable roster only)."""
+    burst = _normalize_burst(burst)
+    if burst not in load_citable_budget_nicknames():
+        return None
+    fit_path = find_citable_joint_json(burst)
+    if fit_path is None:
+        return None
+    with open(fit_path) as fh:
+        fit = json.load(fh)
+    ppc_path = _find_joint_ppc_json(fit_path)
+    ppc = json.loads(ppc_path.read_text()) if ppc_path is not None else None
+    verdict = _import_gate_one()(burst, fit, ppc)
+    tau, err_minus, err_plus = _joint_tau_posterior(fit)
+    if not np.isfinite(tau) or tau <= 0.0:
+        return None
+    cc, cd = verdict.get("chi2_chime"), verdict.get("chi2_dsa")
+    chi2_red = (
+        max(float(cc), float(cd))
+        if cc is not None and cd is not None and np.isfinite(cc) and np.isfinite(cd)
+        else np.nan
+    )
+    return {
+        "tau": tau,
+        "err_minus": err_minus,
+        "err_plus": err_plus,
+        "quality_flag": verdict["final"],
+        "chi2_reduced": chi2_red,
+        "source": "allexp_joint",
+    }
 
 
 def load_joint_free_alpha(burst: str) -> dict:

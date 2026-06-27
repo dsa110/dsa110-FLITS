@@ -5,12 +5,13 @@ import math
 import numpy as np
 
 from galaxies.foreground.scintillation_bridge import (
-    _first_subband_acf,
+    _burst_spectrum_for_fit,
     build_scintillation_source_block,
     consistency_failed_for_component,
     format_two_screen_coherence,
     merge_source_into_config,
 )
+from scintillation.scint_analysis.core import DynamicSpectrum
 
 
 def test_source_block_wilhelm_has_tau_and_distance():
@@ -37,11 +38,11 @@ def test_consistency_failed_when_tau_large_dnu_small():
     assert consistency_failed_for_component(comp, cfg, band="chime") is True
 
 
-def test_first_subband_acf_from_pipeline_lists():
-    acf_results = {
-        "subband_acfs": [np.array([1.0, 0.5, 0.2])],
-        "subband_channel_widths_mhz": [0.98],
-    }
-    spec, ch = _first_subband_acf(acf_results)
+def test_burst_spectrum_for_fit_from_dynamic_spectrum():
+    freqs = np.linspace(400, 800, 64)
+    power = np.ones((64, 100))
+    ds = DynamicSpectrum(power, freqs, np.linspace(0, 1, 100))
+    spec, ch = _burst_spectrum_for_fit(ds, (10, 90))
     assert spec is not None
-    assert ch == 0.98
+    assert spec.shape == (64,)
+    assert ch == ds.channel_width_mhz

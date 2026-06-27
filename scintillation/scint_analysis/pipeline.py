@@ -278,6 +278,8 @@ class ScintillationAnalysis:
             self.config,
             nickname=nick,
             acf_results=self.acf_results,
+            masked_spectrum=self.masked_spectrum,
+            burst_lims=burst_lims,
         )
 
         # Attach the NE2025 MW scattering floor + extragalactic-excess flag when the

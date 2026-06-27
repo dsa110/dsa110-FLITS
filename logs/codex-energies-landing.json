@@ -1,0 +1,16 @@
+Yes. The worktree plan is the correct lane-safe landing.
+
+Do it from `origin/main`, copy only the four energy files, verify the clean worktree diff is exactly:
+
+```text
+analysis/calculate_burst_energies.py
+burst_energies.json
+burst_energies.tex
+burst_energies.provenance.json
+```
+
+Then commit with an explicit pathspec, push the branch, and open the PR. That preserves the validated main-checkout result without dragging the 141 unrelated files into the branch.
+
+Commit the artifacts if they are tracked repo outputs used by the manuscript or downstream review. In this case, yes: `burst_energies.json`, `.tex`, and `.provenance.json` belong with the code change because the behavioral fix changes the published energy table and the provenance file explains exactly why.
+
+One commit is fine: the code fix and regenerated artifacts are one atomic scientific result. Split only if your reviewers prefer “logic first, regenerated outputs second”; it is not required for lane safety.

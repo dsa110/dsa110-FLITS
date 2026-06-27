@@ -1,0 +1,44 @@
+<h2>Hybrid Figure Layout</h2>
+<p class="subtitle">Both options make TOA residuals the main evidence, with chance coincidence, CHIME-DSA position separation, and DM agreement as compact corroborating checks.</p>
+
+<div class="split">
+  <div class="mockup" data-choice="wide-four-panel" onclick="toggleSelect(this)">
+    <div class="mockup-header">Option C1: Wide Four-Panel Figure</div>
+    <div class="mockup-body">
+      <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:12px">
+        <div class="placeholder" style="min-height:220px">A. TOA residual by burst<br><small>colored by DM, error bars, zero line</small></div>
+        <div style="display:grid;gap:10px">
+          <div class="placeholder">B. chance P per burst<br><small>log scale</small></div>
+          <div class="placeholder">C. position separation<br><small>arcmin vs 6 arcmin threshold</small></div>
+          <div class="placeholder">D. DM agreement<br><small>8 constrained + 4 unconstrained</small></div>
+        </div>
+      </div>
+    </div>
+    <div class="pros-cons">
+      <div class="pros"><h4>Pros</h4><ul><li>One figure answers the whole association question.</li><li>Easy to cite once in the text.</li></ul></div>
+      <div class="cons"><h4>Cons</h4><ul><li>Dense; small panels may need careful labels.</li></ul></div>
+    </div>
+  </div>
+
+  <div class="mockup" data-choice="main-with-insets" onclick="toggleSelect(this)">
+    <div class="mockup-header">Option C2: TOA Main Figure With Validation Insets</div>
+    <div class="mockup-body">
+      <div style="position:relative;min-height:300px">
+        <div class="placeholder" style="min-height:280px">A. TOA residual by burst<br><small>dominant panel, large labels</small></div>
+        <div style="position:absolute;right:10px;top:12px;width:32%;display:grid;gap:8px">
+          <div class="placeholder">P chance</div>
+          <div class="placeholder">position</div>
+          <div class="placeholder">DM</div>
+        </div>
+      </div>
+    </div>
+    <div class="pros-cons">
+      <div class="pros"><h4>Pros</h4><ul><li>TOA stays visually dominant.</li><li>Strong narrative: residuals first, checks as stamps.</li></ul></div>
+      <div class="cons"><h4>Cons</h4><ul><li>Insets can feel cramped or decorative if not done carefully.</li></ul></div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <p><strong>My lean:</strong> C1. It is less clever and more journal-safe: four explicit panels, no inset readability risk.</p>
+</div>

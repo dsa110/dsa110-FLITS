@@ -6,9 +6,9 @@
 
 **Sync policy.** Mirror the durable handoff context in tracked markdown; keep `.entire/` runtime artifacts and per-session `entire/<sha>` branches local to the host.
 
-**Selective checkpoints.** Use `scripts/entire_checkpoint.py` to append a compact host-local snapshot to `docs/entire-tracing-checkpoints.md`, then commit that ledger when the checkpoint is worth preserving for future agents.
+**Selective checkpoints.** Use `scripts/entire_checkpoint.py` to append a compact host-local snapshot to `docs/entire-tracing-checkpoints.md`, then commit that ledger when the snapshot is worth preserving for future agents.
 
-**Automation.** The repo installs `.githooks/` through `core.hooksPath`. Hooks may append the compact checkpoint ledger for relevant commits, merges, and rewrites, but they must not create commits themselves. Commit `docs/entire-tracing-checkpoints.md` manually only when the snapshot is worth preserving.
+**Automation.** The repo installs `.githooks/` through `core.hooksPath`. Hooks append the compact checkpoint ledger on relevant commits, merges, and rewrites, but they must not create commits themselves. **Agents:** always commit and push `docs/entire-tracing-checkpoints.md` at session closeout (see CLAUDE.md → Entire tracing ledger); use `--no-verify` on checkpoint-only commits to avoid a hook loop.
 
 **Token persistence — root cause + fix (corrected 2026-06-21; the earlier "SOLVED via env" note was wrong).** Login nodes have no usable Secret Service / D-Bus keyring, so the default keyring token save fails (`failed to unlock collection 'login'`). A file-backed token store is forced via `~/.bashrc`:
 ```

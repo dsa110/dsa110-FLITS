@@ -1,0 +1,156 @@
+{
+  "arc_flits_checkout": {
+    "arc_top_level_count": 36,
+    "local_top_level_count": 50,
+    "arc_only_top_level": [
+      ".cursor",
+      ".git",
+      ".github",
+      ".gitignore",
+      "crossmatch_paper.tex"
+    ],
+    "local_only_top_level_sample": [
+      "AGENTS.md",
+      "CLAUDE.md",
+      "CONTEXT.md",
+      "ENTIRE_AUTH_HANDOFF.md",
+      "analysis",
+      "docs-analysis",
+      "logs",
+      "machine_inventory.yaml",
+      "main.py",
+      "matplotlibrc",
+      "mkdocs.yml",
+      "noxfile.py",
+      "out_dir",
+      "outputs",
+      "reports",
+      "scratch",
+      "site",
+      "tools",
+      "uv.lock"
+    ],
+    "github_canonical": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS",
+    "recommendation": "dedupe_skip_arc_after_review",
+    "rescue_candidates": [
+      {
+        "path": "run_freya_fitting.py",
+        "on_arc": true,
+        "on_local": true,
+        "rescue_needed": false
+      },
+      {
+        "path": "verify_pipeline.py",
+        "on_arc": true,
+        "on_local": true,
+        "rescue_needed": false
+      },
+      {
+        "path": "analysis_results",
+        "on_arc": true,
+        "on_local": true,
+        "rescue_needed": false
+      },
+      {
+        "path": "legacy_documents_data_checksum_manifest.yaml",
+        "on_arc": true,
+        "on_local": true,
+        "rescue_needed": false
+      }
+    ]
+  },
+  "arc_codetection_flits_tree": {
+    "arc_top_level_count": 10,
+    "local_top_level_count": 50,
+    "arc_only_top_level": [
+      ".git",
+      ".gitignore",
+      ".ipynb_checkpoints",
+      "requirements.txt"
+    ],
+    "local_only_top_level_sample": [
+      "AGENTS.md",
+      "CLAUDE.md",
+      "CONTEXT.md",
+      "DATA_LOCATIONS.md",
+      "DATA_SOURCES.md",
+      "ENTIRE_AUTH_HANDOFF.md",
+      "analyses",
+      "analysis",
+      "analysis_results",
+      "animations",
+      "benchmarks",
+      "codetections_manifest.yaml",
+      "configs",
+      "data",
+      "data-manifest.csv",
+      "dispersion",
+      "docs",
+      "docs-analysis",
+      "environment.yml",
+      "flits"
+    ],
+    "github_canonical": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS",
+    "recommendation": "dedupe_skip_arc_after_review"
+  },
+  "arc_codetection_flits_tree_subdirs": {
+    "scattering": {
+      "arc_only": [
+        ".ipynb_checkpoints",
+        "burstscat_test-Copy1.ipynb",
+        "burstscat_test.ipynb",
+        "casey_dsa_new.ipynb",
+        "corner_wilhelm.png",
+        "freya_chime_new.ipynb",
+        "freya_dsa_new.ipynb",
+        "old_code",
+        "plots",
+        "plots_chime",
+        "wilhelm_chime_new.ipynb",
+        "wilhelm_dsa_new.ipynb",
+        "wilhelm_scat_corner.pdf",
+        "yaml"
+      ],
+      "local_only_count": 10,
+      "arc_file_count": 18,
+      "local_file_count": 14
+    },
+    "scintillation": {
+      "arc_only": [
+        ".ipynb_checkpoints",
+        "ne2001",
+        "old_code",
+        "plots"
+      ],
+      "local_only_count": 2,
+      "arc_file_count": 9,
+      "local_file_count": 7
+    },
+    "simulation": {
+      "arc_only": [
+        ".ipynb_checkpoints",
+        "csv",
+        "figs",
+        "old_scripts"
+      ],
+      "local_only_count": 11,
+      "arc_file_count": 13,
+      "local_file_count": 20
+    },
+    "crossmatching": {
+      "arc_only": [
+        ".ipynb_checkpoints",
+        "bursts.fits",
+        "chime_dsa_onEarth.ipynb",
+        "toa_combined_stacked_plots.pdf",
+        "toa_offsets_plot_with_full_errors.pdf",
+        "toa_residual_plot.pdf",
+        "toa_residual_plot_with_full_errors.pdf",
+        "toa_residual_plot_with_full_errors.png"
+      ],
+      "local_only_count": 16,
+      "arc_file_count": 13,
+      "local_file_count": 21
+    }
+  }
+}

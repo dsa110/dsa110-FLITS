@@ -51,7 +51,9 @@ WATCHED_PATHS = (
 
 def should_checkpoint(repo: Path) -> tuple[bool, str]:
     subject = maybe_run(["git", "log", "-1", "--pretty=%s"], repo)
-    if subject.startswith("docs: add Entire tracing checkpoint"):
+    if subject.startswith("docs: add Entire tracing checkpoint") or (
+        "Entire tracing checkpoint" in subject
+    ):
         return False, "checkpoint commit"
 
     changed = maybe_run(
@@ -61,6 +63,9 @@ def should_checkpoint(repo: Path) -> tuple[bool, str]:
     changed_paths = [line.strip() for line in changed.splitlines() if line.strip()]
     if not changed_paths:
         return False, "no changed paths"
+
+    if changed_paths == ["docs/entire-tracing-checkpoints.md"]:
+        return False, "ledger-only commit"
 
     for path in changed_paths:
         if any(

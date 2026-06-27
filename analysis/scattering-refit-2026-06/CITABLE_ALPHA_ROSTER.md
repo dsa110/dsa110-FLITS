@@ -1,4 +1,10 @@
-# Citable-α roster — canonical all-exp joint fits, uniform [1.0,6.0] floor (2026-06-24)
+# Citable-α roster — canonical all-exp joint fits, uniform [1.0,6.0] floor
+
+**LOCKED 2026-06-26** — authoritative copy: [ADR-0005](../../docs/adr/0005-citable-alpha-roster.md),
+machine-readable: [`citable_alpha_roster.json`](citable_alpha_roster.json).
+
+**Tiers:** **5 fully adjudicated** (Tier A) + **3 provisional** pending all-exp fixed-s²
+(johndoeII, oran, phineas) + whitney multiplicity exemplar.
 
 All fits: single-exponential PBF both bands (ADR-0003 canonical), alpha_bounds
 [1.0,6.0] (ADR-0004 floor), gain-marginal (shared-zeta or per-component zeta).
@@ -54,8 +60,11 @@ documented "off-Kolmogorov" reason = a real, well-fit, shallow α.
 - **phineas** landed (C3D3, both bands clean, χ² 1.02/1.34): α=3.32. **hamilton**
   excluded from α — per-band τ only (CHIME ≈0.020 ms, DSA non-detection upper limit).
 
-**8 citable α (final):** johndoeII 1.53, casey 2.40, wilhelm 2.56, oran 2.66,
-chromatica 3.28, zach 3.32, phineas 3.32, freya 4.36. A 9th, whitney (FRB 20220310F)
-α=5.1±0.2, is the multiplicity exemplar (separate local C2D2 fit, in the manuscript
-prose). Sub-Kolmogorov dominates (7 of 8 tabulated below α=4, median ≈2.9); johndoeII
-is the only α<2.0, well-fit in both bands. In Faber2026 as Table 4 (`alpha_table.tex`).
+**Tier A (5, cite now):** casey 2.40, wilhelm 2.56 (caveat), chromatica 3.28, zach 3.32
+(C1D1 only), freya 4.36.
+
+**Tier B (3, pending all-exp s²):** johndoeII 1.53, oran 2.66, phineas 3.32 — gate+PBF
+pass; `_s2verdict.py` blocked until HPCC grid pull.
+
+**Multiplicity exemplar:** whitney α=5.12 (C2D2, prose). **Target manuscript N=8** once
+Tier B adjudicates; **N=5** safe today.

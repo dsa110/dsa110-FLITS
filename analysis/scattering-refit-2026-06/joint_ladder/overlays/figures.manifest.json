@@ -1,0 +1,27 @@
+{
+  "generated_by": "model_overlay.py (multi-comp gain-marginal reconstruction) + joint_ppc.py (single profiled-gain M3, per-band chi2)",
+  "note": "overlay_*.png are gain-marginal (per-channel amp freedom -> profile matches by construction; chi2/pt is weak). joint_ppc_*.png use ONE profiled gain -> per-band chi2 is a real misfit test.",
+  "figures": [
+    {"file": "zach_overlay_C2D3.png", "expectation": "CHIME scattered burst+tail (2 comp), DSA narrow multi-peak (3 comp); model tracks data; alpha=2.41."},
+    {"file": "phineas_overlay_C3D3.png", "expectation": "both bands tracked, 3+3 comps; clean; alpha=3.33."},
+    {"file": "oran_overlay_C2D1.png", "expectation": "noisy CHIME 2-comp, DSA broad 1-comp; alpha=2.69."},
+    {"file": "isha_overlay_C2D1.png", "expectation": "CHIME 2-comp, DSA broad low-SNR 1-comp; alpha=5.39 poorly constrained."},
+    {"file": "mahi_overlay_C1D1.png", "expectation": "single comp each band, clean; alpha=3.80."},
+    {"file": "johndoeII_overlay_C2D2.png", "expectation": "scattered both bands, fits; alpha=1.95 (low, physics-fail)."},
+    {"file": "hamilton_overlay_C4D1.png", "expectation": "CHIME single narrow spike (4 spurious comps), DSA NOISE (no real burst) -> no lever arm, alpha rails 1.5."},
+    {"file": "whitney_overlay_C2D1.png", "expectation": "component fit tracks CHIME multi-peak + DSA spike but alpha railed 1.52."},
+    {"file": "freya_joint_ppc_sharedzeta.png", "expectation": "model tracks both bands; CHIME 1.30 DSA 1.03; alpha=4.36 PASS."},
+    {"file": "casey_joint_ppc_sharedzeta.png", "expectation": "high-SNR pulses tracked; 1.41/0.99; alpha=2.40 PASS."},
+    {"file": "chromatica_joint_ppc_sharedzeta.png", "expectation": "tracked, mild DSA tail under-fit; 1.14/1.16; alpha=3.28 PASS."},
+    {"file": "wilhelm_joint_ppc_sharedzeta.png", "expectation": "CHIME tracked 1.14; DSA chi2=4.55 high-SNR shape mismatch -> MARGINAL not PASS."},
+    {"file": "whitney_joint_ppc.png", "expectation": "base single-comp model is FLAT, misses CHIME multi-peak (chi2=2.88) -> base alpha=3.75 untrustworthy."},
+    {"file": "zach_2d_C2D3.png", "expectation": "2D data|model|residual per band; model reproduces CHIME scattering sweep + DSA spikes."},
+    {"file": "phineas_2d_C3D3.png", "expectation": "2D triptych; clean both bands."},
+    {"file": "oran_2d_C2D1.png", "expectation": "2D triptych; tracks."},
+    {"file": "isha_2d_C2D1.png", "expectation": "2D triptych; DSA broad/weak -> poor alpha."},
+    {"file": "mahi_2d_C1D1.png", "expectation": "2D triptych; clean single comp."},
+    {"file": "johndoeII_2d_C2D2.png", "expectation": "2D triptych; reproduces both bands, alpha=1.95 low."},
+    {"file": "hamilton_2d_C4D1.png", "expectation": "2D triptych; DSA panel pure noise, model blank -> no lever arm."},
+    {"file": "whitney_2d_C2D1.png", "expectation": "2D triptych; broad CHIME vs narrow DSA -> alpha rails 1.52."}
+  ]
+}

@@ -19,7 +19,7 @@ Pass 2 manuscript authority closeout per `/grill-with-docs` (2026-06-27 decision
 | Phase 1: HPCC all-exp pull + gate regen + energy re-export | ✅ Complete | N=8 energies; gate 11/11 MARGINAL; artifacts uncommitted |
 | Phase 2: fixed-s² all-exp HPCC campaign (24 jobs) | ✅ Complete | 24/24 COMPLETED after venv fix; s² adjudication run |
 | Phase 3: Faber2026 `draft/pass-2-closeout` manuscript updates | 🔄 Next | s² verdicts locked; ready to implement |
-| Pipeline PR → Faber2026 stacked PR (ask-matt) | 🔄 In progress | Pass 2 artifacts committing; PR to `main` next |
+| Pipeline PR → Faber2026 stacked PR (ask-matt) | ✅ PR open | https://github.com/jakobtfaber/dsa110-FLITS/pull/74 → Faber2026 stacked after merge |
 
 **Current Workflow Phase:** Experiment (s² campaign) → blocked; next is fix infra → re-run → Validate → Implement (Phase 3).
 

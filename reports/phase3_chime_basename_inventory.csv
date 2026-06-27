@@ -1,0 +1,28 @@
+namespace,basename,iacobus_match,note
+arc/dmphase,analysis_20260619_055230,False,CANFAR session dir (spaces inside)
+arc/dmphase,analysis_20260619_060505,False,CANFAR session dir (spaces inside)
+arc/dmphase,analysis_20260619_075220,False,CANFAR session dir (spaces inside)
+arc/dmphase,casey_chime_I_491_2085_32000b_cntr_bpc.npy,False,
+arc/dmphase,chromatica_chime_I_272_6382_32000b_cntr_bpc.npy,False,
+arc/dmphase,freya_chime_I_912_4067_32000b_cntr_bpc.npy,False,
+arc/dmphase,hamilton_chime_I_518_8007_32000b_cntr_bpc.npy,False,
+arc/dmphase,isha_chime_I_411_4359_32000b_cntr_bpc.npy,False,
+arc/dmphase,johndoeII_chime_I_696_5184_32000b_cntr_bpc.npy,False,
+arc/dmphase,mahi_chime_I_960_1316_32000b_cntr_bpc.npy,False,
+arc/dmphase,oran_chime_I_397_0153_32000b_cntr_bpc.npy,False,
+arc/dmphase,phineas_chime_I_610_2894_32000b_cntr_bpc.npy,False,
+arc/dmphase,whitney_chime_I_462_1891_32000b_cntr_bpc.npy,False,
+arc/dmphase,wilhelm_chime_I_602_3809_32000b_cntr_bpc.npy,False,
+arc/dmphase,zach_chime_I_262_3621_32000b_cntr_bpc.npy,False,
+arc/dmtransform,casey_chime_I_491_207_32000b_cntr_bpc.npy,False,
+arc/dmtransform,chromatica_chime_I_272_664_32000b_cntr_bpc.npy,False,
+arc/dmtransform,freya_chime_I_912_4_32000b_cntr_bpc.npy,False,
+arc/dmtransform,hamilton_chime_I_518_799_32000b_cntr_bpc.npy,False,
+arc/dmtransform,isha_chime_I_411_568_32000b_cntr_bpc.npy,False,
+arc/dmtransform,johndoeII_chime_I_696_506_32000b_cntr_bpc.npy,False,
+arc/dmtransform,mahi_chime_I_960_128_32000b_cntr_bpc.npy,False,
+arc/dmtransform,oran_chime_I_396_882_32000b_cntr_bpc.npy,False,
+arc/dmtransform,phineas_chime_I_610_274_32000b_cntr_bpc.npy,False,
+arc/dmtransform,whitney_chime_I_462_174_32000b_cntr_bpc.npy,False,
+arc/dmtransform,wilhelm_chime_I_602_346_32000b_cntr_bpc.npy,False,
+arc/dmtransform,zach_chime_I_262_368_32000b_cntr_bpc.npy,False,

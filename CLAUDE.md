@@ -139,3 +139,14 @@ Canonical vocabulary: `needs-triage` / `needs-info` / `ready-for-agent` / `ready
 ### Domain docs
 
 Single-context: one `CONTEXT.md` + `docs/adr/` at the repo root (created lazily by `/domain-modeling`). See `docs/agents/domain.md`.
+
+### Entire tracing ledger
+
+`docs/entire-tracing-checkpoints.md` is **tracked and must stay pushed**. The post-commit hook
+(`.githooks/post-commit.pre-entire` → `scripts/entire_checkpoint.py --auto`) appends after every
+commit, so the file is often dirty even when the working tree is otherwise clean.
+
+**Closeout:** after substantive commits, stage and commit the ledger (alone or with the work).
+Use `--no-verify` on checkpoint-only commits to avoid a hook loop. If the hook dirties the file
+again after a verified commit, one tail commit with `--no-verify` is enough — do not leave it
+uncommitted. See `ENTIRE_AUTH_HANDOFF.md`.

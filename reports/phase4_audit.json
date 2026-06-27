@@ -1,0 +1,77 @@
+{
+  "generated_by": "scripts/migration/audit_h17_delta.py",
+  "generated_utc": "2026-06-26T18:28:35Z",
+  "h17_host": "lxd110h17-hpc",
+  "h17_tailscale": "100.85.172.12",
+  "phase2_parallel_note": "Do not touch h23/iacobus rsync while Phase 2 runs elsewhere",
+  "entries": [
+    {
+      "id": "h17_compute_workspace",
+      "h17_path": "/data/research/astrophysics/frbs/chime-dsa-codetections",
+      "iacobus_path": null,
+      "iacobus_compare_path": null,
+      "notes": "CHIME docker workspace; baseband staging; keep on h17",
+      "h17": {
+        "exists": true,
+        "files": 339,
+        "bytes": 30394716160
+      },
+      "iacobus": {
+        "exists": false,
+        "files": 0,
+        "bytes": 0
+      },
+      "recommendation": "keep",
+      "h17_children": [
+        {
+          "path": "/data/research/astrophysics/frbs/chime-dsa-codetections/chime_singlebeam",
+          "bytes": 14310309888
+        },
+        {
+          "path": "/data/research/astrophysics/frbs/chime-dsa-codetections/numpy",
+          "bytes": 9008034816
+        },
+        {
+          "path": "/data/research/astrophysics/frbs/chime-dsa-codetections/dsa_filterbanks",
+          "bytes": 7046496256
+        },
+        {
+          "path": "/data/research/astrophysics/frbs/chime-dsa-codetections/diagnostics",
+          "bytes": 26183680
+        },
+        {
+          "path": "/data/research/astrophysics/frbs/chime-dsa-codetections/baseband-analysis-canfar-src",
+          "bytes": 1748992
+        },
+        {
+          "path": "/data/research/astrophysics/frbs/chime-dsa-codetections/results",
+          "bytes": 1561600
+        },
+        {
+          "path": "/data/research/astrophysics/frbs/chime-dsa-codetections/scripts",
+          "bytes": 163840
+        },
+        {
+          "path": "/data/research/astrophysics/frbs/chime-dsa-codetections/logs",
+          "bytes": 107520
+        },
+        {
+          "path": "/data/research/astrophysics/frbs/chime-dsa-codetections/manifests",
+          "bytes": 61440
+        },
+        {
+          "path": "/data/research/astrophysics/frbs/chime-dsa-codetections/bin",
+          "bytes": 21504
+        },
+        {
+          "path": "/data/research/astrophysics/frbs/chime-dsa-codetections/metadata",
+          "bytes": 20480
+        },
+        {
+          "path": "/data/research/astrophysics/frbs/chime-dsa-codetections/inspect_bb.py",
+          "bytes": 4096
+        }
+      ]
+    }
+  ]
+}

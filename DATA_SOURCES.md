@@ -5,6 +5,11 @@ CHIME+DSA files) are **not committed to git** — `.gitignore` excludes `*.npy`
 and `/data/{raw,interim,processed}/`. This file documents where the data lives
 and how the repo references it without bloating the tree.
 
+> **Scintillation (up-channelized CHIME + DSA Δν(ν)) data** has its own band-by-band
+> provenance ledger — which spectra/ACF products exist, what band/resolution each is,
+> what the pipeline consumes, and the CANFAR/arc paths — in
+> [`scintillation/DATA_PROVENANCE.md`](scintillation/DATA_PROVENANCE.md).
+
 ## Canonical store
 
 CANFAR arc (institutional, durable, shared; the pipeline typically runs on

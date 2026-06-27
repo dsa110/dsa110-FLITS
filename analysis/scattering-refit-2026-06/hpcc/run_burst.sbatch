@@ -21,8 +21,11 @@ export OPENBLAS_NUM_THREADS=1
 export MKL_NUM_THREADS=1
 export NUMEXPR_NUM_THREADS=1
 
-source /home/jfaber/flits/venv/bin/activate
-cd /home/jfaber/flits/dsa110-FLITS
+FLITS_VENV="${FLITS_VENV:-/central/scratch/jfaber/envs/flits-joint}"
+FLITS_REPO="${FLITS_REPO:-/central/scratch/jfaber/flits/dsa110-FLITS}"
+export PATH="${FLITS_VENV}/bin:${PATH}"
+export FLITS_REPO
+cd "${FLITS_REPO}"
 
 echo "[$(date)] node=$(hostname) cpus=${SLURM_CPUS_PER_TASK} config=${CONFIG}"
 python -u scattering/scripts/run_scattering_analysis.py "${CONFIG}"

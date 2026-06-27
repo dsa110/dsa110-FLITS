@@ -1,0 +1,27 @@
+{
+  "directory": "analysis/scattering-refit-2026-06/dsa_figs",
+  "generated": "2026-06-27",
+  "campaign": "all-exp PBF FINAL regen (ADR-0003)",
+  "figures": [
+    {
+      "file": "tau_nu_ladder_allexp.png",
+      "expectation": "All-exp joint tau(nu) ladder for 7 publishable bursts (freya, casey, chromatica, wilhelm, oran, phineas, whitney): log-y tau vs 0.4-1.6 GHz with 68% bands; alpha values near prior-unrailed all-exp medians (not mixed-PBF rails at 6.0/1.4); CHIME and DSA bands shaded."
+    },
+    {
+      "file": "joint_ppc_montage_allexp.png",
+      "expectation": "7-row x 2-col montage (CHIME|DSA) for publishable all-exp bursts; data black + joint model red; per-panel reduced chi2 on on-pulse crop; shared alpha/tau from all-exp medians; wilhelm DSA chi2 may be elevated (~4.5) but visually tracks tail."
+    },
+    {
+      "file": "freya_joint_ppc.png",
+      "expectation": "Per-burst all-exp PPC: freya sharedzeta, alpha~4.35, both bands chi2~1."
+    },
+    {
+      "file": "casey_joint_ppc.png",
+      "expectation": "Per-burst all-exp PPC: casey sharedzeta, alpha~2.4, chi2~1."
+    },
+    {
+      "file": "oran_joint_ppc.png",
+      "expectation": "Per-burst all-exp PPC: oran C2D1, alpha~2.66, chi2~1."
+    }
+  ]
+}

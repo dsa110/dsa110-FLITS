@@ -1,0 +1,31 @@
+{
+  "reviewed": "2026-06-27",
+  "campaign": "all-exp PBF FINAL regen",
+  "figures": [
+    {
+      "file": "tau_nu_ladder_allexp.png",
+      "verdict": "match",
+      "notes": "Seven publishable bursts; alpha 2.40-5.11 (no mixed-PBF 6.0/1.4 rails); 68% bands + CHIME/DSA shading sane."
+    },
+    {
+      "file": "joint_ppc_montage_allexp.png",
+      "verdict": "match",
+      "notes": "7x2 grid; six rows track pulse+tail with chi2~1; wilhelm DSA chi2=4.55 elevated but shape reasonable; whitney DSA flat model vs narrow spike (chi2=2.54) — known railed sightline, still in publishable set per ADR."
+    },
+    {
+      "file": "freya_joint_ppc.png",
+      "verdict": "match",
+      "notes": "sharedzeta all-exp; CHIME/DSA chi2 1.30/1.03; model tracks data."
+    },
+    {
+      "file": "casey_joint_ppc.png",
+      "verdict": "match",
+      "notes": "alpha~2.4; both bands chi2~1; matches montage row."
+    },
+    {
+      "file": "oran_joint_ppc.png",
+      "verdict": "match",
+      "notes": "C2D1 component fit; CHIME/DSA chi2 1.04/1.13; model tracks broad CHIME tail + DSA peak."
+    }
+  ]
+}

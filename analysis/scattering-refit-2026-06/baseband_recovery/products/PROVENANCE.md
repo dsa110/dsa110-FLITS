@@ -24,5 +24,5 @@ Full chain and reproduction instructions:
 
 ## Remaining targets (on h17 only, not yet pulled here)
 
-Products for whitney/phineas/mahi/isha live at `/data/jfaber/upchan_codetections/` on h17.
+Products for whitney/phineas/mahi/isha live at `/data/research/astrophysics/frbs/chime-dsa-codetections/upchan_codetections/` on h17.
 See [`../README.md`](../README.md) § "Products (output) — h17" for checksums and the scp pull command.

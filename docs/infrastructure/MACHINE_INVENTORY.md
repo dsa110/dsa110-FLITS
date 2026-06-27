@@ -13,7 +13,7 @@ Live-probed 2026-06-25 across jakob-mbp, iacobus, h17, h23, hpcc, dsacamera, and
 | **iacobus** | target | data authority | `/Users/iacobus/Research/CHIME_DSA_Codetections` (218G) |
 | **jakob-mbp** | target | dev + placeholders | `~/Developer/repos/github.com/jakobtfaber/dsa110-FLITS` |
 | **arc** | target | institutional storage + CANFAR compute | `arc:home/jfaber/baseband_morphologies/chime_dsa_codetections` |
-| **h17** | target | OVRO compute + arc archive | `/data/jfaber/arc_archive_2026-06`, `/data/research/.../chime-dsa-codetections` |
+| **h17** | target | OVRO compute + arc archive | `/data/research/.../chime-dsa-codetections` (includes `archive/arc_trash_2026-06`) |
 | **h23** | retired | cold upstream (drain) | `/media/ubuntu/ssd/jfaber/chime_dsa_codetections` |
 | **hpcc** | retired | Slurm batch (drain) | `/home/jfaber/flits/dsa110-FLITS` |
 | **dsacamera** | retired | negligible codetection | — |

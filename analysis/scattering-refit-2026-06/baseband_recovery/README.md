@@ -114,12 +114,12 @@ ssh h17 'docker run --rm \
   chimefrb/baseband-analysis:latest \
   python /data/jfaber/upchannelize_chime.py casey whitney phineas \
     --scratch /data/jfaber/chime_singlebeam \
-    --out /data/jfaber/upchan_codetections'
+    --out /data/research/astrophysics/frbs/chime-dsa-codetections/upchan_codetections'
 
 # 3. mahi (slow, x512 via _upchannel); isha only as an upper bound
 ssh h17 'docker run --rm -e HOME=/root -v /home/ubuntu/.ssl:/root/.ssl:ro -v /data/jfaber:/data/jfaber \
   chimefrb/baseband-analysis:latest \
-  python /data/jfaber/upchannelize_chime.py mahi --out /data/jfaber/upchan_codetections'
+  python /data/jfaber/upchannelize_chime.py mahi --out /data/research/astrophysics/frbs/chime-dsa-codetections/upchan_codetections'
 # isha:  ... upchannelize_chime.py isha --run-unresolvable ...
 ```
 
@@ -132,7 +132,7 @@ Each target writes `<name>_chime_upchan.npy` (Stokes-I, `(n_freq, n_time)`, floa
 `<name>_chime_freq.npy` (ascending MHz), both kB–MB. Pull them to the repo:
 
 ```bash
-scp 'h17:/data/jfaber/upchan_codetections/*_chime_*.npy' \
+scp 'h17:/data/research/astrophysics/frbs/chime-dsa-codetections/upchan_codetections/*_chime_*.npy' \
     analysis/scattering-refit-2026-06/baseband_recovery/products/
 ```
 
@@ -184,7 +184,7 @@ ssh h17 '/data/research/astrophysics/frbs/chime-dsa-codetections/bin/baseband_an
 
 ### Generated products
 
-All products at `/data/jfaber/upchan_codetections/` on h17. Shape convention:
+All products at `/data/research/astrophysics/frbs/chime-dsa-codetections/upchan_codetections/` on h17. Shape convention:
 `(n_freq, n_time)`, frequency ascending, float32 Stokes-I.
 
 | target  | U   | shape (nfreq, ntime) | df (kHz) | dt (ms) | finite | upchan.npy sha256 (prefix) | generated |
@@ -300,7 +300,7 @@ No `incoherent_dedisp` step (coherent dedisp already de-chirps fully). No `water
 
 ### Products (output) — h17
 
-All at `/data/jfaber/upchan_codetections/`. Full sha256 checksums:
+All at `/data/research/astrophysics/frbs/chime-dsa-codetections/upchan_codetections/`. Full sha256 checksums:
 
 | file | sha256 |
 |------|--------|
@@ -321,7 +321,7 @@ casey products are pulled to `analysis/scattering-refit-2026-06/baseband_recover
 (gitignored — `*.npy`). The other four are on h17 only; pull with:
 
 ```bash
-scp 'h17:/data/jfaber/upchan_codetections/{whitney,phineas,mahi,isha}_chime_*.npy' \
+scp 'h17:/data/research/astrophysics/frbs/chime-dsa-codetections/upchan_codetections/{whitney,phineas,mahi,isha}_chime_*.npy' \
     analysis/scattering-refit-2026-06/baseband_recovery/products/
 ```
 

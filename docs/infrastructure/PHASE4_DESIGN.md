@@ -42,8 +42,8 @@ jakob-mbp (orchestrator, audit JSON, git push)
     ▼
 h17 (/data, 1.8T free)
     ├── compute workspace  …/chime-dsa-codetections  (29G, keep)
-    ├── upchan products    /data/jfaber/upchan_codetections (473M, keep)
-    ├── arc trash archive  /data/jfaber/arc_archive_2026-06 (36G, optional → iacobus)
+    ├── upchan products    /data/research/astrophysics/frbs/chime-dsa-codetections/upchan_codetections (473M, keep)
+    ├── arc trash archive  .../archive/arc_trash_2026-06 (36G; moved from /data/jfaber/ 2026-06-27)
     └── empty stubs        /data/ubuntu/chime-dsa-codetections (remove)
 
 iacobus (data authority) ◄── optional deduped copy of arc trash
@@ -62,8 +62,8 @@ arc (CANFAR) ◄── promote stable .npy / fit inputs only
 | migration_map / audit id | h17 path | Compare target | Action |
 |--------------------------|----------|----------------|--------|
 | `h17_compute_workspace` | `/data/research/astrophysics/frbs/chime-dsa-codetections` | — | **keep**; canonical docker workspace |
-| `h17_upchan_products` | `/data/jfaber/upchan_codetections` | arc `CHIME_bursts` (Phase 3) | **keep**; gap-promote when CANFAR needs file |
-| `h17_arc_archive_copy` | `/data/jfaber/arc_archive_2026-06` | iacobus `archive/arc_trash_2026-06` (not yet created) | optional deduped rsync after Phase 3 |
+| `h17_upchan_products` | `/data/research/astrophysics/frbs/chime-dsa-codetections/upchan_codetections` | arc `CHIME_bursts` (Phase 3) | **keep**; gap-promote when CANFAR needs file |
+| `h17_arc_archive_copy` | `.../archive/arc_trash_2026-06` | iacobus `archive/arc_trash_2026-06` | **keep** on h17; optional deduped rsync |
 | `h17_ubuntu_stub` | `/data/ubuntu/chime-dsa-codetections` | compute workspace | **remove** empty stub |
 | `h17_chime_singlebeam_empty` | `/data/jfaber/chime_singlebeam` | workspace `chime_singlebeam/` (14G) | **remove** empty dir |
 | `iacobus_chime_canfar_archive` | — | iacobus `Archives/CHIME_canfar` vs `Research/.../archive` | dedupe into research archive |

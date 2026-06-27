@@ -58,15 +58,15 @@ Pre-move audit: [`reports/d2_chime_canfar_inventory.csv`](../../reports/d2_chime
 
 ---
 
-## D3 — h17 arc trash → iacobus
+## D3 — h17 arc trash → iacobus (staging)
 
 | Source | Target | Size |
 |--------|--------|------|
-| h17 `/data/jfaber/arc_archive_2026-06` | iacobus `archive/arc_trash_2026-06/` | 1924 f / 36 G |
+| h17 `.../chime-dsa-codetections/archive/arc_trash_2026-06` (was `/data/jfaber/arc_archive_2026-06`) | iacobus `archive/arc_trash_2026-06/` | 1924 f / 36 G |
 
 **Finding (2026-06-27 hash-map):** full sha256 on 245 `.pkl`/`.npy` (36.4 G hashed) vs iacobus `OLD_CHIME_DSA_Codetections` + `archive/chime_canfar` — **97.5% unique bytes** (20 hash duplicates / 906 M duplicate bytes). Basename overlap remains low (numeric vs nickname naming).
 
-**Executed (2026-06-27):**
+**Executed (2026-06-27):** rsync h17→iacobus (`03:45 UTC`); h17 source consolidated move-only into compute workspace (`07:24 UTC`).
 
 ```bash
 python scripts/migration/audit_h17_arc_archive.py --stdout
@@ -76,7 +76,34 @@ python scripts/query_machine_inventory.py --migration-map --json | jq '.[] | sel
 
 Pre-move audit: [`reports/d3_h17_arc_inventory.csv`](../../reports/d3_h17_arc_inventory.csv), [`reports/d3_h17_arc_inventory.json`](../../reports/d3_h17_arc_inventory.json).
 
+**Cloud authority note (2026-06-26):** iacobus is **staging only** — canonical cloud target is Google Drive (`jakobtfaber@gmail.com`). This copy consolidates h17 compute artifacts onto staging ahead of D5 upload; it does not designate iacobus as cloud authority.
+
 **Inventory id:** `h17_arc_archive_copy` (`status: completed`).
+
+---
+
+## D5 — iacobus → Google Drive bulk upload **DEFERRED**
+
+**Decision (2026-06-27):** Google Drive (`jakobtfaber@gmail.com`) is the **canonical cloud authority** for co-detection processed data, but the ~283 GiB bulk upload from iacobus is **deferred** — estimated transfer time too long for the active manuscript window. Bytes remain on iacobus staging until upload resumes.
+
+| Source | Target | Size |
+|--------|--------|------|
+| iacobus `~/Research/CHIME_DSA_Codetections` | `gdrive-jakob:Research/CHIME_DSA_Codetections` | ~283 G |
+
+**Prerequisite:** rclone remote `gdrive-jakob` on iacobus (OAuth — browser on jakob-mbp, token paste on iacobus).
+
+**When resumed:**
+
+```bash
+scripts/migration/iacobus_to_gdrive.sh --dry-run --subdir metadata
+scripts/migration/iacobus_to_gdrive.sh --subdir metadata   # smoke
+scripts/migration/iacobus_to_gdrive.sh --dry-run           # review log
+scripts/migration/iacobus_to_gdrive.sh                     # bulk ~280G direct iacobus→Drive
+```
+
+**Do not:** route via jakob-mbp intermediary (~19 GiB free insufficient for staging).
+
+**Inventory id:** `iacobus_to_gdrive` (`status: skipped` — deferred pending upload window).
 
 ---
 
@@ -98,8 +125,9 @@ canfar create headless skaha/astroml-cuda:latest --gpu 1 -n gpu-smoke-test -- nv
 |----|----------------|-----------------|
 | D1 CHIME_bursts | wrong namespace / duplicate fits | yes — reconcile map first |
 | D2 CHIME_canfar | none (additive, iacobus-local) | yes — move-only merge |
-| D3 h17 arc trash | 36 G mostly unique (97.5% hash) | executed — rsync h17→iacobus |
+| D3 h17 arc trash | 36 G mostly unique (97.5% hash) | executed — iacobus staging toward gdrive |
 | D4 GPU docs | none | no (docs only) |
+| D5 iacobus→gdrive | ~283G upload time | **deferred** — gdrive remains canonical target |
 
 **Audit artifacts:** `reports/phase3_audit.json`, `reports/phase4_audit.json`, `reports/phase3_chime_basename_inventory.csv`.
 

@@ -1,8 +1,9 @@
 # Data Locations for CHIME-DSA Co-Detection Project
 
-**4-host model (Phase 5 complete 2026-06-25):** jakob-mbp (code), iacobus (data authority), arc (`.npy`/CANFAR), h17 (compute). Retired hosts h23, hpcc, dsacamera are read-only quarantine references only.
+**Cloud authority (2026-06-26):** Google Drive **jakobtfaber@gmail.com** — `Research/CHIME_DSA_Codetections/` (~280 GiB target from iacobus staging).  
+**4-host model:** jakob-mbp (code), **gdrive** (data authority), iacobus (staging source), arc (`.npy`/CANFAR), h17 (compute). Retired hosts h23, hpcc, dsacamera are read-only quarantine references only.
 
-Plan: [`docs/infrastructure/MIGRATION_PLAN_4HOST.md`](docs/infrastructure/MIGRATION_PLAN_4HOST.md) · Inventory: [`machine_inventory.yaml`](machine_inventory.yaml) · Query: [`scripts/query_machine_inventory.py`](scripts/query_machine_inventory.py)
+Plan: [`docs/infrastructure/MIGRATION_PLAN_4HOST.md`](docs/infrastructure/MIGRATION_PLAN_4HOST.md) · Inventory: [`machine_inventory.yaml`](machine_inventory.yaml) · Query: [`scripts/query_machine_inventory.py`](scripts/query_machine_inventory.py) · Upload: [`scripts/migration/iacobus_to_gdrive.sh`](scripts/migration/iacobus_to_gdrive.sh)
 
 ## Code (GitHub canonical)
 
@@ -13,11 +14,18 @@ Plan: [`docs/infrastructure/MIGRATION_PLAN_4HOST.md`](docs/infrastructure/MIGRAT
 
 Do not develop on hpcc, arc checkout, or h23 trees. h17 may hold an optional clone for docker workflows.
 
-## Processed data (iacobus authority)
+## Processed data (Google Drive authority)
 
-**Canonical:** `iacobus:~/Research/CHIME_DSA_Codetections/` (~218 GiB, 1546 files as of 2026-06-17).
+**Canonical:** `gdrive-jakob:Research/CHIME_DSA_Codetections/` (rclone remote on iacobus; account **jakobtfaber@gmail.com**).
 
-CloudDocs mirror: `~/Library/Mobile Documents/com~apple~CloudDocs/Research/CHIME_DSA_Codetections/` — on jakob-mbp this is placeholders only; bytes live on iacobus.
+| Access | Path |
+|--------|------|
+| **rclone** | `gdrive-jakob:Research/CHIME_DSA_Codetections/` |
+| **Drive for Desktop** | mount after adding jakobtfaber@gmail.com — expected `~/Library/CloudStorage/GoogleDrive-jakobtfaber@gmail.com/My Drive/Research/CHIME_DSA_Codetections/` |
+
+**Staging source (iacobus):** `iacobus:~/Research/CHIME_DSA_Codetections/` (~223 GiB as of 2026-06-26; excludes `CHIME_Morphologies/`). Bytes upload via `scripts/migration/iacobus_to_gdrive.sh` (direct iacobus→Drive; jakob-mbp orchestrates only).
+
+**Legacy iCloud mirror:** `~/Library/Mobile Documents/com~apple~CloudDocs/Research/CHIME_DSA_Codetections/` — demoted; jakob-mbp shows placeholders only. iacobus CloudDocs clone retained until gdrive upload verified.
 
 | Subdir | Role |
 |--------|------|
@@ -27,11 +35,44 @@ CloudDocs mirror: `~/Library/Mobile Documents/com~apple~CloudDocs/Research/CHIME
 | `scattering_results/` | Fit PDFs, corners (h23 + hpcc JSON merged) |
 | `dm_budget/` | DM budget code + h23 merge |
 | `metadata/` | CSVs, localizations |
-| `archive/` | `OLD_CHIME_DSA_Codetections/`, `burstprop_paper/`, `dsa110-scat/` |
+| `archive/` | `OLD_CHIME_DSA_Codetections/`, `dsa110-scat/` |
 
 Sentinels: [`codetections_manifest.yaml`](codetections_manifest.yaml)
 
 **Out of scope:** nihari (`Research/nihari/` on iCloud; h23 `jfaber/nihari/` remains on source).
+
+## CHIME Morphologies (separate project)
+
+**Not part of CHIME–DSA co-detections or the gdrive upload.**
+
+| Host | Path | Size (2026-06-26) |
+|------|------|-------------------|
+| **iacobus** | `~/Research/CHIME_Morphologies/burstprop_paper/` | 67G |
+
+Moved from `CHIME_DSA_Codetections/archive/burstprop_paper/` on iacobus 2026-06-26. iCloud CloudDocs may still show the old path until mirror sync catches up; authoritative live path is `~/Research/CHIME_Morphologies/`.
+
+### rclone setup (gdrive-jakob)
+
+No Drive remote existed on jakob-mbp or iacobus as of 2026-06-26. One-time OAuth (browser required):
+
+```bash
+# jakob-mbp — interactive config
+rclone config
+# n) New remote → name: gdrive-jakob → Storage: drive → scope: drive
+# client_id/secret: blank → advanced: drive.readonly=false
+# auto config: y  (opens browser; sign in jakobtfaber@gmail.com)
+
+rclone about gdrive-jakob:
+rclone mkdir gdrive-jakob:Research/CHIME_DSA_Codetections   # create canonical root
+
+# Headless iacobus — copy token from jakob-mbp authorize:
+rclone authorize "drive"    # jakob-mbp: copy JSON blob
+ssh iacobus rclone config   # paste at config_token prompt
+```
+
+Verify: `rclone about gdrive-jakob:` · `rclone lsd gdrive-jakob:Research/`
+
+**Note:** jakob-mbp currently mounts **jakobtfaber.caltech@gmail.com** only (`GoogleDrive-jakobtfaber.caltech@gmail.com`); personal account mount is optional after upload.
 
 ## Burst `.npy` for fits (arc + local replica)
 
@@ -45,9 +86,12 @@ Sentinels: [`codetections_manifest.yaml`](codetections_manifest.yaml)
 
 | Path | Size | Notes |
 |------|------|-------|
-| `/data/research/astrophysics/frbs/chime-dsa-codetections` | 29G | CHIME docker / filterbanks / numpy |
-| `/data/jfaber/upchan_codetections` | 473M | Upchan products |
-| `/data/jfaber/arc_archive_2026-06` | 36G | arc trash copy; optional dedupe → iacobus (Phase 4) |
+| `/data/research/astrophysics/frbs/chime-dsa-codetections` | ~65G | CHIME docker / filterbanks / numpy / arc archive |
+| `.../upchan_codetections` | 473M | Upchan products (5 targets; moved from `/data/jfaber/` 2026-06-27) |
+| `.../archive/arc_trash_2026-06` | 36G | arc trash copy (moved from `/data/jfaber/` 2026-06-27); optional dedupe → iacobus |
+| `.../scripts/upchannelize_chime.py` | 12K | Baseband upchan worker (moved from `/data/jfaber/` 2026-06-27) |
+
+`/data/jfaber/` is empty of codetection products as of 2026-06-27.
 
 ## Legacy Documents-Area Clone
 

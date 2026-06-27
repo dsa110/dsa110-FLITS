@@ -13,7 +13,7 @@ Consolidate code, data, docs, and run artifacts onto **four hosts only**. Retire
 | **jakob-mbp** | Code + manuscripts + small local replicas | `~/Developer/repos/github.com/jakobtfaber/dsa110-FLITS` |
 | **iacobus** | Materialized data authority + iCloud uploader | `~/Research/CHIME_DSA_Codetections` (218G) |
 | **arc** | Institutional burst `.npy`, baseband, CANFAR compute | `arc:home/jfaber/baseband_morphologies/chime_dsa_codetections` |
-| **h17** | OVRO compute, docker CHIME, staging archives | `/data/research/.../chime-dsa-codetections`, `/data/jfaber/arc_archive_2026-06` |
+| **h17** | OVRO compute, docker CHIME, staging archives | `/data/research/.../chime-dsa-codetections` (canonical; includes arc archive + upchan) |
 
 **Git source of truth:** GitHub `jakobtfaber/dsa110-FLITS` — not hpcc, arc checkout, or h23 trees.
 

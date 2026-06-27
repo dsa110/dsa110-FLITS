@@ -62,7 +62,7 @@ LOCAL_H5_DIR = "/data/research/astrophysics/frbs/chime-dsa-codetections/chime_si
 DEFAULT_SCRATCH = (
     "/data/jfaber/chime_singlebeam"  # vcp fallback landing if a file is NOT pre-staged
 )
-DEFAULT_OUT_DIR = "/data/jfaber/upchan_codetections"  # small recovered products
+DEFAULT_OUT_DIR = "/data/research/astrophysics/frbs/chime-dsa-codetections/upchan_codetections"
 
 # id/dm/fwhm_ms from crossmatching/notebook_reproduction_fixture.json (DM also in configs/bursts.yaml).
 TARGETS = {

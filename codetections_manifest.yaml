@@ -22,7 +22,8 @@ subdirs:
     file_count: 401
     bytes: 107995482148
     size_gib: 100.579
-    source: "h23:/media/ubuntu/ssd/jfaber (burstprop_paper + OLD_CHIME_DSA_Codetections)"
+    source: "h23:/media/ubuntu/ssd/jfaber/archive/OLD_CHIME_DSA_Codetections"
+    notes: "burstprop_paper moved out 2026-06-26 → iacobus:~/Research/CHIME_Morphologies/burstprop_paper (see DATA_LOCATIONS.md)"
     sentinel_path: "archive/OLD_CHIME_DSA_Codetections/polcal_fils/freya_230325aaag_fullstokes_interp.pkl"
     sentinel_bytes: 1842217388
     sentinel_sha256_prefix_bytes: 67108864

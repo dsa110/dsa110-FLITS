@@ -2,8 +2,8 @@
 # Live-probed inventory of CHIME–DSA co-detection assets by host.
 # Query: yq / scripts/query_machine_inventory.py (see docs/infrastructure/MACHINE_INVENTORY.md)
 schema: 3
-generated_utc: "2026-06-26T18:30:00Z"
-generated_by: "Phase 4 closeout — h17 audit + inventory decisions (2026-06-26)"
+generated_utc: "2026-06-26T22:00:00Z"
+generated_by: "GDrive authority decision — iacobus demoted to staging (2026-06-26)"
 project: CHIME-DSA codetections
 excluded:
   - nihari
@@ -18,7 +18,9 @@ migration:
 
 canonical:
   code_repo: /Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS
-  data_authority: iacobus:/Users/iacobus/Research/CHIME_DSA_Codetections
+  data_authority: gdrive-jakob:Research/CHIME_DSA_Codetections
+  data_authority_account: jakobtfaber@gmail.com
+  data_staging: iacobus:/Users/iacobus/Research/CHIME_DSA_Codetections
   arc_storage: arc:home/jfaber/baseband_morphologies/chime_dsa_codetections
   arc_burst_npys: arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/DSA_bursts
 
@@ -139,8 +141,8 @@ migration_map:
     source_host: h23
     source_path: /media/ubuntu/ssd/jfaber/burstprop_paper/bursts
     target_host: iacobus
-    target_path: /Users/iacobus/Research/CHIME_DSA_Codetections/archive/burstprop_paper
-    notes: rsync 2026-06-25; iacobus 183f/49G superset of h23 132f/42G
+    target_path: /Users/iacobus/Research/CHIME_Morphologies/burstprop_paper
+    notes: rsync 2026-06-25; re-homed from codetections/archive 2026-06-26 (67G live)
   - id: h23_dsa110_scat_archive
     phase: 2
     status: completed
@@ -217,16 +219,16 @@ migration_map:
     source_host: h17
     source_path: /data/research/astrophysics/frbs/chime-dsa-codetections
     target_host: h17
-    notes: 339f/29G CHIME docker workspace; keep on h17 — reports/phase4_audit.json h17_compute_workspace
+    notes: 2275f/~65G CHIME docker workspace (includes arc archive + upchan); keep on h17 — reports/phase4_audit.json h17_compute_workspace
   - id: h17_upchan_products
     phase: 4
     status: completed
     completed_utc: "2026-06-26T18:30:00Z"
     action: keep
     source_host: h17
-    source_path: /data/jfaber/upchan_codetections
+    source_path: /data/research/astrophysics/frbs/chime-dsa-codetections/upchan_codetections
     target_host: h17
-    notes: 11f/473M five-target upchan; keep on h17; promote finished .npy when stable — phase4_audit
+    notes: 11f/473M five-target upchan; consolidated into compute workspace 2026-06-27; promote finished .npy when stable — phase4_audit
   - id: h17_ubuntu_stub
     phase: 4
     status: completed
@@ -258,13 +260,22 @@ migration_map:
   - id: h17_arc_archive_copy
     phase: 4
     status: completed
-    completed_utc: "2026-06-27T03:45:00Z"
+    completed_utc: "2026-06-27T07:24:00Z"
     action: copy
     source_host: h17
-    source_path: /data/jfaber/arc_archive_2026-06
+    source_path: /data/research/astrophysics/frbs/chime-dsa-codetections/archive/arc_trash_2026-06
     target_host: iacobus
     target_path: /Users/iacobus/Research/CHIME_DSA_Codetections/archive/arc_trash_2026-06
-    notes: D3 hash-map 245 pkl/npy — 97.5% unique bytes vs OLD_CHIME+chime_canfar; rsync via h17_to_iacobus.sh (ignore-existing)
+    notes: D3 rsync 2026-06-27T03:45 via h17_to_iacobus.sh (97.5% unique bytes); h17 source consolidated move-only from /data/jfaber/arc_archive_2026-06 2026-06-27T07:24; iacobus staging toward gdrive authority
+  - id: iacobus_to_gdrive
+    phase: 5
+    status: skipped
+    action: migrate
+    source_host: iacobus
+    source_path: /Users/iacobus/Research/CHIME_DSA_Codetections
+    target_host: gdrive
+    target_path: gdrive-jakob:Research/CHIME_DSA_Codetections
+    notes: DEFERRED 2026-06-27 — ~283G upload time; gdrive-jakob@gmail.com remains canonical target; scripts/migration/iacobus_to_gdrive.sh; OAuth blocker 2026-06-26
   - id: h23_nihari
     phase: 0
     status: out_of_scope
@@ -327,7 +338,7 @@ machines:
         migration_action: keep
         migration_target: jakob-mbp
         size_human: 1.5M
-        size_note: iCloud placeholders only on jakob-mbp; not materialized locally
+        size_note: iCloud placeholders only on jakob-mbp; demoted — gdrive is authority
         subdirs:
           - archive
           - burst_npys
@@ -337,12 +348,20 @@ machines:
           - metadata
           - presentations
           - scattering_results
-        notes: authoritative bytes live on iacobus; see iacobus:research_chime_codetections
+        notes: legacy mirror; bytes on iacobus staging until gdrive upload complete
+      - id: gdrive_chime_codetections
+        path: gdrive-jakob:Research/CHIME_DSA_Codetections
+        kind: data_root
+        migration_action: keep
+        migration_target: gdrive
+        size_human: pending
+        size_note: target ~280G from iacobus; remote not configured 2026-06-26
+        notes: canonical cloud authority jakobtfaber@gmail.com; rclone remote gdrive-jakob on iacobus
 
   iacobus:
     hostname: iacobus
     migration_status: target
-    role: data authority + iCloud uploader; materialized CHIME/DSA products
+    role: staging source for gdrive upload; legacy iCloud uploader; materialized CHIME/DSA products until gdrive verified
     access:
       ssh: iacobus
       user: iacobus
@@ -359,20 +378,18 @@ machines:
       - id: research_chime_codetections
         path: /Users/iacobus/Research/CHIME_DSA_Codetections
         kind: data_root
-        migration_action: keep
-        migration_target: iacobus
-        size_human: 218G
-        size_bytes: 234392304408
+        migration_action: migrate
+        migration_target: gdrive
+        size_human: 223G
+        size_bytes: null
         file_count: 1546
-        notes: canonical materialized data root (APFS clone of CloudDocs mirror)
+        notes: staging source for gdrive upload; demoted from data authority 2026-06-26; burstprop_paper moved to CHIME_Morphologies 2026-06-26
         children:
           - id: archive
             path: /Users/iacobus/Research/CHIME_DSA_Codetections/archive
-            size_human: 131G
+            size_human: 127G
             file_count: 401
             children:
-              - path: /Users/iacobus/Research/CHIME_DSA_Codetections/archive/burstprop_paper
-                size_human: 26G
               - path: /Users/iacobus/Research/CHIME_DSA_Codetections/archive/chime_canfar
                 size_human: 2.7G
               - path: /Users/iacobus/Research/CHIME_DSA_Codetections/archive/OLD_CHIME_DSA_Codetections
@@ -434,6 +451,16 @@ machines:
             path: /Users/iacobus/Research/CHIME_DSA_Codetections/codetections_manifest.yaml
             kind: manifest
             size_human: 4K
+      - id: research_chime_morphologies
+        path: /Users/iacobus/Research/CHIME_Morphologies
+        kind: data_root
+        migration_action: keep
+        migration_target: null
+        size_human: 67G
+        notes: burstprop_paper only; separate from CHIME–DSA codetections; moved from codetections/archive 2026-06-26
+        children:
+          - path: /Users/iacobus/Research/CHIME_Morphologies/burstprop_paper
+            size_human: 67G
       - id: icloud_chime_codetections
         path: /Users/iacobus/Library/Mobile Documents/com~apple~CloudDocs/Research/CHIME_DSA_Codetections
         kind: data_mirror
@@ -477,61 +504,62 @@ machines:
           size_human: 8.61GB
     locations:
       - id: arc_archive_2026_06
-        path: /data/jfaber/arc_archive_2026-06
+        path: /data/research/astrophysics/frbs/chime-dsa-codetections/archive/arc_trash_2026-06
         kind: archive
-        migration_action: dedupe
-        migration_target: iacobus
+        migration_action: keep
+        migration_target: h17
         size_human: 36G
         file_count: 1924
-        source: arc VOSpace trash migration (2026-06)
-        notes: optional promote to iacobus archive/arc_trash_2026-06 after Phase 3 dedupe (phase4 audit 2026-06-25)
+        source: arc VOSpace trash migration (2026-06); consolidated from /data/jfaber/ 2026-06-27
+        notes: optional promote to iacobus archive/arc_trash_2026-06 after dedupe
         children:
-          - path: /data/jfaber/arc_archive_2026-06/fullstokes_pkl
+          - path: /data/research/astrophysics/frbs/chime-dsa-codetections/archive/arc_trash_2026-06/fullstokes_pkl
             size_human: 25G
-          - path: /data/jfaber/arc_archive_2026-06/stokes_cubes_npy
+          - path: /data/research/astrophysics/frbs/chime-dsa-codetections/archive/arc_trash_2026-06/stokes_cubes_npy
             size_human: 4.3G
-          - path: /data/jfaber/arc_archive_2026-06/other_data_npy
+          - path: /data/research/astrophysics/frbs/chime-dsa-codetections/archive/arc_trash_2026-06/other_data_npy
             size_human: 3.4G
-          - path: /data/jfaber/arc_archive_2026-06/other_data_pkl
+          - path: /data/research/astrophysics/frbs/chime-dsa-codetections/archive/arc_trash_2026-06/other_data_pkl
             size_human: 1.9G
-          - path: /data/jfaber/arc_archive_2026-06/singlebeam_h5
+          - path: /data/research/astrophysics/frbs/chime-dsa-codetections/archive/arc_trash_2026-06/singlebeam_h5
             size_human: 91M
-          - path: /data/jfaber/arc_archive_2026-06/processed_spectra_pkl
+          - path: /data/research/astrophysics/frbs/chime-dsa-codetections/archive/arc_trash_2026-06/processed_spectra_pkl
             size_human: 396M
-          - path: /data/jfaber/arc_archive_2026-06/notebooks
+          - path: /data/research/astrophysics/frbs/chime-dsa-codetections/archive/arc_trash_2026-06/notebooks
             size_human: 173M
-          - path: /data/jfaber/arc_archive_2026-06/plots
+          - path: /data/research/astrophysics/frbs/chime-dsa-codetections/archive/arc_trash_2026-06/plots
             size_human: 419M
-          - path: /data/jfaber/arc_archive_2026-06/scattering_dirs
+          - path: /data/research/astrophysics/frbs/chime-dsa-codetections/archive/arc_trash_2026-06/scattering_dirs
             size_human: 54M
-          - path: /data/jfaber/arc_archive_2026-06/trashed_directories
+          - path: /data/research/astrophysics/frbs/chime-dsa-codetections/archive/arc_trash_2026-06/trashed_directories
             size_human: 710M
             notes: live probe 2026-06-25; not in original arc trash manifest
-          - path: /data/jfaber/arc_archive_2026-06/acf_results
+          - path: /data/research/astrophysics/frbs/chime-dsa-codetections/archive/arc_trash_2026-06/acf_results
             size_human: 4.4M
-          - path: /data/jfaber/arc_archive_2026-06/code
+          - path: /data/research/astrophysics/frbs/chime-dsa-codetections/archive/arc_trash_2026-06/code
             size_human: 317K
-          - path: /data/jfaber/arc_archive_2026-06/configs_json
+          - path: /data/research/astrophysics/frbs/chime-dsa-codetections/archive/arc_trash_2026-06/configs_json
             size_human: 65K
       - id: upchan_codetections
-        path: /data/jfaber/upchan_codetections
+        path: /data/research/astrophysics/frbs/chime-dsa-codetections/upchan_codetections
         kind: burst_data
         migration_action: keep
         migration_target: h17
         size_human: 473M
         file_count: 11
+        notes: moved from /data/jfaber/upchan_codetections 2026-06-27
         files:
-          - /data/jfaber/upchan_codetections/casey_chime_freq.npy
-          - /data/jfaber/upchan_codetections/casey_chime_upchan.npy
-          - /data/jfaber/upchan_codetections/isha_chime_freq.npy
-          - /data/jfaber/upchan_codetections/isha_chime_upchan.npy
-          - /data/jfaber/upchan_codetections/mahi_chime_freq.npy
-          - /data/jfaber/upchan_codetections/mahi_chime_upchan.npy
-          - /data/jfaber/upchan_codetections/phineas_chime_freq.npy
-          - /data/jfaber/upchan_codetections/phineas_chime_upchan.npy
-          - /data/jfaber/upchan_codetections/whitney_chime_freq.npy
-          - /data/jfaber/upchan_codetections/whitney_chime_upchan.npy
-          - /data/jfaber/upchan_codetections/_profcheck.py
+          - /data/research/astrophysics/frbs/chime-dsa-codetections/upchan_codetections/casey_chime_freq.npy
+          - /data/research/astrophysics/frbs/chime-dsa-codetections/upchan_codetections/casey_chime_upchan.npy
+          - /data/research/astrophysics/frbs/chime-dsa-codetections/upchan_codetections/isha_chime_freq.npy
+          - /data/research/astrophysics/frbs/chime-dsa-codetections/upchan_codetections/isha_chime_upchan.npy
+          - /data/research/astrophysics/frbs/chime-dsa-codetections/upchan_codetections/mahi_chime_freq.npy
+          - /data/research/astrophysics/frbs/chime-dsa-codetections/upchan_codetections/mahi_chime_upchan.npy
+          - /data/research/astrophysics/frbs/chime-dsa-codetections/upchan_codetections/phineas_chime_freq.npy
+          - /data/research/astrophysics/frbs/chime-dsa-codetections/upchan_codetections/phineas_chime_upchan.npy
+          - /data/research/astrophysics/frbs/chime-dsa-codetections/upchan_codetections/whitney_chime_freq.npy
+          - /data/research/astrophysics/frbs/chime-dsa-codetections/upchan_codetections/whitney_chime_upchan.npy
+          - /data/research/astrophysics/frbs/chime-dsa-codetections/upchan_codetections/_profcheck.py
       - id: chime_singlebeam_empty
         path: /data/jfaber/chime_singlebeam
         kind: data
@@ -542,8 +570,9 @@ machines:
         kind: working_tree
         migration_action: keep
         migration_target: h17
-        size_human: 29G
-        file_count: 339
+        size_human: 65G
+        file_count: 2275
+        notes: canonical h17 workspace; /data/jfaber/ cleared of codetect products 2026-06-27
         children:
           - path: /data/research/astrophysics/frbs/chime-dsa-codetections/chime_singlebeam
             size_human: 14G
@@ -557,6 +586,8 @@ machines:
             size_human: 1.7M
           - path: /data/research/astrophysics/frbs/chime-dsa-codetections/results
             size_human: 1.5M
+          - path: /data/research/astrophysics/frbs/chime-dsa-codetections/upchan_codetections
+            size_human: 473M
       - id: chime_dsa_codetections_ubuntu
         path: /data/ubuntu/chime-dsa-codetections
         kind: working_tree

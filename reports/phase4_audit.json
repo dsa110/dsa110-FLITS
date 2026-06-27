@@ -1,6 +1,6 @@
 {
   "generated_by": "scripts/migration/audit_h17_delta.py",
-  "generated_utc": "2026-06-26T18:28:35Z",
+  "generated_utc": "2026-06-27T07:26:15Z",
   "h17_host": "lxd110h17-hpc",
   "h17_tailscale": "100.85.172.12",
   "phase2_parallel_note": "Do not touch h23/iacobus rsync while Phase 2 runs elsewhere",
@@ -13,8 +13,8 @@
       "notes": "CHIME docker workspace; baseband staging; keep on h17",
       "h17": {
         "exists": true,
-        "files": 339,
-        "bytes": 30394716160
+        "files": 2275,
+        "bytes": 68871705600
       },
       "iacobus": {
         "exists": false,
@@ -23,6 +23,10 @@
       },
       "recommendation": "keep",
       "h17_children": [
+        {
+          "path": "/data/research/astrophysics/frbs/chime-dsa-codetections/archive",
+          "bytes": 37981459456
+        },
         {
           "path": "/data/research/astrophysics/frbs/chime-dsa-codetections/chime_singlebeam",
           "bytes": 14310309888
@@ -34,6 +38,10 @@
         {
           "path": "/data/research/astrophysics/frbs/chime-dsa-codetections/dsa_filterbanks",
           "bytes": 7046496256
+        },
+        {
+          "path": "/data/research/astrophysics/frbs/chime-dsa-codetections/upchan_codetections",
+          "bytes": 495518720
         },
         {
           "path": "/data/research/astrophysics/frbs/chime-dsa-codetections/diagnostics",
@@ -49,7 +57,7 @@
         },
         {
           "path": "/data/research/astrophysics/frbs/chime-dsa-codetections/scripts",
-          "bytes": 163840
+          "bytes": 176128
         },
         {
           "path": "/data/research/astrophysics/frbs/chime-dsa-codetections/logs",
@@ -62,16 +70,153 @@
         {
           "path": "/data/research/astrophysics/frbs/chime-dsa-codetections/bin",
           "bytes": 21504
-        },
-        {
-          "path": "/data/research/astrophysics/frbs/chime-dsa-codetections/metadata",
-          "bytes": 20480
-        },
-        {
-          "path": "/data/research/astrophysics/frbs/chime-dsa-codetections/inspect_bb.py",
-          "bytes": 4096
         }
       ]
+    },
+    {
+      "id": "h17_upchan_products",
+      "h17_path": "/data/research/astrophysics/frbs/chime-dsa-codetections/upchan_codetections",
+      "iacobus_path": null,
+      "iacobus_compare_path": null,
+      "notes": "5-target upchan .npy; promote to arc/iacobus when stable",
+      "h17": {
+        "exists": true,
+        "files": 11,
+        "bytes": 495518720
+      },
+      "iacobus": {
+        "exists": false,
+        "files": 0,
+        "bytes": 0
+      },
+      "recommendation": "keep"
+    },
+    {
+      "id": "h17_arc_archive_copy",
+      "h17_path": "/data/research/astrophysics/frbs/chime-dsa-codetections/archive/arc_trash_2026-06",
+      "iacobus_path": "/Users/iacobus/Research/CHIME_DSA_Codetections/archive/arc_trash_2026-06",
+      "iacobus_compare_path": null,
+      "notes": "consolidated from /data/jfaber/ 2026-06-27; optional copy to iacobus after dedupe",
+      "h17": {
+        "exists": true,
+        "files": 1924,
+        "bytes": 37981459456
+      },
+      "iacobus": {
+        "exists": true,
+        "files": 179,
+        "bytes": 30075265024
+      },
+      "recommendation": "rsync_delta",
+      "h17_children": [
+        {
+          "path": "/data/research/astrophysics/frbs/chime-dsa-codetections/archive/arc_trash_2026-06/fullstokes_pkl",
+          "bytes": 25864085504
+        },
+        {
+          "path": "/data/research/astrophysics/frbs/chime-dsa-codetections/archive/arc_trash_2026-06/stokes_cubes_npy",
+          "bytes": 4604485632
+        },
+        {
+          "path": "/data/research/astrophysics/frbs/chime-dsa-codetections/archive/arc_trash_2026-06/other_data_npy",
+          "bytes": 3592501248
+        },
+        {
+          "path": "/data/research/astrophysics/frbs/chime-dsa-codetections/archive/arc_trash_2026-06/other_data_pkl",
+          "bytes": 1985843200
+        },
+        {
+          "path": "/data/research/astrophysics/frbs/chime-dsa-codetections/archive/arc_trash_2026-06/trashed_directories",
+          "bytes": 743892992
+        },
+        {
+          "path": "/data/research/astrophysics/frbs/chime-dsa-codetections/archive/arc_trash_2026-06/plots",
+          "bytes": 438484992
+        },
+        {
+          "path": "/data/research/astrophysics/frbs/chime-dsa-codetections/archive/arc_trash_2026-06/processed_spectra_pkl",
+          "bytes": 415035392
+        },
+        {
+          "path": "/data/research/astrophysics/frbs/chime-dsa-codetections/archive/arc_trash_2026-06/notebooks",
+          "bytes": 180846592
+        },
+        {
+          "path": "/data/research/astrophysics/frbs/chime-dsa-codetections/archive/arc_trash_2026-06/singlebeam_h5",
+          "bytes": 95420416
+        },
+        {
+          "path": "/data/research/astrophysics/frbs/chime-dsa-codetections/archive/arc_trash_2026-06/scattering_dirs",
+          "bytes": 55902208
+        },
+        {
+          "path": "/data/research/astrophysics/frbs/chime-dsa-codetections/archive/arc_trash_2026-06/acf_results",
+          "bytes": 4550656
+        },
+        {
+          "path": "/data/research/astrophysics/frbs/chime-dsa-codetections/archive/arc_trash_2026-06/code",
+          "bytes": 324608
+        }
+      ]
+    },
+    {
+      "id": "h17_ubuntu_stub",
+      "h17_path": "/data/ubuntu/chime-dsa-codetections",
+      "iacobus_path": null,
+      "iacobus_compare_path": null,
+      "notes": "empty stub; remove after compute workspace canonical",
+      "h17": {
+        "exists": false,
+        "files": 0,
+        "bytes": 0
+      },
+      "iacobus": {
+        "exists": false,
+        "files": 0,
+        "bytes": 0
+      },
+      "recommendation": "skip"
+    },
+    {
+      "id": "h17_chime_singlebeam_empty",
+      "h17_path": "/data/jfaber/chime_singlebeam",
+      "iacobus_path": null,
+      "iacobus_compare_path": null,
+      "notes": "empty dir; baseband staged under compute workspace",
+      "h17": {
+        "exists": false,
+        "files": 0,
+        "bytes": 0
+      },
+      "iacobus": {
+        "exists": false,
+        "files": 0,
+        "bytes": 0
+      },
+      "recommendation": "keep"
+    },
+    {
+      "id": "iacobus_chime_canfar_archive",
+      "h17_path": null,
+      "iacobus_path": "/Users/iacobus/Archives/CHIME_canfar",
+      "iacobus_compare_path": "/Users/iacobus/Research/CHIME_DSA_Codetections/archive",
+      "notes": "iacobus-only dedupe; migration_map phase 4",
+      "h17": {
+        "exists": false,
+        "files": 0,
+        "bytes": 0
+      },
+      "iacobus": {
+        "exists": false,
+        "files": 0,
+        "bytes": 0
+      },
+      "recommendation": "skip",
+      "iacobus_compare": {
+        "exists": true,
+        "files": 1602,
+        "bytes": 152207667200
+      }
     }
   ]
 }

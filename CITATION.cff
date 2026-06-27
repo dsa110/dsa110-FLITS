@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: >-
+  If you use this software, please cite the accompanying paper
+  (Faber et al., in prep.) and, optionally, this software entry.
+title: "FLITS: Fitting Likelihoods In Time-Frequency Spectra"
+abstract: >-
+  A lightweight, modular, telescope-agnostic toolkit for fitting
+  pulse-broadening (scattering) and scintillation in Fast Radio Burst
+  dynamic spectra, together with instrumental effects. Developed for the
+  DSA-110 / CHIME co-detection analysis.
+type: software
+authors:
+  - family-names: Faber
+    given-names: Jakob
+    affiliation: "California Institute of Technology"
+# TODO(jakob): add co-authors / DSA-110 collaboration members as appropriate,
+# and add a `doi:` / `version:` / `date-released:` once a release is tagged.
+license: MIT
+repository-code: "https://github.com/dsa110/dsa110-FLITS"
+keywords:
+  - fast radio bursts
+  - radio astronomy
+  - scattering
+  - scintillation
+  - interstellar medium
+  - DSA-110

@@ -1,5 +1,5 @@
 {
-  "git_sha": "f8805813",
+  "git_sha": "c6f76ce",
   "git_dirty": true,
   "n_bursts": 8,
   "gate_policy": "E_iso is alpha-independent; energy gates on spec-z + calibrated fluence + physical (finite, c0>0) per-band c0/gamma. The scattering joint-fit FAIL verdict is INFORMATIONAL, not an energy exclusion (ADR-0003/0004, 3-expert panel 2026-06-24).",
@@ -17,9 +17,9 @@
     "chromatica": "MARGINAL",
     "hamilton": "MARGINAL",
     "isha": "MARGINAL",
-    "oran": "FAIL",
+    "oran": "MARGINAL",
     "phineas": "MARGINAL",
-    "whitney": "FAIL",
+    "whitney": "MARGINAL",
     "wilhelm": "MARGINAL",
     "zach": "MARGINAL"
   },
@@ -39,11 +39,11 @@
     "freya_joint_gate.json": "619397e5be649a6b",
     "hamilton_joint_gate.json": "5bd33d29aa94edb7",
     "isha_joint_gate.json": "94df576bf7985672",
-    "johndoeII_joint_gate.json": "f3408d82d520f94a",
+    "johndoeII_joint_gate.json": "c412955c35f2a00d",
     "mahi_joint_gate.json": "d31644f2a174fa84",
-    "oran_joint_gate.json": "507c059b2f553642",
+    "oran_joint_gate.json": "f4e66a8c9d033a1b",
     "phineas_joint_gate.json": "c5f1e25ef22801f2",
-    "whitney_joint_gate.json": "1e928d8945bad496",
+    "whitney_joint_gate.json": "1cb2ba786ca225a7",
     "wilhelm_joint_gate.json": "81e478b288849054",
     "zach_joint_gate.json": "00af319420bcc549"
   },

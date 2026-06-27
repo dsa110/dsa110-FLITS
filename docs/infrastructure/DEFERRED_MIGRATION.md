@@ -17,7 +17,15 @@ Optional follow-ups below are **skipped** in `machine_inventory.yaml` — not bl
 
 **Finding:** arc holds fit-ready `.npy` under `dmphase/` and `dmtransform/` namespaces (24 codetection basenames in [`reports/phase3_chime_basename_inventory.csv`](../../reports/phase3_chime_basename_inventory.csv)); iacobus `burst_npys` uses a mixed nickname/TNS namespace — **zero basename overlap** with arc inventory rows.
 
-**Next step (read-only first):**
+**Map generated 2026-06-26** (read-only; no data movement):
+
+```bash
+python scripts/migration/map_chime_bursts_namespaces.py --stdout
+```
+
+Artifacts: [`reports/d1_chime_burst_map.csv`](../../reports/d1_chime_burst_map.csv), [`reports/d1_chime_burst_map.json`](../../reports/d1_chime_burst_map.json). Summary: 51 arc rows (48 codetection `.npy` + 3 CANFAR session dirs); all 48 `.npy` rows linked to iacobus via nickname/TNS-date alias (e.g. `johndoeii` → `johndoe_230814aaas`); **0 exact basename overlap**.
+
+**Prior next step (superseded by map script):**
 
 ```bash
 python scripts/migration/audit_arc_delta.py --stdout   # refresh arc vs iacobus counts
@@ -30,23 +38,23 @@ python scripts/migration/audit_arc_delta.py --stdout   # refresh arc vs iacobus 
 
 ## D2 — iacobus `CHIME_canfar` archive merge
 
-| Source | Target (planned) | Size |
-|--------|------------------|------|
+| Source | Target | Size |
+|--------|--------|------|
 | `~/Archives/CHIME_canfar` (iacobus) | `~/Research/CHIME_DSA_Codetections/archive/chime_canfar/` | 725 f / 2.7 G |
 
 **Finding (2026-06-26):** zero basename overlap vs `Research/…/archive` (937 f / 178 G). Merge is **additive**, not dedupe — unique CANFAR session exports (includes 3 `analysis_*` session dirs with spaces in names).
 
-**Next step (after approval):**
+**Completed 2026-06-27** (move-only on iacobus; no dedupe):
 
 ```bash
-# on iacobus — move-only, verify counts before/after
-mkdir -p ~/Research/CHIME_DSA_Codetections/archive/chime_canfar
-rsync -av --remove-source-files ~/Archives/CHIME_canfar/ \
-  ~/Research/CHIME_DSA_Codetections/archive/chime_canfar/
-# then: python scripts/query_machine_inventory.py --migration-map --id iacobus_chime_canfar_archive
+python scripts/migration/audit_chime_canfar.py --stdout   # pre-move inventory
+# on iacobus: mv ~/Archives/CHIME_canfar ~/Research/CHIME_DSA_Codetections/archive/chime_canfar
+python scripts/query_machine_inventory.py --migration-map --json | jq '.[] | select(.id=="iacobus_chime_canfar_archive")'
 ```
 
-**Inventory id:** `iacobus_chime_canfar_archive` (`status: skipped`).
+Pre-move audit: [`reports/d2_chime_canfar_inventory.csv`](../../reports/d2_chime_canfar_inventory.csv) — 725 source rows, 937 archive rows, **0 basename overlap**. Post-move verify: source path absent; target 725 f / 2.7 G.
+
+**Inventory id:** `iacobus_chime_canfar_archive` (`status: completed`).
 
 ---
 

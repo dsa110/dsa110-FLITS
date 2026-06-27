@@ -61,7 +61,7 @@ def _band_row(axrow, z, band, color):
     axrow[3].set_xlabel("time (ms)", fontsize=7)
 
 
-def plot_one(npz_fp, out_dir):
+def plot_one(npz_fp, out_dir, *, vector=False):
     z = np.load(npz_fp, allow_pickle=True)
     b = str(z["burst"])
     al, tau = float(z["alpha"]), float(z["tau_1ghz"])
@@ -75,22 +75,29 @@ def plot_one(npz_fp, out_dir):
         fontsize=11,
     )
     fig.tight_layout(rect=[0, 0, 1, 0.96])
-    fp = Path(out_dir) / f"{b}_jointmodel.png"
+    out_dir = Path(out_dir)
+    fp = out_dir / f"{b}_jointmodel.png"
     fig.savefig(fp, dpi=120)
+    if vector:
+        fig.savefig(out_dir / f"{b}_jointmodel.pdf", bbox_inches="tight")
+        fig.savefig(out_dir / f"{b}_jointmodel.svg", bbox_inches="tight")
     plt.close(fig)
     print(f"wrote {fp}  (DSA χ²={cD:.2f}, CHIME χ²={cC:.2f})")
 
 
 def main():
-    npz_dir = Path(sys.argv[1])
-    out_dir = Path(sys.argv[2])
+    args = sys.argv[1:]
+    vector = "--vector" in args
+    args = [a for a in args if a != "--vector"]
+    npz_dir = Path(args[0])
+    out_dir = Path(args[1])
     out_dir.mkdir(parents=True, exist_ok=True)
-    want = set(sys.argv[3:])
+    want = set(args[2:])
     for fp in sorted(npz_dir.glob("*_jointmodel*.npz")):
         b = fp.name.split("_jointmodel")[0]
         if want and b not in want:
             continue
-        plot_one(fp, out_dir)
+        plot_one(fp, out_dir, vector=vector)
 
 
 if __name__ == "__main__":

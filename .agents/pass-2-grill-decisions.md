@@ -44,3 +44,9 @@ Locked via `/grill-with-docs` for autonomous Phases 1–3.
   - **mahi** C2D1 vs C1D1: weak (+52 / +52 / +0.7) — extra component not strongly supported
   - **phineas** C3D3 vs C3D2: NOT robust (sign flips)
   - **zach** C2D3 vs C2D2: NOT robust (confirms drop from `tab:alpha`)
+
+## Phase 3 complete (2026-06-27)
+
+- Faber2026 [PR #13](https://github.com/jakobtfaber/Faber2026/pull/13) merged @ `bad84ce`
+- Submodule pin `c0696a6`; 8-row energies; zach out of `tab:alpha`; fixed-s² prose in abstract/results/conclusions
+- `make all` PASS on Faber2026 `main`

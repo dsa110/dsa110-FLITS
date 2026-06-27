@@ -309,12 +309,17 @@ def _lookup_dm_obs(name: str, configs_dir: str | None) -> float | None:
 
 
 def _lookup_tau_fit(name: str, bursts_dir: str | None) -> dict | None:
-    """Find the best CHIME scattering fit for a target across result locations.
+    """Find the best scattering τ for a target (all-exp joint, then CHIME single-band).
 
-    Returns the read_tau_fit dict, preferring a quality-PASS fit when several are
-    present (so a re-run that supersedes an old FAIL is picked up). Returns None
-    if no fit_results.json with a usable tau exists.
+    Prefers canonical all-exp joint fits from the citable-α roster (ADR-0005).
+    Falls back to CHIME fit_results.json, preferring quality-PASS when several exist.
     """
+    from galaxies.foreground.tau_consistency import load_allexp_joint_tau_for_budget
+
+    joint = load_allexp_joint_tau_for_budget(name)
+    if joint is not None:
+        return joint
+
     target = name.lower()
     candidates: list[str] = []
     search_dirs = []
@@ -422,11 +427,14 @@ def build_sightline_budget(
         if fit is not None:
             tau_obs_quality = fit.get("quality_flag") or "UNKNOWN"
             tau_obs_chi2 = _f(fit.get("chi2_reduced"))
-            if fit.get("quality_flag") == "PASS":
+            ingest = fit.get("quality_flag") == "PASS" or (
+                fit.get("source") == "allexp_joint" and fit.get("quality_flag") == "MARGINAL"
+            )
+            if ingest:
                 tau_obs = fit.get("tau")
                 tau_obs_err_minus = _f(fit.get("err_minus"))
                 tau_obs_err_plus = _f(fit.get("err_plus"))
-            # non-PASS: tau_obs stays None (withheld), quality recorded above
+            # FAIL or non-ingested quality: tau_obs stays None, quality recorded above
 
     dm_hot = dm_cool = 0.0
     dm_hot_cap = dm_cool_cap = 0.0
@@ -882,14 +890,14 @@ def make_budget_figure(df: pd.DataFrame):
                 color=TEXT_DARK,
                 s=55,
                 zorder=5,
-                label="measured burst (PASS)" if yi == y[0] else None,
+                label="measured burst" if yi == y[0] else None,
             )
 
     # Mark sightlines with a fit present but withheld by the quality gate.
     quality = [str(v) for v in d.get("tau_obs_quality", pd.Series([""] * len(d)))]
     withheld_labeled = False
-    for yi, q, ti in zip(y, quality, tau_int):
-        if q in ("FAIL", "MARGINAL", "UNKNOWN"):
+    for yi, q, ti, to in zip(y, quality, tau_int, tau_obs):
+        if q in ("FAIL", "MARGINAL", "UNKNOWN") and not (to > 0):
             x_at = max(ti, 1e-6)
             ax_tau.scatter(
                 [x_at],

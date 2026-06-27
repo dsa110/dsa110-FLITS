@@ -71,6 +71,21 @@ def test_read_tau_fit_prefers_percentiles_and_reads_quality(tmp_path):
     assert fit["chi2_reduced"] == pytest.approx(1.36)
 
 
+def test_budget_ingests_allexp_joint_marginal(monkeypatch):
+    """ADR-0005 all-exp joint fits cap at MARGINAL; still overlay on fig:budget."""
+    b = sb.build_sightline_budget(
+        "casey",
+        "20h40m47.886s",
+        "+72d52m56.378s",
+        0.30,
+        results_dir="results",
+        dm_mw_fn=_stub_dm_mw(),
+        enrich=False,
+    )
+    assert b["tau_obs_ms"] == pytest.approx(0.06086799947757, rel=1e-3)
+    assert b["tau_obs_quality"] == "MARGINAL"
+
+
 def test_budget_withholds_tau_when_fit_quality_fails(tmp_path):
     # A FAIL fit on disk -> tau is withheld from the budget, with the reason.
     (tmp_path / "ggg").mkdir()

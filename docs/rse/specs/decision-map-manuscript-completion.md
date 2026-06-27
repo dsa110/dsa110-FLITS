@@ -11,12 +11,11 @@ Resolve via: `/decision-mapping <this file> #<n>`.
 ## Frontier (resolved 2026-06-24, 3-expert panel)
 
 All seven tickets are answered. **#1, #2, #5** are fully settled (ADR-0002/0004/0003).
-**#3, #4, #6, #7** have their *rule/decision* locked but a residual **execution**
-gated on one deferred engineering pass — the all-exp regeneration
-(`gate_joint_committed.py` `ALPHA_MIN` 1.5→1.0 + full verdict regen
-+ `_s2verdict.py` repoint off stale mixed-PBF grids), tracked in
-`.agents/deferred-tasks.md`. Until that lands, the manuscript stays count-free on the
-citable-α roster and energies sample — which is correct, not blocked.
+**#4 locked 2026-06-26** ([ADR-0005](../../adr/0005-citable-alpha-roster.md)): **5 fully
+adjudicated α** + **3 provisional** (pending all-exp fixed-s²) + whitney multiplicity
+exemplar. Graded from `_a1_fits/` via `grade_allexp.py`.
+**#3** partial s² remains for Tier B (johndoeII/oran/phineas) + isha/mahi.
+**#6, #7** unblocked for Tier A; full N=8 after Tier B s² pull.
 
 ## Assets / state of record
 
@@ -143,19 +142,21 @@ locks.
 
 ### Answer
 
-**Membership rule locked; final roster gated on the regen pass.** A sightline is
-citable iff (all-exp PBF, [ADR-0003](../../adr/0003-single-exponential-pbf.md)) it
-is un-railed at *both* prior bounds, PBF-insensitive (|Δα|≤0.1), its component
-count is confirmed (#3), and its FINAL verdict is PASS or flagged MARGINAL under
-the L1 floor-1.0 policy ([ADR-0004](../../adr/0004-l1-sub-kolmogorov-alpha-floor.md))
-— **not** the mixed-PBF `joint_fit_summary` set of 3, and **not** "figure-green".
-johndoeII enters as a flagged sub-Kolmogorov MARGINAL; zach is **withheld** (#5).
-The exact roster/count stays **unquoted in the manuscript** until the deferred
-all-exp regeneration lands (`gate_joint_committed.py` `ALPHA_MIN` 1.5→1.0 + full
-verdict regen), because three candidate α (oran 1.44, whitney-single 1.46,
-johndoeII 1.37) sit in the new 1.0–2.0 MARGINAL band whose FINAL verdicts must be
-*regenerated*, not asserted from superseded mixed-PBF output. PR #9 text stays
-count-free — correct as written.
+**Locked 2026-06-26 — [ADR-0005](../../adr/0005-citable-alpha-roster.md).** Membership
+rule unchanged; roster graded on all-exp `_a1_fits/` with ADR-0004 floor.
+
+**Tier A (5, fully adjudicated):** casey 2.40, wilhelm 2.56 (DSA-shape caveat),
+chromatica 3.28, zach 3.32 (C1D1; no profile-bias claim), freya 4.36.
+
+**Tier B (3, provisional — all-exp fixed-s² pending):** johndoeII 1.53, oran 2.66,
+phineas 3.32.
+
+**Multiplicity exemplar (prose):** whitney 5.12 (C2D2, fixed-s² confirmed).
+
+**Excluded:** mahi, isha, hamilton; zach C2D3 multiplicity claim.
+
+Mixed-PBF `joint_gate_verdicts.md` superseded for citation. Faber2026: **N = 5** safe
+now; **N = 8** target after Tier B s² adjudication (#6 energies follows same split).
 
 ---
 

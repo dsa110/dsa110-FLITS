@@ -32,7 +32,7 @@ The pulse-broadening function *functional form* fixes the scattering index, not 
 _Avoid_: treating free-α under an exponential PBF as an independent Kolmogorov measurement without stating the PBF constraint.
 
 **Consistency τ** (`tau_consistency`):
-Scattering time used for per-band τ–Δν pairing and multi-screen triggers — from **α-fixed** single-exponential PBF refits (α = 4), with τ scaled to each band's reference frequency. Distinct from **joint τ** (`tau_joint`) / **free-α joint α** (`alpha_joint_free`) used for the provisional-citable α roster ([ADR-0003](docs/adr/0003-single-exponential-pbf.md)).
+Scattering time used for per-band τ–Δν pairing and multi-screen triggers — from **α-fixed** single-exponential PBF refits (α = 4), with τ scaled to each band's reference frequency. Distinct from **joint τ** (`tau_joint`) / **free-α joint α** (`alpha_joint_free`) used for the citable-α roster ([ADR-0003](docs/adr/0003-single-exponential-pbf.md), locked roster [ADR-0005](docs/adr/0005-citable-alpha-roster.md)).
 **Dual τ policy (accepted):** attribution matrix carries both tracks; scintillation consistency + multi-screen triggers use `tau_consistency` only; `tab:alpha` stays on free-α joint fits until a future ADR revises citable-α policy. Flag sightlines where free-α joint materially disagrees with α=4 consistency refit (`pbf_alpha_tension`).
 _Avoid_: pairing joint free-α τ with per-band Δν for consistency, or collapsing both tracks without an ADR.
 

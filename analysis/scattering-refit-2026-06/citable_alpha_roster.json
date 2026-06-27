@@ -1,0 +1,37 @@
+{
+  "locked_utc": "2026-06-26",
+  "adr": "docs/adr/0005-citable-alpha-roster.md",
+  "membership_rule": [
+    "all-exp PBF (ADR-0003)",
+    "un-railed at alpha_bounds",
+    "|delta_alpha_mixed_to_allexp| <= 0.1",
+    "component count adjudicated where applicable",
+    "gate_one L1 PASS and L2 not FAIL"
+  ],
+  "tier_a_fully_adjudicated": [
+    {"nickname": "casey", "tns": "FRB 20240229A", "model": "sharedzeta", "alpha": 2.396, "alpha_err": 0.015, "chi2_chime": 1.41, "chi2_dsa": 0.99},
+    {"nickname": "wilhelm", "tns": "FRB 20221203A", "model": "sharedzeta", "alpha": 2.557, "alpha_err": 0.039, "chi2_chime": 1.14, "chi2_dsa": 4.55, "caveat": "DSA peak-shape misfit"},
+    {"nickname": "chromatica", "tns": "FRB 20240203A", "model": "sharedzeta", "alpha": 3.284, "alpha_err": 0.04, "chi2_chime": 1.14, "chi2_dsa": 1.16},
+    {"nickname": "zach", "tns": "FRB 20220207C", "model": "C1D1", "fit_suffix": "", "alpha": 3.319, "alpha_err": 0.013, "chi2_chime": 2.30, "chi2_dsa": 1.30, "withhold_profile_bias": true},
+    {"nickname": "freya", "tns": "FRB 20230325A", "model": "sharedzeta", "alpha": 4.355, "alpha_err": 0.037, "chi2_chime": 1.30, "chi2_dsa": 1.03}
+  ],
+  "tier_b_provisional_pending_s2": [
+    {"nickname": "johndoeII", "tns": "FRB 20230814B", "model": "C2D1", "alpha": 1.529, "alpha_err": 0.09, "chi2_chime": 1.04, "chi2_dsa": 1.27, "notes": "sub-Kolmogorov", "blocker": "no all-exp fixed-s2 grid local"},
+    {"nickname": "oran", "tns": "FRB 20220506D", "model": "C2D1", "alpha": 2.663, "alpha_err": 0.17, "chi2_chime": 1.04, "chi2_dsa": 1.16, "blocker": "no all-exp fixed-s2 grid local"},
+    {"nickname": "phineas", "tns": "FRB 20230307A", "model": "C3D3", "alpha": 3.320, "alpha_err": 0.06, "chi2_chime": 1.02, "chi2_dsa": 1.34, "blocker": "no all-exp fixed-s2 grid local"}
+  ],
+  "multiplicity_exemplar": {
+    "nickname": "whitney",
+    "tns": "FRB 20220310F",
+    "model": "C2D2",
+    "alpha": 5.116,
+    "alpha_err": 0.17,
+    "fit_json": "analysis/scattering-refit-2026-06/local_runs/data/joint/whitney_fine_joint_fit_C2D2_pbf-exp-exp.json"
+  },
+  "excluded": [
+    {"nickname": "mahi", "reason": "PBF-sensitive; wide alpha posterior"},
+    {"nickname": "isha", "reason": "wide posterior; alpha rails upper bound"},
+    {"nickname": "hamilton", "reason": "CHIME-DSA component ambiguity"},
+    {"nickname": "zach_C2D3", "reason": "fixed-s2 grid sign-unstable; profile-bias claim withheld"}
+  ]
+}

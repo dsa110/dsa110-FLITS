@@ -9,7 +9,7 @@ side by side.
 Each column (data | model | residual) carries a frequency-averaged **time
 series** along the top and a time-averaged **spectrum** down the right side.
 Bands are drawn to scale on a shared frequency axis, and any *unobserved gap*
-between bands (e.g. the 0.80-1.28 GHz gap between the CHIME and DSA bands) is
+between bands (e.g. the 0.80-1.31 GHz gap between the CHIME and DSA bands) is
 hatched so the missing coverage is explicit.
 
 The function is data-source agnostic: for each frequency band you supply the
@@ -29,13 +29,14 @@ Example
 
 Notes
 -----
-All bands are assumed to share a common (dedispersed) time axis, i.e. the same
-number of time samples; their frequency channel counts may differ.
+Bands may use different time grids; ``plot_codetection`` regrids internally to
+the finest shared step before building marginals. Frequency channel counts may
+also differ.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Optional, Sequence
+from dataclasses import dataclass, replace
+from typing import Optional, Sequence, Union
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -59,9 +60,9 @@ class BandSpectrum:
         Observed dynamic spectrum.
     model : (nchan, nsamp) ndarray
         Best-fit 2-D model, same shape as ``data``.
-    sigma : float, optional
-        Per-sample noise level. If ``None`` it is estimated from the robust
-        (MAD-based) scatter of ``data - model``.
+    sigma : float or (nchan,) ndarray, optional
+        Per-channel noise (``burstfit`` ``noise_std``). Scalar applies to all
+        channels. If ``None``, per-channel MAD of ``data - model`` is used.
     label : str, optional
         Short band label, e.g. ``"CHIME"`` / ``"DSA"``.
     """
@@ -70,26 +71,69 @@ class BandSpectrum:
     time_ms: np.ndarray
     data: np.ndarray
     model: np.ndarray
-    sigma: Optional[float] = None
+    sigma: Optional[Union[float, np.ndarray]] = None
     label: Optional[str] = None
 
     @property
     def frange(self) -> tuple[float, float]:
         return float(np.min(self.freq_mhz)), float(np.max(self.freq_mhz))
 
-    def noise(self) -> float:
-        """Per-sample noise: ``sigma`` if given, else a robust MAD estimate."""
+    def noise_per_channel(self) -> np.ndarray:
+        """(nchan,) noise std for whitened residuals."""
+        nchan = self.data.shape[0]
         if self.sigma is not None:
-            return float(self.sigma)
+            s = np.asarray(self.sigma, float).reshape(-1)
+            if s.size == 1:
+                return np.full(nchan, float(s[0]))
+            if s.size != nchan:
+                raise ValueError(f"sigma length {s.size} != nchan {nchan}")
+            return s
         resid = self.data - self.model
-        mad = np.median(np.abs(resid - np.median(resid)))
+        mad = np.median(np.abs(resid - np.median(resid, axis=1, keepdims=True)), axis=1)
         s = 1.4826 * mad
-        return float(s if s > 0 else (resid.std() or 1.0))
+        fallback = float(resid.std() or 1.0)
+        return np.where(s > 0, s, fallback)
+
+
+def _interp_along_time(t_out, t_in, arr: np.ndarray) -> np.ndarray:
+    t_in = np.asarray(t_in, float)
+    t_out = np.asarray(t_out, float)
+    out = np.empty((arr.shape[0], t_out.size))
+    for i in range(arr.shape[0]):
+        row = arr[i]
+        out[i] = np.interp(t_out, t_in, row, left=row[0], right=row[-1])
+    return out
+
+
+def _common_time_ms(bands: Sequence[BandSpectrum]) -> np.ndarray:
+    dt = min(float(np.median(np.diff(b.time_ms))) for b in bands)
+    t0 = min(float(b.time_ms[0]) for b in bands)
+    t1 = max(float(b.time_ms[-1]) for b in bands)
+    n = max(2, int(round((t1 - t0) / dt)) + 1)
+    t = t0 + np.arange(n) * dt
+    return t[t <= t1 + 1e-9]
+
+
+def _regrid_band(b: BandSpectrum, t_common: np.ndarray) -> BandSpectrum:
+    if b.time_ms.shape == t_common.shape and np.allclose(b.time_ms, t_common):
+        return b
+    return replace(
+        b,
+        time_ms=t_common,
+        data=_interp_along_time(t_common, b.time_ms, b.data),
+        model=_interp_along_time(t_common, b.time_ms, b.model),
+    )
+
+
+def _regrid_bands(bands: Sequence[BandSpectrum]) -> tuple[list[BandSpectrum], np.ndarray]:
+    t_common = _common_time_ms(bands)
+    return [_regrid_band(b, t_common) for b in bands], t_common
 
 
 def _band_array(b: BandSpectrum, key: str) -> np.ndarray:
     if key == "resid":
-        return (b.data - b.model) / b.noise()
+        sig = b.noise_per_channel()[:, None]
+        return (b.data - b.model) / np.clip(sig, 1e-9, None)
     return getattr(b, key)
 
 
@@ -140,8 +184,9 @@ def plot_codetection(
     if not bands:
         raise ValueError("`bands` must contain at least one BandSpectrum")
     bands = sorted(bands, key=lambda b: b.frange[0])
-    t0 = min(b.time_ms[0] for b in bands)
-    t1 = max(b.time_ms[-1] for b in bands)
+    bands, tref = _regrid_bands(bands)
+    t0 = float(tref[0])
+    t1 = float(tref[-1])
     fmin, fmax = bands[0].frange[0], bands[-1].frange[1]
     gaps = [(lo.frange[1], hi.frange[0]) for lo, hi in zip(bands[:-1], bands[1:])
             if hi.frange[0] > lo.frange[1] + 1e-6]
@@ -154,12 +199,13 @@ def plot_codetection(
     rnorm = Normalize(-resid_clip, resid_clip)
 
     # marginal projections (channel-averaged profile; time-averaged spectrum)
-    prof = {k: np.concatenate([_band_array(b, k) for b in bands], axis=0).mean(axis=0)
+    prof = {k: np.nanmean(np.concatenate([_band_array(b, k) for b in bands], axis=0), axis=0)
             for k in ("data", "model", "resid")}
-    pmax = max(prof["data"].max(), prof["model"].max())
+    pmax = float(np.nanmax([np.nanmax(prof["data"]), np.nanmax(prof["model"])]))
+    if not np.isfinite(pmax) or pmax <= 0:
+        pmax = 1.0
     smax = max(np.max(b.data.mean(1)) for b in bands)
     smax = max(smax, max(np.max(b.model.mean(1)) for b in bands))
-    tref = bands[0].time_ms
 
     cols = [("data", "Data", water_cmap, norm),
             ("model", "Model (2-D fit)", water_cmap, norm),
@@ -273,7 +319,7 @@ def _demo_bands(seed: int = 7):
 
     chime = _band((400.0, 800.0), 256, 0.7, 2.0, 0.9, 1.0, 24)
     chime.label = "CHIME"
-    dsa = _band((1280.0, 1530.0), 160, 0.7, 18.0, 0.55, 0.9, 24)
+    dsa = _band((1311.0, 1498.75), 160, 0.7, 18.0, 0.55, 0.9, 24)
     dsa.label = "DSA"
     return [chime, dsa]
 

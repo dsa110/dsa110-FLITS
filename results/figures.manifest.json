@@ -4,7 +4,7 @@
   "figures": [
     {
       "file": "sightline_dm_scattering_budget.png",
-      "expectation": "Two-panel budget figure: left DM stacks vs observed bars for 12 co-detections; right log-scattering panel with orange predicted-intervening circles and black diamond measured τ for citable-roster all-exp joint fits (8 sightlines), x marks for withheld/non-finite τ."
+      "expectation": "Two-panel budget figure: left DM stacks vs observed bars for 12 co-detections; right log-scattering panel with orange predicted-intervening circles and black diamond measured τ for citable-roster all-exp joint fits (9 sightlines: Tier A/B + whitney), x marks only when τ withheld."
     }
   ]
 }

@@ -1,0 +1,57 @@
+{
+  "generated_by": "scripts/migration/audit_h17_arc_archive.py",
+  "generated_utc": "2026-06-27T03:37:29Z",
+  "h17_root": "/data/jfaber/arc_archive_2026-06",
+  "compare_roots": [
+    {
+      "label": "old_chime",
+      "path": "/Users/iacobus/Research/CHIME_DSA_Codetections/archive/OLD_CHIME_DSA_Codetections"
+    },
+    {
+      "label": "chime_canfar",
+      "path": "/Users/iacobus/Research/CHIME_DSA_Codetections/archive/chime_canfar"
+    }
+  ],
+  "hash_sample_note": "sha256 on all .pkl/.npy via xargs -P 4 sha256sum (245 h17 + 555 compare files)",
+  "h17_summary": {
+    "side": "h17",
+    "root": "/data/jfaber/arc_archive_2026-06",
+    "files": 1924,
+    "bytes": 37976777022,
+    "hashed_files": 245,
+    "hashed_bytes": 36433865718
+  },
+  "compare_summaries": [
+    {
+      "side": "old_chime",
+      "root": "/Users/iacobus/Research/CHIME_DSA_Codetections/archive/OLD_CHIME_DSA_Codetections",
+      "files": 384,
+      "bytes": 112891807777,
+      "hashed_files": 136,
+      "hashed_bytes": 50935358160
+    },
+    {
+      "side": "chime_canfar",
+      "root": "/Users/iacobus/Research/CHIME_DSA_Codetections/archive/chime_canfar",
+      "files": 725,
+      "bytes": 2910835639,
+      "hashed_files": 419,
+      "hashed_bytes": 2508998216
+    }
+  ],
+  "h17_files": 1924,
+  "h17_bytes": 37976777022,
+  "hashed_sample_files": 245,
+  "hashed_sample_bytes": 36433865718,
+  "hash_duplicate_files": 20,
+  "hash_duplicate_bytes": 905776024,
+  "hash_unique_files": 222,
+  "hash_unique_bytes": 35502010334,
+  "basename_size_duplicate_files": 8,
+  "basename_only_files": 44,
+  "unique_files": 1852,
+  "unique_bytes": 36964790595,
+  "duplicate_pct_by_bytes": 2.49,
+  "unique_pct_by_bytes": 97.51,
+  "recommendation": "copy"
+}

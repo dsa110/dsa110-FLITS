@@ -60,22 +60,23 @@ Pre-move audit: [`reports/d2_chime_canfar_inventory.csv`](../../reports/d2_chime
 
 ## D3 — h17 arc trash → iacobus
 
-| Source | Target (planned) | Size |
-|--------|------------------|------|
+| Source | Target | Size |
+|--------|--------|------|
 | h17 `/data/jfaber/arc_archive_2026-06` | iacobus `archive/arc_trash_2026-06/` | 1924 f / 36 G |
 
-**Finding (2026-06-26 sample):** 25 `.pkl` basenames under h17 `fullstokes_pkl/`, `other_data_pkl/`, `processed_spectra_pkl/` vs 24 in iacobus `OLD_CHIME_DSA_Codetections/` — **zero basename overlap**, zero size fingerprint overlap. Numeric vs nickname naming schemes differ.
+**Finding (2026-06-27 hash-map):** full sha256 on 245 `.pkl`/`.npy` (36.4 G hashed) vs iacobus `OLD_CHIME_DSA_Codetections` + `archive/chime_canfar` — **97.5% unique bytes** (20 hash duplicates / 906 M duplicate bytes). Basename overlap remains low (numeric vs nickname naming).
 
-**Next step (read-only wave):**
+**Executed (2026-06-27):**
 
 ```bash
-python scripts/migration/audit_h17_delta.py --stdout
-# Full hash-map script not yet implemented (h17_to_iacobus.sh planned in PHASE4_DESIGN.md)
+python scripts/migration/audit_h17_arc_archive.py --stdout
+bash scripts/migration/h17_to_iacobus.sh          # iacobus pull via ssh -A; --ignore-existing
+python scripts/query_machine_inventory.py --migration-map --json | jq '.[] | select(.id=="h17_arc_archive_copy")'
 ```
 
-**Do not:** rsync 36 G until hash-map confirms unique bytes vs iacobus `OLD_CHIME`.
+Pre-move audit: [`reports/d3_h17_arc_inventory.csv`](../../reports/d3_h17_arc_inventory.csv), [`reports/d3_h17_arc_inventory.json`](../../reports/d3_h17_arc_inventory.json).
 
-**Inventory id:** `h17_arc_archive_copy` (`status: skipped`).
+**Inventory id:** `h17_arc_archive_copy` (`status: completed`).
 
 ---
 
@@ -97,7 +98,7 @@ canfar create headless skaha/astroml-cuda:latest --gpu 1 -n gpu-smoke-test -- nv
 |----|----------------|-----------------|
 | D1 CHIME_bursts | wrong namespace / duplicate fits | yes — reconcile map first |
 | D2 CHIME_canfar | none (additive, iacobus-local) | yes — move-only merge |
-| D3 h17 arc trash | 36 G duplicate storage | yes — hash-map wave |
+| D3 h17 arc trash | 36 G mostly unique (97.5% hash) | executed — rsync h17→iacobus |
 | D4 GPU docs | none | no (docs only) |
 
 **Audit artifacts:** `reports/phase3_audit.json`, `reports/phase4_audit.json`, `reports/phase3_chime_basename_inventory.csv`.

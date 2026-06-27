@@ -257,14 +257,14 @@ migration_map:
     notes: D2 move-only mv 2026-06-27; pre-move 725f/2.7G vs archive 937f/178G — zero basename overlap (reports/d2_chime_canfar_inventory.csv); post-move source absent target 725f/2.7G
   - id: h17_arc_archive_copy
     phase: 4
-    status: skipped
-    completed_utc: "2026-06-26T18:30:00Z"
-    action: dedupe
+    status: completed
+    completed_utc: "2026-06-27T03:45:00Z"
+    action: copy
     source_host: h17
     source_path: /data/jfaber/arc_archive_2026-06
     target_host: iacobus
     target_path: /Users/iacobus/Research/CHIME_DSA_Codetections/archive/arc_trash_2026-06
-    notes: 1924f/36G; basename+size sample vs OLD_CHIME — no exact duplicates; dedupe_then_copy deferred until hash-map wave confirms unique bytes
+    notes: D3 hash-map 245 pkl/npy — 97.5% unique bytes vs OLD_CHIME+chime_canfar; rsync via h17_to_iacobus.sh (ignore-existing)
   - id: h23_nihari
     phase: 0
     status: out_of_scope

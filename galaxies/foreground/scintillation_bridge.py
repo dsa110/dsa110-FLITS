@@ -125,6 +125,26 @@ def attach_multi_scale_from_acf(
     return comp
 
 
+def _first_subband_acf(acf_results: dict | None) -> tuple[np.ndarray | None, float]:
+    """Return (acf_array, channel_width_mhz) from pipeline ``acf_results``."""
+    if not acf_results:
+        return None, math.nan
+    acfs = acf_results.get("subband_acfs") or []
+    if not acfs:
+        return None, math.nan
+    first = acfs[0]
+    if isinstance(first, dict):
+        spec = first.get("acf")
+        ch_width = first.get("channel_width_mhz", math.nan)
+    else:
+        spec = first
+        widths = acf_results.get("subband_channel_widths_mhz") or []
+        ch_width = widths[0] if widths else math.nan
+    if spec is None:
+        return None, math.nan
+    return np.asarray(spec), float(ch_width)
+
+
 def prepare_multi_scale_components(
     final_results: dict | None,
     config: dict,
@@ -136,9 +156,7 @@ def prepare_multi_scale_components(
     components = final_results.get("components") or {}
     if not components:
         return
-    subband_acfs = (acf_results or {}).get("subband_acfs") or []
-    spec = subband_acfs[0].get("acf") if subband_acfs else None
-    ch_width = float((acf_results or {}).get("channel_width_mhz") or np.nan)
+    spec, ch_width = _first_subband_acf(acf_results)
     if spec is None or not np.isfinite(ch_width):
         return
     for comp in components.values():

@@ -98,11 +98,7 @@ def _dm_budget_from_registry(burst: str) -> str:
     if target is None:
         return "N/A — target not in TARGETS"
     name, ra, dec, z = target
-
-    def _stub_mw(*_args, **_kwargs):
-        return (0.0, 0.0, 0.0)
-
-    budget = build_sightline_budget(name, ra, dec, z, dm_mw_fn=_stub_mw, use_registry=True)
+    budget = build_sightline_budget(name, ra, dec, z, use_registry=True)
     return f"DM: {budget['verdict_dm']}; scatter: {budget['verdict_scattering']}"
 
 

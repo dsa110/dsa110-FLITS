@@ -5,8 +5,10 @@ import math
 import numpy as np
 
 from galaxies.foreground.scintillation_bridge import (
+    _first_subband_acf,
     build_scintillation_source_block,
     consistency_failed_for_component,
+    format_two_screen_coherence,
     merge_source_into_config,
 )
 
@@ -33,3 +35,13 @@ def test_consistency_failed_when_tau_large_dnu_small():
         "analysis": {"fitting": {}},
     }
     assert consistency_failed_for_component(comp, cfg, band="chime") is True
+
+
+def test_first_subband_acf_from_pipeline_lists():
+    acf_results = {
+        "subband_acfs": [np.array([1.0, 0.5, 0.2])],
+        "subband_channel_widths_mhz": [0.98],
+    }
+    spec, ch = _first_subband_acf(acf_results)
+    assert spec is not None
+    assert ch == 0.98

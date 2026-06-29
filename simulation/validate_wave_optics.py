@@ -3,10 +3,14 @@ import numpy as np
 import astropy.units as u
 import matplotlib.pyplot as plt
 from simulation.wave_optics import WaveOpticsSimCfg, WaveOpticsScintillator, WaveOpticsScreenCfg
+from scintillation.scint_analysis.analysis import interpret_modulation_index
 
 def validate():
-    # Setup parameters for a regime with RP << 1 (Unresolved)
-    # This should yield modulation index m ~ sqrt(3) ~ 1.73 for two strong screens
+    # EXPERIMENTAL wave-optics cross-check (NOT a pass/fail gate). The intended
+    # unresolved regime would give m ~ sqrt(3) ~ 1.73, but this toy split-step
+    # propagator is sampling-limited and plateaus near the single-screen value
+    # m ~ 1 (see note at the modulation-index print). The VALIDATED two-screen
+    # result is in validate_unresolved_case.py (geometric engine, m^2 -> 3 at RP<<1).
     
     # MW Screen: Tuned for valid sampling on 1024 grid
     # D = 0.5 kpc -> rF ~ 1.7e9 m
@@ -92,14 +96,18 @@ def validate():
     obs = scint.compute_observables(intensities)
     print("Observables:", obs)
     
-    # Check Modulation Index
-    # For two screens in strong scattering (unresolved), m should be sqrt(2^2 - 1)? 
-    # Or sum of variances?
-    # Pradeep Eq 4.34: m = sqrt(3) ~ 1.732
-    # Single screen strong scattering -> m = 1 (exponential statistics)
-    
+    # Modulation index. Limits: single screen (strong) -> m=1; two unresolved
+    # screens -> m=sqrt(3)~1.73; two resolving screens -> m->1.
+    # Sampling-limited diagnostic: m rises with nchan (~0.88 at 50 chan, ~1.10 at
+    # 200) and plateaus near the single-screen value m~1, NOT the two-screen
+    # sqrt(3). Treat as experimental, not a verified two-screen modulation index.
     m = obs['modulation_index']
-    print(f"Measured m: {m:.3f}")
+    print(f"Measured m: {m:.3f}  [experimental diagnostic, not a gate]")
+    interp = interpret_modulation_index(m)
+    msg = f"  -> regime '{interp['resolution_regime']}'"
+    if "n_screens_est" in interp:  # Pradeep m^2=2^N-1 interpreter (may be absent on older trees)
+        msg += f", N_screens ~ {interp['n_screens_est']:.1f}"
+    print(msg)
     
     # Plot
     plt.figure()

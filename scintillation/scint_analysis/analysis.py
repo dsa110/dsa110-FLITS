@@ -819,105 +819,155 @@ def _interpret_scaling_index(alpha: float, alpha_err: float) -> str:
 
 
 # =============================================================================
-# Modulation Index & Emission Region Diagnostics (Nimmo et al. 2025)
+# Modulation Index & Emission Region Diagnostics
+# (Pradeep et al. 2025 screen-count framework, primary; Nimmo et al. 2025
+#  source-resolution reading, complementary in the sub-unity regime)
 # =============================================================================
 
 
 def interpret_modulation_index(m: float, m_err: float = 0.0) -> dict:
-    """Interpret modulation index based on Nimmo et al. (2025) framework.
+    """Interpret modulation index using the Pradeep et al. 2025 screen-count
+    framework, with the Nimmo et al. 2025 source-resolution reading retained as
+    a complementary diagnostic in the sub-unity regime.
 
-    The modulation index m is defined as σ_I / <I>, where σ_I is the standard
-    deviation of the intensity and <I> is the mean. For the ACF, the peak
-    amplitude equals m².
+    The modulation index m = sigma_I / <I> (Rickett 1990) equals the square root
+    of the mean-normalized ACF peak: m^2 = ACF(dnu=0). For N plasma screens that
+    do not resolve each other, Pradeep et al. 2025 give
 
-    Physical interpretation:
-    - m ≈ 1: Point source (unresolved emission region)
-    - m < 1: Emission region partially resolved by scattering screen
-    - m << 1 (0.1-0.3): Weak scintillation regime
+        m^2 = 2**N - 1   =>   m = 1 (N=1), sqrt(3)~1.73 (N=2), sqrt(7)~2.65 (N=3),
+
+    so a *super-unity* modulation index is the expected signature of multiple
+    screens, NOT an anomaly. One screen resolving another gradually quenches the
+    broad-scale component, lowering m back toward 1; a fully resolved two-screen
+    system is degenerate with the single-screen case (m -> 1).
+
+    The two formalisms are complementary, not exclusive. They are independent
+    multiplicative suppressions of the measured m, so in the m < 1 regime the
+    reading is degenerate: a sub-unity m is consistent with EITHER a resolved
+    emission region (Nimmo source size, see ``estimate_emission_region_size``) OR
+    instrumental dilution (finite channels, low S/N, RFI). The screen geometry,
+    alpha scaling, and number of distinct ACF scales break the degeneracy.
 
     Parameters
     ----------
     m : float
-        Measured modulation index from ACF fit
+        Measured modulation index from the ACF fit (sqrt of the fitted peak).
     m_err : float, optional
-        Uncertainty on m
+        Uncertainty on m.
 
     Returns
     -------
     dict
-        Dictionary containing:
-        - 'm': measured value
-        - 'm_err': uncertainty
-        - 'interpretation': human-readable interpretation
-        - 'emission_resolved': bool, whether emission appears resolved
+        - 'm', 'm_err': measured value and uncertainty
+        - 'interpretation': human-readable reading
         - 'resolution_regime': categorical label
+        - 'n_screens_est': screen count implied by m^2 = 2**N - 1 (>=1)
+        - 'emission_resolved': bool, sub-unity (Nimmo source-size reading applies)
+        - 'degeneracy': note when more than one physical reading is viable, else ''
 
     References
     ----------
-    Nimmo et al. 2025, FRB 20221022A scintillation analysis
+    Pradeep et al. 2025, arXiv:2505.04576 (two-screen resolution effects; m2=2^N-1)
+    Nimmo et al. 2025, Nature 637, 48 (FRB 20221022A; source-resolution reading)
+    Jow et al. 2024, PNAS 121, e2306783 (m ~ 1/N_images in the resolved limit)
     Rickett 1990, ARA&A, 28, 561 (scintillation theory)
 
     Examples
     --------
-    >>> result = interpret_modulation_index(0.78, 0.07)
-    >>> print(result['interpretation'])
-    "Marginally resolved emission region (m = 0.78 ± 0.07)..."
+    >>> interpret_modulation_index(1.73, 0.1)['resolution_regime']
+    'two_screen'
     """
+    SQRT3 = np.sqrt(3.0)  # two non-resolving screens
+    SQRT7 = np.sqrt(7.0)  # three non-resolving screens
+
     result = {
         "m": m,
         "m_err": m_err,
         "interpretation": "",
-        "emission_resolved": False,
         "resolution_regime": "unknown",
+        "n_screens_est": np.nan,
+        "emission_resolved": False,
+        "degeneracy": "",
     }
 
-    if not np.isfinite(m):
+    if not np.isfinite(m) or m <= 0.0:
         result["interpretation"] = "Invalid modulation index measurement"
         return result
 
-    # Use error to define tolerance for "consistent with 1"
+    # Screen count implied by Pradeep m^2 = 2**N - 1 (continuous, floored at 1).
+    result["n_screens_est"] = float(max(1.0, np.log2(1.0 + m**2)))
+
+    # Tolerance for "consistent with" a reference value.
     tol = max(2.0 * m_err, 0.05) if m_err > 0 else 0.05
 
-    if m > 1.0 + tol:
-        result["interpretation"] = (
-            f"Super-unity modulation (m = {m:.2f} ± {m_err:.2f}) - "
-            "may indicate calibration issues, RFI contamination, or "
-            "intrinsic intensity variations beyond scintillation"
-        )
-        result["resolution_regime"] = "anomalous"
-    elif abs(m - 1.0) <= tol or m > 0.95:
-        result["interpretation"] = (
-            f"Point source / unresolved emission (m = {m:.2f} ± {m_err:.2f}) - "
-            "emission region is smaller than the diffractive scale of the "
-            "scattering screen (Nimmo et al. 2025)"
-        )
-        result["resolution_regime"] = "unresolved"
-        result["emission_resolved"] = False
-    elif 0.7 < m <= 0.95:
-        result["interpretation"] = (
-            f"Marginally resolved emission region (m = {m:.2f} ± {m_err:.2f}) - "
-            "emission region is comparable to or slightly larger than the "
-            "diffractive scale; consistent with magnetospheric emission "
-            "(Nimmo et al. 2025 Fig. 3)"
-        )
-        result["resolution_regime"] = "marginally_resolved"
+    if m < 1.0 - tol:
+        # Sub-unity: below the single-screen floor => a suppression mechanism.
+        # Degenerate between Nimmo source-resolution and instrumental dilution.
         result["emission_resolved"] = True
-    elif 0.3 < m <= 0.7:
-        result["interpretation"] = (
-            f"Partially resolved emission (m = {m:.2f} ± {m_err:.2f}) - "
-            "emission region significantly resolved by scattering screen; "
-            "may constrain emission mechanism and/or screen distance"
+        result["degeneracy"] = (
+            "m < 1 is degenerate: resolved emission region (Nimmo source size, "
+            "see estimate_emission_region_size) vs. instrumental dilution "
+            "(finite channels / low S/N / RFI). Use alpha and the number of ACF "
+            "scales to discriminate."
         )
-        result["resolution_regime"] = "partially_resolved"
-        result["emission_resolved"] = True
-    else:  # m <= 0.3
+        if m > 0.7:
+            band = "marginally suppressed; emission region near the diffractive scale"
+            result["resolution_regime"] = "suppressed_marginal"
+        elif m > 0.3:
+            band = "significantly suppressed; emission region or low S/N"
+            result["resolution_regime"] = "suppressed_partial"
+        else:
+            band = "heavily suppressed; extended source or weak/instrumental regime"
+            result["resolution_regime"] = "suppressed_heavy"
         result["interpretation"] = (
-            f"Heavily suppressed modulation (m = {m:.2f} ± {m_err:.2f}) - "
-            "either weak scintillation regime or very extended emission region; "
-            "check if observation is in strong scintillation regime"
+            f"Sub-unity modulation (m = {m:.2f} +/- {m_err:.2f}) - {band}. "
+            "Below the single-screen floor m=1, so a suppression mechanism is "
+            "required (Pradeep et al. 2025)."
         )
-        result["resolution_regime"] = "weak_or_resolved"
-        result["emission_resolved"] = True
+    elif abs(m - 1.0) <= tol:
+        result["resolution_regime"] = "single_screen_or_resolved"
+        result["interpretation"] = (
+            f"Single-screen / point-source modulation (m = {m:.2f} +/- {m_err:.2f}) - "
+            "one effective screen, or a fully resolved two-screen system "
+            "(degenerate); also the Nimmo point-source limit (Pradeep et al. 2025)."
+        )
+        result["degeneracy"] = (
+            "m ~ 1 is degenerate: a single screen, a point source, or a "
+            "two-screen system whose broad component is fully quenched by mutual "
+            "resolution."
+        )
+    elif m < SQRT3 - tol:
+        result["resolution_regime"] = "two_screen_partial"
+        result["interpretation"] = (
+            f"Mild super-unity modulation (m = {m:.2f} +/- {m_err:.2f}) - two screens "
+            "partially resolving each other; the broad-scale component is partly "
+            "quenched (1 < m < sqrt(3)~1.73; Pradeep et al. 2025)."
+        )
+    elif abs(m - SQRT3) <= tol:
+        result["resolution_regime"] = "two_screen"
+        result["interpretation"] = (
+            f"Two-screen modulation (m = {m:.2f} +/- {m_err:.2f} ~ sqrt(3)) - two "
+            "plasma screens that do not resolve each other (m^2=2^2-1=3; "
+            "Pradeep et al. 2025) - the MW + host geometry."
+        )
+    elif m <= SQRT7 + tol:
+        result["resolution_regime"] = "multi_screen"
+        result["interpretation"] = (
+            f"Strong super-unity modulation (m = {m:.2f} +/- {m_err:.2f}) - consistent "
+            "with ~2-3 non-resolving screens (sqrt(3) < m <~ sqrt(7)~2.65; m^2=2^N-1, "
+            "Pradeep et al. 2025)."
+        )
+    else:  # m > sqrt(7)
+        result["resolution_regime"] = "multi_screen_or_excess"
+        result["interpretation"] = (
+            f"Very high modulation (m = {m:.2f} +/- {m_err:.2f}) - >=3 non-resolving "
+            "screens (m^2=2^N-1), or residual non-scintillation structure "
+            "(RFI / intrinsic band-limited emission) inflating m (Pradeep et al. 2025)."
+        )
+        result["degeneracy"] = (
+            "Very high m: distinguish genuine multi-screen scintillation from "
+            "RFI / intrinsic spectral structure before claiming N>=3 screens."
+        )
 
     return result
 

@@ -65,19 +65,19 @@ def test_screen_distance_root_selection():
     assert np.isclose(d_L_obs + d_L_host, source_dist_mpc * 1e6)
 
 def test_interpret_modulation_index():
-    # Test point source
+    # Single-screen / point-source limit (m ~ 1; Pradeep m^2=2^N-1, N=1)
     res1 = interpret_modulation_index(0.98)
-    assert res1["resolution_regime"] == "unresolved"
+    assert res1["resolution_regime"] == "single_screen_or_resolved"
     assert not res1["emission_resolved"]
 
-    # Test marginally resolved
+    # Sub-unity, marginally suppressed (Nimmo source-size vs instrumental degeneracy)
     res2 = interpret_modulation_index(0.85)
-    assert res2["resolution_regime"] == "marginally_resolved"
+    assert res2["resolution_regime"] == "suppressed_marginal"
     assert res2["emission_resolved"]
 
-    # Test partially resolved
+    # Sub-unity, significantly suppressed
     res3 = interpret_modulation_index(0.5)
-    assert res3["resolution_regime"] == "partially_resolved"
+    assert res3["resolution_regime"] == "suppressed_partial"
 
     # Test invalid values
     assert "Invalid" in interpret_modulation_index(float("nan"))["interpretation"]

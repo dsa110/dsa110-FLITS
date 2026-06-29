@@ -65,7 +65,7 @@ def test_attach_wires_all_keys_with_source():
     }
     attach_scintillation_interpretation(fr, config)
     comp = fr["components"]["scint_scale"]
-    # m = median(0.80, 0.78) = 0.79 -> marginally_resolved (not the "unknown" default)
+    # m = median(0.80, 0.78) = 0.79 -> suppressed_marginal (not the "unknown" default)
     assert "modulation" in comp and comp["modulation"]["resolution_regime"] != "unknown"
     assert "consistency" in comp and "C_implied" in comp["consistency"]
     assert "emission_size" in comp and np.isfinite(comp["emission_size"]["R_obs_km"])

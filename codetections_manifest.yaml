@@ -80,10 +80,11 @@ subdirs:
     sentinel_sha256: 74e0ab3b67a0ed682670fbb88ee8c7d69f0a8e46db365f7bf4a84f2ee2b5e680
   presentations:
     present: true
-    file_count: 2
-    bytes: 33119860
-    size_gib: 0.031
-    source: "local Mac (hand-curated)"
+    file_count: 26
+    bytes: 37849418
+    size_gib: 0.035
+    source: "local Mac (hand-curated deck + DSA_DM_phase PDFs)"
+    notes: "DSA_DM_phase per-burst PDFs copied to presentations/DSA_DM_phase/ from the drained holding tree on 2026-06-29"
     sentinel_path: "presentations/DSA_DM_phase.pptx"
     sentinel_bytes: 26655150
     sentinel_sha256_prefix_bytes: 26655150

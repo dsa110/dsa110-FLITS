@@ -35,6 +35,7 @@ Do not develop on hpcc, arc checkout, or h23 trees. h17 may hold an optional clo
 | `scattering_results/` | Fit PDFs, corners (h23 + hpcc JSON merged) |
 | `dm_budget/` | DM budget code + h23 merge |
 | `metadata/` | CSVs, localizations |
+| `presentations/` | DM phase deck/keynote plus `DSA_DM_phase/` per-burst PDFs |
 | `archive/` | `OLD_CHIME_DSA_Codetections/`, `dsa110-scat/` |
 
 Sentinels: [`codetections_manifest.yaml`](codetections_manifest.yaml)

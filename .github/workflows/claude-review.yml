@@ -94,22 +94,27 @@ jobs:
             exit 0
           fi
 
-          # No comment posted. The action only writes execution_file when it
-          # actually executes, so an empty/missing file means it never ran -
-          # either the workflow-diff skip (claude-code-action refuses to run on
-          # a PR whose workflow differs from the default branch) or a pre-exec
-          # auth outage (expired CLAUDE_CODE_OAUTH_TOKEN, $0 is_error no-op).
-          # Neither is this PR's fault, so warn but don't block. Only a genuine
-          # posting regression (action ran clean yet posted nothing) fails.
+          # No comment posted. That is NOT itself a failure - a clean PR with
+          # nothing to flag legitimately yields zero inline comments. The real
+          # health signal is whether the action executed and the FINAL result
+          # event has is_error == false. The action writes execution_file only
+          # when it runs; an empty/missing file means it never ran (workflow-diff
+          # skip - claude-code-action refuses to run on a PR whose workflow
+          # differs from the default branch - or a pre-exec auth outage).
           exec_file="${{ steps.claude.outputs.execution_file }}"
-          if [ -z "$exec_file" ] || [ ! -f "$exec_file" ]; then
+          [ -n "$exec_file" ] || exec_file="$RUNNER_TEMP/claude-execution-output.json"
+          if [ ! -f "$exec_file" ]; then
             echo "::warning title=Claude review unavailable::Claude Code Action did not execute (workflow-diff skip on a PR that edits this workflow, or a token/auth outage). Reviews resume once this is on the default branch with a valid CLAUDE_CODE_OAUTH_TOKEN (claude setup-token). Not blocking this PR."
             exit 0
           fi
-          if grep -q '"is_error"[[:space:]]*:[[:space:]]*true' "$exec_file"; then
+
+          # is_error of the FINAL result event only (intermediate tool_result
+          # events can carry is_error:true mid-review and must be ignored).
+          final_err="$(jq -rs '[.. | objects | select(.type == "result")] | last | .is_error' "$exec_file" 2>/dev/null || echo "")"
+          if [ "$final_err" = "true" ]; then
             echo "::warning title=Claude review unavailable::Claude could not complete (likely expired CLAUDE_CODE_OAUTH_TOKEN; refresh with 'claude setup-token | gh secret set CLAUDE_CODE_OAUTH_TOKEN --repo $repo'). Not blocking this PR."
             exit 0
           fi
 
-          echo "::error title=Claude review no-op::Claude ran clean but posted no claude[bot] comments this run (posting regression). Check the code-review plugin / allowedTools and the Claude GitHub App on $repo."
-          exit 1
+          echo "Claude review completed (final is_error=$final_err); no inline comments this run - nothing flagged."
+          exit 0

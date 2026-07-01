@@ -132,13 +132,18 @@ if condition_number > 1e6:
 χ²_red = (sum of squared residuals) / degrees_of_freedom
 ```
 
+These bands mirror the runtime classifier `classify_fit_quality` in
+`scattering/scat_analysis/burstfit.py` (CHI_SQ_RED_SUSPICIOUSLY_LOW=0.3,
+CHI_SQ_RED_GOOD_MAX=1.5, CHI_SQ_RED_FAIL_MAX=10.0). When any doc disagrees,
+the burstfit.py constants win. Note: CHI_SQ_RED_MARGINAL_MAX=3.0 is defined
+but UNUSED by the live classifier — never apply a 3.0 cut.
+
 | Range      | Status      | Meaning                                         |
 | ---------- | ----------- | ----------------------------------------------- |
-| 0.3 - 0.8  | ⚠️ MARGINAL | Data smoother than model (possible overfitting) |
-| 0.8 - 1.5  | ✅ **GOOD** | Perfect fit quality                             |
-| 1.5 - 3.0  | ⚠️ MARGINAL | Data noisier than expected                      |
-| 3.0 - 10.0 | ❌ POOR     | Model doesn't fit well                          |
-| > 10.0     | ❌ **FAIL** | Model completely wrong                          |
+| < 0.3      | ⚠️ MARGINAL | Noise likely overestimated                      |
+| 0.3 - 1.5  | ✅ **GOOD** | Consistent with noise                           |
+| 1.5 - 10.0 | ⚠️ MARGINAL | Data noisier than model expects                 |
+| > 10.0     | ❌ **FAIL** | Catastrophic (or non-finite) — model wrong      |
 
 #### Check 2.2: R-Squared (R²)
 
@@ -267,8 +272,8 @@ else:
 **Criteria (ALL must be true):**
 
 - ✅ All Level 1 gates passed
-- ✅ χ²_red in range 0.8 - 3.0
-- ✅ R² > 0.85
+- ✅ χ²_red in range 0.3 - 1.5
+- ✅ R² > 0.85 (informational — low R² never flips the flag by itself)
 - ✅ Residuals appear random and normal
 - ✅ All parameters well-constrained (rel_err < 0.5)
 - ✅ Physics checks passed
@@ -300,8 +305,8 @@ Conclusion: High-quality fit suitable for publication.
 
 **Criteria (at least one applies, none critical):**
 
-- ⚠️ χ²_red in range 1.5 - 3.0
-- ⚠️ R² in range 0.70 - 0.85
+- ⚠️ χ²_red in range 1.5 - 10.0, or χ²_red < 0.3 (noise likely overestimated)
+- ⚠️ R² in range 0.70 - 0.85 (informational)
 - ⚠️ Some parameters loosely constrained (rel_err 0.5-1.0)
 - ⚠️ Residuals slightly non-normal or weakly autocorrelated
 - ⚠️ α deviates from 4.0 but stays in 2.0 - 6.0 range
@@ -335,8 +340,8 @@ to better constrain parameters.
 **Criteria (at least one applies):**
 
 - ❌ Any Level 1 gate failed
-- ❌ χ²_red > 3.0 or < 0.3
-- ❌ R² < 0.70
+- ❌ χ²_red > 10.0 or non-finite
+- ❌ R² < 0.70 (informational note only — does not FAIL a fit by itself)
 - ❌ Residuals show systematic bias or strong autocorrelation
 - ❌ Parameter completely unconstrained (rel_err > 1.0)
 - ❌ Physics checks failed
@@ -349,7 +354,7 @@ to better constrain parameters.
 ❌ FIT FAILED VALIDATION
 
 Specific failures:
-  1. χ²_red = 8.3 (way too high, threshold: 3.0)
+  1. χ²_red = 12.7 (way too high, threshold: 10.0)
   2. Residuals show strong autocorrelation (DW = 0.3)
   3. τ × Δν = 0.032 (outside valid range 0.1-2.0)
 

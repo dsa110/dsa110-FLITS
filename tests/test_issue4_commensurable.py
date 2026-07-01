@@ -69,7 +69,7 @@ def _brute_lnZ(kernels, data, noise_std, valid, s2):
 def _params_keys(N):
     # Content is ignored (the fake model returns pre-baked kernels), but the function
     # calls replace(p, c0=1.0, gamma=0.0) so they must be real FRBParams, N of them.
-    p = FRBParams(c0=1.0, t0=0.0, gamma=0.0, zeta=0.1, tau_1ghz=0.1, alpha=4.0)
+    p = FRBParams(c0=1.0, t0=0.0, gamma=0.0, zeta=0.1, tau_1ghz=0.1, beta=4.0)
     return [p] * N, ["M3"] * N
 
 
@@ -149,7 +149,7 @@ def test_force_multi_routes_n1_through_multi_loglike(monkeypatch):
         def __init__(self):
             self.time = np.arange(T, dtype=float) * 1e-4  # drives the multi-path dt_min floor
 
-    p = FRBParams(c0=1.0, t0=0.0, gamma=0.0, zeta=0.1, tau_1ghz=0.1, alpha=4.0)
+    p = FRBParams(c0=1.0, t0=0.0, gamma=0.0, zeta=0.1, tau_1ghz=0.1, beta=4.0)
     common = dict(
         model_C=_RouteModel(),
         init_C=p,

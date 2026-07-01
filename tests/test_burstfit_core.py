@@ -1,17 +1,19 @@
 import numpy as np
 
 from scattering.scat_analysis.burstfit import FRBModel, FRBParams, analytic_gaussian_exp_convolution
+from scattering.scat_analysis.turbulence import KOLMOGOROV_BETA, alpha_from_beta
 
 
 def test_frbparams_initialization_and_aliases():
     """Test FRBParams initialization and property aliases."""
-    params = FRBParams(c0=10.0, t0=5.0, gamma=-1.5, zeta=0.1, tau_1ghz=0.2, alpha=4.0)
+    params = FRBParams(c0=10.0, t0=5.0, gamma=-1.5, zeta=0.1, tau_1ghz=0.2, beta=4.0)
 
     assert params.c0 == 10.0
     assert params.t0 == 5.0
     assert params.gamma == -1.5
     assert params.zeta == 0.1
     assert params.tau_1ghz == 0.2
+    assert params.beta == 4.0
     assert params.alpha == 4.0
 
     # Test Aliases
@@ -25,14 +27,15 @@ def test_frbparams_defaults():
     params = FRBParams(c0=10.0, t0=5.0, gamma=-1.5)
     assert params.zeta == 0.0
     assert params.tau_1ghz == 0.0
-    assert params.alpha == 4.4
+    assert np.isclose(params.beta, KOLMOGOROV_BETA)
+    assert np.isclose(params.alpha, 4.4)
     assert params.delta_dm == 0.0
 
 
 def test_frbparams_sequence_conversion():
     """Test to_sequence and from_sequence methods."""
     params = FRBParams(
-        c0=10.0, t0=5.0, gamma=-1.5, zeta=0.1, tau_1ghz=0.2, alpha=4.0, delta_dm=0.01
+        c0=10.0, t0=5.0, gamma=-1.5, zeta=0.1, tau_1ghz=0.2, beta=4.0, delta_dm=0.01
     )
 
     # Test M3 sequence
@@ -44,7 +47,7 @@ def test_frbparams_sequence_conversion():
     params_new = FRBParams.from_sequence(seq_m3, "M3")
     assert params_new.c0 == params.c0
     assert params_new.t0 == params.t0
-    assert params_new.alpha == params.alpha
+    assert params_new.beta == params.beta
 
     # Test M0 sequence (subset)
     seq_m0 = params.to_sequence("M0")

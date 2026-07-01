@@ -60,6 +60,11 @@ import numpy as np
 from numpy.typing import NDArray
 
 from .burstfit import FRBModel, FRBParams, build_priors
+from .turbulence import (
+    alpha_from_beta,
+    beta_bounds_from_alpha_bounds,
+    default_joint_beta_bounds,
+)
 
 log = logging.getLogger(__name__)
 
@@ -77,7 +82,7 @@ __all__ = [
 # are per-telescope (suffix _C = CHIME, _D = DSA).
 JOINT_PARAM_NAMES: tuple[str, ...] = (
     "tau_1ghz",
-    "alpha",
+    "beta",
     "c0_C",
     "t0_C",
     "gamma_C",
@@ -99,7 +104,7 @@ _LOG_NAMES = frozenset({"tau_1ghz", "c0_C", "zeta_C", "c0_D", "zeta_D"})
 # the 2D residual whitens so chi2 becomes a valid goodness-of-fit gate.
 JOINT_PARAM_NAMES_GAIN: tuple[str, ...] = (
     "tau_1ghz",
-    "alpha",
+    "beta",
     "t0_C",
     "zeta_C",
     "delta_dm_C",
@@ -117,7 +122,7 @@ _LOG_NAMES_GAIN = frozenset({"tau_1ghz", "zeta_C", "zeta_D"})
 # is added to the sampled vector (8 -> 10 dim).
 JOINT_PARAM_NAMES_GAIN_GP: tuple[str, ...] = (
     "tau_1ghz",
-    "alpha",
+    "beta",
     "t0_C",
     "zeta_C",
     "delta_dm_C",
@@ -147,7 +152,7 @@ _LOG_NAMES_GAIN_GP = frozenset({"tau_1ghz", "zeta_C", "zeta_D", "Delta_nu_d_C", 
 # the x_zeta-alpha posterior covariance before trusting alpha.
 JOINT_PARAM_NAMES_GAIN_SHARED_ZETA: tuple[str, ...] = (
     "tau_1ghz",
-    "alpha",
+    "beta",
     "zeta_1ghz",
     "x_zeta",
     "t0_C",
@@ -177,7 +182,7 @@ _LOG_NAMES_GAIN_SZ = frozenset({"tau_1ghz", "zeta_1ghz"})
 # ----------------------------------------------------------------------
 def JOINT_PARAM_NAMES_GAIN_MULTI(n_C: int = 1, n_D: int = 1) -> tuple[str, ...]:
     """Param-name tuple for the N-component-per-band gain-marginal fit."""
-    names: list[str] = ["tau_1ghz", "alpha"]
+    names: list[str] = ["tau_1ghz", "beta"]
     for i in range(1, int(n_C) + 1):
         names += [f"t0_C{i}", f"zeta_C{i}"]
     names.append("delta_dm_C")
@@ -378,21 +383,21 @@ def _dnu_d_bounds(freq_GHz: NDArray[np.floating]) -> tuple[float, float]:
 def _joint_prior_spec(
     init_C: FRBParams,
     init_D: FRBParams,
-    alpha_bounds: tuple[float, float],
+    beta_bounds: tuple[float, float],
 ) -> list[tuple[str, tuple[float, float], bool]]:
     """Assemble per-index (name, (lo, hi), is_log) from the single-band priors.
 
     Reuses build_priors(absolute_bounds=True) per telescope so the joint prior is
     init-independent (required for a global sampler) except t0, whose window is
-    anchored on each band's data profile-peak estimate. alpha is widened to
-    alpha_bounds to allow shallower-than-Kolmogorov slopes (the whole point).
+    anchored on each band's data profile-peak estimate. beta is widened to
+    beta_bounds on the thin-screen branch (PBF shape and alpha co-derived).
     """
     pC, _ = build_priors(init_C, absolute_bounds=True)
     pD, _ = build_priors(init_D, absolute_bounds=True)
     # tau_1ghz bound is the absolute WIDTH_MIN..WIDTH_MAX (identical in pC/pD).
     by_name = {
         "tau_1ghz": pC["tau_1ghz"],
-        "alpha": tuple(alpha_bounds),
+        "beta": tuple(beta_bounds),
         "c0_C": pC["c0"],
         "t0_C": pC["t0"],
         "gamma_C": pC["gamma"],
@@ -410,14 +415,14 @@ def _joint_prior_spec(
 def _joint_prior_spec_gain(
     init_C: FRBParams,
     init_D: FRBParams,
-    alpha_bounds: tuple[float, float],
+    beta_bounds: tuple[float, float],
 ) -> list[tuple[str, tuple[float, float], bool]]:
     """Prior spec for the 8-vector gain-marginalized fit (no c0, gamma)."""
     pC, _ = build_priors(init_C, absolute_bounds=True)
     pD, _ = build_priors(init_D, absolute_bounds=True)
     by_name = {
         "tau_1ghz": pC["tau_1ghz"],
-        "alpha": tuple(alpha_bounds),
+        "beta": tuple(beta_bounds),
         "t0_C": pC["t0"],
         "zeta_C": pC["zeta"],
         "delta_dm_C": pC["delta_dm"],
@@ -431,7 +436,7 @@ def _joint_prior_spec_gain(
 def _joint_prior_spec_gain_gp(
     init_C: FRBParams,
     init_D: FRBParams,
-    alpha_bounds: tuple[float, float],
+    beta_bounds: tuple[float, float],
     model_C: FRBModel,
     model_D: FRBModel,
 ) -> list[tuple[str, tuple[float, float], bool]]:
@@ -441,7 +446,7 @@ def _joint_prior_spec_gain_gp(
     per-band log-uniform Delta_nu_d with bounds [0.3*chan_width, band/3] computed
     from each model's freq axis (data-derived, not hardcoded).
     """
-    base = {n: (b, lg) for n, b, lg in _joint_prior_spec_gain(init_C, init_D, alpha_bounds)}
+    base = {n: (b, lg) for n, b, lg in _joint_prior_spec_gain(init_C, init_D, beta_bounds)}
     dnu_C = _dnu_d_bounds(model_C.freq)
     dnu_D = _dnu_d_bounds(model_D.freq)
     by_name = dict(base)
@@ -453,7 +458,7 @@ def _joint_prior_spec_gain_gp(
 def _joint_prior_spec_gain_shared_zeta(
     init_C: FRBParams,
     init_D: FRBParams,
-    alpha_bounds: tuple[float, float],
+    beta_bounds: tuple[float, float],
     x_bounds: tuple[float, float] = (-4.0, 2.0),
 ) -> list[tuple[str, tuple[float, float], bool]]:
     """Prior spec for the 8-vector shared-zeta(nu) gain-marginal fit.
@@ -469,7 +474,7 @@ def _joint_prior_spec_gain_shared_zeta(
     z_union = (min(pC["zeta"][0], pD["zeta"][0]), max(pC["zeta"][1], pD["zeta"][1]))
     by_name = {
         "tau_1ghz": pC["tau_1ghz"],
-        "alpha": tuple(alpha_bounds),
+        "beta": tuple(beta_bounds),
         "zeta_1ghz": z_union,
         "x_zeta": tuple(x_bounds),
         "t0_C": pC["t0"],
@@ -483,7 +488,7 @@ def _joint_prior_spec_gain_shared_zeta(
 def _joint_prior_spec_gain_multi(
     init_C: FRBParams,
     init_D: FRBParams,
-    alpha_bounds: tuple[float, float],
+    beta_bounds: tuple[float, float],
     n_C: int = 1,
     n_D: int = 1,
 ) -> list[tuple[str, tuple[float, float], bool]]:
@@ -496,7 +501,7 @@ def _joint_prior_spec_gain_multi(
     pD, _ = build_priors(init_D, absolute_bounds=True)
     spec: list[tuple[str, tuple[float, float], bool]] = [
         ("tau_1ghz", pC["tau_1ghz"], True),
-        ("alpha", tuple(alpha_bounds), False),
+        ("beta", tuple(beta_bounds), False),
     ]
     for i in range(1, int(n_C) + 1):
         spec.append((f"t0_C{i}", pC["t0"], False))
@@ -600,14 +605,14 @@ class _JointLogLikelihood:
         self.model_D = model_D
 
     def __call__(self, theta: NDArray[np.floating]) -> float:
-        tau, alpha = float(theta[0]), float(theta[1])
+        tau, beta = float(theta[0]), float(theta[1])
         pC = FRBParams(
             c0=theta[2],
             t0=theta[3],
             gamma=theta[4],
             zeta=theta[5],
             tau_1ghz=tau,
-            alpha=alpha,
+            beta=beta,
             delta_dm=theta[6],
         )
         pD = FRBParams(
@@ -616,7 +621,7 @@ class _JointLogLikelihood:
             gamma=theta[9],
             zeta=theta[10],
             tau_1ghz=tau,
-            alpha=alpha,
+            beta=beta,
             delta_dm=theta[11],
         )
         ll = self.model_C.log_likelihood(pC, "M3") + self.model_D.log_likelihood(pD, "M3")
@@ -636,14 +641,14 @@ class _JointLogLikelihoodGain:
         self.model_D = model_D
 
     def __call__(self, theta: NDArray[np.floating]) -> float:
-        tau, alpha = float(theta[0]), float(theta[1])
+        tau, beta = float(theta[0]), float(theta[1])
         pC = FRBParams(
             c0=1.0,
             t0=theta[2],
             gamma=0.0,
             zeta=theta[3],
             tau_1ghz=tau,
-            alpha=alpha,
+            beta=beta,
             delta_dm=theta[4],
         )
         pD = FRBParams(
@@ -652,7 +657,7 @@ class _JointLogLikelihoodGain:
             gamma=0.0,
             zeta=theta[6],
             tau_1ghz=tau,
-            alpha=alpha,
+            beta=beta,
             delta_dm=theta[7],
         )
         ll = self.model_C.log_likelihood_gain_marginal(
@@ -680,19 +685,19 @@ class _JointLogLikelihoodGainSharedZeta:
 
     @staticmethod
     def _band_ll(
-        model: FRBModel, tau: float, alpha: float, z1: float, x: float, t0: float, ddm: float
+        model: FRBModel, tau: float, beta: float, z1: float, x: float, t0: float, ddm: float
     ) -> float:
         zeta_nu = z1 * np.asarray(model.freq, dtype=float) ** x  # full channel axis
         p = FRBParams(
-            c0=1.0, t0=t0, gamma=0.0, zeta=zeta_nu, tau_1ghz=tau, alpha=alpha, delta_dm=ddm
+            c0=1.0, t0=t0, gamma=0.0, zeta=zeta_nu, tau_1ghz=tau, beta=beta, delta_dm=ddm
         )
         return model.log_likelihood_gain_marginal(p, "M3")
 
     def __call__(self, theta: NDArray[np.floating]) -> float:
-        tau, alpha, z1, x = (float(theta[i]) for i in range(4))
+        tau, beta, z1, x = (float(theta[i]) for i in range(4))
         ll = self._band_ll(
-            self.model_C, tau, alpha, z1, x, float(theta[4]), float(theta[5])
-        ) + self._band_ll(self.model_D, tau, alpha, z1, x, float(theta[6]), float(theta[7]))
+            self.model_C, tau, beta, z1, x, float(theta[4]), float(theta[5])
+        ) + self._band_ll(self.model_D, tau, beta, z1, x, float(theta[6]), float(theta[7]))
         return ll if np.isfinite(ll) else -1e100
 
 
@@ -716,14 +721,14 @@ class _JointLogLikelihoodGainGP:
         self.mu_degree = int(mu_degree)
 
     def __call__(self, theta: NDArray[np.floating]) -> float:
-        tau, alpha = float(theta[0]), float(theta[1])
+        tau, beta = float(theta[0]), float(theta[1])
         pC = FRBParams(
             c0=1.0,
             t0=theta[2],
             gamma=0.0,
             zeta=theta[3],
             tau_1ghz=tau,
-            alpha=alpha,
+            beta=beta,
             delta_dm=theta[4],
         )
         pD = FRBParams(
@@ -732,7 +737,7 @@ class _JointLogLikelihoodGainGP:
             gamma=0.0,
             zeta=theta[7],
             tau_1ghz=tau,
-            alpha=alpha,
+            beta=beta,
             delta_dm=theta[8],
         )
         ll = self.model_C.log_likelihood_gain_marginal_gp(
@@ -772,26 +777,26 @@ class _JointLogLikelihoodGainMulti:
         self.n_D = int(n_D)
         self.s2 = s2
 
-    def _band_params(self, theta, off, n, tau, alpha, ddm):
+    def _band_params(self, theta, off, n, tau, beta, ddm):
         out = []
         for i in range(n):
             t0 = float(theta[off + 2 * i])
             zeta = float(theta[off + 2 * i + 1])
             out.append(
                 FRBParams(
-                    c0=1.0, t0=t0, gamma=0.0, zeta=zeta, tau_1ghz=tau, alpha=alpha, delta_dm=ddm
+                    c0=1.0, t0=t0, gamma=0.0, zeta=zeta, tau_1ghz=tau, beta=beta, delta_dm=ddm
                 )
             )
         return out
 
     def __call__(self, theta: NDArray[np.floating]) -> float:
-        tau, alpha = float(theta[0]), float(theta[1])
+        tau, beta = float(theta[0]), float(theta[1])
         oC = 2
         ddm_C = float(theta[oC + 2 * self.n_C])
-        psC = self._band_params(theta, oC, self.n_C, tau, alpha, ddm_C)
+        psC = self._band_params(theta, oC, self.n_C, tau, beta, ddm_C)
         oD = oC + 2 * self.n_C + 1
         ddm_D = float(theta[oD + 2 * self.n_D])
-        psD = self._band_params(theta, oD, self.n_D, tau, alpha, ddm_D)
+        psD = self._band_params(theta, oD, self.n_D, tau, beta, ddm_D)
 
         lnZ_C, _ = _gain_marginal_multi_band(self.model_C, psC, ["M3"] * self.n_C, s2=self.s2)
         lnZ_D, _ = _gain_marginal_multi_band(self.model_D, psD, ["M3"] * self.n_D, s2=self.s2)
@@ -823,13 +828,52 @@ def _weighted_percentiles(
     return out
 
 
+def _append_derived_alpha_percentiles(
+    percentiles: dict[str, dict[str, float]],
+    samples: NDArray[np.floating],
+    weights: NDArray[np.floating],
+    names: tuple[str, ...],
+) -> dict[str, dict[str, float]]:
+    """Add alpha percentiles derived from the beta posterior (reporting only)."""
+    if "beta" not in names:
+        return percentiles
+    idx = list(names).index("beta")
+    alpha_samples = np.array([alpha_from_beta(float(b)) for b in samples[:, idx]])
+    idx_sort = np.argsort(alpha_samples)
+    ss, sw = alpha_samples[idx_sort], weights[idx_sort]
+    cdf = np.cumsum(sw)
+    cdf /= cdf[-1]
+    p16, p50, p84 = ss[np.searchsorted(cdf, [0.16, 0.50, 0.84])]
+    out = dict(percentiles)
+    out["alpha"] = {
+        "median": float(p50),
+        "lower": float(p16),
+        "upper": float(p84),
+        "err_minus": float(p50 - p16),
+        "err_plus": float(p84 - p50),
+    }
+    return out
+
+
+def _resolve_beta_bounds(
+    beta_bounds: tuple[float, float] | None,
+    alpha_bounds: tuple[float, float] | None,
+) -> tuple[float, float]:
+    if beta_bounds is not None:
+        return tuple(beta_bounds)
+    if alpha_bounds is not None:
+        return beta_bounds_from_alpha_bounds(alpha_bounds)
+    return default_joint_beta_bounds()
+
+
 def fit_joint_scattering(
     *,
     model_C: FRBModel,
     init_C: FRBParams,
     model_D: FRBModel,
     init_D: FRBParams,
-    alpha_bounds: tuple[float, float] = (2.0, 6.0),
+    beta_bounds: tuple[float, float] | None = None,
+    alpha_bounds: tuple[float, float] | None = None,
     nlive: int = 600,
     dlogz: float = 0.5,
     nproc: int | None = None,
@@ -859,18 +903,26 @@ def fit_joint_scattering(
     init_C, init_D : FRBParams
         Per-band data-driven inits (used only to anchor the t0 prior window and
         scale-free absolute bounds).
-    alpha_bounds : (lo, hi)
-        Uniform prior on the shared scattering index. Default (2, 6) is wide
-        enough to detect shallow (sub-Kolmogorov) slopes.
+    beta_bounds : (lo, hi) or None
+        Uniform prior on the shared turbulence spectral index beta. Default maps
+        the legacy alpha in [4, 6] thin-screen branch to beta in [3, 4).
+    alpha_bounds : (lo, hi) or None
+        Deprecated alias for ``beta_bounds`` via ``beta_bounds_from_alpha_bounds``.
     nlive, dlogz, nproc, sample
         dynesty knobs (12-dim -> nlive ~600+ recommended).
 
     Returns
     -------
-    dict with keys: param_names, percentiles, log_evidence, log_evidence_err,
-    samples, weights, alpha_bounds.
+    dict with keys: param_names, percentiles (includes derived alpha), log_evidence,
+    log_evidence_err, samples, weights, beta_bounds, alpha_bounds (derived).
     """
     from dynesty import NestedSampler
+
+    beta_bounds = _resolve_beta_bounds(beta_bounds, alpha_bounds)
+    alpha_bounds_out = (
+        alpha_from_beta(beta_bounds[1]),
+        alpha_from_beta(beta_bounds[0]),
+    )
 
     if model_C.data is None or model_D.data is None:
         raise ValueError("both FRBModels must have data loaded")
@@ -880,7 +932,7 @@ def fit_joint_scattering(
     if multi:
         names = JOINT_PARAM_NAMES_GAIN_MULTI(components_C, components_D)
         spec = _joint_prior_spec_gain_multi(
-            init_C, init_D, alpha_bounds, components_C, components_D
+            init_C, init_D, beta_bounds, components_C, components_D
         )
         loglike = _JointLogLikelihoodGainMulti(
             model_C, model_D, n_C=components_C, n_D=components_D, s2=gain_s2
@@ -900,19 +952,19 @@ def fit_joint_scattering(
         ptform = _JointPriorTransformOrdered(spec, [grp_C, grp_D], dt_min=dt_min)
     elif shared_zeta:
         names = JOINT_PARAM_NAMES_GAIN_SHARED_ZETA
-        spec = _joint_prior_spec_gain_shared_zeta(init_C, init_D, alpha_bounds, x_zeta_bounds)
+        spec = _joint_prior_spec_gain_shared_zeta(init_C, init_D, beta_bounds, x_zeta_bounds)
         loglike = _JointLogLikelihoodGainSharedZeta(model_C, model_D)
     elif marginalize_gain_gp:
         names = JOINT_PARAM_NAMES_GAIN_GP
-        spec = _joint_prior_spec_gain_gp(init_C, init_D, alpha_bounds, model_C, model_D)
+        spec = _joint_prior_spec_gain_gp(init_C, init_D, beta_bounds, model_C, model_D)
         loglike = _JointLogLikelihoodGainGP(model_C, model_D, mu_degree=mu_degree)
     elif marginalize_gain:
         names = JOINT_PARAM_NAMES_GAIN
-        spec = _joint_prior_spec_gain(init_C, init_D, alpha_bounds)
+        spec = _joint_prior_spec_gain(init_C, init_D, beta_bounds)
         loglike = _JointLogLikelihoodGain(model_C, model_D)
     else:
         names = JOINT_PARAM_NAMES
-        spec = _joint_prior_spec(init_C, init_D, alpha_bounds)
+        spec = _joint_prior_spec(init_C, init_D, beta_bounds)
         loglike = _JointLogLikelihood(model_C, model_D)
     ndim = len(spec)
     if ptform is None:
@@ -926,7 +978,8 @@ def fit_joint_scattering(
     if verbose:
         log.info(
             f"Joint CHIME+DSA fit: ndim={ndim}, nlive={nlive}, "
-            f"alpha~U{alpha_bounds}, marginalize_gain={marginalize_gain}, "
+            f"beta~U{beta_bounds} (alpha~[{alpha_bounds_out[0]:.2f},{alpha_bounds_out[1]:.2f}]), "
+            f"marginalize_gain={marginalize_gain}, "
             f"marginalize_gain_gp={marginalize_gain_gp}, shared_zeta={shared_zeta}"
         )
 
@@ -962,14 +1015,22 @@ def fit_joint_scattering(
     weights = np.exp(results.logwt - results.logz[-1])
     weights /= weights.sum()
 
+    percentiles = _append_derived_alpha_percentiles(
+        _weighted_percentiles(results.samples, weights, names),
+        results.samples,
+        weights,
+        names,
+    )
+
     return {
         "param_names": list(names),
-        "percentiles": _weighted_percentiles(results.samples, weights, names),
+        "percentiles": percentiles,
         "log_evidence": float(results.logz[-1]),
         "log_evidence_err": float(results.logzerr[-1]),
         "samples": results.samples,
         "weights": weights,
-        "alpha_bounds": tuple(alpha_bounds),
+        "beta_bounds": tuple(beta_bounds),
+        "alpha_bounds": alpha_bounds_out,
         "ncall": int(np.sum(results.ncall)),  # dynesty .ncall is per-iteration, sum for total
     }
 
@@ -983,8 +1044,8 @@ def demo() -> None:
     rejects a wrong alpha. No sampler -- a fast logic gate, not a fit.
     """
     rng = np.random.default_rng(0)
-    tau_true, alpha_true = 1.0, 4.0
-    truth = dict(c0=20.0, gamma=0.0, zeta=0.3, tau_1ghz=tau_true, alpha=alpha_true)
+    tau_true, beta_true = 1.0, 4.0
+    truth = dict(c0=20.0, gamma=0.0, zeta=0.3, tau_1ghz=tau_true, beta=beta_true)
 
     def make(fmin, fmax, nch):
         freq = np.linspace(fmin, fmax, nch)
@@ -999,12 +1060,12 @@ def demo() -> None:
     mD, pD = make(1.31, 1.50, 16)
     ll = _JointLogLikelihood(mC, mD)
 
-    def vec(alpha):
-        # [tau, alpha | c0_C,t0_C,g_C,z_C,dd_C | c0_D,t0_D,g_D,z_D,dd_D]
+    def vec(beta):
+        # [tau, beta | c0_C,t0_C,g_C,z_C,dd_C | c0_D,t0_D,g_D,z_D,dd_D]
         return np.array(
             [
                 tau_true,
-                alpha,
+                beta,
                 pC.c0,
                 pC.t0,
                 pC.gamma,
@@ -1018,16 +1079,16 @@ def demo() -> None:
             ]
         )
 
-    ll_true = ll(vec(alpha_true))
-    ll_wrong = ll(vec(alpha_true + 1.5))
-    assert ll_true > ll_wrong, f"true alpha not preferred: {ll_true} <= {ll_wrong}"
+    ll_true = ll(vec(beta_true))
+    ll_wrong = ll(vec(beta_true - 0.5))
+    assert ll_true > ll_wrong, f"true beta not preferred: {ll_true} <= {ll_wrong}"
     # and the shared-tau model with a wrong tau is worse too
-    bad = vec(alpha_true)
+    bad = vec(beta_true)
     bad[0] = tau_true * 5
     assert ll_true > ll(bad), "true tau not preferred"
     print(
-        f"demo OK: ll(alpha={alpha_true})={ll_true:.0f} > "
-        f"ll(alpha={alpha_true + 1.5})={ll_wrong:.0f}"
+        f"demo OK: ll(beta={beta_true})={ll_true:.0f} > "
+        f"ll(beta={beta_true - 0.5})={ll_wrong:.0f}"
     )
 
 
@@ -1039,7 +1100,7 @@ def _demo_shared_zeta() -> None:
     alpha AND over an achromatic x_zeta=0. No sampler -- a fast assert, not a fit.
     """
     rng = np.random.default_rng(1)
-    tau_true, alpha_true, z1_true, x_true = 0.8, 4.0, 0.30, -0.6
+    tau_true, beta_true, z1_true, x_true = 0.8, 4.0, 0.30, -0.6
 
     def make(fmin, fmax, nch):
         freq = np.linspace(fmin, fmax, nch)
@@ -1051,7 +1112,7 @@ def _demo_shared_zeta() -> None:
             gamma=0.0,
             zeta=zeta_nu,
             tau_1ghz=tau_true,
-            alpha=alpha_true,
+            beta=beta_true,
             delta_dm=0.0,
         )
         m0 = FRBModel(time=time, freq=freq, data=np.zeros((nch, time.size)), dm_init=0.0)
@@ -1064,18 +1125,18 @@ def _demo_shared_zeta() -> None:
     mD = make(1.31, 1.50, 16)
     ll = _JointLogLikelihoodGainSharedZeta(mC, mD)
 
-    def vec(alpha, x):
-        # [tau, alpha, z1, x | t0_C, ddm_C | t0_D, ddm_D]
-        return np.array([tau_true, alpha, z1_true, x, mC.time.mean(), 0.0, mD.time.mean(), 0.0])
+    def vec(beta, x):
+        # [tau, beta, z1, x | t0_C, ddm_C | t0_D, ddm_D]
+        return np.array([tau_true, beta, z1_true, x, mC.time.mean(), 0.0, mD.time.mean(), 0.0])
 
-    ll_true = ll(vec(alpha_true, x_true))
-    ll_bad_a = ll(vec(alpha_true + 1.5, x_true))
-    ll_achrom = ll(vec(alpha_true, 0.0))
-    assert ll_true > ll_bad_a, f"true alpha not preferred: {ll_true} <= {ll_bad_a}"
+    ll_true = ll(vec(beta_true, x_true))
+    ll_bad_a = ll(vec(beta_true - 0.5, x_true))
+    ll_achrom = ll(vec(beta_true, 0.0))
+    assert ll_true > ll_bad_a, f"true beta not preferred: {ll_true} <= {ll_bad_a}"
     assert ll_true > ll_achrom, f"frequency-evolving zeta not preferred: {ll_true} <= {ll_achrom}"
     print(
-        f"shared-zeta demo OK: ll(a={alpha_true},x={x_true})={ll_true:.0f} > "
-        f"ll(wrong a)={ll_bad_a:.0f}, ll(x=0)={ll_achrom:.0f}"
+        f"shared-zeta demo OK: ll(b={beta_true},x={x_true})={ll_true:.0f} > "
+        f"ll(wrong b)={ll_bad_a:.0f}, ll(x=0)={ll_achrom:.0f}"
     )
 
 

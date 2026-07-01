@@ -7,7 +7,7 @@ name = "flits"
 version = "0.1.0"
 description = "Fitting Likelihoods In Time-Frequency Spectra: FRB scattering and scintillation pipelines"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 license = { text = "MIT" }
 authors = [{ name = "Jakob Faber" }]
 dependencies = [

@@ -79,7 +79,7 @@ def simple_model_with_data():
     
     true_params = FRBParams(
         c0=100.0, t0=10.0, gamma=-1.5,
-        zeta=0.5, tau_1ghz=0.2, alpha=4.0, delta_dm=0.0
+        zeta=0.5, tau_1ghz=0.2, beta=4.0, delta_dm=0.0
     )
     
     model_gen = FRBModel(time, freq, dm_init=0.0)
@@ -159,7 +159,7 @@ class TestMLERefinementIntegration:
             gamma=true_params.gamma - 0.3,
             zeta=true_params.zeta * 1.5,
             tau_1ghz=true_params.tau_1ghz * 2.0,
-            alpha=true_params.alpha + 0.5,
+            beta=true_params.beta - 0.2,
             delta_dm=0.0,
         )
         
@@ -183,7 +183,7 @@ class TestMLERefinementIntegration:
         # Very bad initial guess
         bad_guess = FRBParams(
             c0=1.0, t0=0.5, gamma=0.0,
-            zeta=10.0, tau_1ghz=20.0, alpha=2.0, delta_dm=5.0
+            zeta=10.0, tau_1ghz=20.0, beta=2.1, delta_dm=5.0
         )
         
         # Should not raise

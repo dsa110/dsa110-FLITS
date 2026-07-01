@@ -51,6 +51,7 @@ from scipy.ndimage import gaussian_filter1d
 from scipy.special import erfc
 
 from .burstfit import FRBParams
+from .turbulence import BETA_THIN_SCREEN_MAX, beta_from_alpha_thin_screen
 
 log = logging.getLogger(__name__)
 
@@ -901,14 +902,23 @@ def data_driven_initial_guess(
     if verbose:
         log.info(f"Intrinsic width: ζ = {zeta:.3f} ms")
     
-    # Build FRBParams
+    # Build FRBParams. The co-model samples beta, not alpha; map the estimated
+    # alpha through the thin-screen branch (alpha >= 4 <=> beta in (2, 4]).
+    # Sub-Kolmogorov estimates (alpha < 4) are unreachable on that branch, so
+    # clamp them to beta = 4 (alpha = 4) — this is only an MCMC starting point.
+    beta = (
+        beta_from_alpha_thin_screen(float(alpha))
+        if float(alpha) >= 4.0
+        else BETA_THIN_SCREEN_MAX
+    )
+    diagnostics['beta'] = beta
     params = FRBParams(
         c0=float(c0),
         t0=float(t0),
         gamma=float(gamma),
         zeta=float(zeta),
         tau_1ghz=float(tau_1ghz),
-        alpha=float(alpha),
+        beta=beta,
         delta_dm=0.0,  # No residual DM by default
     )
     

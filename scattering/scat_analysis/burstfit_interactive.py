@@ -57,6 +57,16 @@ import numpy as np
 import matplotlib.pyplot as plt
 import ipywidgets as widgets
 from .burstfit import FRBModel, FRBParams
+from .turbulence import BETA_THIN_SCREEN_MAX, beta_from_alpha_thin_screen
+
+
+def _beta_from_slider_alpha(alpha: float) -> float:
+    """Map the widget's alpha slider onto beta (thin-screen branch).
+
+    Only alpha >= 4 is reachable with beta in (2, 4]; slider values below 4
+    clamp to beta = 4 (i.e. alpha = 4), since the co-model samples beta.
+    """
+    return beta_from_alpha_thin_screen(alpha) if alpha >= 4.0 else BETA_THIN_SCREEN_MAX
 
 
 class InitialGuessWidget:
@@ -229,7 +239,7 @@ class InitialGuessWidget:
         test_c0 = 100.0
         test_params = FRBParams(
             c0=test_c0, t0=t0, gamma=-1.0, zeta=0.5,
-            tau_1ghz=0.1, alpha=4.0, delta_dm=0.0
+            tau_1ghz=0.1, beta=BETA_THIN_SCREEN_MAX, delta_dm=0.0  # alpha = 4
         )
         test_model = self.model(test_params, self.model_key)
         test_prof_max = np.max(np.sum(test_model, axis=0))
@@ -283,19 +293,20 @@ class InitialGuessWidget:
         # Ensure tau is positive and reasonable
         tau_1ghz = max(0.01, tau_1ghz)
         
-        # Alpha (scattering index) - standard value
-        alpha = 4.0
-        
+        # Turbulence index - beta = 4 puts the thin-screen alpha at the
+        # standard value 4.0 (the co-model samples beta, alpha is derived)
+        beta = BETA_THIN_SCREEN_MAX
+
         # DM correction
         delta_dm = 0.0
-        
+
         return FRBParams(
             c0=c0,
             t0=t0,
             gamma=gamma,
             zeta=zeta,
             tau_1ghz=tau_1ghz,
-            alpha=alpha,
+            beta=beta,
             delta_dm=delta_dm
         )
     
@@ -479,7 +490,7 @@ class InitialGuessWidget:
                 gamma=sliders['gamma'].value,
                 zeta=sliders['zeta'].value,
                 tau_1ghz=sliders['tau_1ghz'].value,
-                alpha=sliders['alpha'].value,
+                beta=_beta_from_slider_alpha(sliders['alpha'].value),
                 delta_dm=0.0
             )
             
@@ -597,7 +608,7 @@ class InitialGuessWidget:
                 gamma=sliders['gamma'].value,
                 zeta=sliders['zeta'].value,
                 tau_1ghz=sliders['tau_1ghz'].value,
-                alpha=sliders['alpha'].value,
+                beta=_beta_from_slider_alpha(sliders['alpha'].value),
                 delta_dm=0.0
             )
             
@@ -628,7 +639,9 @@ class InitialGuessWidget:
                 sliders['gamma'].value = opt_params.gamma
                 sliders['zeta'].value = opt_params.zeta
                 sliders['tau_1ghz'].value = opt_params.tau_1ghz
-                sliders['alpha'].value = getattr(opt_params, 'alpha', 4.0)
+                # Derived alpha can exceed the slider range for beta near 2;
+                # clamp so the traitlets assignment cannot raise.
+                sliders['alpha'].value = min(6.0, max(2.0, getattr(opt_params, 'alpha', 4.0)))
                 status.value = '<b>Status:</b> <span style="color:green">Optimization successful!</span>'
             else:
                 status.value = '<b>Status:</b> <span style="color:red">Optimization failed. Try different starting values.</span>'
@@ -652,7 +665,7 @@ class InitialGuessWidget:
                 gamma=sliders['gamma'].value,
                 zeta=sliders['zeta'].value,
                 tau_1ghz=sliders['tau_1ghz'].value,
-                alpha=sliders['alpha'].value,
+                beta=_beta_from_slider_alpha(sliders['alpha'].value),
                 delta_dm=0.0
             )
             status.value = '<b>Status:</b> <span style="color:blue">Parameters accepted! Ready for MCMC.</span>'

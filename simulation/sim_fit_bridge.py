@@ -87,7 +87,7 @@ def fit_tau(
         gamma=0.0,
         zeta=float(time_ms[1] - time_ms[0]),
         tau_1ghz=tau_init_ms,
-        alpha=4.0,
+        beta=4.0,  # thin-screen alpha = 4 (co-model samples beta)
         delta_dm=0.0,
     )
     priors, _ = build_priors(init)

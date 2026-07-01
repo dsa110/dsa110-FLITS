@@ -64,7 +64,7 @@ def simple_params():
         gamma=-1.5,
         zeta=0.5,
         tau_1ghz=0.3,
-        alpha=4.0,
+        beta=4.0,
         delta_dm=0.0,
     )
 

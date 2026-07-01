@@ -255,7 +255,7 @@ class TestWidgetFunctionality:
         # Simulate accepting parameters
         widget.optimized_params = FRBParams(
             c0=5.0, t0=3.0, gamma=-1.0, zeta=0.3,
-            tau_1ghz=0.2, alpha=4.2, delta_dm=0.0
+            tau_1ghz=0.2, beta=3.8, delta_dm=0.0
         )
         
         params = widget.get_params()
@@ -265,7 +265,7 @@ class TestWidgetFunctionality:
         """Test widget accepts custom initial parameters."""
         custom = FRBParams(
             c0=10.0, t0=5.0, gamma=-2.0, zeta=0.5,
-            tau_1ghz=0.5, alpha=4.5, delta_dm=0.0
+            tau_1ghz=0.5, beta=3.6, delta_dm=0.0
         )
         
         widget = InitialGuessWidget(

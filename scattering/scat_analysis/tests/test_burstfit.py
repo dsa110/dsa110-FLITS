@@ -22,6 +22,7 @@ from flits.scattering.scat_analysis.burstfit import (
     gelman_rubin,
     _POSITIVE,
 )
+from flits.scattering.scat_analysis.turbulence import KOLMOGOROV_BETA
 
 
 # ============================================================================
@@ -44,7 +45,7 @@ def simple_freq():
 def simple_params():
     """Simple FRB parameters for testing."""
     return FRBParams(
-        c0=1.0, t0=0.0, gamma=-1.6, zeta=0.1, tau_1ghz=0.5, alpha=4.4, delta_dm=0.0
+        c0=1.0, t0=0.0, gamma=-1.6, zeta=0.1, tau_1ghz=0.5, beta=KOLMOGOROV_BETA, delta_dm=0.0
     )
 
 
@@ -101,7 +102,7 @@ class TestFRBParams:
 
     def test_to_sequence_m3(self):
         """Test conversion to sequence for M3 model."""
-        p = FRBParams(c0=1.0, t0=2.0, gamma=-1.5, zeta=0.5, tau_1ghz=0.3, alpha=4.0, delta_dm=0.1)
+        p = FRBParams(c0=1.0, t0=2.0, gamma=-1.5, zeta=0.5, tau_1ghz=0.3, beta=4.0, delta_dm=0.1)
         seq = p.to_sequence("M3")
         assert len(seq) == 7
         assert seq == [1.0, 2.0, -1.5, 0.5, 0.3, 4.0, 0.1]
@@ -120,7 +121,7 @@ class TestFRBParams:
 
     def test_roundtrip(self):
         """Test that to_sequence and from_sequence are inverses."""
-        original = FRBParams(c0=1.5, t0=-0.5, gamma=-2.0, zeta=0.2, tau_1ghz=0.8, alpha=4.2, delta_dm=-0.05)
+        original = FRBParams(c0=1.5, t0=-0.5, gamma=-2.0, zeta=0.2, tau_1ghz=0.8, beta=3.8, delta_dm=-0.05)
         for key in ["M0", "M1", "M2", "M3"]:
             seq = original.to_sequence(key)
             reconstructed = FRBParams.from_sequence(seq, key)
@@ -162,7 +163,7 @@ class TestFRBModel:
         model = FRBModel(time=simple_time, freq=simple_freq, dm_init=0.0, df_MHz=0.39)
         
         # Strong scattering with adequate intrinsic width
-        p = FRBParams(c0=1.0, t0=0.0, gamma=0.0, zeta=0.1, tau_1ghz=5.0, alpha=4.0, delta_dm=0.0)
+        p = FRBParams(c0=1.0, t0=0.0, gamma=0.0, zeta=0.1, tau_1ghz=5.0, beta=4.0, delta_dm=0.0)
         output = model(p, "M3")
         
         # Note: simple_freq goes from 0.4 to 0.8 GHz, so:
@@ -334,7 +335,7 @@ class TestBuildPriors:
         assert "gamma" in priors
         assert "zeta" in priors
         assert "tau_1ghz" in priors
-        assert "alpha" in priors
+        assert "beta" in priors
         assert "delta_dm" in priors
         
         # Check bounds are tuples
@@ -552,7 +553,7 @@ class TestIntegration:
         )
         
         # Build priors
-        init_guess = FRBParams(c0=0.8, t0=0.1, gamma=-1.5, zeta=0.15, tau_1ghz=0.4, alpha=4.5, delta_dm=0.0)
+        init_guess = FRBParams(c0=0.8, t0=0.1, gamma=-1.5, zeta=0.15, tau_1ghz=0.4, beta=3.6, delta_dm=0.0)
         priors, use_logw = build_priors(init_guess, scale=3.0, log_weight_pos=True)
         
         # Fit
@@ -600,7 +601,7 @@ class TestEdgeCases:
     def test_large_tau(self, simple_time, simple_freq):
         """Test model works with large scattering time."""
         model = FRBModel(time=simple_time, freq=simple_freq, dm_init=0.0, df_MHz=0.39)
-        p = FRBParams(c0=1.0, t0=0.0, gamma=-1.6, zeta=0.1, tau_1ghz=10.0, alpha=4.0)
+        p = FRBParams(c0=1.0, t0=0.0, gamma=-1.6, zeta=0.1, tau_1ghz=10.0, beta=4.0)
         output = model(p, "M3")
         
         assert not np.any(np.isnan(output))

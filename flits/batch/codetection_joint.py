@@ -18,11 +18,11 @@ def crop_band_dict(b: Mapping, xlim: tuple[float, float]) -> dict:
     sl = slice(max(0, i0), min(len(t), i1))
     out = dict(b)
     out["t"] = t[sl]
-    for key in ("d", "m", "resid"):
-        out[key] = np.asarray(b[key])[..., sl]
-    for key in ("pd", "pm"):
-        if key in b:
-            out[key] = np.asarray(b[key])[sl]
+    for key in ("d", "m", "resid", "pd", "pm"):
+        if key not in b:
+            continue
+        arr = np.asarray(b[key])
+        out[key] = arr[..., sl] if arr.ndim == 2 else arr[sl]
     return out
 
 

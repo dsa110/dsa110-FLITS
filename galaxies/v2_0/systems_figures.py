@@ -4,10 +4,10 @@ the three foreground galaxies whose interiors/CGM source a non-negligible sightl
 DM, and the four innermost foreground clusters along the FRB 20230307A field.
 
 Two composites for the manuscript:
-  grand_galaxies_cgm   - 1x3, per galaxy: mNFW hot-halo DM(b) column, sightline impact,
-                         0.1 R_vir interior cap, R_vir; annotated DM/tau.
-  grand_clusters_icm   - 2x2, per cluster: isothermal beta-model ICM DM(b) ceiling,
-                         R500 and the sightline impact; annotated DM/b/R500.
+  galaxies_cgm   - 1x3, per galaxy: mNFW hot-halo DM(b) column, sightline impact,
+                   0.1 R_vir interior cap, R_vir; annotated DM/tau.
+  clusters_icm   - 2x2, per cluster: FRB/ModifiedNFW baryon DM(b) column,
+                   R500 and the sightline impact; annotated DM/b/R500.
 
 Everything is computed from the repo kernels (scattering_predict + build_unified)
 so the figure reproduces the photo-z-corrected sightline budget; a __main__
@@ -35,16 +35,16 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 try:
-    from . import scattering_predict as scat
-    from .build_unified import build_unified_records
-    from .config import COSMO
-    from .sightline_budget import INTERIOR_B_OVER_RVIR
+    from galaxies.foreground import scattering_predict as scat
+    from galaxies.foreground.build_unified import build_unified_records
+    from galaxies.foreground.config import COSMO
+    from galaxies.foreground.sightline_budget import INTERIOR_B_OVER_RVIR
 except ImportError:  # pragma: no cover - direct script execution
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-    from galaxies.v2_0 import scattering_predict as scat
-    from galaxies.v2_0.build_unified import build_unified_records
-    from galaxies.v2_0.config import COSMO
-    from galaxies.v2_0.sightline_budget import INTERIOR_B_OVER_RVIR
+    from galaxies.foreground import scattering_predict as scat
+    from galaxies.foreground.build_unified import build_unified_records
+    from galaxies.foreground.config import COSMO
+    from galaxies.foreground.sightline_budget import INTERIOR_B_OVER_RVIR
 
 # Palette consistent with sightline_budget.make_budget_figure.
 DARK_BLUE = "#1B365D"
@@ -56,7 +56,7 @@ TEXT_DARK = "#333333"
 GRID_COLOR = "#E5E5E5"
 BG_LIGHT = "#FAFBFC"
 
-# Three grand galaxies (nickname, TNS, RA, Dec, z_frb) -- the dominant intervening
+# Three dominant foreground galaxies (nickname, TNS, RA, Dec, z_frb)
 # halos under the photo-z-corrected budget (2 galaxy-interior + 1 CGM grazer).
 # (Casey/FRB 20240229A is excluded: its only true foreground galaxy, UGC 06371,
 # grazes at b/R_vir~=1 for a negligible ~0.3 pc/cm^3; the closer "interior" object
@@ -67,7 +67,7 @@ GAL_TARGETS = [
     ("isha", "FRB 20221113A", "04h45m38.64s", "+70d18m26.6s", 0.2505),
 ]
 
-# Four grand clusters: the innermost (by b/R500) foreground clusters of the
+# Four innermost foreground clusters (by b/R500) in the FRB 20230307A field
 # FRB 20230307A field from Table~\ref{tab:foreground} (objid, b_kpc, b/R500, z).
 CLUSTER_TARGETS = [
     ("J115120.4+714435", 604.0, 0.83, 0.200),
@@ -78,10 +78,10 @@ CLUSTER_TARGETS = [
 
 # Reference sightline totals from the photo-z-corrected budget (DM_int raw, ms tau)
 # used only as a reproduction self-check, not plotted.
-_BUDGET_CHECK = {  # name: sum_dm_int_raw
-    "phineas": 733.1,
-    "whitney": 363.6,
-    "isha": 112.5,
+_BUDGET_CHECK = {  # name: sum_dm_int_raw (FRB ModifiedNFW hot + cool columns)
+    "phineas": 297.2,
+    "whitney": 62.0,
+    "isha": 40.6,
 }
 
 _REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -122,15 +122,18 @@ def dominant_foreground_halo(name: str, ra: str, dec: str, z_frb: float, gal_dir
 
 
 def cluster_params(b_kpc: float, b_over_r500: float, z: float) -> dict:
-    """Recover R500, M500 and the beta-model ICM DM ceiling for a foreground cluster."""
+    """Recover R500, M500 and the mNFW baryon-column DM for a foreground cluster."""
     r500 = b_kpc / b_over_r500
     rho_crit = COSMO.critical_density(z).to(u.Msun / u.kpc**3).value
     m500 = (4.0 / 3.0) * math.pi * 500.0 * rho_crit * r500**3
+    m200 = scat.CLUSTER_M500_TO_M200 * m500
     return {
         "r500_kpc": r500,
         "m500_msun": m500,
+        "m200_msun": m200,
+        "rvir_mnfw_kpc": scat._frb_mnfw_rvir_kpc(m200, z),
         "logM500": math.log10(m500),
-        "dm_at_b": scat.dm_cluster_beta_model(m500, z, b_kpc, r500_kpc=r500),
+        "dm_at_b": scat.dm_cluster_mnfw_model(m500, z, b_kpc),
     }
 
 
@@ -146,7 +149,7 @@ def _mass_label(source: str) -> str:
 
 
 def make_galaxy_figure(gal_dir: str):
-    """1x3 mNFW hot-halo DM(b) panels for the three grand galaxies."""
+    """1x3 mNFW hot-halo DM(b) panels for the three dominant foreground galaxies."""
     fig, axes = plt.subplots(1, 3, figsize=(13.4, 4.5), dpi=150, facecolor=BG_LIGHT)
     for ax, (name, tns, ra, dec, z_frb) in zip(axes.ravel(), GAL_TARGETS):
         ax.set_facecolor(BG_LIGHT)
@@ -238,17 +241,17 @@ def make_galaxy_figure(gal_dir: str):
 
 
 def make_cluster_figure():
-    """2x2 isothermal beta-model ICM DM(b) panels for the four grand clusters."""
+    """2x2 mNFW baryon-column DM(b) panels for the four innermost foreground clusters."""
     fig, axes = plt.subplots(2, 2, figsize=(9.6, 7.6), dpi=150, facecolor=BG_LIGHT)
     for ax, (objid, b_kpc, b_over_r500, z) in zip(axes.ravel(), CLUSTER_TARGETS):
         ax.set_facecolor(BG_LIGHT)
         c = cluster_params(b_kpc, b_over_r500, z)
         r500, m500 = c["r500_kpc"], c["m500_msun"]
-        r_trunc = scat.CLUSTER_R200_OVER_R500 * r500
+        r_trunc = c["rvir_mnfw_kpc"]
 
         bb = np.linspace(1.0, r_trunc, 240)
-        dm_b = np.array([scat.dm_cluster_beta_model(m500, z, float(x), r500_kpc=r500) for x in bb])
-        ax.plot(bb, dm_b, color=HALO_COLOR, lw=2.2, zorder=4, label="ICM $\\beta$-model (ceiling)")
+        dm_b = np.array([scat.dm_cluster_mnfw_model(m500, z, float(x)) for x in bb])
+        ax.plot(bb, dm_b, color=HALO_COLOR, lw=2.2, zorder=4, label="hot mNFW column")
 
         ax.axvspan(0, r500, color=INTERV_COLOR, alpha=0.07, zorder=0)
         ax.axvline(r500, color=TEXT_DARK, ls="--", lw=1.1, zorder=3)
@@ -272,11 +275,11 @@ def make_cluster_figure():
             )
         else:
             # Sightline passes beyond the model truncation: mark at the right edge.
-            ax.annotate(
-                f"$b={b_kpc:.0f}$ kpc\n(beyond $1.48\\,R_{{500}}$)",
-                xy=(r_trunc, 0),
-                xytext=(-6, 14),
-                textcoords="offset points",
+            ax.text(
+                0.96,
+                0.12,
+                f"$b={b_kpc:.0f}$ kpc\n(beyond $R_{{\\rm vir,mNFW}}$)",
+                transform=ax.transAxes,
                 fontsize=7.5,
                 color=INTERV_COLOR,
                 ha="right",
@@ -289,7 +292,7 @@ def make_cluster_figure():
             f"$z={z:.3f}$,  $\\log M_{{500}}={c['logM500']:.2f}$\n"
             f"$b={b_kpc:.0f}$ kpc,  $b/R_{{500}}={b_over_r500:.2f}$\n"
             f"{verdict}\n"
-            f"$\\mathrm{{DM_{{ICM}}}}(b)\\lesssim {c['dm_at_b']:.0f}$ pc cm$^{{-3}}$"
+            f"$\\mathrm{{DM_{{cl}}}}(b)={c['dm_at_b']:.0f}$ pc cm$^{{-3}}$"
         )
         ax.text(
             0.97,
@@ -305,7 +308,7 @@ def make_cluster_figure():
 
         ax.set_title(objid, fontsize=10, fontweight="bold", color=DARK_BLUE)
         ax.set_xlabel("impact parameter $b$ (kpc)", fontsize=9, color=TEXT_DARK)
-        ax.set_ylabel("ICM DM ceiling (pc cm$^{-3}$)", fontsize=9, color=TEXT_DARK)
+        ax.set_ylabel("hot-baryon DM (pc cm$^{-3}$)", fontsize=9, color=TEXT_DARK)
         ax.set_xlim(0, r_trunc)
         ax.set_ylim(bottom=0)
         ax.grid(True, ls=":", color=GRID_COLOR, alpha=0.8, zorder=0)
@@ -319,7 +322,7 @@ def make_cluster_figure():
             )
 
     fig.suptitle(
-        "Foreground clusters of FRB 20230307A: $\\beta$-model ICM dispersion ceiling vs. impact",
+        "Foreground clusters of FRB 20230307A: mNFW baryon column vs. impact",
         fontsize=12,
         fontweight="bold",
         color=DARK_BLUE,
@@ -337,7 +340,7 @@ def _selfcheck(gal_dir: str) -> None:
         # The dominant column sampled at its own impact must match its tabulated dm_halo.
         dm_at_b = scat.dm_halo_mnfw(d["m_halo"], d["z_gal"], d["impact_kpc"])
         assert abs(dm_at_b - d["dm_halo"]) < 0.5, f"{name}: dm_halo(b) mismatch"
-    # The single R500-piercing cluster must source a non-trivial ICM ceiling; the
+    # The single R500-piercing cluster must source a non-trivial mNFW column; the
     # two beyond truncation must return zero.
     inner = cluster_params(*CLUSTER_TARGETS[0][1:])
     assert inner["dm_at_b"] > 50.0, "inner cluster ICM ceiling unexpectedly small"
@@ -359,8 +362,8 @@ def main():
     os.makedirs(args.out_dir, exist_ok=True)
 
     for fig, stem in (
-        (make_galaxy_figure(args.gal_dir), "grand_galaxies_cgm"),
-        (make_cluster_figure(), "grand_clusters_icm"),
+        (make_galaxy_figure(args.gal_dir), "galaxies_cgm"),
+        (make_cluster_figure(), "clusters_icm"),
     ):
         for ext in ("pdf", "svg", "png"):
             path = os.path.join(args.out_dir, f"{stem}.{ext}")

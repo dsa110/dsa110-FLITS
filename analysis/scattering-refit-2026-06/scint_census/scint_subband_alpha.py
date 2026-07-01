@@ -32,7 +32,7 @@ from scat_analysis.config_utils import load_telescope_block
 from scat_analysis.pipeline.io import BurstDataset
 from scint_analysis.analysis import calculate_acf
 
-DATA = "/Users/jakobfaber/Developer/dsa110-local-data/DSA_bursts"
+DATA = "/Users/jakobfaber/Data/Faber2026/dsa110/DSA_bursts"
 TELCFG = f"{REPO}/scattering/configs/telescopes.yaml"
 BANDS = {
     "CHIME": dict(

@@ -56,7 +56,7 @@ arc VOSpace ──dedupe──► iacobus ~/Research/CHIME_DSA_Codetections
 
 | migration_map / audit id | arc path | Compare target | Action |
 |--------------------------|----------|----------------|--------|
-| `arc_dsa_bursts` | `arc:…/data/DSA_bursts` | jakob `~/Developer/dsa110-local-data/DSA_bursts` | gap sync to local replica; arc stays primary for CANFAR |
+| `arc_dsa_bursts` | `arc:…/data/DSA_bursts` | jakob `~/Data/Faber2026/dsa110/DSA_bursts` | gap sync to local replica; arc stays primary for CANFAR |
 | `arc_chime_bursts` | `arc:…/data/CHIME_bursts` | iacobus `burst_npys/` | basename + size reconcile; no blind rsync |
 | `arc_old_chime_dedupe` | `arc:…/OLD_CHIME_DSA_Codetections` | iacobus `archive/OLD_CHIME_DSA_Codetections` | pick canonical via sentinel; **iacobus wins** if sentinel passes |
 | `arc_flits_checkout` (phase 1) | `arc:home/jfaber/dsa110-FLITS` | GitHub / jakob-mbp repo | diff; rescue CANFAR-only commits via PR |

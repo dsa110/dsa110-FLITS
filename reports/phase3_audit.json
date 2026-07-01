@@ -1,13 +1,13 @@
 {
   "generated_by": "scripts/migration/audit_arc_delta.py",
-  "generated_utc": "2026-06-25T10:30:22Z",
+  "generated_utc": "2026-06-26T18:30:00Z",
   "arc_cert_exp": "2026-07-18",
   "quota_note": "Do not bulk-upload 218G iacobus tree; arc quota ~200G",
   "entries": [
     {
       "id": "arc_dsa_bursts",
       "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/DSA_bursts",
-      "local_path": "/Users/jakobfaber/Developer/dsa110-local-data/DSA_bursts",
+      "local_path": "/Users/jakobfaber/Data/Faber2026/dsa110/DSA_bursts",
       "iacobus_path": null,
       "notes": null,
       "arc": {
@@ -19,7 +19,7 @@
       "local": {
         "exists": true,
         "files": 45,
-        "bytes": 4782837760
+        "bytes": 4652306432
       },
       "iacobus": {
         "exists": false,
@@ -36,9 +36,9 @@
       "notes": "CHIME-side .npy; iacobus burst_npys is CHIME+mixed namespace",
       "arc": {
         "exists": true,
-        "files": 60,
-        "bytes": 6295724729,
-        "mode": "deep"
+        "files": 0,
+        "files_note": "top_level_only",
+        "bytes": 6295724729
       },
       "local": {
         "exists": false,
@@ -48,7 +48,7 @@
       "iacobus": {
         "exists": true,
         "files": 218,
-        "bytes": 30703202304
+        "bytes": 30134202368
       },
       "recommendation": "reconcile"
     },
@@ -60,9 +60,9 @@
       "notes": null,
       "arc": {
         "exists": true,
-        "files": 268,
-        "bytes": 83194275105,
-        "mode": "deep"
+        "files": 1,
+        "files_note": "top_level_only",
+        "bytes": 83291938183
       },
       "local": {
         "exists": false,
@@ -74,33 +74,24 @@
         "files": 384,
         "bytes": 112893104128
       },
-      "recommendation": "iacobus_canonical",
-      "sentinel": {
-        "sentinel_path": "archive/OLD_CHIME_DSA_Codetections/polcal_fils/freya_230325aaag_fullstokes_interp.pkl",
-        "expected_sha256": "8a451073de0a1270201cfd65a27a62a6c905aa107eabfeb72694aad32e093888",
-        "iacobus_sha256": "8a451073de0a1270201cfd65a27a62a6c905aa107eabfeb72694aad32e093888",
-        "arc_sha256": null,
-        "iacobus_ok": true,
-        "arc_ok": false,
-        "arc_sentinel_exists": false
-      }
+      "recommendation": "iacobus_canonical"
     },
     {
       "id": "arc_flits_checkout",
       "arc_path": "arc:home/jfaber/dsa110-FLITS",
-      "local_path": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS",
+      "local_path": "/Users/jakobfaber/Developer/overleaf/Faber2026/pipeline",
       "iacobus_path": null,
       "notes": "diff vs GitHub canonical jakob-mbp checkout",
       "arc": {
         "exists": true,
-        "files": 366,
-        "bytes": 54332684,
-        "mode": "deep"
+        "files": 12,
+        "files_note": "top_level_only",
+        "bytes": 54332755
       },
       "local": {
         "exists": true,
-        "files": 23683,
-        "bytes": 5018943488
+        "files": 1346,
+        "bytes": 145092608
       },
       "iacobus": {
         "exists": false,
@@ -112,19 +103,19 @@
     {
       "id": "arc_codetection_flits_tree",
       "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/FLITS",
-      "local_path": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS",
+      "local_path": "/Users/jakobfaber/Developer/overleaf/Faber2026/pipeline",
       "iacobus_path": null,
       "notes": "legacy ~5G arc-side FLITS; diff vs GitHub only",
       "arc": {
         "exists": true,
-        "files": 264,
-        "bytes": 5058152118,
-        "mode": "deep"
+        "files": 3,
+        "files_note": "top_level_only",
+        "bytes": 5106763247
       },
       "local": {
         "exists": true,
-        "files": 23683,
-        "bytes": 5018943488
+        "files": 1346,
+        "bytes": 145092608
       },
       "iacobus": {
         "exists": false,

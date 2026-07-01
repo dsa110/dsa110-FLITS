@@ -181,7 +181,7 @@ migration_map:
     source_host: arc
     source_path: arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/DSA_bursts
     target_host: jakob-mbp
-    target_path: /Users/jakobfaber/Developer/dsa110-local-data/DSA_bursts
+    target_path: /Users/jakobfaber/Data/Faber2026/dsa110/DSA_bursts
     notes: vcp gap sync uncorrected+pdfs+corner.png; local 45f superset of arc 33f; arc stays CANFAR primary
   - id: arc_chime_bursts
     phase: 3
@@ -320,14 +320,14 @@ machines:
           head: 7e4c0c97
         notes: canonical code checkout on Mac
       - id: local_dsa_bursts
-        path: /Users/jakobfaber/Developer/dsa110-local-data/DSA_bursts
+        path: /Users/jakobfaber/Data/Faber2026/dsa110/DSA_bursts
         kind: burst_data
         migration_action: keep
         migration_target: jakob-mbp
         size_human: 2.8G
         notes: local replica of arc DSA_bursts for offline fits
       - id: local_flits_runs
-        path: /Users/jakobfaber/Developer/dsa110-local-data/flits-runs
+        path: /Users/jakobfaber/Data/Faber2026/dsa110/flits-runs
         kind: run_artifacts
         migration_action: keep
         migration_target: jakob-mbp

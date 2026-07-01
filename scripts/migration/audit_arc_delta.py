@@ -32,7 +32,7 @@ AUDITS = [
         "id": "arc_dsa_bursts",
         "arc_path": "arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/DSA_bursts",
         "local_host": None,
-        "local_path": "/Users/jakobfaber/Developer/dsa110-local-data/DSA_bursts",
+        "local_path": "/Users/jakobfaber/Data/Faber2026/dsa110/DSA_bursts",
         "iacobus_path": None,
         "deep": True,
     },

@@ -23,6 +23,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))  # repo root
 from scattering.scat_analysis.burstfit import classify_fit_quality  # noqa: E402
 
+from scattering.scat_analysis.turbulence import alpha_from_beta
+
 ALPHA_MIN, ALPHA_MAX = 1.0, 6.0  # Level-1 physical gate (ADR-0004 floor)
 SUB_KOLM_LO = 2.0  # 1.0 <= alpha < SUB_KOLM_LO => sub-Kolmogorov (L3 MARGINAL)
 TAU_MIN, TAU_MAX = 1e-4, 100.0  # ms
@@ -37,10 +39,21 @@ def _worst(*flags):
 
 def gate_one(burst, fit, ppc):
     """Classify one joint fit. ppc may be None (chi2 unknown -> Level-2 MARGINAL)."""
-    alpha = fit["alpha"]["median"]
+    if "beta" in fit:
+        alpha = alpha_from_beta(fit["beta"]["median"])
+        beta_med = fit["beta"]["median"]
+        lo_b, hi_b = fit.get("beta_bounds", fit.get("alpha_bounds", (2.0, 6.0)))
+        if "beta_bounds" in fit:
+            rail = min(beta_med - lo_b, hi_b - beta_med) < RAIL_EDGE
+        else:
+            lo, hi = fit["alpha_bounds"]
+            rail = min(alpha - lo, hi - alpha) < RAIL_EDGE
+    else:
+        alpha = fit["alpha"]["median"]
+        beta_med = None
+        lo, hi = fit["alpha_bounds"]
+        rail = min(alpha - lo, hi - alpha) < RAIL_EDGE
     tau = fit["tau_1ghz"]["median"]
-    lo, hi = fit["alpha_bounds"]
-    rail = min(alpha - lo, hi - alpha) < RAIL_EDGE
 
     # Level 1 -- physical bounds (any failure => FAIL, regardless of chi2)
     l1_fail = []
@@ -107,6 +120,7 @@ def gate_one(burst, fit, ppc):
     return {
         "burst": burst,
         "alpha": alpha,
+        "beta": beta_med,
         "tau": tau,
         "rail": rail,
         "chi2_chime": cc,

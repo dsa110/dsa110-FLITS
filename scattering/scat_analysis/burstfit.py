@@ -32,6 +32,15 @@ from scipy import stats
 from scipy.linalg import eigh
 from scipy.special import erfcx
 
+from .turbulence import (
+    BETA_EXP_EPS,
+    BETA_THIN_SCREEN_MAX,
+    BETA_THIN_SCREEN_MIN,
+    KOLMOGOROV_BETA,
+    alpha_from_beta,
+    beta_from_alpha_thin_screen,
+)
+
 __all__ = [
     "FRBParams",
     "FRBModel",
@@ -42,6 +51,9 @@ __all__ = [
     "plot_dynamic",
     "goodness_of_fit",
     "gelman_rubin",
+    "alpha_from_beta",
+    "beta_from_alpha_thin_screen",
+    "KOLMOGOROV_BETA",
 ]
 
 # ----------------------------------------------------------------------
@@ -340,7 +352,7 @@ def _log_prob_wrapper(
             # Model-dependent parameters
             zeta = get_p("zeta", 0.0)  # M1, M3
             tau_1ghz = get_p("tau_1ghz", 0.0)  # M2, M3
-            alpha = get_p("alpha", 4.4)  # M3 (fixed to 4.4 for M2)
+            beta = get_p("beta", KOLMOGOROV_BETA)  # M3 (Kolmogorov default for M2)
 
             p_i = FRBParams(
                 c0=c0,
@@ -348,7 +360,7 @@ def _log_prob_wrapper(
                 gamma=gamma,
                 zeta=zeta,
                 tau_1ghz=tau_1ghz,
-                alpha=alpha,
+                beta=beta,
                 delta_dm=delta_dm,
             )
             model_sum = model_sum + model(p_i, model_type)
@@ -384,7 +396,7 @@ def _log_prob_wrapper(
 
         gamma = get("gamma") if "gamma" in names else -1.6
         tau1 = get("tau_1ghz") if "tau_1ghz" in names else 0.0
-        alpha = get("alpha") if "alpha" in names else 4.4
+        beta = get("beta") if "beta" in names else KOLMOGOROV_BETA
         delta_dm = get("delta_dm") if "delta_dm" in names else 0.0
         # sum components
         model_sum = np.zeros_like(model.data)
@@ -400,7 +412,7 @@ def _log_prob_wrapper(
                 gamma=gamma,
                 zeta=zeta,
                 tau_1ghz=tau1,
-                alpha=alpha,
+                beta=beta,
                 delta_dm=delta_dm,
             )
             model_sum = model_sum + model(p_i, "M3")
@@ -433,7 +445,7 @@ class FRBParams:
     gamma: float
     zeta: float = 0.0
     tau_1ghz: float = 0.0
-    alpha: float = 4.4  # frequency scaling exponent τ ∝ ν^{-alpha}
+    beta: float = KOLMOGOROV_BETA  # turbulence spectral index P_n(q) ∝ q^{-beta}
     delta_dm: float = 0.0  # residual DM error around dm_init
 
     # Aliases for compatibility with flits.params
@@ -444,6 +456,11 @@ class FRBParams:
     @property
     def width(self) -> float:
         return self.zeta
+
+    @property
+    def alpha(self) -> float:
+        """Frequency-scaling index τ ∝ ν^{-alpha}, derived from beta."""
+        return alpha_from_beta(self.beta)
 
     @property
     def tau_alpha(self) -> float:
@@ -457,7 +474,7 @@ class FRBParams:
             "M1": ("c0", "t0", "gamma", "zeta"),
             "M2": ("c0", "t0", "gamma", "tau_1ghz"),
             # M3 now includes alpha and delta_dm as part of the parameterization
-            "M3": ("c0", "t0", "gamma", "zeta", "tau_1ghz", "alpha", "delta_dm"),
+            "M3": ("c0", "t0", "gamma", "zeta", "tau_1ghz", "beta", "delta_dm"),
         }
         return [getattr(self, k) for k in key_map[model_key]]
 
@@ -469,7 +486,7 @@ class FRBParams:
             "M0": ("c0", "t0", "gamma"),
             "M1": ("c0", "t0", "gamma", "zeta"),
             "M2": ("c0", "t0", "gamma", "tau_1ghz"),
-            "M3": ("c0", "t0", "gamma", "zeta", "tau_1ghz", "alpha", "delta_dm"),
+            "M3": ("c0", "t0", "gamma", "zeta", "tau_1ghz", "beta", "delta_dm"),
         }
         kwargs = {k: v for k, v in zip(key_map[model_key], seq)}
         # fill optional keys with defaults
@@ -747,17 +764,16 @@ class FRBModel:
         sig = np.clip(sig, 1e-6, None)
 
         if model_key in {"M2", "M3"} and p.tau_1ghz > 1e-6:
-            alpha = getattr(p, "alpha", 4.4)
+            alpha = p.alpha
             tau = p.tau_1ghz * (freq / 1.0) ** (-alpha)
             tau = np.clip(tau, 1e-6, None)[:, None]
 
-            if self.pbf == "powerlaw":
-                return amp[:, None] * gaussian_powerlaw_convolution(
-                    self.time, mu, sig, tau, self.pbf_beta
-                )
-
-            # Use analytic convolution for speed and precision
-            return amp[:, None] * analytic_gaussian_exp_convolution(self.time, mu, sig, tau)
+            beta_pbf = float(np.clip(p.beta, BETA_THIN_SCREEN_MIN, BETA_THIN_SCREEN_MAX))
+            if beta_pbf >= BETA_THIN_SCREEN_MAX - BETA_EXP_EPS:
+                return amp[:, None] * analytic_gaussian_exp_convolution(self.time, mu, sig, tau)
+            return amp[:, None] * gaussian_powerlaw_convolution(
+                self.time, mu, sig, tau, beta_pbf
+            )
 
         # Non-scattering models (M0, M1) or negligible tau
         gauss = (1.0 / (np.sqrt(2.0 * np.pi) * sig)) * np.exp(-0.5 * ((self.time - mu) / sig) ** 2)
@@ -1026,8 +1042,8 @@ class FRBFitter:
         "M0": ("c0", "t0", "gamma"),
         "M1": ("c0", "t0", "gamma", "zeta"),
         "M2": ("c0", "t0", "gamma", "tau_1ghz"),
-        # M3 extended to include alpha and delta_dm
-        "M3": ("c0", "t0", "gamma", "zeta", "tau_1ghz", "alpha", "delta_dm"),
+        # M3 extended to include beta and delta_dm
+        "M3": ("c0", "t0", "gamma", "zeta", "tau_1ghz", "beta", "delta_dm"),
     }
 
     def __init__(
@@ -1162,7 +1178,7 @@ class FRBFitter:
         return sampler
 
     def build_multicomp_order(self, K: int) -> tuple[str, ...]:
-        order = ["gamma", "tau_1ghz", "alpha", "delta_dm"]
+        order = ["gamma", "tau_1ghz", "beta", "delta_dm"]
         for i in range(1, K + 1):
             order.extend([f"c0_{i}", f"t0_{i}", f"zeta_{i}"])
         self.custom_order["M3_multi"] = tuple(order)
@@ -1288,6 +1304,7 @@ def apply_physical_priors(
     *,
     tau_prior: tuple[float, float] | None = None,
     alpha_prior: tuple[float, float] | None = None,
+    beta_prior: tuple[float, float] | None = None,
 ) -> float:
     """Apply optional physical priors on scattering parameters.
 
@@ -1303,14 +1320,20 @@ def apply_physical_priors(
         Log-normal prior on tau_1ghz: log(τ) ~ N(mu, sigma^2).
         If None, no prior applied.
     alpha_prior : (mu, sigma) or None
-        Gaussian prior on alpha: α ~ N(mu, sigma^2).
-        Default Kolmogorov: α ≈ 4.4. If None, no prior applied.
+        Deprecated alias for ``beta_prior`` on the thin-screen branch.
+    beta_prior : (mu, sigma) or None
+        Gaussian prior on beta: β ~ N(mu, sigma^2). Default Kolmogorov: β = 11/3.
+        If None, no prior applied.
 
     Returns
     -------
     float
         Updated log-probability with physical priors included.
     """
+    if beta_prior is None and alpha_prior is not None:
+        mu_a, sigma_a = alpha_prior
+        beta_prior = (beta_from_alpha_thin_screen(mu_a), sigma_a)
+
     for name, val in zip(names, theta):
         # Log-normal prior on tau_1ghz (scattering timescale)
         if name == "tau_1ghz" and tau_prior is not None:
@@ -1319,9 +1342,9 @@ def apply_physical_priors(
                 return -np.inf
             log_prob += log_normal_prior(val, mu, sigma)
 
-        # Gaussian prior on alpha (frequency scaling exponent)
-        elif name == "alpha" and alpha_prior is not None:
-            mu, sigma = alpha_prior
+        # Gaussian prior on beta (turbulence spectral index)
+        elif name == "beta" and beta_prior is not None:
+            mu, sigma = beta_prior
             log_prob += gaussian_prior(val, mu, sigma)
 
     return log_prob
@@ -1370,7 +1393,7 @@ def build_priors(
             init.t0 - 2 * max(init.tau_1ghz, 10.0),
             init.t0 + 2 * max(init.tau_1ghz, 10.0),
         ),  # Dynamic t0 window
-        "alpha": (ALPHA_GOOD_MIN, ALPHA_MARGINAL_MAX),  # Scattering index
+        "beta": (BETA_THIN_SCREEN_MIN, BETA_THIN_SCREEN_MAX),
     }
 
     ceiling = abs_max or {}

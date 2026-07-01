@@ -48,6 +48,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from .burstfit import FRBModel, FRBParams, build_priors
+from .turbulence import beta_from_alpha_thin_screen
 
 log = logging.getLogger(__name__)
 
@@ -64,7 +65,7 @@ _PARAM_KEYS = {
     "M0": ("c0", "t0", "gamma"),
     "M1": ("c0", "t0", "gamma", "zeta"),
     "M2": ("c0", "t0", "gamma", "tau_1ghz"),
-    "M3": ("c0", "t0", "gamma", "zeta", "tau_1ghz", "alpha", "delta_dm"),
+    "M3": ("c0", "t0", "gamma", "zeta", "tau_1ghz", "beta", "delta_dm"),
 }
 
 
@@ -215,6 +216,7 @@ class _LogLikelihood:
         model: FRBModel,
         model_key: str,
         param_names: Tuple[str, ...],
+        beta_prior: Optional[Tuple[float, float]] = None,
         alpha_prior: Optional[Tuple[float, float]] = None,
         tau_prior: Optional[Tuple[float, float]] = None,
         likelihood_kind: str = "gaussian",
@@ -225,7 +227,10 @@ class _LogLikelihood:
         self.model_key = model_key
         self.param_names = param_names
         self.full_param_names = _PARAM_KEYS[model_key]
-        self.alpha_prior = alpha_prior
+        self.beta_prior = beta_prior
+        if self.beta_prior is None and alpha_prior is not None:
+            mu_a, sigma_a = alpha_prior
+            self.beta_prior = (beta_from_alpha_thin_screen(mu_a), sigma_a)
         self.tau_prior = tau_prior
         self.likelihood_kind = likelihood_kind
         self.student_nu = student_nu
@@ -255,9 +260,9 @@ class _LogLikelihood:
         if not np.isfinite(ll):
             return -1e100
 
-        if self.alpha_prior is not None and "alpha" in self.param_names:
-            mu, sigma = self.alpha_prior
-            ll += -0.5 * ((params.alpha - mu) / sigma) ** 2
+        if self.beta_prior is not None and "beta" in self.param_names:
+            mu, sigma = self.beta_prior
+            ll += -0.5 * ((params.beta - mu) / sigma) ** 2
 
         if self.tau_prior is not None and "tau_1ghz" in self.param_names:
             mu_log10, sigma_log10 = self.tau_prior
@@ -274,6 +279,7 @@ def _build_log_likelihood(
     model: FRBModel,
     model_key: str,
     param_names: Tuple[str, ...],
+    beta_prior: Optional[Tuple[float, float]] = None,
     alpha_prior: Optional[Tuple[float, float]] = None,
     tau_prior: Optional[Tuple[float, float]] = None,
     likelihood_kind: str = "gaussian",
@@ -282,7 +288,7 @@ def _build_log_likelihood(
 ):
     """Return a picklable log-likelihood callable for dynesty."""
     return _LogLikelihood(
-        model, model_key, param_names, alpha_prior, tau_prior,
+        model, model_key, param_names, beta_prior, alpha_prior, tau_prior,
         likelihood_kind, student_nu, fixed_params,
     )
 
@@ -295,7 +301,9 @@ def fit_single_model_nested(
     priors: Optional[Dict[str, Tuple[float, float]]] = None,
     nlive: int = 500,
     dlogz: float = 0.1,
+    beta_prior: Optional[Tuple[float, float]] = None,
     alpha_prior: Optional[Tuple[float, float]] = None,
+    beta_fixed: Optional[float] = None,
     alpha_fixed: Optional[float] = None,
     tau_prior: Optional[Tuple[float, float]] = None,
     likelihood_kind: str = "gaussian",
@@ -355,11 +363,13 @@ def fit_single_model_nested(
     
     param_names = _PARAM_KEYS[model_key]
     
-    # Remove alpha from param list if fixed
-    if alpha_fixed is not None and "alpha" in param_names:
-        param_names = tuple(p for p in param_names if p != "alpha")
-        # Set alpha in init to fixed value
-        init = FRBParams(**{**init.__dict__, "alpha": alpha_fixed})
+    if beta_fixed is None and alpha_fixed is not None:
+        beta_fixed = beta_from_alpha_thin_screen(alpha_fixed)
+
+    # Remove beta from param list if fixed
+    if beta_fixed is not None and "beta" in param_names:
+        param_names = tuple(p for p in param_names if p != "beta")
+        init = FRBParams(**{**init.__dict__, "beta": beta_fixed})
     
     ndim = len(param_names)
     
@@ -375,8 +385,8 @@ def fit_single_model_nested(
     # Build callable functions
     prior_transform = _build_prior_transform(priors, param_names)
     log_likelihood = _build_log_likelihood(
-        model, model_key, param_names, alpha_prior, tau_prior, likelihood_kind, student_nu,
-        fixed_params={"alpha": alpha_fixed} if alpha_fixed is not None and "alpha" in _PARAM_KEYS[model_key] else None
+        model, model_key, param_names, beta_prior, alpha_prior, tau_prior, likelihood_kind, student_nu,
+        fixed_params={"beta": beta_fixed} if beta_fixed is not None and "beta" in _PARAM_KEYS[model_key] else None
     )
     
     # Run nested sampling
@@ -433,7 +443,7 @@ def fit_single_model_nested(
         model_key=model_key,
         nlive=nlive,
         ncall=results.ncall,
-        fixed_params={"alpha": alpha_fixed} if alpha_fixed is not None and "alpha" in _PARAM_KEYS[model_key] else {},
+        fixed_params={"beta": beta_fixed} if beta_fixed is not None and "beta" in _PARAM_KEYS[model_key] else {},
     )
 
 
@@ -444,7 +454,9 @@ def fit_models_evidence(
     model_keys: Sequence[str] = ("M0", "M1", "M2", "M3"),
     nlive: int = 500,
     dlogz: float = 0.1,
+    beta_prior: Optional[Tuple[float, float]] = None,
     alpha_prior: Optional[Tuple[float, float]] = None,
+    beta_fixed: Optional[float] = None,
     alpha_fixed: Optional[float] = None,
     tau_prior: Optional[Tuple[float, float]] = None,
     likelihood_kind: str = "gaussian",
@@ -506,7 +518,9 @@ def fit_models_evidence(
             model_key=key,
             nlive=nlive,
             dlogz=dlogz,
+            beta_prior=beta_prior,
             alpha_prior=alpha_prior,
+            beta_fixed=beta_fixed,
             alpha_fixed=alpha_fixed,
             tau_prior=tau_prior,
             likelihood_kind=likelihood_kind,

@@ -96,7 +96,7 @@ def _make_well_conditioned_case(seed, N, F, T, scale=1.0):
 # `replace(p, c0=1.0, gamma=0.0)` on each, so they must be real FRBParams dataclass
 # instances (and there must be N of them to drive N component calls).
 def _dummy_params_keys(N):
-    p = FRBParams(c0=1.0, t0=0.0, gamma=0.0, zeta=0.1, tau_1ghz=0.1, alpha=4.0)
+    p = FRBParams(c0=1.0, t0=0.0, gamma=0.0, zeta=0.1, tau_1ghz=0.1, beta=4.0)
     return [p] * N, ["M3"] * N
 
 

@@ -1,0 +1,13 @@
+{
+  "generated": "2026-06-29T20:57:25",
+  "figures": [
+    {
+      "file": "survey_coverage_matrix.png",
+      "expectation": "Matrix: rows=sightlines, cols=surveys; color=footprint status; cell number=raw cone hit count."
+    },
+    {
+      "file": "survey_coverage_allsky.png",
+      "expectation": "Five Mollweide panels (NED, GLADE+, DESI DR8 North, SDSS DR12, CLUSTERS) showing exact CDS/Vizier MOC footprints; sightlines overlaid; bottom strip zoom Dec 69-75 deg with labels."
+    }
+  ]
+}

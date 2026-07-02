@@ -424,9 +424,9 @@ def build_unified_records(
         }
 
         # Catalog cluster (m500_msun present): override the galaxy derivation with
-        # a catalog-M200 halo and a beta-model ICM DM. Clusters contribute DM but
-        # negligible scattering (Connor 2023; Lee 2023), so cool-CGM / tau are
-        # zeroed and the stellar-mass ladder is bypassed.
+        # a catalog-M200 halo and an FRB/ModifiedNFW baryon-column DM. Clusters
+        # contribute DM but negligible scattering (Connor 2023; Lee 2023), so
+        # cool-CGM / tau are zeroed and the stellar-mass ladder is bypassed.
         m500_msun = _num(row, "m500_msun")
         if _finite(m500_msun) and m500_msun > 0.0:
             m_halo = config.CLUSTER_M500_TO_M200 * m500_msun
@@ -440,15 +440,7 @@ def build_unified_records(
                 else math.nan
             )
             intersects_rvir = bool(_finite(impact_kpc) and _finite(r_vir) and impact_kpc <= r_vir)
-            r500_kpc = _num(row, "r500_kpc")
-            dm_halo = _or_nan(
-                scat.dm_cluster_beta_model(
-                    m500_msun,
-                    z_gal,
-                    impact_kpc,
-                    r500_kpc=(r500_kpc if _finite(r500_kpc) else None),
-                )
-            )
+            dm_halo = _or_nan(scat.dm_cluster_mnfw_model(m500_msun, z_gal, impact_kpc))
             dm_cool = 0.0
             pred_mgii_wr = math.nan
             cool_fc = cool_fc_lo = cool_fc_hi = 0.0

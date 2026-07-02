@@ -258,7 +258,7 @@ class ClusterEngine(BaseEngine):
 
     Only all-sky cluster catalogs cover the sample's high declination; each
     catalog supplies redshift + M500 (and R500 where available) so the search can
-    apply an r200-relative impact cut and a beta-model ICM dispersion measure.
+    apply an r200-relative impact cut and an mNFW foreground dispersion measure.
     """
 
     def __init__(self, catalogs=None):

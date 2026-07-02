@@ -1,0 +1,13 @@
+{
+  "generated": "2026-06-29",
+  "figures": [
+    {
+      "file": "galaxies_cgm.png",
+      "expectation": "Three panels (phineas/FRB 20230307A, whitney/FRB 20220310F, isha/FRB 20221113A): hot mNFW DM vs b; pink 0.1 R_vir cap; orange sightline marker; halo DM and tau in metadata."
+    },
+    {
+      "file": "clusters_icm.png",
+      "expectation": "Four phineas-field clusters; mNFW hot-baryon DM vs b; R500 dashed; red inside R500, orange outside; DM_cl labels; distant clusters show DM=0 beyond R_vir."
+    }
+  ]
+}

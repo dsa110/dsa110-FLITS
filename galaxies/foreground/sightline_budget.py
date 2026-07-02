@@ -12,6 +12,9 @@ DM budget (pc/cm^3, observer frame):
   DM_cosmic     <DM_cosmic>(z) Macquart relation mean (pure astropy)
   DM_interv     sum over foreground galaxies of mNFW hot + cool CGM columns
   DM_host       residual = DM_obs - the above (host galaxy, observer frame)
+  DM_host_pred  optional FRB-style host halo (mNFW, f_hot=0.55) + ISM (Halpha/ssFR)
+                when host metadata is in galaxies/host/data/hosts.yaml
+  DM_host_unattrib  DM_host (residual) minus DM_host_pred when predictions exist
 
 Scattering budget (ms at 1 GHz):
   tau_obs       measured burst scattering (scat_analysis fit, where available)
@@ -546,12 +549,28 @@ def build_sightline_budget(
     z_is_placeholder = _is_placeholder_z(z_frb)
     dm_cosmic = math.nan if z_is_placeholder else dm_cosmic_macquart(float(z_frb))
     dm_obs_f = _f(dm_obs)
+    dm_host_halo_pred = dm_host_ism_pred = dm_host_pred = dm_host_unattrib = math.nan
+    host_pred_method = "none"
+    try:
+        from galaxies.host.catalog import host_record_for_target
+        from galaxies.host.dm_predict import predict_host_dm
+
+        host_pred = predict_host_dm(host_record_for_target(name))
+        host_pred_method = str(host_pred.get("host_pred_method") or "none")
+        dm_host_halo_pred = _f(host_pred.get("dm_host_halo_pred"))
+        dm_host_ism_pred = _f(host_pred.get("dm_host_ism_pred"))
+        dm_host_pred = _f(host_pred.get("dm_host_pred"))
+    except (ImportError, KeyError, OSError, ValueError):
+        pass
+
     if math.isfinite(dm_obs_f) and not z_is_placeholder:
         base = dm_obs_f - _nz(dm_mw_ism) - dm_mw_halo - dm_cosmic
         dm_host = base - dm_intervening
         dm_host_capped = base - dm_intervening_capped
         dm_host_rest = dm_host * (1.0 + float(z_frb))
         dm_host_rest_capped = dm_host_capped * (1.0 + float(z_frb))
+        if math.isfinite(dm_host_pred):
+            dm_host_unattrib = dm_host_capped - dm_host_pred
     else:
         dm_host = dm_host_capped = dm_host_rest = dm_host_rest_capped = math.nan
 
@@ -602,6 +621,16 @@ def build_sightline_budget(
         "dm_intervening": f"PREDICTED ({intervening_mass_confidence} mass)",
         "dm_intervening_capped": f"PREDICTED ({dm_regime})",
         "dm_host": "RESIDUAL" if math.isfinite(dm_host) else "NOT_AVAILABLE",
+        "dm_host_pred": (
+            f"PREDICTED ({host_pred_method})"
+            if math.isfinite(dm_host_pred)
+            else "NOT_AVAILABLE"
+        ),
+        "dm_host_unattrib": (
+            "RESIDUAL_MINUS_PRED"
+            if math.isfinite(dm_host_unattrib)
+            else "NOT_AVAILABLE"
+        ),
         "tau_obs": (
             f"MEASURED ({tau_obs_quality})"
             if math.isfinite(tau_obs_f)
@@ -640,6 +669,11 @@ def build_sightline_budget(
         "dm_host_capped": dm_host_capped,
         "dm_host_rest": dm_host_rest,
         "dm_host_rest_capped": dm_host_rest_capped,
+        "dm_host_halo_pred": dm_host_halo_pred,
+        "dm_host_ism_pred": dm_host_ism_pred,
+        "dm_host_pred": dm_host_pred,
+        "dm_host_unattrib": dm_host_unattrib,
+        "host_pred_method": host_pred_method,
         "tau_obs_ms": tau_obs_f if math.isfinite(tau_obs_f) else math.nan,
         "tau_obs_err_minus": tau_obs_err_minus,
         "tau_obs_err_plus": tau_obs_err_plus,
@@ -969,10 +1003,16 @@ def main():
     print(f"Wrote {md_path}")
 
     fig = make_budget_figure(df)
-    png_path = os.path.join(results_dir, "sightline_dm_scattering_budget.png")
-    fig.savefig(png_path, dpi=300, bbox_inches="tight")
+    stem = os.path.join(results_dir, "sightline_dm_scattering_budget")
+    for ext, kwargs in (
+        ("png", {"dpi": 300}),
+        ("pdf", {}),
+        ("svg", {}),
+    ):
+        path = f"{stem}.{ext}"
+        fig.savefig(path, bbox_inches="tight", **kwargs)
+        print(f"Wrote {path}")
     plt.close(fig)
-    print(f"Wrote {png_path}")
 
 
 if __name__ == "__main__":

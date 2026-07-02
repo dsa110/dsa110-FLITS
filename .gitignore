@@ -377,3 +377,8 @@ cython_debug/
 
 #Ignore windsurf AI rules
 .windsurfrules
+
+# machine-local data symlinks (~/Data pattern; see DATA_LOCATIONS.md)
+/scintillation/data
+/galaxies/foreground/data/survey_footprints
+/analysis/scattering-refit-2026-06/local_runs/runtime

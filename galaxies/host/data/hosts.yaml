@@ -1,0 +1,10 @@
+# Optional host-galaxy observables for predictive DM (not required for residual budget).
+# Redshifts default from galaxies.foreground.config.TARGETS when omitted.
+# Populate log10_mstar / H-alpha / R_eff from host follow-up (e.g. Sharma+2024).
+#
+# Example (phineas — fill from host paper when available):
+#   phineas:
+#     log10_mstar: 10.5
+#     source: "Sharma+2024 Table ..."
+
+hosts: {}

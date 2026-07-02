@@ -1,0 +1,89 @@
+{
+  "dirtyState": [
+    {
+      "repo": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS",
+      "taskScoped": [
+        "docs/rse/specs/reproducibility-foreground-galaxies.md",
+        "galaxies/foreground/build_unified.py",
+        "galaxies/foreground/engines_extra.py",
+        "galaxies/foreground/scattering_predict.py",
+        "galaxies/foreground/search.py",
+        "galaxies/foreground/test_build_unified.py",
+        "galaxies/foreground/test_scattering_predict.py",
+        "galaxies/v2_0/systems_figures.py",
+        "results/sightline_dm_scattering_budget.md"
+      ],
+      "preExistingUnrelated": [
+        "docs/entire-tracing-checkpoints.md",
+        "matplotlibrc"
+      ],
+      "adjacentFollowup": [],
+      "generatedOrCache": [
+        "analysis/scattering-refit-2026-06/local_runs/runtime",
+        "galaxies/foreground/data/sightline_attribution_matrix.csv",
+        "galaxies/foreground/data/tau_consistency_catalog.csv",
+        "scratch/repro-foreground-grand-figures/"
+      ],
+      "sensitiveOrConfig": [],
+      "unknown": [],
+      "blocksCommit": true,
+      "nextQuestion": "Before committing, decide whether to include the pre-existing/generated foreground outputs and prior matplotlib/checkpoint changes with this mNFW change or split them.",
+      "residualActions": [
+        {
+          "paths": [
+            "docs/entire-tracing-checkpoints.md",
+            "matplotlibrc",
+            "galaxies/foreground/data/sightline_attribution_matrix.csv",
+            "galaxies/foreground/data/tau_consistency_catalog.csv",
+            "analysis/scattering-refit-2026-06/local_runs/runtime",
+            "scratch/repro-foreground-grand-figures/"
+          ],
+          "action": "review-then-split-or-include",
+          "rationale": "These paths were already dirty or contain generated/provenance drift beyond the narrow cluster mNFW code switch.",
+          "nextStep": "Inspect the diffs before any commit; keep generated outputs only if the commit is meant to include the broader foreground regeneration state."
+        }
+      ]
+    },
+    {
+      "repo": "/Users/jakobfaber/Developer/overleaf/Faber2026",
+      "taskScoped": [
+        "figures/clusters_icm.pdf",
+        "figures/clusters_icm.png",
+        "figures/clusters_icm.svg",
+        "sections/budget.tex"
+      ],
+      "preExistingUnrelated": [
+        ".remember/",
+        "codetections_polarization/",
+        "pipeline"
+      ],
+      "adjacentFollowup": [],
+      "generatedOrCache": [],
+      "sensitiveOrConfig": [],
+      "unknown": [],
+      "blocksCommit": true,
+      "nextQuestion": "Before committing the manuscript repo, preserve or separately handle the pre-existing .remember, codetections_polarization, and pipeline changes.",
+      "residualActions": [
+        {
+          "paths": [
+            ".remember/",
+            "codetections_polarization/",
+            "pipeline"
+          ],
+          "action": "preserve-separate-lane",
+          "rationale": "These paths were not part of the mNFW cluster figure/text update.",
+          "nextStep": "Do not include them in a task-scoped commit unless separately reviewed."
+        }
+      ]
+    }
+  ],
+  "runtimeRestart": {
+    "runtimeImpact": false,
+    "affectedTargets": [],
+    "actionTaken": "not-needed",
+    "verification": [
+      "No long-running runtime or service config changed; tests and manuscript compile ran in one-shot commands."
+    ],
+    "remainingQuestion": null
+  }
+}

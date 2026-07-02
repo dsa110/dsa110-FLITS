@@ -19,6 +19,9 @@ def test_dm_halo_mnfw_is_positive_decreasing_and_handles_edges():
     assert sp.dm_halo_mnfw(m_halo_msun=1e12, z_gal=0.1, impact_kpc=5000.0) == 0.0
     assert sp.dm_halo_mnfw(m_halo_msun=None, z_gal=0.1, impact_kpc=50.0) is None
     assert sp.dm_halo_mnfw(m_halo_msun=-1e12, z_gal=0.1, impact_kpc=50.0) is None
+    assert dm_mid == pytest.approx(
+        sp.dm_mnfw_projected(1e12, 0.1, 50.0, f_hot=0.75, y0=2.0), rel=1e-9
+    )
 
 
 def test_dm_cool_scales_with_covering_fraction_and_mgii():
@@ -177,49 +180,36 @@ def test_r_delta_kpc_matches_overdensity_definition():
     assert math.isnan(sp.r_delta_kpc(-1.0, z, 200))
 
 
-def test_dm_cluster_beta_model_matches_analytic_projection_untruncated():
-    # For a huge truncation the LOS quadrature must match the closed-form Abel
-    # projection of the beta-model: Sigma(b) = ne0 rc sqrt(pi) Gamma(3b/2-1/2)/
-    # Gamma(3b/2) [1+(b/rc)^2]^((1-3b)/2). This isolates the quadrature.
+def test_dm_mnfw_projected_matches_frb_reference_value():
+    # Independent reference from the local FRBs/FRB ModifiedNFW implementation
+    # for log_Mhalo=14, z=0.25, alpha=2, y0=2, f_hot=0.75, c=7.67, Rperp=100 kpc.
+    dm = sp.dm_mnfw_projected(1.0e14, 0.25, 100.0)
+    assert dm == pytest.approx(350.87500100524943, rel=5e-4)
+
+
+def test_dm_cluster_mnfw_model_zero_beyond_truncation():
+    m500, z = 5.0e14, 0.25
+    m200 = sp.CLUSTER_M500_TO_M200 * m500
+    rvir = sp._frb_mnfw_rvir_kpc(m200, z)
+    assert sp.dm_cluster_mnfw_model(m500, z, rvir + 1.0) == 0.0
+    assert sp.dm_cluster_mnfw_model(-1.0, z, 100.0) == 0.0
+
+
+def test_cluster_mnfw_uses_frb_virial_truncation_not_r200_over_r500():
     m500, z = 5.0e14, 0.25
     r500 = sp.r_delta_kpc(m500, z, 500)
-    beta, rc, b = 0.65, 0.15 * r500, 0.05 * r500
-    dm = sp.dm_cluster_beta_model(
-        m500,
-        z,
-        b,
-        r500_kpc=r500,
-        beta=beta,
-        rc_over_r500=0.15,
-        f_gas=0.13,
-        r_trunc_factor=1000.0,
-    )
-    ne0 = sp._beta_ne0_cm3(m500, z, r500, beta, rc, f_gas=0.13)
-    sigma_kpc_cm3 = (
-        ne0
-        * rc
-        * math.sqrt(math.pi)
-        * math.gamma(1.5 * beta - 0.5)
-        / math.gamma(1.5 * beta)
-        * (1.0 + (b / rc) ** 2) ** (0.5 - 1.5 * beta)
-    )
-    dm_analytic = sigma_kpc_cm3 * 1000.0 / (1.0 + z)
-    assert abs(dm - dm_analytic) / dm_analytic < 0.01
+    rvir_mnfw = sp._frb_mnfw_rvir_kpc(sp.CLUSTER_M500_TO_M200 * m500, z)
+
+    assert rvir_mnfw / r500 > sp.CLUSTER_R200_OVER_R500
+    assert sp.dm_cluster_mnfw_model(m500, z, 1.55 * r500) > 0.0
 
 
-def test_dm_cluster_beta_model_zero_beyond_truncation():
+def test_dm_cluster_mnfw_model_monotonic_and_linear_in_fhot():
     m500, z = 5.0e14, 0.25
-    r500 = sp.r_delta_kpc(m500, z, 500)
-    assert sp.dm_cluster_beta_model(m500, z, 1.48 * r500 + 1.0) == 0.0  # default trunc = 1.48 R500
-    assert sp.dm_cluster_beta_model(-1.0, z, 100.0) == 0.0
-
-
-def test_dm_cluster_beta_model_monotonic_and_linear_in_fgas():
-    m500, z = 5.0e14, 0.25
-    r500 = sp.r_delta_kpc(m500, z, 500)
-    near = sp.dm_cluster_beta_model(m500, z, 0.1 * r500)
-    far = sp.dm_cluster_beta_model(m500, z, 0.6 * r500)
+    rvir = sp._frb_mnfw_rvir_kpc(sp.CLUSTER_M500_TO_M200 * m500, z)
+    near = sp.dm_cluster_mnfw_model(m500, z, 0.1 * rvir)
+    far = sp.dm_cluster_mnfw_model(m500, z, 0.6 * rvir)
     assert near > far > 0.0
-    d1 = sp.dm_cluster_beta_model(m500, z, 0.2 * r500, f_gas=0.10)
-    d2 = sp.dm_cluster_beta_model(m500, z, 0.2 * r500, f_gas=0.20)
-    assert abs(d2 / d1 - 2.0) < 1e-6  # DM linear in gas fraction
+    d1 = sp.dm_cluster_mnfw_model(m500, z, 0.2 * rvir, f_hot=0.10)
+    d2 = sp.dm_cluster_mnfw_model(m500, z, 0.2 * rvir, f_hot=0.20)
+    assert abs(d2 / d1 - 2.0) < 1e-6  # DM linear in hot-baryon fraction

@@ -61,6 +61,12 @@ rsync -av <user>@<arc-or-lxd>:/arc/home/jfaber/.../DSA_bursts/ ~/Data/Faber2026/
 export DATA_DIR=~/Data/Faber2026/dsa110/DSA_bursts
 ```
 
+**Moved 2026-06-30** from `~/Developer/dsa110-local-data/DSA_bursts/` to
+`~/Data/Faber2026/dsa110/DSA_bursts/` (the machine-wide canonical location for
+Faber2026 project data). `data/dsa/` and `data/chime/` in this repo, and
+`overleaf/Faber2026/pipeline/data/{dsa,chime}/`, are now symlinks into that
+location — no code changes needed, relative paths still resolve.
+
 Keep any local replica **out of git** (`*.npy` is already ignored; a top-level
 `/Data/Faber2026/dsa110/` or `/data/` replica stays untracked). Do **not** use
 OneDrive/iCloud for the raw `.npy` — arc is the durable source; pull a local
@@ -84,7 +90,7 @@ Surfaced while building the manifest. CHIME configs are clean; DSA needs care:
 - **OPEN: stored scintillation does not reproduce from the current arc files +
   committed joint fits** (investigated 2026-06-22; root cause NOT yet isolated —
   do not trust a one-line explanation). All 24 arc spectra were fetched to
-  `~/Data/Faber2026/dsa110/DSA_bursts/` and load with correct shapes
+  `~/Data/Faber2026/dsa110/DSA_bursts/` (formerly `~/Developer/dsa110-local-data/DSA_bursts/`, moved 2026-06-30) and load with correct shapes
   (DSA `(6144, 2500)`, CHIME `(1024, 32000)`). Re-running the scint chain
   (`gain_ladder.py` → `multiscale_fit.py`) on those files using the committed
   `joint_json/*_joint_fit.json` reproduces the stored Δν for **freya CHIME**

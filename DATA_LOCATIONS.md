@@ -81,7 +81,7 @@ Verify: `rclone about gdrive-jakob:` · `rclone lsd gdrive-jakob:Research/`
 |------|------|------|
 | **arc** | `arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/DSA_bursts` | CANFAR primary (~2.9G) |
 | **arc** | `.../CHIME_bursts` | Separate namespace from iacobus burst_npys |
-| **jakob-mbp** | `~/Data/Faber2026/dsa110/DSA_bursts` | Offline replica (gap-synced Phase 3) |
+| **jakob-mbp** | `~/Data/Faber2026/dsa110/DSA_bursts` | Offline replica (gap-synced Phase 3; moved from `~/Developer/dsa110-local-data/DSA_bursts` 2026-06-30 — see `DATA_SOURCES.md`) |
 
 ## Compute workspace (h17)
 

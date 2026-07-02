@@ -1,10 +1,48 @@
 {
-  "directory": "results",
-  "generated": "2026-06-27",
-  "figures": [
-    {
-      "file": "sightline_dm_scattering_budget.png",
-      "expectation": "Two-panel budget figure: left DM stacks vs observed bars for 12 co-detections; right log-scattering panel with orange predicted-intervening circles and black diamond measured τ for citable-roster all-exp joint fits (9 sightlines: Tier A/B + whitney), x marks only when τ withheld."
-    }
-  ]
+  "generated": "2026-06-29",
+  "sightline_dm_scattering_budget.png": {
+    "source": "results/sightline_dm_scattering_budget.png",
+    "dest": "sightline_dm_scattering_budget.png",
+    "section": "sections/results.tex",
+    "caption": "Per-sightline dispersion and scattering budget (Figure~\\ref{fig:budget}).",
+    "expectation": "Two-panel budget figure: left DM stacks vs observed bars for 12 co-detections; right log-scattering panel with orange predicted-intervening circles and black diamond measured tau for citable-roster all-exp joint fits, x marks only when tau withheld."
+  },
+  "sightline_dm_scattering_budget.pdf": {
+    "source": "results/sightline_dm_scattering_budget.pdf",
+    "dest": "sightline_dm_scattering_budget.pdf"
+  },
+  "sightline_dm_scattering_budget.svg": {
+    "source": "results/sightline_dm_scattering_budget.svg",
+    "dest": "sightline_dm_scattering_budget.svg"
+  },
+  "galaxies_cgm.pdf": {
+    "source": "scratch/repro-foreground-figures/galaxies_cgm.pdf",
+    "dest": "galaxies_cgm.pdf",
+    "section": "sections/budget.tex",
+    "caption": "Dominant intervening galaxies: mNFW CGM vs sightline impact (Figure~\\ref{fig:galaxies_cgm}).",
+    "expectation": "Three panels (phineas, whitney, isha): hot mNFW DM vs impact parameter, 0.1 R_vir cap band, orange sightline marker, metadata box with b/R_vir class."
+  },
+  "galaxies_cgm.png": {
+    "source": "scratch/repro-foreground-figures/galaxies_cgm.png",
+    "dest": "galaxies_cgm.png"
+  },
+  "galaxies_cgm.svg": {
+    "source": "scratch/repro-foreground-figures/galaxies_cgm.svg",
+    "dest": "galaxies_cgm.svg"
+  },
+  "clusters_icm.pdf": {
+    "source": "scratch/repro-foreground-figures/clusters_icm.pdf",
+    "dest": "clusters_icm.pdf",
+    "section": "sections/budget.tex",
+    "caption": "Foreground clusters of FRB 20230307A: mNFW baryon column vs impact (Figure~\\ref{fig:clusters_icm}).",
+    "expectation": "Four cluster panels for phineas field; red/orange sightline markers; DM_cl annotated; outer clusters beyond R_vir show DM=0."
+  },
+  "clusters_icm.png": {
+    "source": "scratch/repro-foreground-figures/clusters_icm.png",
+    "dest": "clusters_icm.png"
+  },
+  "clusters_icm.svg": {
+    "source": "scratch/repro-foreground-figures/clusters_icm.svg",
+    "dest": "clusters_icm.svg"
+  }
 }

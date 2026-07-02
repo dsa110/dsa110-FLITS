@@ -1,0 +1,16 @@
+{
+  "reviewed": "2026-06-29",
+  "reviewed_by": "cursor-agent",
+  "verdicts": [
+    {
+      "path": "galaxies_cgm.png",
+      "verdict": "match",
+      "notes": "phineas CGM grazer b=1057 kpc DM 195; whitney interior b=5.4 kpc capped 55; isha grazer b=16 kpc DM 38; cap bands and orange markers correct."
+    },
+    {
+      "path": "clusters_icm.png",
+      "verdict": "match",
+      "notes": "J115120 inside R500 DM=162; J115128 outside DM=95; two outer clusters beyond R_vir with DM=0; R500 and sightline colors match legend."
+    }
+  ]
+}

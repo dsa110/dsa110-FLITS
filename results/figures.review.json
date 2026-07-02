@@ -1,10 +1,11 @@
 {
-  "reviewed": "2026-06-27",
+  "reviewed": "2026-06-29T12:30:00",
+  "reviewed_by": "cursor-agent",
   "figures": [
     {
       "file": "sightline_dm_scattering_budget.png",
       "verdict": "match",
-      "notes": "Right panel shows 9 black diamonds with error bars (Tier A/B + whitney: zach, whitney, oran, wilhelm, phineas, freya, chromatica, casey, johndoeII). Excluded bursts (isha, hamilton, mahi) and placeholder-z sightlines have no measured overlay. Measured tau generally exceeds predicted intervening as expected."
+      "notes": "12 sightlines; stacked DM left with black observed bars; right log-tau with yellow predicted-intervening circles and black diamonds on citable fits; placeholder-z rows lack cosmic/host stack; FRB 20230814B raw-interv annotation present."
     }
   ]
 }

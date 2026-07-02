@@ -270,9 +270,9 @@ def test_unified_background_two_phase_tau_is_nan():
     assert r["cgm_extractable_flags"]["tau_scat"] == "NOT_PREDICTABLE"
 
 
-def test_cluster_row_uses_catalog_mass_and_beta_model_dm():
+def test_cluster_row_uses_catalog_mass_and_mnfw_dm():
     # A catalog cluster bypasses the stellar-mass ladder: M_halo = 1.3*M500,
-    # dm_halo from the beta-model ICM, and dm_cool / tau zeroed (DM not scattering).
+    # dm_halo from the mNFW baryon column, and dm_cool / tau zeroed (DM not scattering).
     matches = pd.DataFrame(
         {
             "ra": [312.5],
@@ -290,8 +290,8 @@ def test_cluster_row_uses_catalog_mass_and_beta_model_dm():
     m200 = 1.3 * 5.0e14
     assert abs(row["M_halo"] - m200) / m200 < 1e-9  # catalog mass, not stellar-derived
     assert row["mass_source"] == "cluster_catalog"
-    dm_ref = scat.dm_cluster_beta_model(5.0e14, 0.10, 800.0, r500_kpc=1300.0)
-    assert abs(row["dm_halo"] - dm_ref) / dm_ref < 1e-9  # beta-model, not mNFW
+    dm_ref = scat.dm_cluster_mnfw_model(5.0e14, 0.10, 800.0)
+    assert abs(row["dm_halo"] - dm_ref) / dm_ref < 1e-9
     assert row["dm_cool"] == 0.0  # no cool-CGM phase for clusters
     assert row["pred_tau_scat_ms_1GHz"] == 0.0  # clusters negligible scatterers
 

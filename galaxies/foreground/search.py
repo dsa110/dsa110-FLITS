@@ -30,6 +30,12 @@ from .config import (
 )
 from .engines import VizierEngine, query_ps1_gi_mags
 from .engines_extra import ClusterEngine, DesiDr1Engine, NedTapEngine
+from .survey_coverage import (
+    classify_coverage,
+    engine_survey_key,
+    survey_in_footprint,
+    write_survey_coverage_csv,
+)
 from .utils import calculate_impact_parameter, get_angular_radius, parse_coord
 
 PHOTO_Z_ERROR_COLUMNS = ("z_phot_err", "e_zphot", "z_best_err")
@@ -304,10 +310,11 @@ def run_search(
         engines.append(DesiDr1Engine())
     if ENABLE_CLUSTER_ENGINE:
         # All-sky cluster catalogs (PSZ2 + MCXC/MCXC-II) supply M500/R500 so the
-        # r200-relative impact cut and beta-model ICM DM have catalog masses.
+        # r200-relative impact cut and mNFW foreground DM have catalog masses.
         engines.append(ClusterEngine())
 
     summary_data = []
+    coverage_rows: list[dict] = []
 
     for i, (name, ra_str, dec_str, z_frb) in enumerate(TARGETS):
         print(f"Processing {name} (Target {i + 1}): {ra_str}, {dec_str} (z={z_frb})")
@@ -322,6 +329,8 @@ def run_search(
 
         target_matches = []
         for engine in engines:
+            survey_key = engine_survey_key(engine)
+            in_fp = survey_in_footprint(survey_key, coord)
             df = engine.query(coord, radius)
             engine_name = engine.__class__.__name__
             if isinstance(engine, VizierEngine):
@@ -332,6 +341,10 @@ def run_search(
                         cat_label = k
                         break
                 engine_name = f"VizierEngine({cat_label})"
+
+            raw_count = len(df) if not df.empty else 0
+            with_z_count = 0
+            foreground_count = 0
 
             if not df.empty:
                 print(f"    {engine_name} returned {len(df)} raw results.")
@@ -353,27 +366,47 @@ def run_search(
                     with_z_count = len(df)
                     if df.empty:
                         print(f"      {engine_name}: 0/{raw_count} results have redshifts.")
-                        continue
-
-                    df["impact_kpc"] = df.apply(
-                        lambda row: calculate_impact_parameter(
-                            row["ra"], row["dec"], row["z"], coord.ra.deg, coord.dec.deg
-                        ),
-                        axis=1,
-                    )
-                    # Filter for foreground (with buffer) and impact parameter.
-                    df_filtered = df[
-                        _foreground_mask(df, z_frb, z_eps, impact_kpc, cluster_impact_kpc)
-                    ]
-                    if not df_filtered.empty:
-                        target_matches.append(df_filtered)
-                        print(
-                            f"      {engine_name}: Found {len(df_filtered)} matches (from {with_z_count} with z)."
-                        )
                     else:
-                        print(f"      {engine_name}: 0 matches (from {with_z_count} with z).")
+                        df["impact_kpc"] = df.apply(
+                            lambda row: calculate_impact_parameter(
+                                row["ra"], row["dec"], row["z"], coord.ra.deg, coord.dec.deg
+                            ),
+                            axis=1,
+                        )
+                        df_filtered = df[
+                            _foreground_mask(df, z_frb, z_eps, impact_kpc, cluster_impact_kpc)
+                        ]
+                        if not df_filtered.empty:
+                            target_matches.append(df_filtered)
+                            foreground_count = len(df_filtered)
+                            print(
+                                f"      {engine_name}: Found {foreground_count} matches (from {with_z_count} with z)."
+                            )
+                        else:
+                            print(f"      {engine_name}: 0 matches (from {with_z_count} with z).")
             else:
                 print(f"    {engine_name} returned 0 results.")
+
+            coverage_rows.append(
+                {
+                    "nickname": name,
+                    "ra": ra_str,
+                    "dec": dec_str,
+                    "z_frb": z_frb,
+                    "survey": survey_key,
+                    "engine": engine_name,
+                    "in_footprint": in_fp,
+                    "queried": True,
+                    "raw_count": raw_count,
+                    "with_z_count": with_z_count,
+                    "foreground_count": foreground_count,
+                    "status": classify_coverage(
+                        in_footprint=in_fp,
+                        raw_count=raw_count,
+                        foreground_count=foreground_count,
+                    ),
+                }
+            )
 
         if target_matches:
             all_matches = pd.concat(target_matches, ignore_index=True)
@@ -416,7 +449,9 @@ def run_search(
     summary_df = pd.DataFrame(summary_data)
     summary_path = os.path.abspath(os.path.join(output_dir, "search_summary.csv"))
     summary_df.to_csv(summary_path, index=False)
+    coverage_path = write_survey_coverage_csv(coverage_rows, output_dir)
     print(f"\nSearch complete. Summary saved to {summary_path}")
+    print(f"Survey coverage log saved to {coverage_path}")
 
 
 if __name__ == "__main__":

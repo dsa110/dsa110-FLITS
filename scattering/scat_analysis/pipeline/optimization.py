@@ -5,10 +5,12 @@ from __future__ import annotations
 
 import logging
 import warnings
+
 import numpy as np
 from scipy.optimize import minimize
 
 from ..burstfit import FRBParams, gelman_rubin
+from ..turbulence import BETA_THIN_SCREEN_MAX, BETA_THIN_SCREEN_MIN
 
 log = logging.getLogger(__name__)
 
@@ -16,28 +18,31 @@ def refine_initial_guess_mle(model, init_guess: FRBParams) -> FRBParams:
     """
     Use MLE (Nelder-Mead) to refine the initial guess before MCMC.
 
-    Optimizes primarily for tau_1ghz, alpha, t0, and c0.
-    Keeps nuisance parameters (gamma, delta_dm) fixed or tightly constrained.
+    Optimizes primarily for tau_1ghz, beta, t0, and c0 (alpha is derived from
+    beta; docs/adr/0006). Keeps nuisance parameters (gamma, delta_dm) fixed or
+    tightly constrained.
     """
     log.info("Refining initial guess via MLE (Nelder-Mead)...")
 
-    # Parameters to float: [tau, alpha, t0, c0]
-    # We work in log-space for positive params to ensure positivity
+    # Parameters to float: [tau, beta, t0, c0]
+    # We work in log-space for positive params to ensure positivity.
+    # NOTE: this used to float alpha and build FRBParams(alpha=...), which has
+    # been a TypeError since the beta co-model landed -- the broad except below
+    # swallowed it, silently disabling MLE refinement on every run.
     x0 = [
         np.log(max(init_guess.tau_1ghz, 1e-4)),  # log tau
-        init_guess.alpha,  # alpha (linear)
+        init_guess.beta,  # beta (linear)
         init_guess.t0,  # t0 (linear)
         np.log(max(init_guess.c0, 1e-4)),  # log c0
     ]
 
     def obj_func(theta):
-        ln_tau, alpha, t0, ln_c0 = theta
+        ln_tau, beta, t0, ln_c0 = theta
 
-        # Constraints
-        # Reasonable alpha bounds: allow up to 8 (steep/unresolved cases), not
-        # just the thin-screen Kolmogorov value ~4 (carried over from the
-        # monolith burstfit_pipeline at migration; see commit history).
-        if not (0.1 < alpha < 8.0):
+        # Thin-screen integrable range for the beta-coupled PBF. The old
+        # 0.1 < alpha < 8 box predates the co-model: alpha is now derived
+        # (alpha >= 4 on this branch; an exponential PBF is exactly beta = 4).
+        if not (BETA_THIN_SCREEN_MIN < beta <= BETA_THIN_SCREEN_MAX):
             return 1e20
 
         tau_val = np.exp(ln_tau)
@@ -50,7 +55,7 @@ def refine_initial_guess_mle(model, init_guess: FRBParams) -> FRBParams:
             gamma=init_guess.gamma,  # Fixed
             zeta=init_guess.zeta,  # Fixed
             tau_1ghz=tau_val,
-            alpha=alpha,
+            beta=beta,
             delta_dm=init_guess.delta_dm,  # Fixed
         )
 
@@ -67,21 +72,24 @@ def refine_initial_guess_mle(model, init_guess: FRBParams) -> FRBParams:
         if res.success or res.message:
             log.info(f"MLE Refinement finished: {res.message}")
 
-            ln_tau, alpha, t0, ln_c0 = res.x
+            ln_tau, beta, t0, ln_c0 = res.x
             refined_params = FRBParams(
                 c0=np.exp(ln_c0),
                 t0=t0,
                 gamma=init_guess.gamma,
                 zeta=init_guess.zeta,
                 tau_1ghz=np.exp(ln_tau),
-                alpha=alpha,
+                beta=beta,
                 delta_dm=init_guess.delta_dm,
             )
 
             log.info(
                 f"  tau:   {init_guess.tau_1ghz:.3f} -> {refined_params.tau_1ghz:.3f} ms"
             )
-            log.info(f"  alpha: {init_guess.alpha:.3f} -> {refined_params.alpha:.3f}")
+            log.info(
+                f"  beta:  {init_guess.beta:.3f} -> {refined_params.beta:.3f} "
+                f"(derived alpha {init_guess.alpha:.3f} -> {refined_params.alpha:.3f})"
+            )
             log.info(f"  t0:    {init_guess.t0:.3f} -> {refined_params.t0:.3f} ms")
             return refined_params
         else:

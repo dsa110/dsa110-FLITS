@@ -65,6 +65,14 @@ def beta_bounds_from_alpha_bounds(
     requires beta > 4 (extended-medium physics) and is not mapped here.
     """
     lo_a, hi_a = float(alpha_bounds[0]), float(alpha_bounds[1])
+    if lo_a == hi_a:
+        # Degenerate window = fixed alpha. alpha >= 4 pins the corresponding
+        # beta; alpha < 4 is unreachable on this branch and pins the
+        # exponential limit beta = 4 (an exponential PBF is uniquely the
+        # beta = 4 member, so fixed-alpha=4/EMG requests must NOT silently
+        # widen to the full range -- docs/adr/0006 rationale addendum).
+        b = beta_from_alpha_thin_screen(lo_a) if lo_a >= 4.0 else BETA_THIN_SCREEN_MAX
+        return (b, b)
     # Higher alpha -> lower beta; clamp to the integrable PBF regime.
     beta_lo = beta_from_alpha_thin_screen(max(hi_a, 4.0 + 1e-6))
     beta_hi = beta_from_alpha_thin_screen(max(lo_a, 4.0))

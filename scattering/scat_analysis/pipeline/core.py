@@ -24,6 +24,11 @@ from ..burstfit import (
 )
 from ..burstfit_modelselect import fit_models_bic
 from ..burstfit_nested import fit_models_evidence
+from ..turbulence import (
+    BETA_THIN_SCREEN_MAX,
+    beta_bounds_from_alpha_bounds,
+    beta_from_alpha_thin_screen,
+)
 from ..config_utils import load_telescope_block
 from ..pool_utils import build_pool
 from flits.utils.reporting import print_fit_summary
@@ -33,6 +38,42 @@ from .optimization import refine_initial_guess_mle, auto_burn_thin
 from .diagnostics import BurstDiagnostics, create_fit_summary_plot, create_four_panel_plot
 
 log = logging.getLogger(__name__)
+
+
+def _beta_from_legacy_alpha(alpha: float) -> float:
+    """Thin-screen beta for a legacy alpha value; alpha < 4 is unreachable on
+    that branch and clamps to the exponential limit beta = 4 (an exponential
+    PBF is uniquely beta = 4 -- docs/adr/0006 rationale addendum)."""
+    alpha = float(alpha)
+    return beta_from_alpha_thin_screen(alpha) if alpha >= 4.0 else BETA_THIN_SCREEN_MAX
+
+
+def _seed_beta(d: dict) -> float:
+    """beta from a seed dict; accepts 'beta' directly or translates legacy
+    'alpha' via _beta_from_legacy_alpha (FRBParams no longer has an alpha
+    field -- alpha is derived from beta)."""
+    if "beta" in d:
+        return float(d["beta"])
+    return _beta_from_legacy_alpha(d.get("alpha", 22.0 / 5.0))
+
+
+def _beta_controls(alpha_fixed, alpha_mu, alpha_sigma):
+    """Translate the legacy alpha-space knobs to the sampled-beta surface.
+
+    Returns (beta_bounds, alpha_prior): a degenerate (b, b) pin when
+    alpha_fixed is set (alpha_prior None -- fixing is the box's job, not a
+    Gaussian's), else beta bounds mapped from the alpha_mu +/- 6 sigma window
+    with the Gaussian alpha-space prior passed through (converted downstream
+    with the dbeta/dalpha Jacobian)."""
+    if alpha_fixed is not None:
+        b = _beta_from_legacy_alpha(alpha_fixed)
+        return (b, b), None
+    lo_a = max(0.1, float(alpha_mu) - 6.0 * float(alpha_sigma))
+    hi_a = float(alpha_mu) + 6.0 * float(alpha_sigma)
+    return beta_bounds_from_alpha_bounds((lo_a, hi_a)), (
+        float(alpha_mu),
+        float(alpha_sigma),
+    )
 
 
 def build_safe_results(results: Dict[str, Any]) -> Dict[str, Any]:
@@ -150,7 +191,7 @@ class BurstPipeline:
                         gamma=float(seed.get("gamma", -1.6)),
                         zeta=float(seed.get("zeta", 0.1)),
                         tau_1ghz=float(seed.get("tau_1ghz", 0.1)),
-                        alpha=float(seed.get("alpha", 4.4)),
+                        beta=_seed_beta(seed),
                         delta_dm=float(seed.get("delta_dm", 0.0)),
                     )
                 elif mk == "M3_multi":
@@ -159,7 +200,7 @@ class BurstPipeline:
                     d: dict[str, float] = {}
                     d["gamma"] = float(shared.get("gamma", -1.6))
                     d["tau_1ghz"] = float(shared.get("tau_1ghz", 0.1))
-                    d["alpha"] = float(shared.get("alpha", 4.4))
+                    d["beta"] = _seed_beta(shared)
                     d["delta_dm"] = float(shared.get("delta_dm", 0.0))
                     for i, c in enumerate(comp, start=1):
                         d[f"c0_{i}"] = float(c.get("c0", 1.0))
@@ -318,18 +359,18 @@ class BurstPipeline:
 
                 else:
                     log.info("Starting model selection scan (BIC)...")
+                    beta_bounds, alpha_prior = _beta_controls(
+                        alpha_fixed, alpha_mu, alpha_sigma
+                    )
                     best_key, all_res = fit_models_bic(
                         model=self.dataset.model,
                         init=init_guess,
                         n_steps=n_steps // 2,
                         pool=pool,
                         model_keys=model_keys,
+                        beta_bounds=beta_bounds,
                         sample_log_params=sample_log_params,
-                        alpha_prior=(
-                            (alpha_mu, alpha_sigma)
-                            if alpha_fixed is None
-                            else (alpha_fixed, None)
-                        ),
+                        alpha_prior=alpha_prior,
                         likelihood_kind=likelihood_kind,
                         student_nu=studentt_nu,
                         walker_width_frac=self.pipeline_kwargs.get(
@@ -398,15 +439,12 @@ class BurstPipeline:
                 # give generous bounds to the two broadening params
                 priors["tau_1ghz"] = (1e-6, 5e4)  # ms
                 priors["zeta"] = (1e-6, 5e4)  # ms
-                # alpha prior bounds
-                if alpha_fixed is not None:
-                    priors["alpha"] = (float(alpha_fixed), float(alpha_fixed))
-                    alpha_prior = (float(alpha_fixed), None)
-                else:
-                    lo_a = max(0.1, float(alpha_mu) - 6.0 * float(alpha_sigma))
-                    hi_a = float(alpha_mu) + 6.0 * float(alpha_sigma)
-                    priors["alpha"] = (lo_a, hi_a)
-                    alpha_prior = (float(alpha_mu), float(alpha_sigma))
+                # The sampled index is beta; legacy alpha knobs are translated
+                # (fixed alpha pins beta via the box; the Gaussian alpha prior
+                # is Jacobian-converted downstream in apply_physical_priors).
+                priors["beta"], alpha_prior = _beta_controls(
+                    alpha_fixed, alpha_mu, alpha_sigma
+                )
                 # delta_dm bounds (top-hat prior)
                 dm_w = float(delta_dm_sigma)
                 priors["delta_dm"] = (-3.0 * dm_w, 3.0 * dm_w)
@@ -426,8 +464,8 @@ class BurstPipeline:
                     ),
                 )
 
-                # UPDATED: Unpack tuple return (sampler, diagnostics)
-                sampler, mcmc_diag = fitter.sample(init_guess, model_key=best_key)
+                sampler = fitter.sample(init_guess, model_key=best_key)
+                mcmc_diag = None
             else:
                 # Multi-component with shared PBF
                 K = ncomp
@@ -455,15 +493,11 @@ class BurstPipeline:
                         if k in ("gamma", "tau_1ghz")
                     }
                 )
-                # alpha, delta_dm
-                if alpha_fixed is not None:
-                    priors["alpha"] = (float(alpha_fixed), float(alpha_fixed))
-                    alpha_prior = (float(alpha_fixed), None)
-                else:
-                    lo_a = max(0.1, float(alpha_mu) - 6.0 * float(alpha_sigma))
-                    hi_a = float(alpha_mu) + 6.0 * float(alpha_sigma)
-                    priors["alpha"] = (lo_a, hi_a)
-                    alpha_prior = (float(alpha_mu), float(alpha_sigma))
+                # beta (shared turbulence index; "beta" is in the M3_multi
+                # order, so it MUST have a prior entry), delta_dm
+                priors["beta"], alpha_prior = _beta_controls(
+                    alpha_fixed, alpha_mu, alpha_sigma
+                )
                 dm_w = float(delta_dm_sigma)
                 priors["delta_dm"] = (-3.0 * dm_w, 3.0 * dm_w)
 
@@ -493,8 +527,8 @@ class BurstPipeline:
                 )
                 names = fitter.build_multicomp_order(K)
 
-                # UPDATED: Unpack tuple return (sampler, diagnostics)
-                sampler, mcmc_diag = fitter.sample(init_multi, model_key="M3_multi")
+                sampler = fitter.sample(init_multi, model_key="M3_multi")
+                mcmc_diag = None
                 best_key = "M3_multi"
 
             if sampler is not None:

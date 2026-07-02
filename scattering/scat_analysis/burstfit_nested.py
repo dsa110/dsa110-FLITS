@@ -230,7 +230,17 @@ class _LogLikelihood:
         self.beta_prior = beta_prior
         if self.beta_prior is None and alpha_prior is not None:
             mu_a, sigma_a = alpha_prior
-            self.beta_prior = (beta_from_alpha_thin_screen(mu_a), sigma_a)
+            if sigma_a is None or sigma_a <= 0.0:
+                # (mu, None) encodes "fixed alpha"; fixing is handled by
+                # fixed_params / the prior transform, not a Gaussian factor.
+                self.beta_prior = None
+            else:
+                # Jacobian-convert the width: sigma_beta = sigma_alpha *
+                # 4/(alpha-2)^2 (same transform as apply_physical_priors).
+                self.beta_prior = (
+                    beta_from_alpha_thin_screen(mu_a),
+                    sigma_a * 4.0 / (mu_a - 2.0) ** 2,
+                )
         self.tau_prior = tau_prior
         self.likelihood_kind = likelihood_kind
         self.student_nu = student_nu

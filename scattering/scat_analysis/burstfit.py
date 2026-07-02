@@ -20,7 +20,6 @@ Public API
 from __future__ import annotations
 
 import logging
-import os
 from collections.abc import Sequence
 from dataclasses import asdict, dataclass, replace
 from typing import Any
@@ -652,13 +651,11 @@ class FRBModel:
             raise ValueError("time axis must be uniform")
         self.dt = self.time[1] - self.time[0]
 
-        # PBF selection (env-driven so it threads through multiprocessing pools and
-        # the prepare()/fit call stack without signature changes). "exp" (default) =
-        # thin-screen exponential; "powerlaw" = thin-screen power-law-spectrum PBF
-        # with a heavy t^{-beta/2} tail (Cordes 2025 §11.2). FLITS_PBF_BETA is the
-        # density wavenumber-spectrum index beta (Kolmogorov = 11/3 -> tail -11/6).
-        self.pbf = os.environ.get("FLITS_PBF", "exp").lower()
-        self.pbf_beta = float(os.environ.get("FLITS_PBF_BETA", str(11.0 / 3.0)))
+        # NOTE: the pre-ADR-0006 FLITS_PBF / FLITS_PBF_BETA env selector is gone.
+        # The PBF family is coupled to the sampled turbulence index: __call__
+        # dispatches on p.beta alone (exp at beta -> 4, power-law tail below),
+        # per docs/adr/0006 and its rationale addendum (an exponential PBF is
+        # uniquely beta = 4, hence alpha = 4).
 
         if noise_std is None and self.data is not None:
             self.noise_std = self._estimate_noise(off_pulse)
@@ -1218,9 +1215,12 @@ class FRBFitter:
             if c in ["M2", "M3"]:
                 order.append(f"tau_1ghz_{idx}")
 
-            # Scattering index (M3 only - M2 has fixed alpha)
+            # Turbulence index (M3 only - M2 stays at the Kolmogorov default).
+            # Must be named beta_{idx}: the mixed likelihood reads get_p("beta")
+            # per component; a legacy alpha_{idx} entry was sampled but never
+            # read (fell back to Kolmogorov), silently ignoring the index.
             if c == "M3":
-                order.append(f"alpha_{idx}")
+                order.append(f"beta_{idx}")
 
         self.custom_order["mixed"] = tuple(order)
         return self.custom_order["mixed"]
@@ -1332,7 +1332,19 @@ def apply_physical_priors(
     """
     if beta_prior is None and alpha_prior is not None:
         mu_a, sigma_a = alpha_prior
-        beta_prior = (beta_from_alpha_thin_screen(mu_a), sigma_a)
+        if sigma_a is None or sigma_a <= 0.0:
+            # "Fixed alpha" callers encode it as (mu, None); fixing belongs to
+            # the box prior / prior transform, not a Gaussian factor.
+            beta_prior = None
+        else:
+            # Transform the width too: sigma_beta = sigma_alpha * |dbeta/dalpha|
+            # = sigma_alpha * 4/(alpha-2)^2, else an alpha-space intent lands
+            # ~44% too wide in beta at alpha = 4.4 (EMG/alpha=4 rationale,
+            # docs/adr/0006 addendum).
+            beta_prior = (
+                beta_from_alpha_thin_screen(mu_a),
+                sigma_a * 4.0 / (mu_a - 2.0) ** 2,
+            )
 
     for name, val in zip(names, theta):
         # Log-normal prior on tau_1ghz (scattering timescale)

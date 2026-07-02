@@ -77,6 +77,7 @@ def fit_models_bic(
     model_keys: Sequence[str] = ("M0", "M1", "M2", "M3"),
     n_steps: int = 1500,
     pool=None,
+    beta_bounds: tuple[float, float] | None = None,
     **fitter_kwargs
 ) -> tuple[str, dict[str, tuple["emcee.EnsembleSampler", float, float]]]:
 
@@ -90,6 +91,11 @@ def fit_models_bic(
     full_priors, use_logw = build_priors(
         init, scale=6.0, log_weight_pos=True
     )
+    if beta_bounds is not None:
+        # Caller-pinned/translated turbulence-index box (e.g. a legacy
+        # alpha_fixed request maps to a degenerate (b, b) pin; an exponential
+        # PBF is exactly beta = 4 -- docs/adr/0006 rationale addendum).
+        full_priors["beta"] = (float(beta_bounds[0]), float(beta_bounds[1]))
 
     for key in model_keys:
         # 2. keep only the params relevant for this model

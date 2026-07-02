@@ -8,6 +8,10 @@ pulse-broadening function shape and the frequency-scaling index follow from beta
     PBF tail ~ t^{-beta/2}  (via gaussian_powerlaw_convolution)
 
 At beta -> 4 the power-law PBF reduces to the thin-screen exponential (alpha = 4).
+The converse also holds and matters for fit design: an exponential PBF (an EMG
+burst model) is uniquely the beta = 4 member of this family, so adopting it
+commits the fit to alpha = 4 by definition — see the rationale addendum in
+docs/adr/0006-beta-coherent-scattering-comodel.md.
 """
 
 from __future__ import annotations

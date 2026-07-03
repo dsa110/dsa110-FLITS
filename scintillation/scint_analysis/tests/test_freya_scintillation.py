@@ -98,6 +98,23 @@ def test_masked_channels_are_excluded_from_bandwidth_estimates():
     assert polluted_structure.structure_function == pytest.approx(clean_structure.structure_function)
 
 
+def test_structure_bandwidth_requires_valid_pairs_per_lag():
+    spectrum = np.linspace(1.0, 2.0, 96)
+    mask = np.ones(spectrum.size, dtype=bool)
+    mask[::4] = False
+
+    estimate = estimate_structure_bandwidth(
+        np.ma.masked_array(spectrum, mask=mask),
+        channel_width_mhz=0.02,
+    )
+
+    assert estimate.structure_function[0] == pytest.approx(0.0)
+    assert np.isnan(estimate.structure_function[1])
+    assert np.isnan(estimate.structure_function[2])
+    assert np.isnan(estimate.structure_function[3])
+    assert np.isfinite(estimate.structure_function[4])
+
+
 def test_structure_bandwidth_returns_channel_scaled_half_power_estimate():
     spectrum, channel_width_mhz = _synthetic_scintillating_spectrum()
 

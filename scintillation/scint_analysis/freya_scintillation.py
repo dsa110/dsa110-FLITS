@@ -40,9 +40,9 @@ class ACFBandwidthResult:
     fit_lag_mhz: float
     max_lag_mhz: float
     message: str
-    lags_mhz: list[float]
-    acf: list[float]
-    acf_model: list[float]
+    lags_mhz: list[float | None]
+    acf: list[float | None]
+    acf_model: list[float | None]
 
 
 @dataclass(frozen=True)
@@ -51,8 +51,8 @@ class StructureBandwidthResult:
     delta_nu_mhz: float
     lag_index: int
     channel_width_mhz: float
-    frequency_lags_mhz: list[float]
-    structure_function: list[float]
+    frequency_lags_mhz: list[float | None]
+    structure_function: list[float | None]
 
 
 @dataclass(frozen=True)
@@ -81,8 +81,8 @@ def _lorentzian_with_baseline(lag_mhz, amplitude, gamma_mhz, baseline):
     return amplitude / (1.0 + (lag_mhz / gamma_mhz) ** 2) + baseline
 
 
-def _finite_float_list(values: np.ndarray) -> list[float]:
-    return [float(v) for v in np.asarray(values, dtype=float)]
+def _finite_float_list(values: np.ndarray) -> list[float | None]:
+    return [float(v) if np.isfinite(v) else None for v in np.asarray(values, dtype=float)]
 
 
 def _normalise_spectrum(spectrum: np.ndarray | np.ma.MaskedArray) -> tuple[np.ma.MaskedArray, float]:
@@ -393,7 +393,9 @@ def run_notebook_style_analysis(
         figures=result.figures,
         result_path=str(result_path),
     )
-    result_path.write_text(json.dumps(to_jsonable(result), indent=2, cls=NumpyJSONEncoder) + "\n")
+    result_path.write_text(
+        json.dumps(to_jsonable(result), indent=2, cls=NumpyJSONEncoder, allow_nan=False) + "\n"
+    )
     return result
 
 
@@ -571,7 +573,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
     result = run_config_path(args.config, output_dir=args.out, write_figures=not args.no_figures)
-    print(json.dumps(to_jsonable(result), indent=2, cls=NumpyJSONEncoder))
+    print(json.dumps(to_jsonable(result), indent=2, cls=NumpyJSONEncoder, allow_nan=False))
     return 0 if result.acf.success else 1
 
 

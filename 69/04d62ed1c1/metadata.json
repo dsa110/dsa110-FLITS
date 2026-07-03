@@ -1,0 +1,25 @@
+{
+  "cli_version": "0.7.7",
+  "checkpoint_id": "6904d62ed1c1",
+  "strategy": "manual-commit",
+  "branch": "feat/105-route-a-crosscheck",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "docs/entire-tracing-checkpoints.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/69/04d62ed1c1/0/metadata.json",
+      "transcript": "/69/04d62ed1c1/0/full.jsonl",
+      "content_hash": "/69/04d62ed1c1/0/content_hash.txt",
+      "prompt": "/69/04d62ed1c1/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 86658,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 634880,
+    "output_tokens": 8107,
+    "api_call_count": 16
+  }
+}

@@ -22,6 +22,11 @@ from .core import ACF, DynamicSpectrum
 
 log = logging.getLogger(__name__)
 
+# Relative tolerance for declaring a fitted Lorentzian width pinned at a
+# curve_fit bound; TRF converges asymptotically close to, not exactly on, a
+# bound, so an equality test would miss real boundary hits.
+_GAMMA_BOUND_REL_TOL = 0.01
+
 
 @dataclass(frozen=True)
 class FigureRecord:
@@ -192,8 +197,49 @@ def measure_scintillation_bandwidth(
         )
 
     model = _lorentzian_with_baseline(lags, *popt)
-    perr = np.sqrt(np.diag(pcov)) if np.all(np.isfinite(pcov)) else np.full(3, np.nan)
     gamma = float(abs(popt[1]))
+    if not np.all(np.isfinite(pcov)):
+        # A non-finite covariance means curve_fit could not characterise the
+        # minimum; the width is uninformative and must not read as a measurement.
+        return _failed_fit_result(
+            acf_obj,
+            modulation_index,
+            channel_width_mhz,
+            fit_lag_mhz,
+            max_lag_mhz,
+            f"uninformative fit: non-finite covariance (gamma={gamma:.4g} MHz)",
+            acf_model=_finite_float_list(model),
+        )
+    # gamma is hard-bounded to [0.25*channel_width, fit_lag_mhz] in curve_fit; a
+    # solution pinned at either bound is a limit, not a measurement (freya's
+    # config has fit_lagrange_mhz=25 while stored fits include a ~259 MHz wide
+    # component, so the upper-bound case is realistic).
+    gamma_lower_mhz = 0.25 * channel_width_mhz
+    if gamma >= (1.0 - _GAMMA_BOUND_REL_TOL) * fit_lag_mhz:
+        return _failed_fit_result(
+            acf_obj,
+            modulation_index,
+            channel_width_mhz,
+            fit_lag_mhz,
+            max_lag_mhz,
+            f"gamma at fit-range upper bound (gamma={gamma:.4g} MHz, "
+            f"fit_lag_mhz={fit_lag_mhz:.4g}): treat as a lower limit on Delta nu_d, "
+            "not a measurement; widen fit_lag_mhz to resolve",
+            acf_model=_finite_float_list(model),
+        )
+    if gamma <= (1.0 + _GAMMA_BOUND_REL_TOL) * gamma_lower_mhz:
+        return _failed_fit_result(
+            acf_obj,
+            modulation_index,
+            channel_width_mhz,
+            fit_lag_mhz,
+            max_lag_mhz,
+            f"gamma at lower bound (gamma={gamma:.4g} MHz, "
+            f"0.25*channel_width={gamma_lower_mhz:.4g}): bandwidth unresolved "
+            "by channelization",
+            acf_model=_finite_float_list(model),
+        )
+    perr = np.sqrt(np.diag(pcov))
     gamma_err = float(perr[1]) if np.isfinite(perr[1]) else None
 
     return ACFBandwidthResult(
@@ -218,6 +264,7 @@ def _failed_fit_result(
     fit_lag_mhz: float,
     max_lag_mhz: float,
     message: str,
+    acf_model: list[float | None] | None = None,
 ) -> ACFBandwidthResult:
     return ACFBandwidthResult(
         success=False,
@@ -230,7 +277,7 @@ def _failed_fit_result(
         message=message,
         lags_mhz=_finite_float_list(np.asarray(acf_obj.lags, dtype=float)),
         acf=_finite_float_list(np.asarray(acf_obj.acf, dtype=float)),
-        acf_model=[],
+        acf_model=acf_model if acf_model is not None else [],
     )
 
 
@@ -321,12 +368,18 @@ def prepare_spectrum_from_config(
     burst_lims, off_lims = determine_windows(masked, cfg)
 
     baseline_cfg = cfg.get("analysis", {}).get("baseline_subtraction", {})
-    if baseline_cfg.get("enable", False) and off_lims and off_lims[1] > off_lims[0] + 2:
-        off_spec = masked.get_spectrum(off_lims)
-        masked, _baseline = masked.subtract_poly_baseline(
-            off_spec,
-            poly_order=int(baseline_cfg.get("poly_order", 1)),
-        )
+    if baseline_cfg.get("enable", False):
+        # Same off-pulse validity guard as pipeline.py (>50 bins): a polynomial
+        # fit to a handful of bins models noise, not bandpass, and would be
+        # subtracted silently.
+        if off_lims and off_lims[1] > off_lims[0] + 50:
+            off_spec = masked.get_spectrum(off_lims)
+            masked, _baseline = masked.subtract_poly_baseline(
+                off_spec,
+                poly_order=int(baseline_cfg.get("poly_order", 1)),
+            )
+        else:
+            log.warning("Not enough off-pulse data to model baseline. Skipping subtraction.")
     return masked, burst_lims, off_lims
 
 

@@ -1,0 +1,101 @@
+{
+  "burst": "freya",
+  "tns": "FRB 20230325A",
+  "model": "beta_coupled_thin_screen_powerlaw_pbf",
+  "coupling": "full_pbf_beta",
+  "closure": "alpha = 2*beta/(beta-2)  (thin-screen inertial range)",
+  "data_source": "real_freya_npy",
+  "setup": "C1D1 shared-zeta(nu); theta=[tau,beta,zeta1,x_zeta,t0_C,ddm_C,t0_D,ddm_D]",
+  "pbf": {
+    "C": "powerlaw",
+    "D": "powerlaw",
+    "beta_is_sampled": true
+  },
+  "beta_prior": [
+    3.0,
+    3.95
+  ],
+  "alpha_implied_by_beta_prior": [
+    4.051282051282051,
+    6.0
+  ],
+  "median": {
+    "tau_1ghz": {
+      "median": 0.11442280683382958,
+      "err_minus": 0.0011135529679298234,
+      "err_plus": 0.0010993199210888177
+    },
+    "beta": {
+      "median": 3.6833784050554392,
+      "err_minus": 0.012484041174799732,
+      "err_plus": 0.013597469027281317
+    },
+    "zeta_1ghz": {
+      "median": 0.08549576300657165,
+      "err_minus": 0.0005339254087936146,
+      "err_plus": 0.0005898197977110414
+    },
+    "x_zeta": {
+      "median": -0.749998118215359,
+      "err_minus": 0.020225329975033013,
+      "err_plus": 0.018475216518924364
+    },
+    "t0_C": {
+      "median": 17.258032322927313,
+      "err_minus": 0.000933004921485292,
+      "err_plus": 0.0010235154021174253
+    },
+    "delta_dm_C": {
+      "median": 0.012121427781638498,
+      "err_minus": 0.0004524812914785143,
+      "err_plus": 0.0004559331276421455
+    },
+    "t0_D": {
+      "median": 7.935111057833002,
+      "err_minus": 0.0012708190011485598,
+      "err_plus": 0.0013127196879958447
+    },
+    "delta_dm_D": {
+      "median": 0.08683311770451563,
+      "err_minus": 0.0036311259197615853,
+      "err_plus": 0.0036450616212570786
+    }
+  },
+  "alpha_derived": {
+    "median": 4.3761740010370795,
+    "note": "derived from sampled beta via closure; NOT independently fit"
+  },
+  "goodness_of_fit": {
+    "chime": {
+      "red_chi2": 1.178272490697326,
+      "r2": 0.8912366456172423,
+      "durbin_watson": 1.26541041001209,
+      "n_chan": 58,
+      "dof": 33866
+    },
+    "dsa": {
+      "red_chi2": 1.0324193050044381,
+      "r2": 0.8040705542263846,
+      "durbin_watson": 1.4134501374765762,
+      "n_chan": 16,
+      "dof": 7530
+    }
+  },
+  "validation": {
+    "verdict": "PASS",
+    "fails": [],
+    "marginals": [],
+    "notes": [
+      "[C] durbin_watson=1.27 [informational]",
+      "[D] durbin_watson=1.41 [informational]"
+    ]
+  },
+  "diagnostics": [
+    "freya_beta_poc_diag_chime_real.png",
+    "freya_beta_poc_diag_dsa_real.png"
+  ],
+  "log_evidence": -24127.213045255656,
+  "log_evidence_err": 0.8585331488994105,
+  "ncall": 189458,
+  "limitation": "Full self-consistency restricts the power-law PBF to beta<4, so this closure yields alpha>=4 only (alpha=4 at beta=4). A burst with empirical alpha<4 (e.g. casey ~3.9) cannot be a thin-screen power-law screen under this mapping -- it is NOT a sub-Kolmogorov (smaller) beta. The deprecated exp-era fit *suggested* alpha~4.35 for freya (maps to beta~3.70, inside the valid range); whether that survives under the beta co-model is the hypothesis the real-data fit tests."
+}

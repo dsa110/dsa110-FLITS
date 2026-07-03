@@ -1,0 +1,52 @@
+{
+  "provenance": {
+    "artifact_a": "/Users/jakobfaber/Developer/scratch/worktrees/flits-105/analysis/beta_poc/freya/freya_beta_poc_fit_real.json",
+    "artifact_b": "/Users/jakobfaber/Developer/scratch/worktrees/flits-105/analysis/scattering-refit-2026-06/local_runs/freya_joint_samples_sharedzeta.npz"
+  },
+  "thresholds": {
+    "shift_sigma_max": 2.0,
+    "width_ratio_max": 2.0,
+    "incompatible_sigma": 5.0
+  },
+  "params": {
+    "beta": {
+      "median_a": 3.6833784050554392,
+      "median_b": 3.6837290326515806,
+      "shift_sigma": 0.01891462662689795,
+      "width_ratio": 0.989832048821464,
+      "overlap_fraction": 0.981839310324412,
+      "verdict": "agree"
+    },
+    "tau_1ghz": {
+      "median_a": 0.11442280683382958,
+      "median_b": 0.11438887516966528,
+      "shift_sigma": 0.021567805412005762,
+      "width_ratio": 0.9892586553529741,
+      "overlap_fraction": 0.987689255317071,
+      "verdict": "agree"
+    },
+    "zeta_1ghz": {
+      "median_a": 0.08549576300657165,
+      "median_b": 0.08554910759549651,
+      "shift_sigma": 0.06725994474715122,
+      "width_ratio": 1.0037858658497851,
+      "overlap_fraction": 0.9740286493206012,
+      "verdict": "agree"
+    },
+    "x_zeta": {
+      "median_a": -0.749998118215359,
+      "median_b": -0.7516126095982955,
+      "shift_sigma": 0.05978720706705057,
+      "width_ratio": 1.0273230682823742,
+      "overlap_fraction": 0.9988476638123246,
+      "verdict": "agree"
+    }
+  },
+  "verdict": "agree",
+  "issue": "dsa110-FLITS#105",
+  "routes": {
+    "a": "BetaCoupledLogL POC harness (run_beta_poc.py --real, seed-pinned)",
+    "b": "_JointLogLikelihoodGainSharedZeta production driver (run_joint_fit.py --shared-zeta)"
+  },
+  "stop_condition_triggered": false
+}

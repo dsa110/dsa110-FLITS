@@ -1,7 +1,17 @@
 {
   "reviewed": "2026-07-03",
-  "campaign": "beta POC diagnostics (synthetic_injection)",
+  "campaign": "beta POC diagnostics (synthetic_injection + real_freya_npy)",
   "figures": [
+    {
+      "file": "freya_beta_poc_diag_chime_real.png",
+      "verdict": "match",
+      "notes": "Real freya CHIME: model overlays band-summed data through the full scattering-tail decay (~17-25 ms); red_chi2=1.18, dw=1.27, beta=3.683 on panel (red_chi2 matches Route B's PPC 1.18). Honest blemishes: one ~-3sigma residual excursion at the peak (~17.5 ms) and Q-Q tail scatter beyond +/-3sigma (extreme quantiles reach ~+6/-7); bulk hugs y=x. On-pulse fine structure at band-summed scale, consistent with dw<1.5; #111 validation PASS with no marginals."
+    },
+    {
+      "file": "freya_beta_poc_diag_dsa_real.png",
+      "verdict": "match",
+      "notes": "Real freya DSA: near-unresolved ~0.3 ms pulse cleanly overlaid; red_chi2=1.03, dw=1.41, beta=3.683 on panel (matches Route B PPC 1.03); residuals structureless across the 31 ms window; Q-Q hugs y=x with a single ~-5sigma extreme point."
+    },
     {
       "file": "freya_beta_poc_diag_chime.png",
       "verdict": "match",

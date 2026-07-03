@@ -11,7 +11,8 @@ _test_dir = Path(__file__).parent
 sys.path.insert(0, str(_test_dir.parent.parent.parent))  # FLITS root
 sys.path.insert(0, str(_test_dir.parent.parent))  # scintillation dir
 
-from scint_analysis.core import DynamicSpectrum  # noqa: E402
+from scint_analysis import freya_scintillation  # noqa: E402
+from scint_analysis.core import ACF, DynamicSpectrum  # noqa: E402
 from scint_analysis.freya_scintillation import (  # noqa: E402
     estimate_structure_bandwidth,
     measure_scintillation_bandwidth,
@@ -142,6 +143,154 @@ def test_structure_bandwidth_returns_channel_scaled_half_power_estimate():
     assert estimate.method == "half_power"
     assert estimate.lag_index > 0
     assert len(estimate.structure_function) == spectrum.size
+
+
+def _lorentzian_acf_object(
+    gamma_true_mhz: float,
+    channel_width_mhz: float = 0.02,
+    max_lag_mhz: float = 2.0,
+    noise_rms: float = 0.005,
+) -> ACF:
+    nlag = int(max_lag_mhz / channel_width_mhz)
+    lags = np.arange(-nlag, nlag + 1, dtype=float) * channel_width_mhz
+    acf = 0.8 / (1.0 + (lags / gamma_true_mhz) ** 2) + 0.05
+    acf = acf + np.random.default_rng(41).normal(0.0, noise_rms, lags.size)
+    err = np.full(lags.size, 0.02)
+    return ACF(acf, lags, err)
+
+
+def test_lorentzian_fit_recovers_known_width_within_tolerance(monkeypatch):
+    gamma_true_mhz = 0.4
+    channel_width_mhz = 0.02
+    acf_obj = _lorentzian_acf_object(gamma_true_mhz, channel_width_mhz)
+    monkeypatch.setattr(freya_scintillation, "calculate_acf", lambda *a, **k: acf_obj)
+
+    result = measure_scintillation_bandwidth(
+        np.full(512, 100.0),
+        channel_width_mhz=channel_width_mhz,
+        max_lag_mhz=2.0,
+        fit_lag_mhz=1.5,
+    )
+
+    assert result.success
+    assert result.message == "ok"
+    assert result.delta_nu_mhz == pytest.approx(gamma_true_mhz, rel=0.02)
+    assert result.delta_nu_err_mhz is not None
+
+
+def test_boundary_pinned_width_is_reported_as_failed_fit(monkeypatch):
+    # True width far beyond the fit range: gamma rails at the fit_lag_mhz bound
+    # and must not be emitted as a measured bandwidth (issue #118).
+    channel_width_mhz = 0.02
+    acf_obj = _lorentzian_acf_object(5.0, channel_width_mhz, max_lag_mhz=2.0)
+    monkeypatch.setattr(freya_scintillation, "calculate_acf", lambda *a, **k: acf_obj)
+
+    result = measure_scintillation_bandwidth(
+        np.full(512, 100.0),
+        channel_width_mhz=channel_width_mhz,
+        max_lag_mhz=2.0,
+        fit_lag_mhz=1.0,
+    )
+
+    assert not result.success
+    assert result.delta_nu_mhz is None
+    assert result.delta_nu_err_mhz is None
+    assert "upper bound" in result.message
+    assert "lower limit" in result.message
+    assert result.acf_model
+
+
+def test_lower_bound_pinned_width_is_reported_as_failed_fit(monkeypatch):
+    # Deterministic branch pin: a solver solution at the 0.25*channel_width
+    # lower bound is unresolved by channelization, not a measurement.
+    channel_width_mhz = 0.02
+    acf_obj = _lorentzian_acf_object(0.4, channel_width_mhz)
+    monkeypatch.setattr(freya_scintillation, "calculate_acf", lambda *a, **k: acf_obj)
+    monkeypatch.setattr(
+        freya_scintillation,
+        "curve_fit",
+        lambda *a, **k: (np.array([0.8, 0.25 * channel_width_mhz, 0.05]), np.eye(3) * 1e-6),
+    )
+
+    result = measure_scintillation_bandwidth(
+        np.full(512, 100.0),
+        channel_width_mhz=channel_width_mhz,
+        max_lag_mhz=2.0,
+        fit_lag_mhz=1.5,
+    )
+
+    assert not result.success
+    assert result.delta_nu_mhz is None
+    assert "lower bound" in result.message
+    assert "channelization" in result.message
+
+
+def test_nonfinite_covariance_is_reported_as_failed_fit(monkeypatch):
+    channel_width_mhz = 0.02
+    acf_obj = _lorentzian_acf_object(0.4, channel_width_mhz)
+    monkeypatch.setattr(freya_scintillation, "calculate_acf", lambda *a, **k: acf_obj)
+    monkeypatch.setattr(
+        freya_scintillation,
+        "curve_fit",
+        lambda *a, **k: (np.array([0.8, 0.4, 0.05]), np.full((3, 3), np.nan)),
+    )
+
+    result = measure_scintillation_bandwidth(
+        np.full(512, 100.0),
+        channel_width_mhz=channel_width_mhz,
+        max_lag_mhz=2.0,
+        fit_lag_mhz=1.5,
+    )
+
+    assert not result.success
+    assert result.delta_nu_mhz is None
+    assert "non-finite covariance" in result.message
+
+
+def _baseline_guard_cfg(noise_window: list[int]) -> dict:
+    return {
+        "input_data_path": "unused.npz",
+        "pipeline_options": {"downsample": {"f_factor": 1, "t_factor": 1}},
+        "analysis": {
+            "rfi_masking": {
+                "manual_burst_window": [40, 56],
+                "manual_noise_window": noise_window,
+            },
+            "baseline_subtraction": {"enable": True, "poly_order": 1},
+        },
+    }
+
+
+@pytest.mark.parametrize(
+    ("noise_window", "expect_subtraction"),
+    # 50/51 pin the exact pipeline.py:178 edge (`> off_pulse_lims[0] + 50`).
+    [([0, 30], False), ([0, 50], False), ([0, 51], True), ([0, 90], True)],
+)
+def test_baseline_subtraction_requires_pipeline_scale_off_window(
+    monkeypatch, noise_window, expect_subtraction
+):
+    # Guard must match pipeline.py: >50 off-pulse bins, else skip with a warning.
+    calls: list[int] = []
+
+    def spy_subtract(self, off_pulse_spectrum, poly_order=1):
+        calls.append(poly_order)
+        return self, None
+
+    monkeypatch.setattr(
+        DynamicSpectrum,
+        "from_numpy_file",
+        classmethod(lambda cls, path: _synthetic_dynamic_spectrum()),
+    )
+    monkeypatch.setattr(DynamicSpectrum, "mask_rfi", lambda self, cfg: self)
+    monkeypatch.setattr(DynamicSpectrum, "subtract_poly_baseline", spy_subtract)
+
+    masked, burst_lims, off_lims = freya_scintillation.prepare_spectrum_from_config(
+        _baseline_guard_cfg(noise_window)
+    )
+
+    assert burst_lims == (40, 56)
+    assert off_lims == (noise_window[0], noise_window[1])
+    assert (len(calls) == 1) is expect_subtraction
 
 
 def test_run_notebook_style_analysis_writes_json_and_figures(tmp_path):

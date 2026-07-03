@@ -85,8 +85,8 @@ def _finite_float_list(values: np.ndarray) -> list[float]:
     return [float(v) for v in np.asarray(values, dtype=float)]
 
 
-def _normalise_spectrum(spectrum: np.ndarray) -> tuple[np.ma.MaskedArray, float]:
-    masked = np.ma.masked_invalid(np.asarray(spectrum, dtype=float))
+def _normalise_spectrum(spectrum: np.ndarray | np.ma.MaskedArray) -> tuple[np.ma.MaskedArray, float]:
+    masked = np.ma.masked_invalid(np.ma.asarray(spectrum, dtype=float))
     if masked.count() == 0:
         raise ValueError("spectrum contains no finite samples")
     median = float(np.ma.median(masked))
@@ -116,7 +116,7 @@ def measure_scintillation_bandwidth(
     if fit_lag_mhz <= channel_width_mhz:
         raise ValueError("fit_lag_mhz must exceed one channel")
 
-    spec, scale = _normalise_spectrum(np.asarray(spectrum, dtype=float))
+    spec, scale = _normalise_spectrum(spectrum)
     normalised_off_mean = (
         None if off_burst_spectrum_mean is None else float(off_burst_spectrum_mean) / scale
     )
@@ -243,7 +243,7 @@ def estimate_structure_bandwidth(
     """Estimate bandwidth from a 1-D second-order structure function."""
     if method != "half_power":
         raise ValueError("only method='half_power' is currently supported")
-    spec, _scale = _normalise_spectrum(np.asarray(spectrum, dtype=float))
+    spec, _scale = _normalise_spectrum(spectrum)
     spec = spec.filled(np.nan)
     finite = np.isfinite(spec)
     if finite.sum() < 20:
@@ -257,6 +257,7 @@ def estimate_structure_bandwidth(
     padded[:n] = spec
     spec_fft = np.fft.fft(padded)
     autocorr = np.real(np.fft.ifft(spec_fft * np.conj(spec_fft)))[:n]
+    autocorr = autocorr / np.arange(n, 0, -1, dtype=float)
     structure = 2.0 * (autocorr[0] - autocorr)
     tail = structure[int(0.8 * n) :]
     d_inf = float(np.nanmedian(tail)) if tail.size else float(np.nanmax(structure))

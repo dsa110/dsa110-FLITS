@@ -1,0 +1,24 @@
+{
+  "cli_version": "0.7.7",
+  "checkpoint_id": "96bcfffd27eb",
+  "strategy": "manual-commit",
+  "branch": "feat/104-freya-joint-production-fit",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "analysis/scattering-refit-2026-06/joint_ppc.py",
+    "analysis/scattering-refit-2026-06/local_runs/figures.manifest.json",
+    "analysis/scattering-refit-2026-06/local_runs/figures.review.json",
+    "analysis/scattering-refit-2026-06/local_runs/freya_joint_fit_sharedzeta.json",
+    "analysis/scattering-refit-2026-06/local_runs/freya_joint_ppc.json",
+    "analysis/scattering-refit-2026-06/local_runs/freya_joint_ppc.png",
+    "analysis/scattering-refit-2026-06/local_runs/freya_joint_samples_sharedzeta.npz"
+  ],
+  "sessions": [
+    {
+      "metadata": "/96/bcfffd27eb/0/metadata.json",
+      "transcript": "/96/bcfffd27eb/0/full.jsonl",
+      "content_hash": "/96/bcfffd27eb/0/content_hash.txt",
+      "prompt": "/96/bcfffd27eb/0/prompt.txt"
+    }
+  ]
+}

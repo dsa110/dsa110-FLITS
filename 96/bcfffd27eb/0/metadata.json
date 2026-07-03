@@ -1,0 +1,42 @@
+{
+  "cli_version": "0.7.7",
+  "checkpoint_id": "96bcfffd27eb",
+  "session_id": "019f266d-aa46-74d3-9cf1-2a3344fc466b",
+  "strategy": "manual-commit",
+  "created_at": "2026-07-03T05:38:15.599317Z",
+  "branch": "feat/104-freya-joint-production-fit",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "analysis/scattering-refit-2026-06/joint_ppc.py",
+    "analysis/scattering-refit-2026-06/local_runs/figures.manifest.json",
+    "analysis/scattering-refit-2026-06/local_runs/figures.review.json",
+    "analysis/scattering-refit-2026-06/local_runs/freya_joint_fit_sharedzeta.json",
+    "analysis/scattering-refit-2026-06/local_runs/freya_joint_ppc.json",
+    "analysis/scattering-refit-2026-06/local_runs/freya_joint_ppc.png",
+    "analysis/scattering-refit-2026-06/local_runs/freya_joint_samples_sharedzeta.npz"
+  ],
+  "agent": "Codex",
+  "model": "gpt-5.5",
+  "turn_id": "333687b6673a",
+  "initial_attribution": {
+    "calculated_at": "2026-07-03T05:38:15.584067Z",
+    "agent_lines": 133,
+    "agent_removed": 6,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 133,
+    "total_lines_changed": 139,
+    "agent_percentage": 100,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    }
+  ]
+}

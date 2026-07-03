@@ -244,25 +244,31 @@ def estimate_structure_bandwidth(
     if method != "half_power":
         raise ValueError("only method='half_power' is currently supported")
     spec, _scale = _normalise_spectrum(spectrum)
-    spec = spec.filled(np.nan)
-    finite = np.isfinite(spec)
-    if finite.sum() < 20:
+    values = spec.filled(np.nan)
+    valid = np.isfinite(values)
+    if valid.sum() < 20:
         raise ValueError("at least 20 finite spectrum samples are required")
-    fill_value = float(np.nanmedian(spec))
-    spec = np.where(finite, spec, fill_value)
-    spec = spec - np.nanmean(spec)
+    values = values - float(np.nanmean(values[valid]))
 
-    n = spec.size
-    padded = np.zeros(2 * n, dtype=float)
-    padded[:n] = spec
-    spec_fft = np.fft.fft(padded)
-    autocorr = np.real(np.fft.ifft(spec_fft * np.conj(spec_fft)))[:n]
-    autocorr = autocorr / np.arange(n, 0, -1, dtype=float)
-    structure = 2.0 * (autocorr[0] - autocorr)
+    n = values.size
+    structure = np.full(n, np.nan, dtype=float)
+    structure[0] = 0.0
+    for lag_index in range(1, n):
+        pair_valid = valid[:-lag_index] & valid[lag_index:]
+        if np.any(pair_valid):
+            delta = values[lag_index:][pair_valid] - values[:-lag_index][pair_valid]
+            structure[lag_index] = float(np.nanmean(delta**2))
     tail = structure[int(0.8 * n) :]
-    d_inf = float(np.nanmedian(tail)) if tail.size else float(np.nanmax(structure))
+    finite_tail = tail[np.isfinite(tail)]
+    finite_structure = structure[np.isfinite(structure)]
+    if finite_tail.size:
+        d_inf = float(np.nanmedian(finite_tail))
+    elif finite_structure.size:
+        d_inf = float(np.nanmax(finite_structure))
+    else:
+        d_inf = 0.0
     threshold = max(d_inf / 2.0, 0.0)
-    crossing = np.where(structure >= threshold)[0]
+    crossing = np.where(np.isfinite(structure) & (structure >= threshold))[0]
     lag_index = int(crossing[0]) if crossing.size else n - 1
     if lag_index == 0 and crossing.size > 1:
         lag_index = int(crossing[1])

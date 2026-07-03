@@ -1,0 +1,177 @@
+{
+  "issue": "dsa110-FLITS#106",
+  "burst": "freya",
+  "tns": "FRB 20230325A",
+  "model": "beta co-model, shared-zeta(nu) gain-marginal, C1D1 (ADR-0006)",
+  "beta": {
+    "median": 3.683730768027646,
+    "lower": 3.6701519810133134,
+    "upper": 3.696502458093343,
+    "err_minus": 0.013578787014332683,
+    "err_plus": 0.012771690065696895
+  },
+  "alpha_derived": {
+    "median": 4.375676726918565,
+    "err_minus": 0.017884681927659685,
+    "err_plus": 0.019314893887778517
+  },
+  "tau_1ghz": {
+    "median": 0.11438893721867226,
+    "lower": 0.11325771696334412,
+    "upper": 0.11549445832433444,
+    "err_minus": 0.0011312202553281359,
+    "err_plus": 0.0011055211056621855
+  },
+  "log_evidence": [
+    -24144.12468314053,
+    0.5465821605598956
+  ],
+  "unrailed": {
+    "prior": [
+      3.0,
+      4.0
+    ],
+    "sigma_from_lower": 50.35286048053884,
+    "sigma_from_upper": 24.76330308248022,
+    "unrailed": true
+  },
+  "gates": {
+    "ppc_chi2_chime": 1.1762908439802595,
+    "ppc_chi2_dsa": 1.0303682425883574,
+    "level2_pass_band": [
+      0.3,
+      1.5
+    ],
+    "route_a_validation": {
+      "verdict": "PASS",
+      "fails": [],
+      "marginals": [],
+      "notes": [
+        "[C] durbin_watson=1.27 [informational]",
+        "[D] durbin_watson=1.41 [informational]"
+      ]
+    }
+  },
+  "x_zeta_beta_corr": 0.01085137444589403,
+  "a_vs_b": {
+    "verdict": "agree",
+    "params": {
+      "beta": {
+        "median_a": 3.6833784050554392,
+        "median_b": 3.6837290326515806,
+        "shift_sigma": 0.01891462662689795,
+        "width_ratio": 0.989832048821464,
+        "overlap_fraction": 0.981839310324412,
+        "verdict": "agree"
+      },
+      "tau_1ghz": {
+        "median_a": 0.11442280683382958,
+        "median_b": 0.11438887516966528,
+        "shift_sigma": 0.021567805412005762,
+        "width_ratio": 0.9892586553529741,
+        "overlap_fraction": 0.987689255317071,
+        "verdict": "agree"
+      },
+      "zeta_1ghz": {
+        "median_a": 0.08549576300657165,
+        "median_b": 0.08554910759549651,
+        "shift_sigma": 0.06725994474715122,
+        "width_ratio": 1.0037858658497851,
+        "overlap_fraction": 0.9740286493206012,
+        "verdict": "agree"
+      },
+      "x_zeta": {
+        "median_a": -0.749998118215359,
+        "median_b": -0.7516126095982955,
+        "shift_sigma": 0.05978720706705057,
+        "width_ratio": 1.0273230682823742,
+        "overlap_fraction": 0.9988476638123246,
+        "verdict": "agree"
+      }
+    }
+  },
+  "exp_era_comparison": {
+    "comparator": {
+      "provenance": {
+        "artifact_a": "<dict>",
+        "artifact_b": "<dict>"
+      },
+      "thresholds": {
+        "shift_sigma_max": 2.0,
+        "width_ratio_max": 2.0,
+        "incompatible_sigma": 5.0
+      },
+      "params": {
+        "alpha": {
+          "median_a": 4.375676726918565,
+          "median_b": 4.355938198370946,
+          "shift_sigma": 0.4939021763314181,
+          "width_ratio": 0.5258280356138976,
+          "overlap_fraction": 0.8768902950593626,
+          "verdict": "agree"
+        },
+        "tau_1ghz": {
+          "median_a": 0.11438893721867226,
+          "median_b": 0.11859163289550145,
+          "shift_sigma": 1.9922334789099918,
+          "width_ratio": 0.6252463575539422,
+          "overlap_fraction": 0.0,
+          "verdict": "agree"
+        }
+      },
+      "verdict": "agree"
+    },
+    "abs_alpha_shift": 0.019738528547618372,
+    "claim_band": 0.1,
+    "within_claim_band": true,
+    "note": "exp-era value is the deprecated free-alpha+exponential-PBF fit's suggestion -- the hypothesis under test, not citable truth"
+  },
+  "tail_coverage_at_fit": {
+    "efolds": 2.073543577927073,
+    "captured_fraction": 0.8742605761267673,
+    "s_window": 2.9601209302364397,
+    "s_crossover": 3.6886172175771166,
+    "tau_at_fmin_ms": 6.291271334467345,
+    "f_min_ghz": 0.40019,
+    "alpha": 4.375676726918565,
+    "window_span_ms": 18.622923954953325,
+    "min_efolds": 3.0,
+    "passes": false
+  },
+  "caveat": "SENSITIVITY-REGIME CAVEAT (binding): at the fitted candidate the CHIME window captures 2.07 e-folds (87.4%) of the power-law PBF tail, below the 3.0 preflight threshold. Both raw captures are 81.9 ms burst-centered, so widening cannot rescue heavy-tail coverage (max achievable ~2.8 e-folds at the exp-era candidate). The beta measurement is conditional on the truncated window; A-vs-B agreement cannot detect window-induced bias because both routes see the same window.",
+  "provisional_citable_bar": {
+    "unrailed": true,
+    "component_count_confirmed": true,
+    "grade": "PASS",
+    "provisional_citable": true
+  },
+  "beta_row_candidate": {
+    "burst": "freya",
+    "beta": [
+      3.683730768027646,
+      0.013578787014332683,
+      0.012771690065696895
+    ],
+    "alpha_derived": [
+      4.375676726918565,
+      0.017884681927659685,
+      0.019314893887778517
+    ],
+    "tau_1ghz_ms": [
+      0.11438893721867226,
+      0.0011312202553281359,
+      0.0011055211056621855
+    ],
+    "grade": "PASS",
+    "provisional_citable": true
+  },
+  "provenance": {
+    "route_b": "analysis/scattering-refit-2026-06/local_runs/freya_joint_fit_sharedzeta.json",
+    "route_b_samples": "analysis/scattering-refit-2026-06/local_runs/freya_joint_samples_sharedzeta.npz",
+    "route_b_ppc": "analysis/scattering-refit-2026-06/local_runs/freya_joint_ppc_sharedzeta.json",
+    "route_a": "analysis/beta_poc/freya/freya_beta_poc_fit_real.json",
+    "a_vs_b": "analysis/beta_poc/freya/freya_route_a_vs_b.json",
+    "exp_era": "analysis/scattering-refit-2026-06/joint_ladder/freya_joint_fit_sharedzeta.json",
+    "dag": "#99 #100 #101 #102 #103 #104(e09ac78b) #105(b8c8ffe5) -> #106"
+  }
+}

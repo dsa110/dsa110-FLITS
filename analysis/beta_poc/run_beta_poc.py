@@ -147,18 +147,25 @@ def _ptform_factory(t0_C, t0_D):
     return ptform
 
 
-def _goodness(m: FRBModel, tau, z1, x, t0, ddm, beta) -> dict:
-    """Matched-filter reduced chi2 + R^2 + Durbin-Watson at the posterior median."""
+def _matched(m: FRBModel, tau, z1, x, t0, ddm, beta):
+    """Data + per-channel matched-filter gain model at fixed shape params
+    (shared by goodness-of-fit and the diagnostic figures)."""
     zeta_nu = z1 * m.freq**x
     p = FRBParams(c0=1.0, t0=t0, gamma=0.0, zeta=zeta_nu, tau_1ghz=tau, beta=beta, delta_dm=ddm)
     valid = m.valid
     K = m(replace(p, c0=1.0, gamma=0.0), "M3", freq_subset=valid)
     d = m.data[valid]
-    sig = np.clip(m.noise_std[valid], 1e-9, None)
     S_dk = np.einsum("ij,ij->i", d, K)
     S_kk = np.einsum("ij,ij->i", K, K)
     gain = np.where(S_kk > 1e-30, S_dk / np.where(S_kk > 1e-30, S_kk, 1.0), 0.0)
-    resid = d - gain[:, None] * K
+    return d, gain[:, None] * K, valid
+
+
+def _goodness(m: FRBModel, tau, z1, x, t0, ddm, beta) -> dict:
+    """Matched-filter reduced chi2 + R^2 + Durbin-Watson at the posterior median."""
+    d, model, valid = _matched(m, tau, z1, x, t0, ddm, beta)
+    sig = np.clip(m.noise_std[valid], 1e-9, None)
+    resid = d - model
     chi2 = float(np.sum((resid / sig[:, None]) ** 2))
     n_chan = int(valid.sum())
     # dof: data points - per-channel gains (n_chan) - 6 shared shape params
@@ -172,30 +179,106 @@ def _goodness(m: FRBModel, tau, z1, x, t0, ddm, beta) -> dict:
     return {"red_chi2": chi2 / dof, "r2": r2, "durbin_watson": dw, "n_chan": n_chan, "dof": dof}
 
 
-def _validate(med: dict, gof_C: dict, gof_D: dict) -> dict:
-    """3-level PASS/MARGINAL/FAIL per .cursor/rules/AGENT_CONFIGURATION_FLITS.md."""
-    from flits.fitting import VALIDATION_THRESHOLDS as T
+def _diagnostic_figure(m: FRBModel, tau, z1, x, t0, ddm, beta, gof: dict, band: str, path):
+    """Data-vs-model, residual profile, and Q-Q of noise-normalized residuals at
+    the posterior median (the fit-validation contract's diagnostics checklist:
+    data-vs-model + residual + Q-Q + Durbin-Watson, the last in gof -- #111)."""
+    import matplotlib
 
-    fails, marginals = [], []
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    from scipy.special import erfinv
+
+    d, model, valid = _matched(m, tau, z1, x, t0, ddm, beta)
+    sig = np.clip(m.noise_std[valid], 1e-9, None)
+    fig, (ax0, ax1, ax2) = plt.subplots(3, 1, figsize=(8, 8), height_ratios=[3, 1, 2])
+    ax0.plot(m.time, d.sum(axis=0), "k-", lw=0.8, label="data")
+    ax0.plot(m.time, model.sum(axis=0), "r-", lw=1.2, label="model (matched gains)")
+    ax0.set_ylabel("band-summed flux [S/N units]")
+    ax0.legend(frameon=False)
+    ax0.set_title(
+        f"freya {band}: red_chi2={gof['red_chi2']:.2f}, r2={gof['r2']:.3f}, "
+        f"dw={gof['durbin_watson']:.2f}, beta={beta:.3f}"
+    )
+    ax1.plot(m.time, (d - model).sum(axis=0), "k-", lw=0.8)
+    ax1.axhline(0.0, color="r", lw=0.6)
+    ax1.set_xlabel("time [ms]")
+    ax1.set_ylabel("residual")
+    # Q-Q: per-pixel noise-normalized residuals vs standard normal (Hazen positions)
+    r = np.sort(((d - model) / sig[:, None]).ravel())
+    q = (np.arange(r.size) + 0.5) / r.size
+    theo = np.sqrt(2.0) * erfinv(2.0 * q - 1.0)
+    ax2.plot(theo, r, "k.", ms=1, rasterized=True)
+    lim = [theo[0], theo[-1]]
+    ax2.plot(lim, lim, "r-", lw=0.8)
+    ax2.set_xlabel("normal quantiles")
+    ax2.set_ylabel("residual quantiles [sigma]")
+    fig.tight_layout()
+    fig.savefig(path, dpi=150)
+    plt.close(fig)
+
+
+def _validate(med: dict, gof_C: dict, gof_D: dict) -> dict:
+    """3-level PASS/MARGINAL/FAIL. Level 2 delegates to the kernel's
+    classify_fit_quality: chi2_red is the gate; R^2 and Durbin-Watson are
+    informational only (low-S/N rationale in its docstring) -- issue #111."""
+    from flits.fitting import VALIDATION_THRESHOLDS as T
+    from scattering.scat_analysis.burstfit import classify_fit_quality
+
+    fails, marginals, notes = [], [], []
     # Level 1 (hard gates)
     tau, alpha = med["tau_1ghz"], med["alpha"]
     if not (T.WIDTH_MIN / 10 < tau < 100):  # 0.0001 < tau < 100 ms
         fails.append(f"tau_1ghz={tau:.4g} ms outside (1e-4, 100)")
     if not (1.5 < alpha < 6.0):
         fails.append(f"alpha={alpha:.3g} outside (1.5, 6.0)")
-    # Level 2 (quality) -- worst band drives the verdict
+    # Level 2 (quality) -- worst band drives the verdict; chi2_red is the gate
     for tag, g in (("C", gof_C), ("D", gof_D)):
-        rc = g["red_chi2"]
-        if rc > T.CHI_SQ_RED_MARGINAL_MAX or rc < T.CHI_SQ_RED_SUSPICIOUSLY_LOW:
-            fails.append(f"red_chi2[{tag}]={rc:.2f} (fail >3 or <0.3)")
-        elif not (T.CHI_SQ_RED_EXCELLENT_MIN <= rc <= T.CHI_SQ_RED_GOOD_MAX):
-            marginals.append(f"red_chi2[{tag}]={rc:.2f} (good 0.8-1.5)")
-        if g["r2"] < T.R_SQ_GOOD_MIN:
-            marginals.append(f"r2[{tag}]={g['r2']:.3f} (<0.85)")
-        if not (T.RESIDUAL_AUTOCORR_DW_MIN < g["durbin_watson"] < T.RESIDUAL_AUTOCORR_DW_MAX):
-            marginals.append(f"durbin_watson[{tag}]={g['durbin_watson']:.2f} (want ~2)")
+        flag, band_notes = classify_fit_quality(g["red_chi2"], g["r2"])
+        notes += [f"[{tag}] {n}" for n in band_notes]
+        notes.append(f"[{tag}] durbin_watson={g['durbin_watson']:.2f} [informational]")
+        if flag == "FAIL":
+            fails.append(f"level2[{tag}]: chi2_red={g['red_chi2']:.2f} FAIL")
+        elif flag == "MARGINAL":
+            marginals.append(f"level2[{tag}]: chi2_red={g['red_chi2']:.2f} MARGINAL")
     verdict = "FAIL" if fails else ("MARGINAL" if marginals else "PASS")
-    return {"verdict": verdict, "fails": fails, "marginals": marginals}
+    return {"verdict": verdict, "fails": fails, "marginals": marginals, "notes": notes}
+
+
+def _write_manifest(outdir: Path, figures: list, data_source: str):
+    """figures.manifest.json for the figure-review Stop gate. Merges with any
+    existing entries (synthetic and real runs keep separate figure files);
+    figures.review.json is written by the reviewer, never here."""
+    from datetime import date
+
+    manifest_path = outdir / "figures.manifest.json"
+    entries = {}
+    if manifest_path.exists():
+        for e in json.loads(manifest_path.read_text()).get("figures", []):
+            entries[e["file"]] = e
+    src = "real freya data" if data_source == "real_freya_npy" else "synthetic injection-recovery"
+    for f in figures:
+        band = "CHIME" if "chime" in f else "DSA"
+        entries[f] = {
+            "file": f,
+            "expectation": (
+                f"beta POC {src}, {band} band: matched-gain model (red) overlays the "
+                "band-summed data profile (black) including the scattering tail; "
+                "residual panel structureless around zero; Q-Q panel of "
+                "noise-normalized residuals hugs the y=x line."
+            ),
+        }
+    manifest_path.write_text(
+        json.dumps(
+            {
+                "directory": "analysis/beta_poc/freya",
+                "generated": str(date.today()),
+                "campaign": f"beta POC diagnostics ({data_source})",
+                "figures": [entries[k] for k in sorted(entries)],
+            },
+            indent=2,
+        )
+    )
 
 
 def _prepare_real_bands():
@@ -327,6 +410,28 @@ def main() -> int:
     )
     val = _validate(medv, gof_C, gof_D)
 
+    figtag = "_real" if args.real else ""
+    figures = []
+    for band, m, t0b, ddmb, g in (
+        ("chime", m_C, medv["t0_C"], medv["delta_dm_C"], gof_C),
+        ("dsa", m_D, medv["t0_D"], medv["delta_dm_D"], gof_D),
+    ):
+        fname = f"freya_beta_poc_diag_{band}{figtag}.png"
+        _diagnostic_figure(
+            m,
+            medv["tau_1ghz"],
+            medv["zeta_1ghz"],
+            medv["x_zeta"],
+            t0b,
+            ddmb,
+            medv["beta"],
+            g,
+            band,
+            outdir / fname,
+        )
+        figures.append(fname)
+    _write_manifest(outdir, figures, data_source)
+
     summary = {
         "burst": "freya",
         "tns": "FRB 20230325A",
@@ -348,6 +453,7 @@ def main() -> int:
         },
         "goodness_of_fit": {"chime": gof_C, "dsa": gof_D},
         "validation": val,
+        "diagnostics": figures,
         "log_evidence": float(res.logz[-1]),
         "log_evidence_err": float(res.logzerr[-1]),
         "ncall": int(np.sum(res.ncall)),

@@ -1,0 +1,16 @@
+{
+  "reviewed": "2026-07-03",
+  "campaign": "beta POC diagnostics (synthetic_injection)",
+  "figures": [
+    {
+      "file": "freya_beta_poc_diag_chime.png",
+      "verdict": "match",
+      "notes": "Model overlays band-summed data through the scattering tail (peak ~4 ms, tail to ~10 ms); residuals structureless around zero across the 32 ms window; Q-Q of noise-normalized residuals hugs y=x with only mild extreme-tail scatter; red_chi2=0.99, dw=1.87 on panel."
+    },
+    {
+      "file": "freya_beta_poc_diag_dsa.png",
+      "verdict": "match",
+      "notes": "Narrow ~1 ms burst; model overlays data; residuals structureless over the 6 ms window; Q-Q hugs y=x; red_chi2=1.00, dw=2.09 on panel."
+    }
+  ]
+}

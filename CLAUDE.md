@@ -58,10 +58,10 @@ Three analysis surfaces plus a shared package. The **canonical physics kernel** 
 `.cursor/rules/AGENT_CONFIGURATION_FLITS.md` is the binding contract for anyone writing/running fits here. Every fit gets a PASS/MARGINAL/FAIL flag from three levels; never declare a fit good without running them, and report failures explicitly rather than rationalizing.
 
 - **Level 1 gates (any failure ⇒ FAIL, stop):** optimizer converged; physical bounds (0.0001 < τ < 100 ms; 1.5 < α < 6.0); Jacobian well-conditioned (cond < 1e6).
-- **Level 2 quality:** χ²_red (good 0.8–1.5, fail >3 or <0.3), R² (good >0.85), residuals random/normal/uncorrelated (Durbin-Watson ≈2), parameter rel-err < 0.5.
+- **Level 2 quality:** χ²_red is the gate (`classify_fit_quality`: PASS 0.3–1.5, MARGINAL 1.5–10 or suspiciously <0.3, FAIL >10); R², residual normality, and Durbin-Watson are informational-only — low R² never flips the flag by itself (low-S/N rationale in the docstring).
 - **Level 3 physics:** τ×Δν in [0.1, 2.0] (≈0.159 thin screen, ≈1.0 extended); α near 4.0 = Kolmogorov.
 
-Thresholds in code: `flits/fitting/VALIDATION_THRESHOLDS.py` (canonical, single source of truth).
+Thresholds in code: Level-2 χ²_red bands live beside `classify_fit_quality` in `scattering/scat_analysis/burstfit.py` (0.3 / 1.5 / 10.0); `flits/fitting/VALIDATION_THRESHOLDS.py` remains canonical for the other gate constants, but its `CHI_SQ_RED_MARGINAL_MAX = 3.0` is superseded for Level 2 — do not classify from it.
 
 ## Code style: lazy-minimalist (ponytail)
 

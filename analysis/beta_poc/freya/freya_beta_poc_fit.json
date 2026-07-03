@@ -82,13 +82,19 @@
     }
   },
   "validation": {
-    "verdict": "MARGINAL",
+    "verdict": "PASS",
     "fails": [],
-    "marginals": [
-      "r2[C]=0.668 (<0.85)",
-      "r2[D]=0.763 (<0.85)"
+    "marginals": [],
+    "notes": [
+      "[C] Low weighted R2 (0.668) [informational; expected for low-S/N bursts]",
+      "[C] durbin_watson=1.87 [informational]",
+      "[D] durbin_watson=2.09 [informational]"
     ]
   },
+  "diagnostics": [
+    "freya_beta_poc_diag_chime.png",
+    "freya_beta_poc_diag_dsa.png"
+  ],
   "log_evidence": -18255.26278365099,
   "log_evidence_err": 0.8131890665636071,
   "ncall": 181743,

@@ -16,6 +16,7 @@ from scint_analysis.freya_scintillation import (  # noqa: E402
     estimate_structure_bandwidth,
     measure_scintillation_bandwidth,
     run_notebook_style_analysis,
+    to_jsonable,
 )
 
 
@@ -109,10 +110,27 @@ def test_structure_bandwidth_requires_valid_pairs_per_lag():
     )
 
     assert estimate.structure_function[0] == pytest.approx(0.0)
-    assert np.isnan(estimate.structure_function[1])
-    assert np.isnan(estimate.structure_function[2])
-    assert np.isnan(estimate.structure_function[3])
-    assert np.isfinite(estimate.structure_function[4])
+    assert estimate.structure_function[1] is None
+    assert estimate.structure_function[2] is None
+    assert estimate.structure_function[3] is None
+    assert estimate.structure_function[4] is not None
+
+
+def test_structure_bandwidth_serializes_unsupported_lags_as_strict_json_nulls():
+    spectrum = np.linspace(1.0, 2.0, 96)
+    mask = np.ones(spectrum.size, dtype=bool)
+    mask[::4] = False
+    estimate = estimate_structure_bandwidth(
+        np.ma.masked_array(spectrum, mask=mask),
+        channel_width_mhz=0.02,
+    )
+
+    payload = json.dumps(to_jsonable(estimate), allow_nan=False)
+    decoded = json.loads(payload)
+
+    assert decoded["structure_function"][1] is None
+    assert decoded["structure_function"][2] is None
+    assert decoded["structure_function"][3] is None
 
 
 def test_structure_bandwidth_returns_channel_scaled_half_power_estimate():

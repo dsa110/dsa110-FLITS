@@ -56,6 +56,7 @@ lint = [
 [project.scripts]
 flits-scat = "scattering.run_scat_analysis:main"
 flits-scint = "scintillation.scint_analysis.run_analysis:main"
+flits-scint-freya = "scintillation.scint_analysis.freya_scintillation:main"
 flits-batch = "flits.batch.cli:main"
 flits-configs = "flits.batch.config_generator:main"
 

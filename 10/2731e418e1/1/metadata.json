@@ -1,9 +1,11 @@
 {
   "cli_version": "0.7.7",
   "checkpoint_id": "102731e418e1",
+  "session_id": "019f267d-2ebb-7b81-9af9-864d5ffae6f4",
   "strategy": "manual-commit",
+  "created_at": "2026-07-03T05:57:48.428025Z",
   "branch": "feat/104-freya-joint-production-fit",
-  "checkpoints_count": 2,
+  "checkpoints_count": 1,
   "files_touched": [
     "analysis/scattering-refit-2026-06/joint_ppc.py",
     "analysis/scattering-refit-2026-06/local_runs/figures.manifest.json",
@@ -13,18 +15,28 @@
     "analysis/scattering-refit-2026-06/local_runs/freya_joint_ppc_sharedzeta.json",
     "analysis/scattering-refit-2026-06/local_runs/freya_joint_ppc_sharedzeta.png"
   ],
-  "sessions": [
+  "agent": "Codex",
+  "model": "gpt-5.5",
+  "turn_id": "efd17f4e5eb5",
+  "initial_attribution": {
+    "calculated_at": "2026-07-03T05:57:48.399247Z",
+    "agent_lines": 28,
+    "agent_removed": 12,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 28,
+    "total_lines_changed": 40,
+    "agent_percentage": 100,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
     {
-      "metadata": "/10/2731e418e1/0/metadata.json",
-      "transcript": "/10/2731e418e1/0/full.jsonl",
-      "content_hash": "/10/2731e418e1/0/content_hash.txt",
-      "prompt": ""
-    },
-    {
-      "metadata": "/10/2731e418e1/1/metadata.json",
-      "transcript": "/10/2731e418e1/1/full.jsonl",
-      "content_hash": "/10/2731e418e1/1/content_hash.txt",
-      "prompt": "/10/2731e418e1/1/prompt.txt"
+      "checkpoint_number": 1,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
     }
   ]
 }

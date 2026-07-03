@@ -5,6 +5,7 @@ import sys
 from pathlib import Path
 
 import numpy as np
+import pytest
 
 _test_dir = Path(__file__).parent
 sys.path.insert(0, str(_test_dir.parent.parent.parent))  # FLITS root
@@ -59,6 +60,42 @@ def test_measure_scintillation_bandwidth_recovers_positive_lorentzian_width():
     assert np.isfinite(result.delta_nu_err_mhz)
     assert result.channel_width_mhz == channel_width_mhz
     assert result.modulation_index > 0.0
+
+
+def test_masked_channels_are_excluded_from_bandwidth_estimates():
+    spectrum, channel_width_mhz = _synthetic_scintillating_spectrum()
+    mask = np.zeros(spectrum.size, dtype=bool)
+    mask[128] = True
+    clean_masked = np.ma.masked_array(spectrum.copy(), mask=mask)
+    polluted_masked = np.ma.masked_array(spectrum.copy(), mask=mask)
+    polluted_masked.data[128] = 1.0e9
+
+    clean_acf = measure_scintillation_bandwidth(
+        clean_masked,
+        channel_width_mhz=channel_width_mhz,
+        max_lag_mhz=2.0,
+        fit_lag_mhz=1.0,
+    )
+    polluted_acf = measure_scintillation_bandwidth(
+        polluted_masked,
+        channel_width_mhz=channel_width_mhz,
+        max_lag_mhz=2.0,
+        fit_lag_mhz=1.0,
+    )
+    clean_structure = estimate_structure_bandwidth(
+        clean_masked,
+        channel_width_mhz=channel_width_mhz,
+    )
+    polluted_structure = estimate_structure_bandwidth(
+        polluted_masked,
+        channel_width_mhz=channel_width_mhz,
+    )
+
+    assert polluted_acf.success == clean_acf.success
+    assert polluted_acf.modulation_index == pytest.approx(clean_acf.modulation_index)
+    assert polluted_acf.delta_nu_mhz == pytest.approx(clean_acf.delta_nu_mhz)
+    assert polluted_structure.delta_nu_mhz == pytest.approx(clean_structure.delta_nu_mhz)
+    assert polluted_structure.structure_function == pytest.approx(clean_structure.structure_function)
 
 
 def test_structure_bandwidth_returns_channel_scaled_half_power_estimate():

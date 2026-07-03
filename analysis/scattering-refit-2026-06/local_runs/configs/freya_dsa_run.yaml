@@ -1,0 +1,27 @@
+# freya (FRB 20230325A) DSA run-config — local-runs pattern (issue #99).
+# Paths resolve through the PINNED manuscript checkout's data symlinks
+# (Faber2026 pipeline/ submodule), not the canonical clone: fits run from the
+# pin per the pinned-submodule discipline, and the whitney precedent's
+# canonical-clone paths were a provenance trap this config corrects.
+# dm_init: 912.4 — catalog DM (configs/bursts.yaml): DSA data is incoherently
+# dedispersed, so intra-channel smearing is computed at the dedispersion DM.
+chunk_size: 2000
+diagnostics: true
+dlogz: 0.5
+dm_init: 912.4
+extend_chain: true
+f_factor: 384
+fitting_method: nested
+max_chunks: 5
+model_scan: true
+nlive: 400
+nlive_walks: 15
+nproc: 8
+outer_trim: 0.15
+path: /Users/jakobfaber/Developer/overleaf/Faber2026/pipeline/data/dsa/freya_dsa_I_912_4_2500b_cntr_bpc.npy
+plot: true
+sampcfg_path: /Users/jakobfaber/Developer/overleaf/Faber2026/pipeline/scattering/configs/sampler.yaml
+steps: 10000
+t_factor: 2
+telcfg_path: /Users/jakobfaber/Developer/overleaf/Faber2026/pipeline/scattering/configs/telescopes.yaml
+telescope: dsa

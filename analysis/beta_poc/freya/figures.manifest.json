@@ -1,15 +1,23 @@
 {
   "directory": "analysis/beta_poc/freya",
   "generated": "2026-07-03",
-  "campaign": "beta POC diagnostics (synthetic_injection)",
+  "campaign": "beta POC diagnostics (real_freya_npy)",
   "figures": [
     {
       "file": "freya_beta_poc_diag_chime.png",
       "expectation": "beta POC synthetic injection-recovery, CHIME band: matched-gain model (red) overlays the band-summed data profile (black) including the scattering tail; residual panel structureless around zero; Q-Q panel of noise-normalized residuals hugs the y=x line."
     },
     {
+      "file": "freya_beta_poc_diag_chime_real.png",
+      "expectation": "beta POC real freya data, CHIME band: matched-gain model (red) overlays the band-summed data profile (black) including the scattering tail; residual panel structureless around zero; Q-Q panel of noise-normalized residuals hugs the y=x line."
+    },
+    {
       "file": "freya_beta_poc_diag_dsa.png",
       "expectation": "beta POC synthetic injection-recovery, DSA band: matched-gain model (red) overlays the band-summed data profile (black) including the scattering tail; residual panel structureless around zero; Q-Q panel of noise-normalized residuals hugs the y=x line."
+    },
+    {
+      "file": "freya_beta_poc_diag_dsa_real.png",
+      "expectation": "beta POC real freya data, DSA band: matched-gain model (red) overlays the band-summed data profile (black) including the scattering tail; residual panel structureless around zero; Q-Q panel of noise-normalized residuals hugs the y=x line."
     }
   ]
 }

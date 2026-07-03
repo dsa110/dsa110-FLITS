@@ -669,7 +669,7 @@ class _JointLogLikelihoodGain:
 class _JointLogLikelihoodGainSharedZeta:
     """Joint gain-marginal log-L with ONE frequency-evolving intrinsic width.
 
-    8-vector theta = [tau, alpha, zeta_1ghz, x_zeta, t0_C, ddm_C, t0_D, ddm_D].
+    8-vector theta = [tau, beta, zeta_1ghz, x_zeta, t0_C, ddm_C, t0_D, ddm_D].
     Per band zeta(nu) = zeta_1ghz * nu**x_zeta is evaluated on that band's FULL
     channel axis (nu in GHz; model.freq ascending) and passed as a per-channel
     ARRAY into FRBParams.zeta. The kernel builds sig = hypot(sig_dm, zeta) on the

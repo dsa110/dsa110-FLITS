@@ -17,19 +17,25 @@ Scope: ONE burst, freya = FRB 20230325A, the C1D1 shared-zeta(nu) setup
 same 8-vector as the canonical joint shared-zeta fit, with beta replacing alpha
 at index 1.
 
-Real freya .npy live on iacobus/arc (see DATA_LOCATIONS.md), not in this
-worktree. When absent the runner falls back to a deterministic synthetic
-freya-like injection-recovery (truth beta injected, recovered) so the
-implementation is exercised end to end; data_source records which path ran.
+Default is the deterministic synthetic freya-like injection-recovery (truth
+beta injected, recovered). --real instead builds both bands from the freya
+run-configs (issue #99) through the joint driver's own prepare() -- config
+load, real .npy, bandpass/trim/downsample/crop, FRBModel + init -- and fits
+those: Route A, the independent-likelihood cross-check instrument for
+#103/#105. data_source records which path ran. The nlive/maxcall defaults are
+smoke-scale; the production real fit (and its runtime budget) is #104's.
 
-  conda run -n flits python analysis/beta_poc/run_beta_poc.py [--nlive N] [--seed S]
+  conda run -n flits python analysis/beta_poc/run_beta_poc.py [--nlive N] [--seed S] [--real]
 """
 
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
+import os
 import sys
+import tempfile
 from dataclasses import replace
 from pathlib import Path
 
@@ -76,22 +82,19 @@ BETA_LO, BETA_HI = 3.0, 3.95
 
 
 def _build_band(geom: dict, n_freq: int, t_max: float, n_time: int) -> FRBModel:
-    """Empty FRBModel on a freya-like band grid (powerlaw PBF, dm_init=0)."""
+    """Empty FRBModel on a freya-like band grid (dm_init=0)."""
     freq = np.linspace(geom["f_min"], geom["f_max"], n_freq)  # ascending (loader convention)
     time = np.linspace(0.0, t_max, n_time)
-    m = FRBModel(time=time, freq=freq, dm_init=0.0, df_MHz=geom["df_MHz"])
-    m.pbf, m.pbf_beta = "powerlaw", BETA_TRUE
-    return m
+    return FRBModel(time=time, freq=freq, dm_init=0.0, df_MHz=geom["df_MHz"])
 
 
 def _inject(m: FRBModel, tau: float, beta: float, z1: float, x: float, t0: float, rng) -> FRBModel:
     """Inject a powerlaw-PBF burst with per-channel scintillation gains + noise."""
-    alpha = alpha_from_beta_thin_screen(beta)
     zeta_nu = z1 * m.freq**x
     p = FRBParams(
-        c0=1.0, t0=t0, gamma=0.0, zeta=zeta_nu, tau_1ghz=tau, alpha=alpha, delta_dm=DDM_TRUE
+        c0=1.0, t0=t0, gamma=0.0, zeta=zeta_nu, tau_1ghz=tau, beta=beta, delta_dm=DDM_TRUE
     )
-    m.pbf_beta = beta
+    # forward model derives alpha and dispatches the power-law PBF from p.beta (ADR-0006)
     kernel = m(p, "M3")  # (n_freq, n_time), area-normalized per channel
     # per-channel gain = smooth power-law envelope * lognormal scintillation
     envelope = (m.freq / np.median(m.freq)) ** -1.5
@@ -106,34 +109,27 @@ def _inject(m: FRBModel, tau: float, beta: float, z1: float, x: float, t0: float
     )
 
 
-def _band_ll(m: FRBModel, tau, alpha, z1, x, t0, ddm) -> float:
+def _band_ll(m: FRBModel, tau, beta, z1, x, t0, ddm) -> float:
     zeta_nu = z1 * np.asarray(m.freq, float) ** x
-    p = FRBParams(c0=1.0, t0=t0, gamma=0.0, zeta=zeta_nu, tau_1ghz=tau, alpha=alpha, delta_dm=ddm)
+    p = FRBParams(c0=1.0, t0=t0, gamma=0.0, zeta=zeta_nu, tau_1ghz=tau, beta=beta, delta_dm=ddm)
     return m.log_likelihood_gain_marginal(p, "M3")
 
 
 class BetaCoupledLogL:
     """theta = [tau, beta, zeta_1ghz, x_zeta, t0_C, ddm_C, t0_D, ddm_D].
 
-    One beta sets the power-law PBF shape on BOTH bands (model.pbf_beta) and the
-    shared alpha via the thin-screen closure -- the whole point of the POC.
+    ONE sampled beta enters both bands' FRBParams; the forward model derives
+    the shared alpha via the thin-screen closure and dispatches the power-law
+    PBF shape from that same beta (ADR-0006) -- the whole point of the POC.
     """
 
     def __init__(self, m_C: FRBModel, m_D: FRBModel):
         self.m_C, self.m_D = m_C, m_D
-        for m in (m_C, m_D):
-            m.pbf = "powerlaw"
 
     def __call__(self, theta) -> float:
         tau, beta, z1, x = (float(theta[i]) for i in range(4))
-        try:
-            alpha = alpha_from_beta_thin_screen(beta)
-        except ValueError:
-            return -1e100
-        self.m_C.pbf_beta = beta
-        self.m_D.pbf_beta = beta
-        ll = _band_ll(self.m_C, tau, alpha, z1, x, float(theta[4]), float(theta[5])) + _band_ll(
-            self.m_D, tau, alpha, z1, x, float(theta[6]), float(theta[7])
+        ll = _band_ll(self.m_C, tau, beta, z1, x, float(theta[4]), float(theta[5])) + _band_ll(
+            self.m_D, tau, beta, z1, x, float(theta[6]), float(theta[7])
         )
         return ll if np.isfinite(ll) else -1e100
 
@@ -151,11 +147,10 @@ def _ptform_factory(t0_C, t0_D):
     return ptform
 
 
-def _goodness(m: FRBModel, tau, alpha, z1, x, t0, ddm, beta) -> dict:
+def _goodness(m: FRBModel, tau, z1, x, t0, ddm, beta) -> dict:
     """Matched-filter reduced chi2 + R^2 + Durbin-Watson at the posterior median."""
-    m.pbf_beta = beta
     zeta_nu = z1 * m.freq**x
-    p = FRBParams(c0=1.0, t0=t0, gamma=0.0, zeta=zeta_nu, tau_1ghz=tau, alpha=alpha, delta_dm=ddm)
+    p = FRBParams(c0=1.0, t0=t0, gamma=0.0, zeta=zeta_nu, tau_1ghz=tau, beta=beta, delta_dm=ddm)
     valid = m.valid
     K = m(replace(p, c0=1.0, gamma=0.0), "M3", freq_subset=valid)
     d = m.data[valid]
@@ -203,55 +198,93 @@ def _validate(med: dict, gof_C: dict, gof_D: dict) -> dict:
     return {"verdict": verdict, "fails": fails, "marginals": marginals}
 
 
+def _prepare_real_bands():
+    """CHIME+DSA FRBModels from the freya run-configs (issue #99) via the joint
+    driver's own prepare() -- the completion this file's real-data stub always
+    prescribed. Loading pattern as in tests/test_freya_local_runs_smoke.py.
+
+    t0 prior centers come from the RAW data-driven guess, not prepare()'s
+    MLE-refined init: the post-#98 refine rails beta to the thin-screen floor
+    on freya and drags t0 with it (#101 observed CHIME 17.6 -> 31.4 ms, near
+    the window end) -- init-only for nested sampling, but a prior *center*
+    must not inherit it.
+    """
+    import yaml
+
+    local_runs = REPO / "analysis" / "scattering-refit-2026-06" / "local_runs"
+    os.environ["FLITS_REPO"] = str(REPO)
+    spec = importlib.util.spec_from_file_location("run_joint_fit", local_runs / "run_joint_fit.py")
+    driver = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(driver)
+    from scattering.scat_analysis.burstfit_init import data_driven_initial_guess
+
+    models, t0s = [], []
+    with tempfile.TemporaryDirectory() as tmp:
+        for band in ("chime", "dsa"):
+            cfg_path = local_runs / "configs" / f"freya_{band}_run.yaml"
+            cfg = yaml.safe_load(cfg_path.read_text())
+            if not Path(cfg["path"]).exists():
+                raise SystemExit(
+                    f"real freya .npy not staged: {cfg['path']} "
+                    "(pinned manuscript checkout's data symlink)"
+                )
+            model, _init_mle = driver.prepare(str(cfg_path), f"freya_{band}", tmp)
+            raw = data_driven_initial_guess(
+                data=model.data,
+                freq=model.freq,
+                time=model.time,
+                dm=float(model.dm_init),
+                verbose=False,
+            ).params
+            models.append(model)
+            t0s.append(float(raw.t0))
+    return models[0], models[1], t0s[0], t0s[1]
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--nlive", type=int, default=150)
     ap.add_argument("--seed", type=int, default=20230325)  # FRB 20230325A
     ap.add_argument("--dlogz", type=float, default=0.5)
     ap.add_argument("--maxcall", type=int, default=400_000)
+    ap.add_argument(
+        "--real",
+        action="store_true",
+        help="fit the real freya .npy (joint driver's prepare() + the #99 "
+        "run-configs) instead of the synthetic injection",
+    )
     args = ap.parse_args()
 
     outdir = REPO / "analysis" / "beta_poc" / "freya"
     outdir.mkdir(parents=True, exist_ok=True)
 
-    # Real freya data live off-box; record the blocker, then synthesize.
-    real_C = REPO / "data" / "chime" / "freya_chime_I_912_4067_32000b_cntr_bpc.npy"
-    real_D = REPO / "data" / "dsa" / "freya_dsa_I_912_4_2500b_cntr_bpc.npy"
-    data_source = "synthetic_injection"
-    blocker = None
-    if real_C.exists() and real_D.exists():
+    if args.real:
         data_source = "real_freya_npy"
+        m_C, m_D, t0_C, t0_D = _prepare_real_bands()
+        print(
+            f"[freya] real prepared bands: CHIME {m_C.data.shape} DSA {m_D.data.shape}; "
+            f"raw-init t0_C={t0_C:.2f} ms t0_D={t0_D:.2f} ms; fitting (nlive={args.nlive})...",
+            flush=True,
+        )
     else:
-        blocker = (
-            f"real freya .npy absent in worktree ({real_C.name}, {real_D.name}); "
-            "they live on iacobus/arc per DATA_LOCATIONS.md. Ran synthetic "
-            "injection-recovery instead."
+        data_source = "synthetic_injection"
+        # Synthetic freya-like bands (coarse grids -> fast deterministic smoke fit).
+        rng = np.random.default_rng(args.seed)
+        m_C0 = _build_band(CHIME, n_freq=48, t_max=32.0, n_time=448)
+        m_D0 = _build_band(DSA, n_freq=48, t_max=6.0, n_time=320)
+        m_C = _inject(m_C0, TAU_TRUE, BETA_TRUE, ZETA1_TRUE, X_ZETA_TRUE, T0_C_TRUE, rng)
+        m_D = _inject(m_D0, TAU_TRUE, BETA_TRUE, ZETA1_TRUE, X_ZETA_TRUE, T0_D_TRUE, rng)
+        t0_C, t0_D = T0_C_TRUE, T0_D_TRUE
+        print(
+            f"[freya] injected beta={BETA_TRUE} -> alpha={alpha_from_beta_thin_screen(BETA_TRUE):.3f}, "
+            f"tau_1ghz={TAU_TRUE} ms; fitting (nlive={args.nlive})...",
+            flush=True,
         )
-        print(f"[freya] BLOCKER: {blocker}", flush=True)
-
-    rng = np.random.default_rng(args.seed)
-    if data_source == "real_freya_npy":
-        raise SystemExit(
-            "real-data path: build models via run_joint_fit.prepare() and pass to "
-            "BetaCoupledLogL; not exercised this run (no local data)."
-        )
-
-    # Synthetic freya-like bands (coarse grids -> fast deterministic smoke fit).
-    m_C0 = _build_band(CHIME, n_freq=48, t_max=32.0, n_time=448)
-    m_D0 = _build_band(DSA, n_freq=48, t_max=6.0, n_time=320)
-    m_C = _inject(m_C0, TAU_TRUE, BETA_TRUE, ZETA1_TRUE, X_ZETA_TRUE, T0_C_TRUE, rng)
-    m_D = _inject(m_D0, TAU_TRUE, BETA_TRUE, ZETA1_TRUE, X_ZETA_TRUE, T0_D_TRUE, rng)
-    alpha_true = alpha_from_beta_thin_screen(BETA_TRUE)
-    print(
-        f"[freya] injected beta={BETA_TRUE} -> alpha={alpha_true:.3f}, "
-        f"tau_1ghz={TAU_TRUE} ms; fitting (nlive={args.nlive})...",
-        flush=True,
-    )
 
     from dynesty import NestedSampler
 
     loglike = BetaCoupledLogL(m_C, m_D)
-    ptform = _ptform_factory(T0_C_TRUE, T0_D_TRUE)
+    ptform = _ptform_factory(t0_C, t0_D)
     names = ["tau_1ghz", "beta", "zeta_1ghz", "x_zeta", "t0_C", "delta_dm_C", "t0_D", "delta_dm_D"]
     sampler = NestedSampler(
         loglike,
@@ -277,7 +310,6 @@ def main() -> int:
     gof_C = _goodness(
         m_C,
         medv["tau_1ghz"],
-        medv["alpha"],
         medv["zeta_1ghz"],
         medv["x_zeta"],
         medv["t0_C"],
@@ -287,7 +319,6 @@ def main() -> int:
     gof_D = _goodness(
         m_D,
         medv["tau_1ghz"],
-        medv["alpha"],
         medv["zeta_1ghz"],
         medv["x_zeta"],
         medv["t0_D"],
@@ -296,22 +327,6 @@ def main() -> int:
     )
     val = _validate(medv, gof_C, gof_D)
 
-    truth = {
-        "beta": BETA_TRUE,
-        "alpha": alpha_true,
-        "tau_1ghz": TAU_TRUE,
-        "zeta_1ghz": ZETA1_TRUE,
-        "x_zeta": X_ZETA_TRUE,
-    }
-    recovery = {
-        k: {
-            "true": truth[k],
-            "fit": medv[k],
-            "rel_err": abs(medv[k] - truth[k]) / abs(truth[k]) if truth[k] else None,
-        }
-        for k in ("beta", "alpha", "tau_1ghz", "zeta_1ghz", "x_zeta")
-    }
-
     summary = {
         "burst": "freya",
         "tns": "FRB 20230325A",
@@ -319,7 +334,6 @@ def main() -> int:
         "coupling": "full_pbf_beta",  # both PBF shape AND alpha derived from one beta
         "closure": "alpha = 2*beta/(beta-2)  (thin-screen inertial range)",
         "data_source": data_source,
-        "blocker": blocker,
         "setup": "C1D1 shared-zeta(nu); theta=[tau,beta,zeta1,x_zeta,t0_C,ddm_C,t0_D,ddm_D]",
         "pbf": {"C": "powerlaw", "D": "powerlaw", "beta_is_sampled": True},
         "beta_prior": [BETA_LO, BETA_HI],
@@ -332,7 +346,6 @@ def main() -> int:
             "median": medv["alpha"],
             "note": "derived from sampled beta via closure; NOT independently fit",
         },
-        "recovery": recovery,
         "goodness_of_fit": {"chime": gof_C, "dsa": gof_D},
         "validation": val,
         "log_evidence": float(res.logz[-1]),
@@ -343,14 +356,39 @@ def main() -> int:
             "closure yields alpha>=4 only (alpha=4 at beta=4). A burst with "
             "empirical alpha<4 (e.g. casey ~3.9) cannot be a thin-screen power-law "
             "screen under this mapping -- it is NOT a sub-Kolmogorov (smaller) beta. "
-            "freya's alpha~4.35 maps to beta~3.70, inside the valid range."
+            "The deprecated exp-era fit *suggested* alpha~4.35 for freya (maps to "
+            "beta~3.70, inside the valid range); whether that survives under the "
+            "beta co-model is the hypothesis the real-data fit tests."
         ),
     }
-    out = outdir / "freya_beta_poc_fit.json"
+    if data_source == "synthetic_injection":
+        # Injection-recovery bookkeeping is only meaningful when a truth exists.
+        truth = {
+            "beta": BETA_TRUE,
+            "alpha": alpha_from_beta_thin_screen(BETA_TRUE),
+            "tau_1ghz": TAU_TRUE,
+            "zeta_1ghz": ZETA1_TRUE,
+            "x_zeta": X_ZETA_TRUE,
+        }
+        summary["recovery"] = {
+            k: {
+                "true": truth[k],
+                "fit": medv[k],
+                "rel_err": abs(medv[k] - truth[k]) / abs(truth[k]) if truth[k] else None,
+            }
+            for k in ("beta", "alpha", "tau_1ghz", "zeta_1ghz", "x_zeta")
+        }
+
+    out = outdir / ("freya_beta_poc_fit_real.json" if args.real else "freya_beta_poc_fit.json")
     out.write_text(json.dumps(summary, indent=2))
+    truth_tag = (
+        f"(true beta={BETA_TRUE}, alpha={alpha_from_beta_thin_screen(BETA_TRUE):.3f})  "
+        if data_source == "synthetic_injection"
+        else "(real data; no truth)  "
+    )
     print(
         f"\n[freya] beta={medv['beta']:.3f} -> alpha={medv['alpha']:.3f} "
-        f"(true beta={BETA_TRUE}, alpha={alpha_true:.3f})  "
+        f"{truth_tag}"
         f"tau_1ghz={medv['tau_1ghz']:.4g} ms  lnZ={res.logz[-1]:.1f}",
         flush=True,
     )

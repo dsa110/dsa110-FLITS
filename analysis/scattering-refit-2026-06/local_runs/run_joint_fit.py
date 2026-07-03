@@ -228,13 +228,16 @@ def main():
             zd = p["zeta_1ghz"] * np.asarray(model_D.freq, float) ** p["x_zeta"]
         else:
             zc, zd = p["zeta_C"], p["zeta_D"]
+        # beta, not alpha: FRBParams is beta-native post-ADR-0006 (alpha is a
+        # derived property; the alpha= kwarg TypeErrors). beta -> alpha is
+        # monotone, so the beta median IS the alpha median's preimage.
         pC = FRBParams(
             c0=1.0,
             t0=p["t0_C"],
             gamma=0.0,
             zeta=zc,
             tau_1ghz=t_m,
-            alpha=a_m,
+            beta=p["beta"],
             delta_dm=p["delta_dm_C"],
         )
         pD = FRBParams(
@@ -243,7 +246,7 @@ def main():
             gamma=0.0,
             zeta=zd,
             tau_1ghz=t_m,
-            alpha=a_m,
+            beta=p["beta"],
             delta_dm=p["delta_dm_D"],
         )
         gain_C = model_C.gain_spectrum(pC, "M3")

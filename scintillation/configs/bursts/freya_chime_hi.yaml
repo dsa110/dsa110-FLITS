@@ -1,0 +1,69 @@
+burst_id: freya
+input_data_path: ${FLITS_ROOT}/scintillation/data/freya_chime_hi.npz
+telescope: chime
+analysis:
+  rfi_masking:
+    find_burst_thres: 8.0
+    padding_factor: 0.0
+    use_symmetric_noise_window: true
+    rfi_downsample_factor: 16
+    # Keep time-domain flagging OFF: the burst is the largest time-domain
+    # outlier, so robust-z flagging masks the on-pulse window itself (verified:
+    # it empties bins 244-268). The pass-1 speckle at 620-630 and 725-760 MHz is
+    # frequency-domain RFI, killed instead by tightening freq_threshold_sigma.
+    enable_time_domain_flagging: false
+    time_threshold_sigma: 7.0
+    # Lowered 5.0 -> 3.0 to catch the pass-1 residual freq-domain speckle;
+    # masks ~14% of channels (off-pulse outliers), burst band preserved.
+    freq_threshold_sigma: 3.0
+    # time bins (dt=0.32768 ms): local burst span >3 sigma around bin ~250 is 244-267.
+    manual_burst_window:
+    - 244
+    - 268
+    manual_noise_window:
+    - 0
+    - 180
+  acf:
+    # Measurement band: 600-800 MHz resolves the expected NE2025 MW floor, ~38.8 kHz
+    # at 600 MHz scaling as nu^4.4 to ~138 kHz at 800 MHz. The 400 MHz scale is near
+    # one 6.1 kHz fine channel and is effectively unresolved.
+    num_subbands: 2
+    max_lag_mhz: 5.0
+    use_snr_subbanding: true
+    enable_intra_pulse_analysis: false
+    intra_pulse_time_bins: 8
+  fitting:
+    # freya floor from analysis/scattering-refit-2026-06/scint_census: 1.6421 MHz at 1.405 GHz.
+    fit_lagrange_mhz: 1.0
+    reference_frequency_mhz: 700.0
+    force_model: null
+    # Grid-locked instrumental ripple sits at ~0.40 MHz, inside the 1.0 MHz
+    # window; the window choice is a systematic comparable to the statistical
+    # error (E2 experiment: 44.7/57.2/67.7 kHz at 1.0/0.3/0.2). Report it.
+    fit_lag_scan_mhz:
+    - 1.0
+    - 0.3
+    - 0.2
+  grid_regularization:
+    # The upchan npz has 61 missing-coarse-channel gap junctions; without
+    # regularization the index-lag ACF axis is stretched 1.2340x and lags
+    # straddling gaps mix distant channels (issue #120, E1/E2 experiment).
+    enable: true
+  bandpass_normalization:
+    # pass-1 inspection: the frequency ACF was dominated by a static ~0.39 MHz
+    # coarse-channel scallop ~7x the fit baseline. Flat-fielding by the per-fine-
+    # channel off-pulse mean divides out that multiplicative gain exactly.
+    enable: true
+  baseline_subtraction:
+    # Disabled for pass-2: flat-fielding above removes the full bandpass (incl.
+    # the periodic scallop, which an order-1 poly cannot follow); running both
+    # only depresses the on-pulse mean and inflates the modulation index.
+    enable: false
+    poly_order: 1
+  noise:
+    disable: false
+    disable_template: false
+    template_n_draws: 25
+  self_noise:
+    disable: false
+  stored_fits: {}

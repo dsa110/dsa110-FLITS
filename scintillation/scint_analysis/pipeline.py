@@ -1,6 +1,8 @@
 # ==============================================================================
 # File: scint_analysis/scint_analysis/pipeline.py
 # ==============================================================================
+import hashlib
+import json
 import logging
 import os
 import pickle
@@ -32,10 +34,31 @@ class ScintillationAnalysis:
             os.makedirs(self.cache_dir, exist_ok=True)
             log.info(f"Intermediate results will be cached in: {self.cache_dir}")
 
+    def _config_fingerprint(self):
+        """Short hash of every config field that shapes cached pipeline products.
+
+        Cache files are pickles keyed by burst_id; without a fingerprint,
+        toggling a preprocessing flag (grid_regularization,
+        bandpass_normalization, RFI masking, downsample factors, ...) after a
+        cached run would silently reload the stale spectrum/ACF built under
+        the old settings (#120 review r2, P1). Fingerprinting the whole
+        `analysis` block plus input path and downsample factors errs toward
+        recomputation, never toward stale reuse.
+        """
+        relevant = {
+            "input_data_path": self.config.get("input_data_path"),
+            "downsample": self.config.get("pipeline_options", {}).get("downsample", {}),
+            "analysis": self.config.get("analysis", {}),
+        }
+        payload = json.dumps(relevant, sort_keys=True, default=str)
+        return hashlib.sha256(payload.encode()).hexdigest()[:12]
+
     def _get_cache_path(self, stage_name):
         """Generates a standard path for a cache file."""
         burst_id = self.config.get("burst_id", "unknown_burst")
-        return os.path.join(self.cache_dir, f"{burst_id}_{stage_name}.pkl")
+        return os.path.join(
+            self.cache_dir, f"{burst_id}_{self._config_fingerprint()}_{stage_name}.pkl"
+        )
 
     def _create_diagnostic_plots(self, burst_lims, off_pulse_lims, baseline_info=None):
         """Internal helper to generate and save diagnostic plots."""
@@ -125,9 +148,16 @@ class ScintillationAnalysis:
             t_factor = int(ds_cfg.get("t_factor", 1))
 
             # --------------------------------------------------------------------
-            spectrum = core.DynamicSpectrum.from_numpy_file(
-                self.config["input_data_path"]
-            ).downsample(f_factor, t_factor)
+            spectrum = core.DynamicSpectrum.from_numpy_file(self.config["input_data_path"])
+            # Gapped-grid regularization (analysis.grid_regularization) must run
+            # before downsampling and shares gating with the freya CLI path so a
+            # config enabling it cannot be silently bypassed here (issue #120).
+            # Function-level import: freya_scintillation does not import pipeline,
+            # so this stays acyclic.
+            from .freya_scintillation import apply_grid_regularization
+
+            spectrum = apply_grid_regularization(spectrum, self.config)
+            spectrum = spectrum.downsample(f_factor, t_factor)
             # The mask_rfi function now correctly uses the manual window if present
             self.masked_spectrum = spectrum.mask_rfi(self.config)
 
@@ -137,6 +167,30 @@ class ScintillationAnalysis:
 
         self.data_prepared = True
         log.info("--- Data Preparation Finished ---")
+
+    def _apply_bandpass_normalization(self, off_pulse_lims):
+        """Flag-gated per-channel flat-fielding (analysis.bandpass_normalization).
+
+        Shares implementation and gating with the freya CLI path so a config
+        enabling the flag cannot be silently bypassed by this pipeline (issue
+        #120). Multiplicative, so it must precede any polynomial baseline
+        subtraction; normalize_bandpass fails loudly on an off-pulse window
+        too short to average down noise.
+        """
+        bandpass_cfg = self.config.get("analysis", {}).get("bandpass_normalization", {})
+        if not bandpass_cfg.get("enable", False):
+            return
+        from .freya_scintillation import normalize_bandpass
+
+        log.info("Applying per-channel bandpass flat-fielding...")
+        kwargs = {}
+        if "floor_frac" in bandpass_cfg:
+            kwargs["floor_frac"] = float(bandpass_cfg["floor_frac"])
+        self.masked_spectrum = normalize_bandpass(
+            self.masked_spectrum,
+            (int(off_pulse_lims[0]), int(off_pulse_lims[1])),
+            **kwargs,
+        )
 
     def run(self):
         """
@@ -169,6 +223,9 @@ class ScintillationAnalysis:
             off_pulse_lims = (max(0, noise_end_bin - 500), noise_end_bin)  # Default off-pulse
             log.info(f"RUN: Using automated off-pulse window: {off_pulse_lims}")
         # --- END CENTRALIZED WINDOW DETERMINATION ---
+
+        # --- BANDPASS FLAT-FIELDING (before any additive baseline step) ---
+        self._apply_bandpass_normalization(off_pulse_lims)
 
         # --- BASELINE SUBTRACTION (MOVED HERE) ---
         baseline_info_for_plotting = None

@@ -27,6 +27,30 @@ log = logging.getLogger(__name__)
 # bound, so an equality test would miss real boundary hits.
 _GAMMA_BOUND_REL_TOL = 0.01
 
+# Minimum off-pulse time bins required to estimate a per-channel bandpass by
+# averaging. Fewer bins leave the estimate noise-dominated, and flat-fielding
+# would then imprint that noise as gain rather than removing the true bandpass.
+# Mirrors the >50-bin off-pulse guard used for polynomial baseline subtraction
+# (pipeline.py / issue #118).
+_MIN_BANDPASS_OFF_BINS = 50
+
+# A fine channel whose mean off-pulse level sits below this fraction of the
+# median off-pulse level is gain-starved: dividing by it amplifies noise
+# without bound, so it is masked rather than normalised.
+_BANDPASS_FLOOR_FRAC = 1.0e-3
+
+# Relative spread of channel spacings below which a frequency grid counts as
+# uniform. Gapped grids are not subtle (a single missing channel doubles one
+# spacing), so this only needs to absorb float rounding in the stored axis.
+_GRID_UNIFORM_REL_TOL = 1.0e-3
+
+# Snap distance above this fraction of a native channel is worth surfacing in
+# the log: nearest-grid placement bounds every snap at 0.5 channel by
+# construction, but a large population of near-half-channel snaps (freya
+# CHIME hi: 49% of channels >0.25, max 0.4996) documents real inter-block
+# registration drift in the upstream upchannelized product.
+_GRID_SNAP_REPORT_FRAC = 0.25
+
 
 @dataclass(frozen=True)
 class FigureRecord:
@@ -37,10 +61,26 @@ class FigureRecord:
 
 @dataclass(frozen=True)
 class ACFBandwidthResult:
+    """Result of the ACF Lorentzian bandwidth fit.
+
+    ``modulation_index`` is std/mean of the on-pulse spectrum WITHOUT
+    off-level subtraction: the radiometer noise floor sits in both numerator
+    and denominator, so it is a noise-diluted diagnostic, not the physical
+    modulation depth (freya CHIME pass-2: 0.187 diluted vs ~0.52 physical).
+    ``modulation_index_acf`` is the physical estimate sqrt(zero-lag ACF
+    amplitude above baseline) from the Lorentzian fit; ``calculate_acf``
+    normalizes by (mean_on - off_mean)^2, so the fitted amplitude ~ m^2.
+    That reading is only valid when an off-pulse mean was supplied -- without
+    one the ACF denominator falls back to mean_on^2 and the amplitude is
+    floor-diluted like the std/mean diagnostic -- so the field is None unless
+    the fit succeeded AND ``off_burst_spectrum_mean`` was provided.
+    """
+
     success: bool
     delta_nu_mhz: float | None
     delta_nu_err_mhz: float | None
     modulation_index: float
+    modulation_index_acf: float | None
     channel_width_mhz: float
     fit_lag_mhz: float
     max_lag_mhz: float
@@ -62,6 +102,17 @@ class StructureBandwidthResult:
 
 @dataclass(frozen=True)
 class NotebookStyleResult:
+    """Full analysis output.
+
+    ``fit_window_scan`` (optional, from ``analysis.fitting.fit_lag_scan_mhz``)
+    refits the ACF per fit window; ``fit_window_systematic_mhz`` is the spread
+    (max - min) of the successful widths. The freya CHIME grid carries
+    burst-locked instrumental structure near the coarse-channel spacing inside
+    the default fit window, so the window choice is a systematic comparable to
+    the statistical error (measured 44.7/57.2/67.7 kHz at 1.0/0.3/0.2 MHz) and
+    must be reported with the number, not hidden by one window choice.
+    """
+
     burst_id: str
     burst_lims: tuple[int, int]
     off_pulse_lims: tuple[int, int] | None
@@ -69,6 +120,8 @@ class NotebookStyleResult:
     structure: StructureBandwidthResult
     figures: list[FigureRecord]
     result_path: str | None
+    fit_window_scan: list[dict] | None = None
+    fit_window_systematic_mhz: float | None = None
 
 
 class NumpyJSONEncoder(json.JSONEncoder):
@@ -140,6 +193,7 @@ def measure_scintillation_bandwidth(
             delta_nu_mhz=None,
             delta_nu_err_mhz=None,
             modulation_index=modulation_index,
+            modulation_index_acf=None,
             channel_width_mhz=float(channel_width_mhz),
             fit_lag_mhz=float(fit_lag_mhz),
             max_lag_mhz=float(max_lag_mhz),
@@ -247,6 +301,11 @@ def measure_scintillation_bandwidth(
         delta_nu_mhz=gamma,
         delta_nu_err_mhz=gamma_err,
         modulation_index=modulation_index,
+        modulation_index_acf=(
+            float(np.sqrt(max(float(popt[0]), 0.0)))
+            if off_burst_spectrum_mean is not None
+            else None
+        ),
         channel_width_mhz=float(channel_width_mhz),
         fit_lag_mhz=float(fit_lag_mhz),
         max_lag_mhz=float(max_lag_mhz),
@@ -271,6 +330,7 @@ def _failed_fit_result(
         delta_nu_mhz=None,
         delta_nu_err_mhz=None,
         modulation_index=modulation_index,
+        modulation_index_acf=None,
         channel_width_mhz=float(channel_width_mhz),
         fit_lag_mhz=float(fit_lag_mhz),
         max_lag_mhz=float(max_lag_mhz),
@@ -355,17 +415,202 @@ def determine_windows(
     return burst_lims, off_lims
 
 
+def normalize_bandpass(
+    spectrum: DynamicSpectrum,
+    off_pulse_lims: tuple[int, int],
+    *,
+    floor_frac: float = _BANDPASS_FLOOR_FRAC,
+) -> DynamicSpectrum:
+    """Flat-field: divide every fine channel by its mean off-pulse level.
+
+    A per-fine-channel off-pulse mean *is* the static instrumental bandpass
+    (the system gain, including the PFB coarse-channel scallop), because that
+    gain multiplies the off-pulse noise and the on-pulse burst identically.
+    Dividing the whole dynamic spectrum by it cancels the scallop exactly while
+    leaving the (time-variable) scintillation imprinted on the burst untouched --
+    unlike a low-order polynomial baseline, which cannot follow a periodic
+    scallop at all. Pass-1 freya_chime inspection: the frequency ACF was
+    dominated by a ~0.39 MHz coarse-channel ripple ~7x the fit baseline, static
+    in time; only a multiplicative flat-field removes it.
+
+    Guard rails mirror the #118 baseline-subtraction philosophy: fail loudly on
+    an off-pulse window too short to average down noise, and mask (never divide
+    by) channels whose off-pulse mean is non-positive, non-finite, or gain-
+    starved relative to the median.
+    """
+    start, end = int(off_pulse_lims[0]), int(off_pulse_lims[1])
+    n_off = end - start
+    if n_off < _MIN_BANDPASS_OFF_BINS:
+        raise ValueError(
+            f"bandpass normalization needs >= {_MIN_BANDPASS_OFF_BINS} off-pulse "
+            f"time bins to estimate the per-channel gain, got {n_off} "
+            f"(off-pulse window [{start}, {end}))"
+        )
+
+    off_mean = np.ma.filled(np.ma.mean(spectrum.power[:, start:end], axis=1), np.nan)
+    finite_positive = off_mean[np.isfinite(off_mean) & (off_mean > 0.0)]
+    if finite_positive.size == 0:
+        raise ValueError(
+            "bandpass normalization: off-pulse window has no finite, positive "
+            "channel means to define a reference level"
+        )
+    floor = float(floor_frac) * float(np.median(finite_positive))
+    bad_channel = ~(np.isfinite(off_mean) & (off_mean > floor))
+
+    # Bad channels carry a placeholder gain of 1.0 only to keep the division
+    # finite; they are masked below and never read as data.
+    gain = np.where(bad_channel, 1.0, off_mean)
+    normalised = spectrum.power.data / gain[:, np.newaxis]
+
+    if spectrum.power.mask is np.ma.nomask or np.isscalar(spectrum.power.mask):
+        base_mask = np.zeros(spectrum.power.shape, dtype=bool)
+    else:
+        base_mask = spectrum.power.mask.copy()
+    final_mask = base_mask | np.broadcast_to(bad_channel[:, None], spectrum.power.shape)
+
+    n_masked = int(bad_channel.sum())
+    if n_masked:
+        log.info("Bandpass normalization masked %d gain-starved channel(s).", n_masked)
+    new_power = np.ma.MaskedArray(normalised, mask=final_mask)
+    return DynamicSpectrum(new_power, spectrum.frequencies.copy(), spectrum.times.copy())
+
+
+def _grid_stretch_ratio(frequencies: np.ndarray) -> tuple[float, float, float]:
+    """Return (native step, mean step, mean/native ratio) for a frequency axis.
+
+    The native step is the median spacing: on a gapped-but-commensurate grid
+    the overwhelming majority of spacings are the true channel width (freya
+    CHIME hi: 26,466 of 26,527), so the median is immune to the gap junctions
+    that corrupt the mean.
+    """
+    diffs = np.diff(np.asarray(frequencies, dtype=float))
+    native = float(np.median(diffs))
+    mean = float(np.mean(diffs))
+    return native, mean, mean / native
+
+
+def regularize_frequency_grid(spectrum: DynamicSpectrum) -> DynamicSpectrum:
+    """Re-embed a gapped frequency grid onto the full uniform native grid.
+
+    ``calculate_acf`` correlates by channel INDEX and labels lags with
+    ``channel_width_mhz`` = mean(diff). On a grid with missing channels that
+    mislabels every lag by mean/native (freya CHIME hi: 1.2340x) and, worse,
+    index pairs straddling a gap mix physically distant channels into low-lag
+    bins -- a shape distortion no post-hoc axis rescale can undo (measured:
+    naive /1.234 gives 40.2 kHz where the regridded ACF gives 44.7 kHz).
+    Re-embedding every channel at its physical grid position with masked
+    fillers restores index lag == physical lag; the masked-array ACF already
+    handles the missing rows.
+
+    Channels are snapped to the nearest uniform-grid position: upchannelized
+    blocks are internally uniform, but inter-block offsets drift by up to half
+    a fine step (freya_chime_hi: max 3.05 kHz = 0.4996 channel), so exact grid
+    membership cannot be assumed. Nearest-grid placement bounds every snap at
+    half a channel by construction; two channels claiming the same grid
+    position (a compressed or corrupt axis) is the real failure mode and is
+    rejected, so regularization can place channels but never merge them.
+
+    Returns ``spectrum`` unchanged when the grid is already uniform.
+    Experiment provenance: Faber2026
+    docs/rse/specs/experiment-freya-chime-dnu-science-readiness.md (E1/E2).
+    """
+    freqs = np.asarray(spectrum.frequencies, dtype=float)
+    if freqs.size < 3:
+        return spectrum
+    native, mean, ratio = _grid_stretch_ratio(freqs)
+    if native <= 0:
+        raise ValueError("frequency axis is not strictly increasing")
+    diffs = np.diff(freqs)
+    if float(np.max(np.abs(diffs - native))) <= _GRID_UNIFORM_REL_TOL * native:
+        return spectrum
+
+    n_full = int(round((freqs[-1] - freqs[0]) / native)) + 1
+    idx = np.round((freqs - freqs[0]) / native).astype(int)
+    if np.unique(idx).size != idx.size:
+        raise ValueError(
+            "frequency grid regularization: two channels snap to the same grid "
+            "position; the axis is compressed or corrupt (or the native-step "
+            "estimate from the median spacing is wrong)"
+        )
+    snap_err = np.abs(freqs - (freqs[0] + native * idx))
+    frac_large = float(np.mean(snap_err > _GRID_SNAP_REPORT_FRAC * native))
+    log.info(
+        "Grid snap distances: max %.4g channel, %.0f%% of channels beyond %.2f "
+        "channel (inter-block registration drift in the upstream product).",
+        float(np.max(snap_err)) / native,
+        100.0 * frac_large,
+        _GRID_SNAP_REPORT_FRAC,
+    )
+
+    power_full = np.full((n_full, spectrum.power.shape[1]), np.nan, dtype=float)
+    power_full[idx, :] = spectrum.power.filled(np.nan)
+    freqs_full = freqs[0] + native * np.arange(n_full)
+    log.info(
+        "Regularized frequency grid: %d -> %d channels (%d masked fillers), "
+        "removing a %.4fx lag-axis stretch (mean spacing %.6g -> native %.6g MHz).",
+        freqs.size,
+        n_full,
+        n_full - freqs.size,
+        ratio,
+        mean,
+        native,
+    )
+    return DynamicSpectrum(power_full, freqs_full, spectrum.times.copy())
+
+
+def apply_grid_regularization(spectrum: DynamicSpectrum, cfg: dict) -> DynamicSpectrum:
+    """Apply ``analysis.grid_regularization`` gating to a freshly loaded
+    spectrum: regularize when enabled, warn loudly when disabled on a
+    non-uniform grid, no-op otherwise.
+
+    Shared by every data-preparation path (this module's
+    ``prepare_spectrum_from_config`` and ``pipeline.ScintillationAnalysis``),
+    so a config that enables the flag cannot be silently bypassed by one
+    entry point. Must run BEFORE ``downsample``: block-averaging across a gap
+    junction mixes non-adjacent frequencies exactly like the index-lag ACF
+    does.
+    """
+    grid_cfg = cfg.get("analysis", {}).get("grid_regularization", {})
+    if grid_cfg.get("enable", False):
+        return regularize_frequency_grid(spectrum)
+    native, mean, ratio = _grid_stretch_ratio(spectrum.frequencies)
+    if abs(ratio - 1.0) > _GRID_UNIFORM_REL_TOL:
+        log.warning(
+            "Frequency grid is non-uniform (mean spacing %.6g MHz vs native "
+            "%.6g MHz): the ACF lag axis and Delta nu_d will be overstated "
+            "by ~%.4fx and gap-straddling lags will mix distant channels. "
+            "Enable analysis.grid_regularization to fix (issue #120).",
+            mean,
+            native,
+            ratio,
+        )
+    return spectrum
+
+
 def prepare_spectrum_from_config(
     cfg: dict,
 ) -> tuple[DynamicSpectrum, tuple[int, int], tuple[int, int] | None]:
     ds_cfg = cfg.get("pipeline_options", {}).get("downsample", {})
     f_factor = int(ds_cfg.get("f_factor", 1))
     t_factor = int(ds_cfg.get("t_factor", 1))
-    spectrum = DynamicSpectrum.from_numpy_file(cfg["input_data_path"]).downsample(
-        f_factor, t_factor
-    )
+    spectrum = DynamicSpectrum.from_numpy_file(cfg["input_data_path"])
+    spectrum = apply_grid_regularization(spectrum, cfg)
+    spectrum = spectrum.downsample(f_factor, t_factor)
     masked = spectrum.mask_rfi(cfg)
     burst_lims, off_lims = determine_windows(masked, cfg)
+
+    bandpass_cfg = cfg.get("analysis", {}).get("bandpass_normalization", {})
+    if bandpass_cfg.get("enable", False):
+        # Flat-field before any additive baseline step: the coarse-channel
+        # scallop is multiplicative, so it must be divided out on the raw
+        # bandpass, not after a polynomial has already been subtracted.
+        if off_lims is None or off_lims[1] <= off_lims[0]:
+            raise ValueError("bandpass normalization requires a valid off-pulse window")
+        masked = normalize_bandpass(
+            masked,
+            off_lims,
+            floor_frac=float(bandpass_cfg.get("floor_frac", _BANDPASS_FLOOR_FRAC)),
+        )
 
     baseline_cfg = cfg.get("analysis", {}).get("baseline_subtraction", {})
     if baseline_cfg.get("enable", False):
@@ -383,6 +628,65 @@ def prepare_spectrum_from_config(
     return masked, burst_lims, off_lims
 
 
+def _scan_fit_windows(
+    on_spectrum: np.ndarray | np.ma.MaskedArray,
+    *,
+    channel_width_mhz: float,
+    off_burst_spectrum_mean: float | None,
+    max_lag_mhz: float,
+    scan_lags_mhz: list[float],
+) -> tuple[list[dict], float | None]:
+    """Refit the ACF Lorentzian per fit window; return per-window records and
+    the spread (max - min) of the successful widths (None if fewer than two
+    windows succeed)."""
+    records: list[dict] = []
+    widths: list[float] = []
+    for fit_lag in scan_lags_mhz:
+        if not np.isfinite(fit_lag):
+            # A NaN/inf from YAML must surface as a failed record, not crash
+            # the strict allow_nan=False JSON writer downstream.
+            records.append(
+                {
+                    "fit_lag_mhz": None,
+                    "success": False,
+                    "delta_nu_mhz": None,
+                    "delta_nu_err_mhz": None,
+                    "message": f"invalid fit window: non-finite value {fit_lag!r}",
+                }
+            )
+            continue
+        try:
+            r = measure_scintillation_bandwidth(
+                on_spectrum,
+                channel_width_mhz=channel_width_mhz,
+                off_burst_spectrum_mean=off_burst_spectrum_mean,
+                max_lag_mhz=max_lag_mhz,
+                fit_lag_mhz=float(fit_lag),
+            )
+            record = {
+                "fit_lag_mhz": float(fit_lag),
+                "success": r.success,
+                "delta_nu_mhz": r.delta_nu_mhz,
+                "delta_nu_err_mhz": r.delta_nu_err_mhz,
+                "message": r.message,
+            }
+            if r.success and r.delta_nu_mhz is not None:
+                widths.append(float(r.delta_nu_mhz))
+        except ValueError as exc:
+            # An invalid window (e.g. below one channel) must not kill the
+            # primary result; record it as a visible failure instead.
+            record = {
+                "fit_lag_mhz": float(fit_lag),
+                "success": False,
+                "delta_nu_mhz": None,
+                "delta_nu_err_mhz": None,
+                "message": f"invalid fit window: {exc}",
+            }
+        records.append(record)
+    systematic = float(max(widths) - min(widths)) if len(widths) >= 2 else None
+    return records, systematic
+
+
 def run_notebook_style_analysis(
     spectrum: DynamicSpectrum,
     *,
@@ -392,6 +696,7 @@ def run_notebook_style_analysis(
     output_dir: str | Path,
     max_lag_mhz: float = 20.0,
     fit_lag_mhz: float = 2.0,
+    fit_lag_scan_mhz: list[float] | None = None,
     write_figures: bool = True,
 ) -> NotebookStyleResult:
     output = Path(output_dir)
@@ -427,6 +732,18 @@ def run_notebook_style_analysis(
             )
         )
 
+    fit_window_scan: list[dict] | None = None
+    fit_window_systematic_mhz: float | None = None
+    if fit_lag_scan_mhz:
+        fit_window_scan, fit_window_systematic_mhz = _scan_fit_windows(
+            on_spectrum,
+            channel_width_mhz=spectrum.channel_width_mhz,
+            off_burst_spectrum_mean=off_mean,
+            max_lag_mhz=max_lag_mhz,
+            scan_lags_mhz=list(fit_lag_scan_mhz),
+        )
+
+    result_path = output / f"{burst_id}_scintillation.json"
     result = NotebookStyleResult(
         burst_id=burst_id,
         burst_lims=burst_lims,
@@ -434,17 +751,9 @@ def run_notebook_style_analysis(
         acf=acf_result,
         structure=structure_result,
         figures=figures,
-        result_path=None,
-    )
-    result_path = output / f"{burst_id}_scintillation.json"
-    result = NotebookStyleResult(
-        burst_id=result.burst_id,
-        burst_lims=result.burst_lims,
-        off_pulse_lims=result.off_pulse_lims,
-        acf=result.acf,
-        structure=result.structure,
-        figures=result.figures,
         result_path=str(result_path),
+        fit_window_scan=fit_window_scan,
+        fit_window_systematic_mhz=fit_window_systematic_mhz,
     )
     result_path.write_text(
         json.dumps(to_jsonable(result), indent=2, cls=NumpyJSONEncoder, allow_nan=False) + "\n"
@@ -598,6 +907,7 @@ def run_config_path(
         if output_dir is not None
         else _default_output_dir(cfg)
     )
+    scan_cfg = fitting_cfg.get("fit_lag_scan_mhz")
     return run_notebook_style_analysis(
         spectrum,
         burst_id=cfg.get("burst_id", "freya"),
@@ -606,6 +916,7 @@ def run_config_path(
         output_dir=out,
         max_lag_mhz=float(acf_cfg.get("max_lag_mhz", 20.0)),
         fit_lag_mhz=float(fitting_cfg.get("fit_lagrange_mhz", 2.0)),
+        fit_lag_scan_mhz=[float(v) for v in scan_cfg] if scan_cfg else None,
         write_figures=write_figures,
     )
 

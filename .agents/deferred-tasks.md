@@ -61,6 +61,8 @@ docs close-out, so none are `@agent`.
   0 critical / 0 major / 3 minor, all three fixed (keyword-only markers, --solver case,
   exists=True parity); verify-gate records test/reproduce/adversarial-review pass.
 - [ ] Push `feat/ffh-integration` + open PR; on approval merge (one-way door). @human
+  **Pushed + PR #123 open 2026-07-05** (user-approved batch: push+PR only; archives held
+  until merge). Remaining: merge on approval.
 - [ ] Archive `frb-foreground-halos` AND `subhalos` per the los_halos recipe (plan
   Phase 10: subhalos consolidation proof first; commit ffh's untracked review
   artifacts + AGENTS.md into the archive commit; batch pushes/archives into one

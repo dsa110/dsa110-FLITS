@@ -10,13 +10,20 @@ analysis:
     enable_time_domain_flagging: false
     time_threshold_sigma: 7.0
     freq_threshold_sigma: 5.0
-    # time bins (dt=0.32768 ms): local burst span >3 sigma around bin ~250 is 244-267.
+    # time bins (dt=0.32768 ms): v3 product (2026-07-04, --no-time-shift de-chirp
+    # + metadata-aligned builder on a padded 446-bin canvas, no circular wraps —
+    # low band fully usable, z 10-13 per 25 MHz slice at 400-500). Burst peak bin
+    # 254, >3 sigma span 253-263 in 600-800; low-band peak lags by ~0.3 tau(nu) +
+    # the 0.07 pc/cm3 DM offset (912.4 used vs CHIME structure DM 912.4699), up
+    # to ~7 bins at 412 MHz — window padded to 268 to hold the full scattered
+    # envelope. Known narrowband RFI burst at 482-487 MHz around bin 391 (masked
+    # by freq-domain RFI stage). Noise window starts at 10 (leading offsets 0-9).
     manual_burst_window:
-    - 244
+    - 253
     - 268
     manual_noise_window:
-    - 0
-    - 180
+    - 10
+    - 200
   acf:
     # Full CHIME band is diagnostic only: the expected NE2025 MW floor is ~38.8 kHz at
     # 600 MHz and scales as nu^4.4 to ~138 kHz at 800 MHz, while the 400 MHz scale is

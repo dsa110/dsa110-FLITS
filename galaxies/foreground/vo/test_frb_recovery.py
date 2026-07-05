@@ -21,7 +21,7 @@ VIZIER = "https://tapvizier.cds.unistra.fr/TAPVizieR/tap"
 # Known FRB targets and their manually-found foreground objects
 VALIDATION_TARGETS = {
     "zach": {
-        "frb": Target(name="zach", ra=310.1995, dec=72.8823, z_host=0.043),
+        "frb": Target(name="zach", ra=310.1995, dec=72.8823, redshift=0.043),
         "expected_halos": [
             {"ra": 310.0913, "dec": 72.8104, "z_phot": 0.0127, "impact_kpc": 75.9, "survey": "WISE, PS1, STRM"}
         ],
@@ -30,7 +30,7 @@ VALIDATION_TARGETS = {
         ],
     },
     "whitney": {
-        "frb": Target(name="whitney", ra=134.7205, dec=73.4908, z_host=0.479),
+        "frb": Target(name="whitney", ra=134.7205, dec=73.4908, redshift=0.479),
         "expected_halos": [
             {"ra": 134.7356, "dec": 73.4910, "z_phot": 0.5731, "impact_kpc": 104.0, "survey": "Legacy DR8"}
         ],
@@ -39,7 +39,7 @@ VALIDATION_TARGETS = {
         ],
     },
     "isha": {  # control case - no foreground objects expected
-        "frb": Target(name="isha", ra=71.4110, dec=70.3074, z_host=0.2505),
+        "frb": Target(name="isha", ra=71.4110, dec=70.3074, redshift=0.2505),
         "expected_halos": [],
         "expected_clusters": [],
     },

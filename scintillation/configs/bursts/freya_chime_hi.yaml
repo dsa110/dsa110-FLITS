@@ -16,13 +16,17 @@ analysis:
     # Lowered 5.0 -> 3.0 to catch the pass-1 residual freq-domain speckle;
     # masks ~14% of channels (off-pulse outliers), burst band preserved.
     freq_threshold_sigma: 3.0
-    # time bins (dt=0.32768 ms): local burst span >3 sigma around bin ~250 is 244-267.
+    # time bins (dt=0.32768 ms): v3 product (2026-07-04, --no-time-shift de-chirp
+    # + metadata-aligned builder on a padded 446-bin canvas, no circular wraps):
+    # burst peak bin 254 (z=89), >3 sigma span 253-263. Noise window starts at 10
+    # to skip the leading partial-coverage edge (offsets 0-9) and one hot bin 0;
+    # bins ~423-436 are trailing partial-coverage edges — keep windows clear.
     manual_burst_window:
-    - 244
-    - 268
+    - 253
+    - 264
     manual_noise_window:
-    - 0
-    - 180
+    - 10
+    - 200
   acf:
     # Measurement band: 600-800 MHz resolves the expected NE2025 MW floor, ~38.8 kHz
     # at 600 MHz scaling as nu^4.4 to ~138 kHz at 800 MHz. The 400 MHz scale is near

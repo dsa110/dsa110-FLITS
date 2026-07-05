@@ -6,8 +6,6 @@ Multi-burst analyses for the DSA-110 + CHIME co-detection sample.
 
 ### Time-of-Arrival Cross-matching
 
-**Notebook:** `toa_crossmatch.ipynb`
-
 Cross-telescope TOA comparison with corrections for:
 
 - Barycentric delays
@@ -15,11 +13,15 @@ Cross-telescope TOA comparison with corrections for:
 - Reference frequency standardization (400 MHz)
 - Pulse width (FWHM) measurements
 
+The checked-in notebook artifact was removed; use the maintained
+`crossmatching/` modules and distilled fixtures instead.
+
 ### 3D Scintillation Mapping
 
-**Notebook:** `scintillation_3dmap.ipynb`
-
 3D visualization of scintillation properties across the co-detection sample.
+
+The checked-in notebook artifact was removed; regenerate exploratory views in
+local untracked notebooks when needed.
 
 ## Data
 

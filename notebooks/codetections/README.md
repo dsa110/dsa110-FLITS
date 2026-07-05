@@ -1,19 +1,22 @@
 # `notebooks/codetections/`
 
-Analysis notebooks for the CHIME–DSA co-detected FRB sample.
+Historical notebook landing area for the CHIME-DSA co-detected FRB sample.
+Checked-in notebooks were removed during the generated-artifact cleanup; keep
+new exploratory notebooks outside git and promote only distilled CSV/JSON
+fixtures or maintained Python modules.
 
 ## Contents
 
-| notebook | purpose | source (pre-fold) |
+| removed notebook | purpose | source (pre-fold) |
 |---|---|---|
-| `interveners.ipynb` | FRB–halo / cluster association and intervener analysis | `chime_dsa_codetections/interveners.ipynb` |
+| `interveners.ipynb` | FRB-halo / cluster association and intervener analysis | `chime_dsa_codetections/interveners.ipynb` |
 
 ## Local data
 
 | file | purpose | source (pre-fold) |
 |---|---|---|
-| `data/frb_cluster_associations.csv` | Cluster associations consumed by `interveners.ipynb` | `chime_dsa_codetections/frb_cluster_associations.csv` |
-| `data/frb_halo_associations.csv` | Halo associations consumed by `interveners.ipynb` | `chime_dsa_codetections/frb_halo_associations.csv` |
+| `data/frb_cluster_associations.csv` | Cluster associations distilled from the notebook-era workflow | `chime_dsa_codetections/frb_cluster_associations.csv` |
+| `data/frb_halo_associations.csv` | Halo associations distilled from the notebook-era workflow | `chime_dsa_codetections/frb_halo_associations.csv` |
 
 ## Excluded from the fold
 

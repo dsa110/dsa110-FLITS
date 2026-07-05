@@ -17,9 +17,9 @@
 
 ### Analysis Files
 
-- `scattering_dsa.ipynb` - DSA-110 scattering analysis
-- `scattering_chime.ipynb` - CHIME scattering analysis
-- `scintillation_manual.ipynb` - Manual scintillation analysis
+The checked-in notebook artifacts were removed. Re-run the maintained pipelines
+with the Wilhelm YAML configs under `scattering/configs/bursts/` and
+`scintillation/configs/bursts/`.
 
 ## Notes
 

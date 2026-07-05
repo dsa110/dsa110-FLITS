@@ -24,7 +24,6 @@ DATA_DIR="${DATA_DIR:-/arc/home/jfaber/baseband_morphologies/chime_dsa_codetecti
 OUT_DIR="${OUT_DIR:-$REPO_ROOT/results/scattering_runs/$(date +%Y%m%d_%H%M%S)}"
 CONFIG_DIR="$REPO_ROOT/scattering/configs/bursts/chime"
 PYTHON="${PYTHON:-python}"
-RUNNER="$REPO_ROOT/scattering/scripts/run_scattering_analysis.py"
 
 ALL_BURSTS="zach whitney oran isha wilhelm phineas freya hamilton mahi chromatica casey johndoeII"
 BURSTS="${BURSTS:-$ALL_BURSTS}"
@@ -81,7 +80,7 @@ for burst in $BURSTS; do
 
   echo "[$burst] running -> $data_path"
   log="$OUT_DIR/${burst}.log"
-  if "$PYTHON" "$RUNNER" "$tmp_cfg" > "$log" 2>&1; then
+  if "$PYTHON" -m scattering.run_scat_analysis "$tmp_cfg" > "$log" 2>&1; then
     # Collect the fit_results.json the pipeline wrote (data.parent/analysis_*/).
     found="$(ls -t "$(dirname "$data_path")"/analysis_*/*fit_results.json 2>/dev/null | head -1 || true)"
     if [[ -n "$found" ]]; then

@@ -382,3 +382,25 @@ cython_debug/
 /scintillation/data
 /galaxies/foreground/data/survey_footprints
 /analysis/scattering-refit-2026-06/local_runs/runtime
+
+# Generated scratch / working buckets (removed in ponytail cleanup; keep untracked)
+/.scratch/
+/scratch/
+/logs/
+/reports/
+/outputs/
+/output/
+/out_dir/
+/analysis_results/
+test_output/
+
+# Generated analysis artifacts. Keep source, configs, and docs in git.
+*.ipynb
+/analysis/scattering-refit-2026-06/**/*.json
+/analysis/scattering-refit-2026-06/**/*.png
+/analysis/scattering-refit-2026-06/**/*.svg
+/analysis/scattering-refit-2026-06/**/*.html
+/analysis/scattering-refit-2026-06/**/*.pdf
+/analysis/scattering-refit-2026-06/**/*.npz
+/analysis/scattering-refit-2026-06/**/*.csv
+/.superpowers/

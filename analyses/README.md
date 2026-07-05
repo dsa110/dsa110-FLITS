@@ -13,8 +13,11 @@ Individual burst analyses for the DSA-110 + CHIME co-detection sample (12 bursts
 Each burst directory contains:
 
 - `README.md` - Burst properties, analysis summary, notes
-- `scattering_*.ipynb` - Scattering analysis notebooks (DSA/CHIME)
-- `scintillation.ipynb` - Scintillation analysis (when available)
+
+Historical notebooks were removed from git during the cleanup of generated
+analysis artifacts. Re-run analyses through the package CLIs and keep notebooks
+or rendered products outside the repository unless they are intentionally
+promoted as small fixtures.
 
 ### `samples/`
 
@@ -24,27 +27,21 @@ Multi-burst analyses and population studies:
 
 ### `templates/`
 
-Starting points for new burst analyses:
-
-- `scattering_template.ipynb` - Template for scattering pipeline
-- `scintillation_template.ipynb` - Template for scintillation pipeline
+Starting points for new burst analyses now live in the package CLIs and config
+files rather than checked-in notebooks.
 
 ## Quick Start
 
 ### Analyze a New Burst
 
 1. Create directory: `mkdir -p bursts/{new_burst_name}`
-2. Copy template: `cp templates/scattering_template.ipynb bursts/{new_burst_name}/scattering.ipynb`
-3. Update burst metadata in `configs/bursts.yaml`
-4. Run analysis (see template for details)
+2. Update burst metadata in `configs/bursts.yaml`
+3. Add or update a YAML config under `scattering/configs/bursts/`
+4. Run analysis with `flits-scat` or `python -m scattering.run_scat_analysis`
 
 ### Run an Existing Analysis
 
 ```bash
-# Using Jupyter
-jupyter notebook analyses/bursts/casey/scattering_dsa.ipynb
-
-# Using the CLI
 flits-scat scattering/configs/bursts/casey_dsa.yaml
 ```
 

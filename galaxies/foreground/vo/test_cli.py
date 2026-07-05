@@ -24,7 +24,7 @@ def test_cli_services_offline_prints_anchors(capsys):
 @pytest.mark.unit
 def test_cli_run_targets_prints_counts(sample_targets_yaml, monkeypatch, capsys):
     fake_rows = pd.DataFrame({"ra": [1.0, 2.0], "dec": [0.0, 0.1]})
-    monkeypatch.setattr(cli, "cone_query", lambda *a, **k: fake_rows)
+    monkeypatch.setattr(cli, "cone_query", lambda *a, **k: (fake_rows, {"adql": "SELECT 1", "truncated": False}))
     cli.main(["run-targets", "https://svc.example/tap", "galaxy.main", "ra", "dec",
               "--targets", str(sample_targets_yaml)])
     out = capsys.readouterr().out
@@ -69,7 +69,7 @@ def test_cli_query_reduce_roundtrip(tmp_path, sample_targets_yaml, monkeypatch):
     )
 
     fake_rows = pd.DataFrame({"ra": [150.115], "dec": [2.205], "z_spec": [0.12]})
-    monkeypatch.setattr(cli, "cone_query", lambda *a, **k: fake_rows)
+    monkeypatch.setattr(cli, "cone_query", lambda *a, **k: (fake_rows, {"adql": "SELECT 1", "truncated": False}))
 
     cli.main(["--cache-dir", str(cache), "query", "--targets", str(sample_targets_yaml)])
     assert (cache / "queries" / svc_hash / cli._hash("galaxy.main") / "FRB_Test_A.parquet").exists()

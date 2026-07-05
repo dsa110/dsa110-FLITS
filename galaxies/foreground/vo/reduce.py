@@ -1,82 +1,111 @@
-"""Rank normalized candidates by impact parameter and halo scale."""
+"""Reduction and ranking for foreground candidates."""
 
 from __future__ import annotations
 
 import math
 
-import numpy as np
-import pandas as pd
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astropy.cosmology import Cosmology
+import numpy as np
+import pandas as pd
 
 
-def angular_separation_arcmin(ra1_deg, dec1_deg, ra2_deg: float, dec2_deg: float):
-    """Angular separation in arcmin; accepts scalars or arrays for the first position."""
-    a = SkyCoord(ra1_deg * u.deg, dec1_deg * u.deg, frame="icrs")
-    b = SkyCoord(ra2_deg * u.deg, dec2_deg * u.deg, frame="icrs")
-    return a.separation(b).to(u.arcmin).value
+def angular_separation_arcmin(
+    frb_ra_deg: float,
+    frb_dec_deg: float,
+    cand_ra_deg: float,
+    cand_dec_deg: float,
+) -> float:
+    """Compute angular separation in arcminutes."""
+    frb = SkyCoord(frb_ra_deg * u.deg, frb_dec_deg * u.deg, frame="icrs")
+    candidate = SkyCoord(cand_ra_deg * u.deg, cand_dec_deg * u.deg, frame="icrs")
+    return frb.separation(candidate).to(u.arcmin).value
 
 
-def impact_parameter_kpc(theta_arcmin, z, cosmo: Cosmology):
-    """Proper impact parameter b (kpc) at redshift z for angular offset theta.
-
-    b = theta * D_A(z); accepts scalars or arrays.
-    """
+def impact_parameter_kpc(theta_arcmin: float, z: float, cosmo: Cosmology) -> float:
+    """Compute projected impact parameter in kpc."""
     theta_rad = (theta_arcmin * u.arcmin).to(u.rad).value
-    da = cosmo.angular_diameter_distance(z).to(u.kpc).value
-    return theta_rad * da
+    da_kpc = cosmo.angular_diameter_distance(z).to(u.kpc).value
+    return theta_rad * da_kpc
 
 
-def compute_rdelta_from_mdelta(m_delta_msun: float, delta: float, z: float, cosmo: Cosmology) -> float:
-    """R_delta (kpc) from M_delta = (4/3) pi delta rho_c(z) R_delta^3."""
+def rdelta_from_mdelta(
+    m_delta_msun: float,
+    delta: float,
+    z: float,
+    cosmo: Cosmology,
+) -> float:
+    """Compute R_delta in kpc from M_delta without changing delta definition."""
     rho_c = cosmo.critical_density(z).to(u.Msun / (u.kpc**3)).value
-    return ((3.0 * m_delta_msun) / (4.0 * math.pi * delta * rho_c)) ** (1.0 / 3.0)
+    r_cubed = (3.0 * m_delta_msun) / (4.0 * math.pi * delta * rho_c)
+    return r_cubed ** (1.0 / 3.0)
 
 
 def merge_and_rank(
     df: pd.DataFrame,
+    *,
     frb_ra_deg: float,
     frb_dec_deg: float,
-    cosmo: Cosmology,
+    cosmo: Cosmology | None = None,
 ) -> pd.DataFrame:
-    """Compute theta (arcmin), b (kpc), optional R_delta, and rank by b/R_delta when available.
+    """Add geometry columns and rank candidates deterministically."""
+    if cosmo is None:
+        from astropy.cosmology import Planck18
 
-    Assumes df has columns: ra, dec, z, and optionally delta_def, m_delta, r_delta.
-    """
+        cosmo = Planck18
     out = df.copy()
 
     out["theta_arcmin"] = [
-        angular_separation_arcmin(ra, dec, frb_ra_deg, frb_dec_deg) if pd.notna(ra) and pd.notna(dec) else np.nan
-        for ra, dec in zip(out["ra"], out["dec"], strict=True)
+        angular_separation_arcmin(frb_ra_deg, frb_dec_deg, ra, dec)
+        if pd.notna(ra) and pd.notna(dec)
+        else np.nan
+        for ra, dec in zip(out["ra"], out["dec"])
     ]
-
     out["b_kpc"] = [
-        impact_parameter_kpc(theta, z, cosmo) if pd.notna(theta) and pd.notna(z) else np.nan
-        for theta, z in zip(out["theta_arcmin"], out["z"], strict=True)
+        impact_parameter_kpc(theta, z, cosmo)
+        if pd.notna(theta) and pd.notna(z)
+        else np.nan
+        for theta, z in zip(out["theta_arcmin"], out["z"])
     ]
 
-    def _compute_r(row):
+    def _r_delta(row: pd.Series) -> float:
         if pd.notna(row.get("r_delta")):
-            return row["r_delta"]
-        if pd.notna(row.get("m_delta")) and pd.notna(row.get("delta_def")) and pd.notna(row.get("z")):
+            return float(row["r_delta"])
+        if (
+            pd.notna(row.get("m_delta"))
+            and pd.notna(row.get("delta_def"))
+            and pd.notna(row.get("z"))
+        ):
             try:
-                return compute_rdelta_from_mdelta(float(row["m_delta"]), float(row["delta_def"]), float(row["z"]), cosmo)
+                return rdelta_from_mdelta(
+                    float(row["m_delta"]),
+                    float(row["delta_def"]),
+                    float(row["z"]),
+                    cosmo,
+                )
             except Exception:
                 return np.nan
         return np.nan
 
-    out["r_delta_computed"] = out.apply(_compute_r, axis=1)
+    out["r_delta_computed"] = out.apply(_r_delta, axis=1)
 
-    # Ranking key: prefer smaller b/R when R available; otherwise smaller b
-    def _rank_key(row):
-        r = row["r_delta_computed"]
-        b = row["b_kpc"]
-        if pd.notna(r) and r > 0 and pd.notna(b):
-            return b / r
-        return b if pd.notna(b) else np.inf
+    def _rank_key(row: pd.Series) -> float:
+        b_kpc = row.get("b_kpc")
+        r_delta = row.get("r_delta_computed")
+        if pd.notna(b_kpc) and pd.notna(r_delta) and r_delta > 0:
+            return float(b_kpc) / float(r_delta)
+        if pd.notna(b_kpc):
+            return float(b_kpc)
+        return np.inf
 
     out["rank_key"] = out.apply(_rank_key, axis=1)
-    out.sort_values(["rank_key", "service", "table", "id", "name"], inplace=True, kind="mergesort")
+    out.sort_values(
+        ["rank_key", "service", "table", "id", "name"],
+        inplace=True,
+        kind="mergesort",
+        na_position="last",
+    )
     out.reset_index(drop=True, inplace=True)
     return out
+

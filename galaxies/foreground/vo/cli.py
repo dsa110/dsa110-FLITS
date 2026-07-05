@@ -46,17 +46,18 @@ def cmd_tables(args: argparse.Namespace) -> None:
 
 
 def cmd_cone(args: argparse.Namespace) -> None:
-    df = cone_query(
+    df, meta = cone_query(
         args.access_url, args.table, args.ra_col, args.dec_col,
         args.ra, args.dec, args.radius_arcmin / 60.0, columns=args.columns,
     )
     print(df.head().to_string(index=False))
+    print(meta["adql"])
 
 
 def cmd_run_targets(args: argparse.Namespace) -> None:
     """Cone-query one endpoint/table for every target; print per-target row counts."""
     for t in load_targets(args.targets):
-        df = cone_query(
+        df, _ = cone_query(
             args.access_url, args.table, args.ra_col, args.dec_col,
             t.ra, t.dec, args.radius_arcmin / 60.0,
         )
@@ -101,7 +102,7 @@ def cmd_query(args: argparse.Namespace) -> None:
             outdir = cache / "queries" / svc["service_hash"] / _hash(row["table"])
             for t in targets:
                 try:
-                    df = cone_query(
+                    df, _ = cone_query(
                         svc["access_url"], row["table"], row["ra_col"], row["dec_col"],
                         t.ra, t.dec, args.radius / 60.0, maxrec=args.maxrec,
                     )
@@ -132,7 +133,7 @@ def cmd_reduce(args: argparse.Namespace) -> None:
                 if df.empty:
                     continue
                 norm = to_common_schema(
-                    df, row["ra_col"], row["dec_col"], row["z_col"],
+                    df, ra_col=row["ra_col"], dec_col=row["dec_col"], z_col=row["z_col"],
                     service=svc["access_url"], table=row["table"],
                 )
                 norm["frb_name"] = t.name

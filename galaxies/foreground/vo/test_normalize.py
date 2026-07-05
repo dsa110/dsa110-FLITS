@@ -37,7 +37,7 @@ def test_normalize_basic():
 @pytest.mark.unit
 def test_normalize_missing_columns():
     df = pd.DataFrame({"name": ["obj1"], "ra": [150.0], "dec": [2.0], "z": [0.1]})
-    out = normalize(df, ColumnMapping(name="name", ra="ra", dec="dec", z="z"), "service", "table")
+    out = normalize(df, ColumnMapping(name="name", ra="ra", dec="dec", z="z"), service="service", table="table")
     assert pd.isna(out["richness"].iloc[0])
     assert pd.isna(out["m_delta"].iloc[0])
     assert pd.isna(out["r_delta"].iloc[0])
@@ -94,3 +94,46 @@ def test_to_common_schema_id_and_z_prior():
     assert out.loc[0, "z_type"] == "photo"
     prov = json.loads(out.loc[0, "provenance_json"])
     assert prov.get("z_prior") is True
+
+
+@pytest.mark.unit
+def test_normalize_stable_schema_and_provenance():
+    df = pd.DataFrame(
+        {
+            "obj": ["g1"],
+            "ra_deg": [150.0],
+            "dec_deg": [2.0],
+            "z_spec": [0.2],
+        }
+    )
+
+    out = normalize(
+        df,
+        ColumnMapping(name="obj", ra="ra_deg", dec="dec_deg", z="z_spec"),
+        service="svc",
+        table="tbl",
+        adql="SELECT * FROM tbl",
+    )
+
+    assert list(out.columns) == SCHEMA_COLUMNS
+    assert out.loc[0, "z_type"] == "spec"
+    provenance = json.loads(out.loc[0, "provenance_json"])
+    assert provenance["adql"] == "SELECT * FROM tbl"
+    assert provenance["column_mapping"]["ra"] == "ra_deg"
+
+
+@pytest.mark.unit
+def test_photo_z_marks_prior_in_provenance():
+    df = pd.DataFrame({"ra": [150.0], "dec": [2.0], "z_phot": [0.3]})
+
+    out = to_common_schema(
+        df,
+        ra_col="ra",
+        dec_col="dec",
+        z_col="z_phot",
+        service="svc",
+        table="tbl",
+    )
+
+    assert out.loc[0, "z_type"] == "photo"
+    assert json.loads(out.loc[0, "provenance_json"])["z_prior"] is True

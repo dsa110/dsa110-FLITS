@@ -28,5 +28,5 @@ export FLITS_REPO
 cd "${FLITS_REPO}"
 
 echo "[$(date)] node=$(hostname) cpus=${SLURM_CPUS_PER_TASK} config=${CONFIG}"
-python -u scattering/scripts/run_scattering_analysis.py "${CONFIG}"
+python -u -m scattering.run_scat_analysis "${CONFIG}"
 echo "[$(date)] done rc=$?"

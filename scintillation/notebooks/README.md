@@ -1,9 +1,8 @@
-# Scintillation Analysis Notebooks
+# Scintillation Analysis Notes
 
-## Active Notebook
-
-### `scintillation_analysis.ipynb`
-**The unified, generalized scintillation analysis pipeline.**
+Checked-in scintillation notebooks were removed during the generated-artifact
+cleanup. Keep exploratory notebooks and rendered outputs outside git; the
+maintained entrypoint is the package CLI plus reusable modules.
 
 **Features:**
 - Works for any burst - just change configuration parameters
@@ -13,32 +12,17 @@
 - Clean, minimal code (98% reduction from legacy)
 
 **Quick Start:**
-1. Open `scintillation_analysis.ipynb`
-2. Set `burst_name`, `telescope`, and `nsubbands` in the second cell
-3. Run all cells
-4. Use interactive widgets to select windows and fit models
-5. Generate publication plots
+
+```bash
+flits-scint scintillation/configs/bursts/freya_dsa.yaml
+```
 
 ---
 
 ## Directory Structure
 
-```
-notebooks/
-├── scintillation_analysis.ipynb  ← Main analysis notebook (use this!)
-├── debug/                         ← Debugging tools
-└── README.md                      ← This file
-
-legacy/                             ← Old notebooks (archived)
-├── general_manual.ipynb           ← Refactored v1
-├── general_manual_2.ipynb         ← Refactored v2  
-├── general_manual_3.ipynb         ← Refactored v3
-├── example_refactored_workflow.ipynb ← Demo notebook
-├── casey/, freya/, hamilton/, ... ← Burst-specific old notebooks
-├── 3dmap.ipynb                    ← Visualization tools
-├── spec_hist.ipynb                ← Spectral histograms
-└── interveners.ipynb              ← Intervening screen analysis
-```
+This directory is now documentation-only unless a small, intentional fixture is
+added later.
 
 ---
 
@@ -54,14 +38,9 @@ If you have analysis code in legacy burst-specific notebooks:
 # ... 250 lines of plotting code ...
 ```
 
-**New workflow:**
-```python
-# In scintillation_analysis.ipynb (~50 lines)
-burst_name = "freya"
-widgets.interactive_window_selector(scint_pipeline, BURST_CONFIG_PATH)
-widgets.acf_fitter_dashboard(acf_results, BURST_CONFIG_PATH)
-plotting.plot_publication_acf(acf_obj, **fit_data)
-```
+**New workflow:** use `flits-scint` for batchable runs and import
+`scintillation.scint_analysis.widgets` only in local notebooks that stay
+untracked.
 
 **What to migrate:**
 - Burst-specific parameters → Update config cells

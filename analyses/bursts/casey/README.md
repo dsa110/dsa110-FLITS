@@ -17,7 +17,8 @@
 
 ### Analysis Files
 
-- `scattering_dsa.ipynb` - DSA-110 scattering analysis
+The checked-in notebook artifact was removed. Re-run the maintained pipeline
+with `flits-scat scattering/configs/bursts/dsa/casey_dsa.yaml`.
 
 ## Notes
 

@@ -17,8 +17,8 @@
 
 ### Analysis Files
 
-- `scattering_dsa.ipynb` - DSA-110 scattering analysis
-- `scattering_chime.ipynb` - CHIME scattering analysis
+The checked-in notebook artifacts were removed. Re-run the maintained pipeline
+with the Freya YAML configs under `scattering/configs/bursts/`.
 
 ## Notes
 

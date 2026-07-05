@@ -1,12 +1,15 @@
-# FRB Scattering Analysis Notebooks
+# FRB Scattering Analysis Notes
 
-This directory contains the unified notebook interface for FLITS scattering analysis.
+Checked-in scattering notebooks were removed during the generated-artifact
+cleanup. Use the package CLI and YAML configs as the maintained workflow.
 
 ## Quick Start
 
-1. Open `scattering_analysis.ipynb`
-2. Set `config_path` to your burst's YAML configuration file
-3. Run all cells
+```bash
+flits-scat scattering/configs/bursts/dsa/casey_dsa.yaml
+# or, without installing console scripts:
+python -m scattering.run_scat_analysis scattering/configs/bursts/dsa/casey_dsa.yaml
+```
 
 ## Configuration Files
 
@@ -77,12 +80,10 @@ plot: true            # Save publication plots
 
 ## Workflow
 
-The unified notebook provides a complete pipeline:
+The CLI provides the complete pipeline:
 
 ### 1. Configuration Loading
-```python
-config_path = Path("../configs/bursts/dsa/casey_dsa.yaml")
-```
+Pass the burst YAML path as the positional argument.
 
 ### 2. Pipeline Execution
 - Data preprocessing (dedispersion, downsampling, centering)

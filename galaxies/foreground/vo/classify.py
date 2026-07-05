@@ -89,7 +89,7 @@ def summarize_sightlines(df: pd.DataFrame) -> pd.DataFrame:
             closest_name = None
             closest_id = None
 
-        def _count_fg(col: str) -> int:
+        def _count_fg(col: str, fg_group: pd.DataFrame = fg_group) -> int:
             if col not in fg_group.columns:
                 return 0
             return int(fg_group[col].fillna(False).astype(bool).sum())

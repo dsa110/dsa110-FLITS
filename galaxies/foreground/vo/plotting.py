@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from pathlib import Path
-import re
 
 import numpy as np
 import pandas as pd
@@ -38,9 +38,11 @@ def safe_slug(value: str) -> str:
 def load_targets(
     path: str | Path,
     *,
-    columns: TargetColumns = TargetColumns(),
+    columns: TargetColumns | None = None,
 ) -> pd.DataFrame:
     """Load target metadata from CSV and normalize join columns."""
+    if columns is None:
+        columns = TargetColumns()
     targets = pd.read_csv(path).copy()
     required = [columns.name, columns.ra, columns.dec]
     missing = [column for column in required if column not in targets.columns]
@@ -72,13 +74,9 @@ def add_offsets(
         raise ValueError(f"missing target coordinates for: {missing}")
     dec0_rad = np.deg2rad(merged["frb_dec"].astype(float))
     merged["dra_arcmin"] = (
-        (merged["ra"].astype(float) - merged["frb_ra"].astype(float))
-        * np.cos(dec0_rad)
-        * 60.0
+        (merged["ra"].astype(float) - merged["frb_ra"].astype(float)) * np.cos(dec0_rad) * 60.0
     )
-    merged["ddec_arcmin"] = (
-        (merged["dec"].astype(float) - merged["frb_dec"].astype(float)) * 60.0
-    )
+    merged["ddec_arcmin"] = (merged["dec"].astype(float) - merged["frb_dec"].astype(float)) * 60.0
     return merged
 
 
@@ -163,7 +161,9 @@ def plot_candidate_sky_map(
         ha="left",
         va="bottom",
     )
-    frb_z = rows["frb_z"].dropna().iloc[0] if "frb_z" in rows and rows["frb_z"].notna().any() else None
+    frb_z = (
+        rows["frb_z"].dropna().iloc[0] if "frb_z" in rows and rows["frb_z"].notna().any() else None
+    )
     z_text = f", z_FRB={frb_z:.4g}" if frb_z is not None else ""
     ax.set_title(f"{frb_name}: foreground candidates{z_text}")
     ax.legend(loc="upper right", fontsize=8)
@@ -225,5 +225,7 @@ def plot_all_candidate_sky_maps(
             )
         )
     if not rows.empty:
-        outputs.append(plot_candidate_summary(rows, output=output_dir / "foreground_candidate_summary.png"))
+        outputs.append(
+            plot_candidate_summary(rows, output=output_dir / "foreground_candidate_summary.png")
+        )
     return outputs

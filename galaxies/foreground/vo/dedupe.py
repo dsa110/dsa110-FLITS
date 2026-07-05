@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from typing import Iterable
+from collections.abc import Iterable
 
 import numpy as np
 import pandas as pd
@@ -49,9 +49,17 @@ def _pick_representative(group: pd.DataFrame) -> pd.Series:
         work["_rank_key"] = pd.to_numeric(work["rank_key"], errors="coerce").fillna(np.inf)
     else:
         work["_rank_key"] = np.inf
-    idx = work.sort_values(["_z_rank", "_has_mass", "_rank_key"], ascending=[True, False, True]).index[0]
+    idx = work.sort_values(
+        ["_z_rank", "_has_mass", "_rank_key"], ascending=[True, False, True]
+    ).index[0]
     rep = group.loc[idx].copy()
-    sources = sorted({str(s) for s in group.get("catalog_id", group.get("service", pd.Series(dtype=str))) if pd.notna(s)})
+    sources = sorted(
+        {
+            str(s)
+            for s in group.get("catalog_id", group.get("service", pd.Series(dtype=str)))
+            if pd.notna(s)
+        }
+    )
     rep["catalog_sources"] = ",".join(sources)
     if "provenance_json" in rep.index:
         try:
@@ -60,7 +68,9 @@ def _pick_representative(group: pd.DataFrame) -> pd.Series:
             prov = {}
         prov["catalog_sources"] = sources
         rep["provenance_json"] = json.dumps(prov, sort_keys=True)
-    return rep.drop(labels=[c for c in ("_z_rank", "_has_mass", "_rank_key") if c in rep.index], errors="ignore")
+    return rep.drop(
+        labels=[c for c in ("_z_rank", "_has_mass", "_rank_key") if c in rep.index], errors="ignore"
+    )
 
 
 def _bucket_key(ra: float, dec: float, cell_deg: float = 0.01) -> tuple[int, int]:

@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 import json
-from typing import Literal, Sequence
+from collections.abc import Sequence
+from dataclasses import dataclass, field
+from typing import Literal
 
 import numpy as np
-
 from astropy import units as u
 from astropy.cosmology import Cosmology, Planck18
 
@@ -23,9 +23,7 @@ SolverName = Literal["gurobi", "greedy"]
 # GLADE+ is the superset with more complete photometry/redshifts), so querying
 # both wastes budget without adding foreground galaxies. ``solve_plan_*`` add a
 # per-sightline "<= 1 chosen from group" constraint for each group below.
-DEFAULT_EXCLUSIVE_GROUPS: tuple[frozenset[str], ...] = (
-    frozenset({"glade-plus", "glade2"}),
-)
+DEFAULT_EXCLUSIVE_GROUPS: tuple[frozenset[str], ...] = (frozenset({"glade-plus", "glade2"}),)
 
 
 def _resolve_exclusive_groups(
@@ -274,9 +272,7 @@ def _build_queries(
                 table_id=cat.table_id,
                 ra_deg=float(sl.ra),
                 dec_deg=float(sl.dec),
-                radius_arcmin=max_cone_radius_arcmin(
-                    sl, cosmo=cosmo, rvir_multiple=rvir_multiple
-                ),
+                radius_arcmin=max_cone_radius_arcmin(sl, cosmo=cosmo, rvir_multiple=rvir_multiple),
                 frb_redshift=sl.redshift,
                 maxrec=maxrec,
             )
@@ -316,8 +312,7 @@ def solve_plan_greedy(
         if gi is None:
             return False
         return any(
-            pi == i and _group_of(catalogs[pj].catalog_id, groups) == gi
-            for pi, pj in chosen
+            pi == i and _group_of(catalogs[pj].catalog_id, groups) == gi for pi, pj in chosen
         )
 
     def add_pair(i: int, j: int) -> bool:
@@ -356,13 +351,11 @@ def solve_plan_greedy(
                     add_pair(i, j)
 
     # Pass 2: at least one catalog per sightline.
-    for i, sl in enumerate(sightlines):
+    for i, _sl in enumerate(sightlines):
         if any(pi == i for pi, _ in chosen):
             continue
         cands = [
-            (catalogs[j].query_cost, -catalogs[j].science_weight, j)
-            for _i, j in pairs
-            if _i == i
+            (catalogs[j].query_cost, -catalogs[j].science_weight, j) for _i, j in pairs if _i == i
         ]
         if not cands:
             continue
@@ -460,9 +453,7 @@ def solve_plan_gurobi(
             m.addConstr(gp.quicksum(y[k] for k in idxs) >= 1, name=f"cover_{i}")
         if require_mass and sl.redshift is not None:
             mass_idxs = [
-                pair_to_idx[p]
-                for p in pairs
-                if p[0] == i and catalogs[p[1]].provides_mass
+                pair_to_idx[p] for p in pairs if p[0] == i and catalogs[p[1]].provides_mass
             ]
             if mass_idxs:
                 m.addConstr(
@@ -471,9 +462,7 @@ def solve_plan_gurobi(
                 )
         if require_spec_z:
             spec_idxs = [
-                pair_to_idx[p]
-                for p in pairs
-                if p[0] == i and catalogs[p[1]].provides_spec_z
+                pair_to_idx[p] for p in pairs if p[0] == i and catalogs[p[1]].provides_spec_z
             ]
             if spec_idxs:
                 m.addConstr(
@@ -484,9 +473,7 @@ def solve_plan_gurobi(
         # sightline (e.g. never query both GLADE+ and GLADE2 locally).
         for gi, group in enumerate(groups):
             grp_idxs = [
-                pair_to_idx[p]
-                for p in pairs
-                if p[0] == i and catalogs[p[1]].catalog_id in group
+                pair_to_idx[p] for p in pairs if p[0] == i and catalogs[p[1]].catalog_id in group
             ]
             if len(grp_idxs) > 1:
                 m.addConstr(

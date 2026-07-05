@@ -4,11 +4,11 @@ from __future__ import annotations
 
 import math
 
+import numpy as np
+import pandas as pd
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astropy.cosmology import Cosmology
-import numpy as np
-import pandas as pd
 
 
 def angular_separation_arcmin(
@@ -60,13 +60,11 @@ def merge_and_rank(
         angular_separation_arcmin(frb_ra_deg, frb_dec_deg, ra, dec)
         if pd.notna(ra) and pd.notna(dec)
         else np.nan
-        for ra, dec in zip(out["ra"], out["dec"])
+        for ra, dec in zip(out["ra"], out["dec"], strict=True)
     ]
     out["b_kpc"] = [
-        impact_parameter_kpc(theta, z, cosmo)
-        if pd.notna(theta) and pd.notna(z)
-        else np.nan
-        for theta, z in zip(out["theta_arcmin"], out["z"])
+        impact_parameter_kpc(theta, z, cosmo) if pd.notna(theta) and pd.notna(z) else np.nan
+        for theta, z in zip(out["theta_arcmin"], out["z"], strict=True)
     ]
 
     def _r_delta(row: pd.Series) -> float:
@@ -108,4 +106,3 @@ def merge_and_rank(
     )
     out.reset_index(drop=True, inplace=True)
     return out
-

@@ -77,8 +77,12 @@ def test_merge_and_rank_b_only():
 @pytest.mark.unit
 def test_merge_and_rank_with_mdelta():
     df = _schema_df(
-        name=["C", "D"], id=["3", "4"], ra=[10.02, 10.03], z=[0.3, 0.3],
-        m_delta=[1e14, None], delta_def=[200.0, None],
+        name=["C", "D"],
+        id=["3", "4"],
+        ra=[10.02, 10.03],
+        z=[0.3, 0.3],
+        m_delta=[1e14, None],
+        delta_def=[200.0, None],
     )
     out = merge_and_rank(df, frb_ra_deg=10.0, frb_dec_deg=0.0, cosmo=Planck18)
     computed = out.loc[out["name"] == "C", "r_delta_computed"].iloc[0]
@@ -87,7 +91,9 @@ def test_merge_and_rank_with_mdelta():
 
 @pytest.mark.unit
 def test_merge_and_rank_columns(sample_normalized_result):
-    out = merge_and_rank(sample_normalized_result, frb_ra_deg=150.115, frb_dec_deg=2.205, cosmo=Planck18)
+    out = merge_and_rank(
+        sample_normalized_result, frb_ra_deg=150.115, frb_dec_deg=2.205, cosmo=Planck18
+    )
     for col in ("theta_arcmin", "b_kpc", "r_delta_computed", "rank_key"):
         assert col in out.columns
 
@@ -95,9 +101,13 @@ def test_merge_and_rank_columns(sample_normalized_result):
 @pytest.mark.unit
 def test_merge_and_rank_prefers_smaller_impact_parameter():
     df = _schema_df(
-        name=["far", "near"], id=["2", "1"], ra=[150.2, 150.01], dec=[2.0, 2.0],
+        name=["far", "near"],
+        id=["2", "1"],
+        ra=[150.2, 150.01],
+        dec=[2.0, 2.0],
         z=[0.2, 0.2],
-        service=["svc", "svc"], table=["tbl", "tbl"],
+        service=["svc", "svc"],
+        table=["tbl", "tbl"],
     )
     ranked = merge_and_rank(df, frb_ra_deg=150.0, frb_dec_deg=2.0)  # default Planck18
     assert ranked.loc[0, "name"] == "near"

@@ -84,7 +84,7 @@ def test_summarize_excludes_background_intersections_from_headline():
             "id": ["B", "F"],
             "b_kpc": [50.0, 200.0],
             "r_delta_computed": [100.0, 100.0],
-            "z": [0.6, 0.1],   # bg has z > frb_z; fg has z < frb_z
+            "z": [0.6, 0.1],  # bg has z > frb_z; fg has z < frb_z
             "frb_z": [0.5, 0.5],
         }
     )

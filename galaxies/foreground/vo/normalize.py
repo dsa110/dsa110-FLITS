@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import json
+from dataclasses import dataclass
 
 import pandas as pd
 
 from .provenance import make_provenance
-
 
 SCHEMA_COLUMNS = [
     "name",
@@ -121,9 +120,7 @@ def normalize(
     if is_photo.any():
         photo_provenance = json.loads(provenance)
         photo_provenance["z_prior"] = True
-        out.loc[is_photo, "provenance_json"] = json.dumps(
-            photo_provenance, sort_keys=True
-        )
+        out.loc[is_photo, "provenance_json"] = json.dumps(photo_provenance, sort_keys=True)
 
     return out[SCHEMA_COLUMNS].reset_index(drop=True)
 
@@ -154,4 +151,3 @@ def to_common_schema(
         table=table,
         adql=adql,
     )
-

@@ -123,5 +123,5 @@ Authoritative staging on iacobus CloudDocs `Dropbox-Migration/`; codetection-sco
 ## Related repos
 
 - subhalos: https://github.com/jakobtfaber/subhalos
-- los_halos: https://github.com/jakobtfaber/los_halos
+- los_halos: https://github.com/jakobtfaber/los_halos — archived 2026-07-05; VO-TAP pipeline integrated into `galaxies/foreground/vo/`
 - dsa110-scat: git + iacobus `archive/dsa110-scat/`

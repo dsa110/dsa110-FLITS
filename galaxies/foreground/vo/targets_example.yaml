@@ -1,0 +1,24 @@
+# Example/smoke targets for the VO discovery pipeline (well-studied fields and clusters).
+# Real analyses should draw FRB positions from configs/bursts.yaml.
+targets:
+  - name: TEST_COSMOS
+    ra: 150.1167
+    dec: 2.2058
+  - name: TEST_STRIPE82
+    ra: 0.0
+    dec: -0.3
+  - name: TEST_GAMA_G12
+    ra: 180.0
+    dec: 0.0
+  - name: TEST_COMA
+    ra: 194.954
+    dec: 27.981
+  - name: TEST_VIRGO_M87
+    ra: 187.706
+    dec: 12.391
+  - name: TEST_ABELL_1689
+    ra: 197.872
+    dec: -1.341
+  - name: TEST_ABELL_2744
+    ra: 3.5863
+    dec: -30.4000

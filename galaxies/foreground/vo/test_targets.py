@@ -10,8 +10,8 @@ def test_load_targets_valid_yaml(sample_targets_yaml):
     assert targets[0].name == "FRB_Test_A"
     assert targets[0].ra == 150.1149
     assert targets[0].dec == 2.2058
-    assert targets[0].z_host == 0.225
-    assert targets[2].z_host is None  # optional field
+    assert targets[0].redshift == 0.225
+    assert targets[2].redshift is None  # optional field
 
 
 @pytest.mark.unit

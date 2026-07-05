@@ -44,6 +44,7 @@ def build_cone_adql(
     ra_deg: float,
     dec_deg: float,
     radius_deg: float,
+    *,
     columns: str = "*",
     top: int = 10000,
     order_by_distance: bool = True,
@@ -129,6 +130,7 @@ def cone_query(
     ra_deg: float,
     dec_deg: float,
     radius_deg: float,
+    *,
     columns: str = "*",
     maxrec: int = 10000,
 ) -> tuple[pd.DataFrame, dict[str, str | float | int | bool]]:

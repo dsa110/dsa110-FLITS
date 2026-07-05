@@ -22,19 +22,18 @@ into ``reduce.merge_and_rank``.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import json
+from dataclasses import dataclass
 
-from astropy import constants as const
-from astropy import units as u
 import numpy as np
 import pandas as pd
+from astropy import constants as const
+from astropy import units as u
 from scipy.optimize import brentq
 
-
-M_K_SOLAR_VEGA = 3.27       # Willmer 2018, 2MASS K_s, Vega
-ML_K_BELL = 0.6             # Bell+03 K-band mean stellar M/L
-DELTA_DEF = 200.0           # M_200c convention used throughout
+M_K_SOLAR_VEGA = 3.27  # Willmer 2018, 2MASS K_s, Vega
+ML_K_BELL = 0.6  # Bell+03 K-band mean stellar M/L
+DELTA_DEF = 200.0  # M_200c convention used throughout
 SHMR_MODEL = "moster13_table1"
 
 # Moster+13 Table 1 best-fit (M_200c). Each parameter is (z=0 value, slope-in-z/(1+z)).
@@ -71,9 +70,9 @@ def mstar_to_mhalo(mstar: float, z: float) -> float:
     M1, N, beta, gamma = _moster_params(z)
 
     def residual(log_mh: float) -> float:
-        ratio = (10.0 ** log_mh) / M1
-        sm_over_mh = 2.0 * N / (ratio ** -beta + ratio ** gamma)
-        return (10.0 ** log_mh) * sm_over_mh - mstar
+        ratio = (10.0**log_mh) / M1
+        sm_over_mh = 2.0 * N / (ratio**-beta + ratio**gamma)
+        return (10.0**log_mh) * sm_over_mh - mstar
 
     return 10.0 ** brentq(residual, 9.5, 16.0, xtol=1e-4)
 
@@ -225,9 +224,7 @@ class HaloAdapter:
             return col / c_kms
         return col
 
-    def _distance_series(
-        self, df: pd.DataFrame, z_series: pd.Series, cosmo
-    ) -> pd.Series:
+    def _distance_series(self, df: pd.DataFrame, z_series: pd.Series, cosmo) -> pd.Series:
         if self.distance_col and self.distance_col in df.columns:
             return pd.to_numeric(df[self.distance_col], errors="coerce")
         c_kms = const.c.to(u.km / u.s).value
@@ -253,7 +250,7 @@ class HaloAdapter:
         if self.mstar_unit == "linear_1e10_msun":
             return value * 1.0e10
         if self.mstar_unit == "log10_msun":
-            return 10.0 ** value
+            return 10.0**value
         raise ValueError(f"Unknown mstar_unit: {self.mstar_unit}")
 
     def _row_provenance(

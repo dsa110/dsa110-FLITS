@@ -23,19 +23,45 @@ VALIDATION_TARGETS = {
     "zach": {
         "frb": Target(name="zach", ra=310.1995, dec=72.8823, redshift=0.043),
         "expected_halos": [
-            {"ra": 310.0913, "dec": 72.8104, "z_phot": 0.0127, "impact_kpc": 75.9, "survey": "WISE, PS1, STRM"}
+            {
+                "ra": 310.0913,
+                "dec": 72.8104,
+                "z_phot": 0.0127,
+                "impact_kpc": 75.9,
+                "survey": "WISE, PS1, STRM",
+            }
         ],
         "expected_clusters": [
-            {"ra": 133.9417, "dec": 73.3749, "z_phot": 0.1216, "impact_kpc": 2039.36, "m500": 0.64, "richness": 13.72}
+            {
+                "ra": 133.9417,
+                "dec": 73.3749,
+                "z_phot": 0.1216,
+                "impact_kpc": 2039.36,
+                "m500": 0.64,
+                "richness": 13.72,
+            }
         ],
     },
     "whitney": {
         "frb": Target(name="whitney", ra=134.7205, dec=73.4908, redshift=0.479),
         "expected_halos": [
-            {"ra": 134.7356, "dec": 73.4910, "z_phot": 0.5731, "impact_kpc": 104.0, "survey": "Legacy DR8"}
+            {
+                "ra": 134.7356,
+                "dec": 73.4910,
+                "z_phot": 0.5731,
+                "impact_kpc": 104.0,
+                "survey": "Legacy DR8",
+            }
         ],
         "expected_clusters": [
-            {"ra": 133.8827, "dec": 73.4089, "z_phot": 0.4239, "impact_kpc": 5210.8, "m500": 0.9, "richness": 19.64}
+            {
+                "ra": 133.8827,
+                "dec": 73.4089,
+                "z_phot": 0.4239,
+                "impact_kpc": 5210.8,
+                "m500": 0.9,
+                "richness": 19.64,
+            }
         ],
     },
     "isha": {  # control case - no foreground objects expected
@@ -47,7 +73,12 @@ VALIDATION_TARGETS = {
 
 
 def _separation_arcmin(ra1, dec1, ra2, dec2):
-    return SkyCoord(ra1 * u.deg, dec1 * u.deg).separation(SkyCoord(ra2 * u.deg, dec2 * u.deg)).to(u.arcmin).value
+    return (
+        SkyCoord(ra1 * u.deg, dec1 * u.deg)
+        .separation(SkyCoord(ra2 * u.deg, dec2 * u.deg))
+        .to(u.arcmin)
+        .value
+    )
 
 
 def find_matching_objects(candidates, expected_objects, position_tolerance_arcmin=2.0):
@@ -55,9 +86,13 @@ def find_matching_objects(candidates, expected_objects, position_tolerance_arcmi
     matches = []
     for expected in expected_objects:
         for _, candidate in candidates.iterrows():
-            sep = _separation_arcmin(expected["ra"], expected["dec"], candidate["ra"], candidate["dec"])
+            sep = _separation_arcmin(
+                expected["ra"], expected["dec"], candidate["ra"], candidate["dec"]
+            )
             if sep <= position_tolerance_arcmin:
-                matches.append({"expected": expected, "found": candidate, "angular_separation_arcmin": sep})
+                matches.append(
+                    {"expected": expected, "found": candidate, "angular_separation_arcmin": sep}
+                )
                 break
     return matches
 
@@ -68,8 +103,14 @@ def _collect_candidates(frb, tables, radii_arcmin, maxrec):
         for _, table_row in tables.iterrows():
             try:
                 result, _ = cone_query(
-                    VIZIER, table_row["table"], table_row["ra_col"], table_row["dec_col"],
-                    ra_deg=frb.ra, dec_deg=frb.dec, radius_deg=radius / 60.0, maxrec=maxrec,
+                    VIZIER,
+                    table_row["table"],
+                    table_row["ra_col"],
+                    table_row["dec_col"],
+                    ra_deg=frb.ra,
+                    dec_deg=frb.dec,
+                    radius_deg=radius / 60.0,
+                    maxrec=maxrec,
                 )
             except Exception:
                 continue
@@ -77,8 +118,11 @@ def _collect_candidates(frb, tables, radii_arcmin, maxrec):
                 all_candidates.append(
                     to_common_schema(
                         result,
-                        ra_col=table_row["ra_col"], dec_col=table_row["dec_col"], z_col=table_row["z_col"],
-                        service=VIZIER, table=table_row["table"],
+                        ra_col=table_row["ra_col"],
+                        dec_col=table_row["dec_col"],
+                        z_col=table_row["z_col"],
+                        service=VIZIER,
+                        table=table_row["table"],
                     )
                 )
     return all_candidates
@@ -104,17 +148,26 @@ def test_frb_zach_recovery(tmp_path):
     if not all_candidates:
         pytest.fail("No candidates found in any search radius")
 
-    ranked = merge_and_rank(pd.concat(all_candidates, ignore_index=True), frb_ra_deg=frb.ra, frb_dec_deg=frb.dec, cosmo=get_cosmology())
+    ranked = merge_and_rank(
+        pd.concat(all_candidates, ignore_index=True),
+        frb_ra_deg=frb.ra,
+        frb_dec_deg=frb.dec,
+        cosmo=get_cosmology(),
+    )
     assert len(ranked) > 0, "Should find at least some foreground candidates"
 
     halo_matches = find_matching_objects(ranked, target_data["expected_halos"])
-    assert len(halo_matches) >= 1, f"Should recover at least one known halo (candidates: {len(ranked)})"
+    assert len(halo_matches) >= 1, (
+        f"Should recover at least one known halo (candidates: {len(ranked)})"
+    )
 
     # Impact parameter within 20% of the manually-computed value
     best_halo = halo_matches[0]["found"]
     expected_impact = target_data["expected_halos"][0]["impact_kpc"]
     impact_ratio = abs(best_halo["b_kpc"] - expected_impact) / expected_impact
-    assert impact_ratio < 0.2, f"Impact parameter mismatch: expected {expected_impact}, got {best_halo['b_kpc']}"
+    assert impact_ratio < 0.2, (
+        f"Impact parameter mismatch: expected {expected_impact}, got {best_halo['b_kpc']}"
+    )
 
     # Clusters are harder to recover; report only
     cluster_matches = find_matching_objects(ranked, target_data["expected_clusters"])
@@ -138,9 +191,16 @@ def test_frb_isha_control(tmp_path):
 
     all_candidates = _collect_candidates(frb, tables, radii_arcmin=[10], maxrec=500)
     if all_candidates:
-        ranked = merge_and_rank(pd.concat(all_candidates, ignore_index=True), frb_ra_deg=frb.ra, frb_dec_deg=frb.dec, cosmo=get_cosmology())
+        ranked = merge_and_rank(
+            pd.concat(all_candidates, ignore_index=True),
+            frb_ra_deg=frb.ra,
+            frb_dec_deg=frb.dec,
+            cosmo=get_cosmology(),
+        )
         close_objects = ranked[ranked["b_kpc"] < 200]
-        print(f"Control case: {len(close_objects)} objects within 200 kpc of {len(ranked)} candidates")
+        print(
+            f"Control case: {len(close_objects)} objects within 200 kpc of {len(ranked)} candidates"
+        )
 
 
 @pytest.mark.integration
@@ -161,7 +221,12 @@ def test_pipeline_completeness(tmp_path):
     if not all_candidates:
         pytest.skip("No candidates found for completeness test")
 
-    ranked = merge_and_rank(pd.concat(all_candidates, ignore_index=True), frb_ra_deg=frb.ra, frb_dec_deg=frb.dec, cosmo=get_cosmology())
+    ranked = merge_and_rank(
+        pd.concat(all_candidates, ignore_index=True),
+        frb_ra_deg=frb.ra,
+        frb_dec_deg=frb.dec,
+        cosmo=get_cosmology(),
+    )
     z_values = ranked["z"].dropna()
     impact_values = ranked["b_kpc"].dropna()
     if len(z_values) > 0:

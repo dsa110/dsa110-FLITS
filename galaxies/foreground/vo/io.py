@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
+import math
 from pathlib import Path
 from typing import Any
-
-import math
 
 import pandas as pd
 import yaml
@@ -53,7 +52,9 @@ def read_targets_yaml(path: str | Path) -> list[Sightline]:
     for row in targets:
         if "z_host" in row and "redshift" not in row:
             row = {**row, "redshift": row["z_host"]}
-        metadata = {k: v for k, v in row.items() if k not in {"name", "ra", "dec", "redshift", "z_host"}}
+        metadata = {
+            k: v for k, v in row.items() if k not in {"name", "ra", "dec", "redshift", "z_host"}
+        }
         raw_z = row.get("redshift")
         if metadata.pop("host_z_placeholder", False):
             z_norm = None

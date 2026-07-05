@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
 import json
+from datetime import UTC, datetime
 from typing import Any
 
 
 def utc_now_iso() -> str:
     """Return an ISO-8601 UTC timestamp."""
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def make_provenance(
@@ -38,4 +38,3 @@ def parse_provenance(value: str | None) -> dict[str, Any]:
     if not value:
         return {}
     return json.loads(value)
-

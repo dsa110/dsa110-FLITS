@@ -64,8 +64,14 @@ def cmd_tables(args: argparse.Namespace) -> None:
 
 def cmd_cone(args: argparse.Namespace) -> None:
     df, meta = cone_query(
-        args.access_url, args.table, args.ra_col, args.dec_col,
-        args.ra, args.dec, args.radius_arcmin / 60.0, columns=args.columns,
+        args.access_url,
+        args.table,
+        args.ra_col,
+        args.dec_col,
+        args.ra,
+        args.dec,
+        args.radius_arcmin / 60.0,
+        columns=args.columns,
         maxrec=args.maxrec,
     )
     if args.output:
@@ -80,8 +86,13 @@ def cmd_run_targets(args: argparse.Namespace) -> None:
     """Cone-query one endpoint/table for every target; print per-target row counts."""
     for t in load_targets(args.targets):
         df, _ = cone_query(
-            args.access_url, args.table, args.ra_col, args.dec_col,
-            t.ra, t.dec, args.radius_arcmin / 60.0,
+            args.access_url,
+            args.table,
+            args.ra_col,
+            args.dec_col,
+            t.ra,
+            t.dec,
+            args.radius_arcmin / 60.0,
         )
         print(f"# {t.name}: {len(df)} rows")
 
@@ -92,7 +103,11 @@ def cmd_discover(args: argparse.Namespace) -> None:
         df = discover_tap_services(keywords=(), include_anchors=True, max_services=200)
         svc_urls = df["access_url"].tolist()
     else:
-        svc_urls = [_SERVICE_ALIASES[k.strip().lower()] for k in args.services.split(",") if k.strip().lower() in _SERVICE_ALIASES]
+        svc_urls = [
+            _SERVICE_ALIASES[k.strip().lower()]
+            for k in args.services.split(",")
+            if k.strip().lower() in _SERVICE_ALIASES
+        ]
     cache = Path(args.cache_dir)
     cache.mkdir(parents=True, exist_ok=True)
     svc_records = []
@@ -125,8 +140,14 @@ def cmd_query(args: argparse.Namespace) -> None:
             for t in targets:
                 try:
                     df, _ = cone_query(
-                        svc["access_url"], row["table"], row["ra_col"], row["dec_col"],
-                        t.ra, t.dec, args.radius / 60.0, maxrec=args.maxrec,
+                        svc["access_url"],
+                        row["table"],
+                        row["ra_col"],
+                        row["dec_col"],
+                        t.ra,
+                        t.dec,
+                        args.radius / 60.0,
+                        maxrec=args.maxrec,
                     )
                 except Exception:
                     continue  # skip failing tables/targets
@@ -148,15 +169,25 @@ def cmd_reduce(args: argparse.Namespace) -> None:
             if tables is None:
                 continue
             for _, row in tables.iterrows():
-                qpath = cache / "queries" / svc["service_hash"] / _hash(row["table"]) / f"{t.name}.parquet"
+                qpath = (
+                    cache
+                    / "queries"
+                    / svc["service_hash"]
+                    / _hash(row["table"])
+                    / f"{t.name}.parquet"
+                )
                 if not qpath.exists():
                     continue
                 df = pd.read_parquet(qpath)
                 if df.empty:
                     continue
                 norm = to_common_schema(
-                    df, ra_col=row["ra_col"], dec_col=row["dec_col"], z_col=row["z_col"],
-                    service=svc["access_url"], table=row["table"],
+                    df,
+                    ra_col=row["ra_col"],
+                    dec_col=row["dec_col"],
+                    z_col=row["z_col"],
+                    service=svc["access_url"],
+                    table=row["table"],
                 )
                 norm["frb_name"] = t.name
                 frb_rows.append(norm)
@@ -165,7 +196,9 @@ def cmd_reduce(args: argparse.Namespace) -> None:
             frb_outdir = out / t.name
             frb_outdir.mkdir(parents=True, exist_ok=True)
             frb_df.to_parquet(frb_outdir / "candidates.parquet", index=False)
-            (frb_outdir / "summary.md").write_text(f"# {t.name} candidates\n\nTotal rows: {len(frb_df)}\n")
+            (frb_outdir / "summary.md").write_text(
+                f"# {t.name} candidates\n\nTotal rows: {len(frb_df)}\n"
+            )
     print("Reduction completed.")
 
 
@@ -175,8 +208,7 @@ def _load_target_records(path: Path) -> list[dict]:
     if suffix in (".yaml", ".yml"):
         sightlines = read_targets_yaml(path)
         return [
-            {"name": s.name, "ra": s.ra, "dec": s.dec, "redshift": s.redshift}
-            for s in sightlines
+            {"name": s.name, "ra": s.ra, "dec": s.dec, "redshift": s.redshift} for s in sightlines
         ]
     if suffix == ".csv":
         df = load_plot_targets(path)
@@ -328,10 +360,7 @@ def _classify_foreground_candidates(
         & (delta_z <= dz_threshold)
     ).fillna(False)
     out["is_foreground"] = (
-        z_host.notna()
-        & z_cand.notna()
-        & (z_cand < z_host)
-        & ~out["likely_host"]
+        z_host.notna() & z_cand.notna() & (z_cand < z_host) & ~out["likely_host"]
     ).fillna(False)
     return out
 
@@ -382,9 +411,8 @@ def _finalize_catalog_run(
         summary = pd.concat([summary, extras], ignore_index=True) if not summary.empty else extras
 
     if truncated_targets:
-        mask = (
-            summary["frb_name"].isin(truncated_targets)
-            & (summary["status"] != "no_candidates_in_cone")
+        mask = summary["frb_name"].isin(truncated_targets) & (
+            summary["status"] != "no_candidates_in_cone"
         )
         summary.loc[mask, "status"] = "possibly_truncated"
     z_unknown_targets = [t["name"] for t in target_records if t["redshift"] is None]
@@ -591,9 +619,7 @@ def cmd_dedupe_candidates(args: argparse.Namespace) -> None:
         flagged = add_intersection_flags(deduped)
         summary = summarize_sightlines(flagged)
         z_host = pd.to_numeric(flagged.get("frb_z"), errors="coerce")
-        unknown_frbs = set(
-            flagged.loc[z_host.isna(), "frb_name"].dropna().astype(str).unique()
-        )
+        unknown_frbs = set(flagged.loc[z_host.isna(), "frb_name"].dropna().astype(str).unique())
         if unknown_frbs:
             mask = summary["frb_name"].isin(unknown_frbs) & (summary["status"] == "ok")
             summary.loc[mask, "status"] = "z_frb_unknown"
@@ -618,17 +644,23 @@ def cmd_plot_candidates(args: argparse.Namespace) -> None:
 
 def _add_host_exclusion_args(sp: argparse.ArgumentParser) -> None:
     sp.add_argument(
-        "--host-theta-arcmin-max", type=float, default=0.1,
+        "--host-theta-arcmin-max",
+        type=float,
+        default=0.1,
         help="Candidates within this angular separation of the FRB position AND "
-             "within the Δz tolerance are flagged likely_host and excluded from "
-             "foreground intersection counts (default 0.1' = 6\").",
+        "within the Δz tolerance are flagged likely_host and excluded from "
+        "foreground intersection counts (default 0.1' = 6\").",
     )
     sp.add_argument(
-        "--host-dz-max", type=float, default=0.05,
+        "--host-dz-max",
+        type=float,
+        default=0.05,
         help="Max |z_cand - z_FRB| for photo/unknown z_type host confusion (GLADE+ photo-z scatter).",
     )
     sp.add_argument(
-        "--host-dz-spec-max", type=float, default=0.005,
+        "--host-dz-spec-max",
+        type=float,
+        default=0.005,
         help="Max |z_cand - z_FRB| for spec-z host confusion (spec-z precision).",
     )
 
@@ -690,20 +722,28 @@ def main(argv: list[str] | None = None) -> None:
     sp.add_argument("--output", type=Path, default=Path("results/ranked.csv"))
     sp.set_defaults(func=cmd_rank)
 
-    sp = sub.add_parser("plan-queries", help="Optimize catalog queries per sightline under a budget")
+    sp = sub.add_parser(
+        "plan-queries", help="Optimize catalog queries per sightline under a budget"
+    )
     sp.add_argument("targets", type=Path)
     sp.add_argument("--budget", type=int, default=50, help="Max total query cost")
     sp.add_argument("--solver", choices=["gurobi", "greedy"], default="gurobi")
     sp.add_argument("--require-mass", action=argparse.BooleanOptionalAction, default=True)
     sp.add_argument("--require-spec-z", action=argparse.BooleanOptionalAction, default=False)
     sp.add_argument(
-        "--rvir-multiple", type=float, default=1.2,
+        "--rvir-multiple",
+        type=float,
+        default=1.2,
         help="Cone radius sized for b <= this multiple of R_delta (loose bracket)",
     )
     sp.add_argument("--output", type=Path, default=Path("results/query_plan.csv"))
     sp.add_argument("--json-output", type=Path, default=None)
-    sp.add_argument("--maxrec", type=int, default=5000,
-                    help="TAP row limit recorded in each planned query for run-plan")
+    sp.add_argument(
+        "--maxrec",
+        type=int,
+        default=5000,
+        help="TAP row limit recorded in each planned query for run-plan",
+    )
     sp.set_defaults(func=cmd_plan_queries)
 
     sp = sub.add_parser("run-plan", help="Execute a plan-queries CSV/JSON")
@@ -725,7 +765,9 @@ def main(argv: list[str] | None = None) -> None:
     _add_host_exclusion_args(sp)
     sp.set_defaults(func=cmd_run_catalog)
 
-    sp = sub.add_parser("dedupe-candidates", help="Merge duplicate galaxies across catalogs per sightline")
+    sp = sub.add_parser(
+        "dedupe-candidates", help="Merge duplicate galaxies across catalogs per sightline"
+    )
     sp.add_argument("input_path", type=Path)
     sp.add_argument("--output", type=Path, default=Path("results/candidates_deduped.csv"))
     sp.add_argument("--summary-output", type=Path, default=None)

@@ -32,13 +32,13 @@ def test_mstar_to_mhalo_round_trips_at_z0():
     mh = mstar_to_mhalo(mstar_in, z=0.0)
     # invert SHMR forward at z=0 to recover mstar
     M1, N, beta, gamma = (
-        10 ** 11.590,
+        10**11.590,
         0.0351,
         1.376,
         0.608,
     )
     ratio = mh / M1
-    sm_over_mh = 2.0 * N / (ratio ** -beta + ratio ** gamma)
+    sm_over_mh = 2.0 * N / (ratio**-beta + ratio**gamma)
     mstar_out = mh * sm_over_mh
     assert abs(mstar_out - mstar_in) / mstar_in < 0.01
 
@@ -68,9 +68,7 @@ def test_glade2_adapter_missing_kmag_yields_nan(cosmo):
 
 @pytest.mark.unit
 def test_glade2_adapter_no_kmag_column_does_not_raise(cosmo):
-    df = pd.DataFrame(
-        {"RAJ2000": [150.0], "DEJ2000": [2.0], "z": [0.05], "Dist": [200.0]}
-    )
+    df = pd.DataFrame({"RAJ2000": [150.0], "DEJ2000": [2.0], "z": [0.05], "Dist": [200.0]})
     out = add_halo_masses(df, ADAPTERS["glade2"], cosmo=cosmo)
     assert np.isnan(out.loc[0, "m_halo"])
     assert json.loads(out.loc[0, "mass_provenance"]) is None
@@ -173,8 +171,8 @@ def test_glade_plus_z_type_from_f_dL(cosmo):
         }
     )
     out = add_halo_masses(df, ADAPTERS["glade-plus"], cosmo=cosmo)
-    assert out.loc[0, "z_type"] == "spec"      # f_dL=3
-    assert out.loc[1, "z_type"] == "photo"     # f_dL=1
+    assert out.loc[0, "z_type"] == "spec"  # f_dL=3
+    assert out.loc[1, "z_type"] == "photo"  # f_dL=1
     # f_dL=2 (distance-derived z) is not 'spec' or 'photo' — falls through
     # to z_type_default, which for glade-plus is "unknown".
     assert out.loc[2, "z_type"] == "unknown"

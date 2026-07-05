@@ -24,7 +24,11 @@ def sample_targets():
 def sample_targets_yaml(tmp_path, sample_targets):
     # deliberately emits the legacy z_host key so the loader alias stays exercised
     targets_file = tmp_path / "test_targets.yaml"
-    data = {"targets": [{"name": t.name, "ra": t.ra, "dec": t.dec, "z_host": t.redshift} for t in sample_targets]}
+    data = {
+        "targets": [
+            {"name": t.name, "ra": t.ra, "dec": t.dec, "z_host": t.redshift} for t in sample_targets
+        ]
+    }
     with targets_file.open("w") as f:
         yaml.dump(data, f)
     return targets_file
@@ -61,6 +65,7 @@ def sample_normalized_result():
             "delta_def": [200, 200, 200],
             "service": ["https://example.com/tap"] * 3,
             "table": ["galaxy.main"] * 3,
-            "provenance_json": ['{"service": "https://example.com/tap", "table": "galaxy.main"}'] * 3,
+            "provenance_json": ['{"service": "https://example.com/tap", "table": "galaxy.main"}']
+            * 3,
         }
     )

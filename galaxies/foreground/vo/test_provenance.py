@@ -7,7 +7,9 @@ from .provenance import make_provenance, parse_provenance, utc_now_iso
 
 @pytest.mark.unit
 def test_make_provenance_basic():
-    prov = json.loads(make_provenance("SELECT * FROM test", service="https://test.com/tap", table="test_table"))
+    prov = json.loads(
+        make_provenance("SELECT * FROM test", service="https://test.com/tap", table="test_table")
+    )
     assert prov["service"] == "https://test.com/tap"
     assert prov["table"] == "test_table"
     assert prov["adql"] == "SELECT * FROM test"

@@ -20,7 +20,9 @@ def test_quote_table_variants():
 
 @pytest.mark.unit
 def test_build_cone_adql_contains_geometry():
-    adql = build_cone_adql(table="my.table", ra_col="ra", dec_col="dec", ra_deg=10.0, dec_deg=0.0, radius_deg=0.1)
+    adql = build_cone_adql(
+        table="my.table", ra_col="ra", dec_col="dec", ra_deg=10.0, dec_deg=0.0, radius_deg=0.1
+    )
     assert "SELECT TOP 10000 *" in adql
     assert "FROM my.table" in adql
     assert "CONTAINS(POINT('ICRS', ra, dec), CIRCLE('ICRS', 10.0, 0.0, 0.1))" in adql
@@ -50,17 +52,19 @@ def test_build_cone_adql_orders_by_distance_via_alias_by_default():
     the rejected form.
     """
     adql = build_cone_adql("VII/291/gladep", "RAJ2000", "DEJ2000", 150.0, 2.0, 0.166)
-    assert (
-        "DISTANCE(POINT('ICRS', RAJ2000, DEJ2000), POINT('ICRS', 150.0, 2.0)) AS sep_deg"
-        in adql
-    )
+    assert "DISTANCE(POINT('ICRS', RAJ2000, DEJ2000), POINT('ICRS', 150.0, 2.0)) AS sep_deg" in adql
     assert adql.rstrip().endswith("ORDER BY sep_deg")
 
 
 @pytest.mark.unit
 def test_build_cone_adql_can_disable_distance_ordering():
     adql = build_cone_adql(
-        "VII/291/gladep", "RAJ2000", "DEJ2000", 150.0, 2.0, 0.166,
+        "VII/291/gladep",
+        "RAJ2000",
+        "DEJ2000",
+        150.0,
+        2.0,
+        0.166,
         order_by_distance=False,
     )
     assert "ORDER BY" not in adql
@@ -72,8 +76,13 @@ def test_cone_query_returns_metadata_offline(monkeypatch):
     monkeypatch.setattr(qmod, "run_tap_sync", lambda *a, **k: pd.DataFrame())
     df, meta = cone_query(
         access_url="https://example.invalid/tap",
-        table="t", ra_col="ra", dec_col="dec",
-        ra_deg=10.0, dec_deg=0.0, radius_deg=0.1, maxrec=10,
+        table="t",
+        ra_col="ra",
+        dec_col="dec",
+        ra_deg=10.0,
+        dec_deg=0.0,
+        radius_deg=0.1,
+        maxrec=10,
     )
     assert df.empty
     assert "SELECT TOP 10" in meta["adql"]
@@ -101,7 +110,9 @@ def test_cone_query_success(monkeypatch, sample_cone_query_result):
     mock_service.run_sync.return_value = mock_result
     monkeypatch.setattr(qmod, "TAPService", Mock(return_value=mock_service))
 
-    result, meta = cone_query("https://test.com/tap", "catalog.galaxies", "ra", "dec", 150.0, 2.0, 0.1)
+    result, meta = cone_query(
+        "https://test.com/tap", "catalog.galaxies", "ra", "dec", 150.0, 2.0, 0.1
+    )
     assert len(result) == 3
     assert "source_id" in result.columns
     assert "adql" in meta and meta["truncated"] is False
@@ -160,4 +171,10 @@ class _FakeTapAsyncOnly:
 @pytest.mark.unit
 def test_safe_search_timeout():
     with pytest.raises(TimeoutError):
-        safe_search(_FakeTapAsyncOnly(), "SELECT 1", call_timeout_s=0.01, max_wall_s=0.1, poll_interval_s=0.01)
+        safe_search(
+            _FakeTapAsyncOnly(),
+            "SELECT 1",
+            call_timeout_s=0.01,
+            max_wall_s=0.1,
+            poll_interval_s=0.01,
+        )

@@ -46,6 +46,14 @@ def _hash(s: str) -> str:
     return hashlib.sha1(s.encode("utf-8")).hexdigest()[:12]
 
 
+def _existing_path(value: str) -> Path:
+    # parse-time input validation, mirroring click.Path(exists=True) in the ffh original
+    path = Path(value)
+    if not path.exists():
+        raise argparse.ArgumentTypeError(f"Path {value!r} does not exist")
+    return path
+
+
 def cmd_services(args: argparse.Namespace) -> None:
     kws = tuple(args.keywords) if args.keywords else ("catalog", "galaxy", "group", "cluster")
     df = discover_tap_services(
@@ -717,17 +725,17 @@ def main(argv: list[str] | None = None) -> None:
     sp.set_defaults(func=cmd_reduce)
 
     sp = sub.add_parser("rank", help="Rank an already-normalized candidate table (first target)")
-    sp.add_argument("targets_yaml", type=Path)
-    sp.add_argument("candidates", type=Path)
+    sp.add_argument("targets_yaml", type=_existing_path)
+    sp.add_argument("candidates", type=_existing_path)
     sp.add_argument("--output", type=Path, default=Path("results/ranked.csv"))
     sp.set_defaults(func=cmd_rank)
 
     sp = sub.add_parser(
         "plan-queries", help="Optimize catalog queries per sightline under a budget"
     )
-    sp.add_argument("targets", type=Path)
+    sp.add_argument("targets", type=_existing_path)
     sp.add_argument("--budget", type=int, default=50, help="Max total query cost")
-    sp.add_argument("--solver", choices=["gurobi", "greedy"], default="gurobi")
+    sp.add_argument("--solver", type=str.lower, choices=["gurobi", "greedy"], default="gurobi")
     sp.add_argument("--require-mass", action=argparse.BooleanOptionalAction, default=True)
     sp.add_argument("--require-spec-z", action=argparse.BooleanOptionalAction, default=False)
     sp.add_argument(
@@ -747,7 +755,7 @@ def main(argv: list[str] | None = None) -> None:
     sp.set_defaults(func=cmd_plan_queries)
 
     sp = sub.add_parser("run-plan", help="Execute a plan-queries CSV/JSON")
-    sp.add_argument("plan_file", type=Path)
+    sp.add_argument("plan_file", type=_existing_path)
     sp.add_argument("--maxrec", type=int, default=None, help="Override per-row plan maxrec")
     sp.add_argument("--output", type=Path, default=Path("results/run_plan_candidates.csv"))
     sp.add_argument("--summary-output", type=Path, default=None)
@@ -755,7 +763,7 @@ def main(argv: list[str] | None = None) -> None:
     sp.set_defaults(func=cmd_run_plan)
 
     sp = sub.add_parser("run-catalog", help="End-to-end: cone-query a catalog at each sightline")
-    sp.add_argument("targets", type=Path)
+    sp.add_argument("targets", type=_existing_path)
     sp.add_argument("catalog_name")
     sp.add_argument("--access-url", default=VIZIER_TAP_URL)
     sp.add_argument("--radius-arcmin", type=float, default=10.0)
@@ -768,14 +776,14 @@ def main(argv: list[str] | None = None) -> None:
     sp = sub.add_parser(
         "dedupe-candidates", help="Merge duplicate galaxies across catalogs per sightline"
     )
-    sp.add_argument("input_path", type=Path)
+    sp.add_argument("input_path", type=_existing_path)
     sp.add_argument("--output", type=Path, default=Path("results/candidates_deduped.csv"))
     sp.add_argument("--summary-output", type=Path, default=None)
     sp.set_defaults(func=cmd_dedupe_candidates)
 
     sp = sub.add_parser("plot-candidates", help="Sky maps from a normalized candidate table")
-    sp.add_argument("candidates", type=Path)
-    sp.add_argument("targets_csv", type=Path)
+    sp.add_argument("candidates", type=_existing_path)
+    sp.add_argument("targets_csv", type=_existing_path)
     sp.add_argument("--output-dir", type=Path, default=Path("figures"))
     sp.add_argument("--search-radius-arcmin", type=float, default=None)
     sp.add_argument("--label-top-n", type=int, default=5)

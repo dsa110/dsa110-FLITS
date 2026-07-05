@@ -12,7 +12,7 @@ try:
 except Exception:  # pragma: no cover - optional import for offline tests
     TAPService = None  # type: ignore[assignment]
 
-from .utils import make_provenance, set_tap_timeout
+from .utils import set_tap_timeout
 
 
 def quote_table(table: str) -> str:
@@ -45,12 +45,45 @@ def build_cone_adql(
     dec_deg: float,
     radius_deg: float,
     columns: str = "*",
+    top: int = 10000,
+    order_by_distance: bool = True,
 ) -> str:
-    t = quote_table(table)
+    """Build deterministic ADQL for a cone search around a sightline.
+
+    By default the query computes per-row angular separation (in degrees) as a
+    SELECT alias ``sep_deg`` and orders by it, so that a ``TOP {top}``
+    truncation keeps the *closest* sources rather than an arbitrary subset.
+    This is the completeness guarantee for impact-parameter analysis: without
+    distance-ordered truncation, a TAP service is free to return any matching
+    rows it likes, and the closest source could be silently excluded.
+
+    The alias form (``DISTANCE(...) AS sep_deg ... ORDER BY sep_deg``) is used
+    rather than placing the function call directly in ORDER BY, because some
+    TAP parsers (VizieR's ``vollt`` among them) are strict about ORDER BY
+    accepting only a column reference or an integer position. The result of
+    distance-ordered queries therefore carries an extra ``sep_deg`` column,
+    which downstream code may use as a diagnostic but is not part of the
+    normalized schema.
+
+    Pass ``order_by_distance=False`` for queries where you do not care about
+    completeness or for services that do not support the DISTANCE function.
+    """
+    quoted_table = quote_table(table)
+    if order_by_distance:
+        select_list = (
+            f"{columns}, DISTANCE("
+            f"POINT('ICRS', {ra_col}, {dec_col}), "
+            f"POINT('ICRS', {ra_deg}, {dec_deg})) AS sep_deg"
+        )
+        order_clause = " ORDER BY sep_deg"
+    else:
+        select_list = columns
+        order_clause = ""
     return (
-        f"SELECT TOP 10000 {columns} FROM {t} "
+        f"SELECT TOP {top} {select_list} FROM {quoted_table} "
         f"WHERE 1=CONTAINS(POINT('ICRS', {ra_col}, {dec_col}), "
         f"CIRCLE('ICRS', {ra_deg}, {dec_deg}, {radius_deg}))"
+        f"{order_clause}"
     )
 
 
@@ -65,23 +98,25 @@ def _with_retries(fn, attempts: int = 5, base_delay: float = 0.5, max_delay: flo
             time.sleep(min(base_delay * 2**k, max_delay))
 
 
-def query_sync(access_url: str, adql: str, maxrec: int = 10000) -> pd.DataFrame:
+def _table_to_dataframe(result: object) -> pd.DataFrame:
+    table = result.to_table()  # type: ignore[attr-defined]
+    try:
+        return table.to_pandas()
+    except Exception:
+        # astropy <-> pandas conversions can fail; fallback safely
+        return pd.DataFrame(table.as_array())
+
+
+def run_tap_sync(access_url: str, adql: str, *, maxrec: int = 10000) -> pd.DataFrame:
+    """Run one TAP query with retry behavior."""
     if TAPService is None:
         return pd.DataFrame()
 
     def _run() -> pd.DataFrame:
-        svc = TAPService(access_url)
-        set_tap_timeout(svc, timeout_seconds=10.0)
-        if hasattr(svc, "run_sync"):
-            res = svc.run_sync(adql, MAXREC=maxrec)
-        else:  # legacy pyvo
-            res = svc.launch_job_sync(adql)
-        table = res.to_table()
-        try:
-            return table.to_pandas()
-        except Exception:
-            # astropy <-> pandas conversions can fail; fallback safely
-            return pd.DataFrame(table.as_array())
+        service = TAPService(access_url)
+        set_tap_timeout(service, timeout_seconds=10.0)
+        result = service.run_sync(adql, MAXREC=maxrec)
+        return _table_to_dataframe(result)
 
     return _with_retries(_run)
 
@@ -96,29 +131,42 @@ def cone_query(
     radius_deg: float,
     columns: str = "*",
     maxrec: int = 10000,
-) -> pd.DataFrame:
-    ts_start = datetime.now(UTC).isoformat()
-    adql = build_cone_adql(table, ra_col, dec_col, ra_deg, dec_deg, radius_deg, columns)
-    df = query_sync(access_url, adql, maxrec=maxrec)
-    ts_end = datetime.now(UTC).isoformat()
-    prov = make_provenance(
-        adql,
-        service=access_url,
-        table=table,
-        extra={
-            "ts_start_utc": ts_start,
-            "ts_end_utc": ts_end,
-            "ra_deg": ra_deg,
-            "dec_deg": dec_deg,
-            "radius_deg": radius_deg,
-            "maxrec": maxrec,
-        },
+) -> tuple[pd.DataFrame, dict[str, str | float | int | bool]]:
+    """Run a TAP cone query and return the raw rows plus query metadata.
+
+    Metadata includes ``truncated``: True when the returned row count meets or
+    exceeds ``maxrec``, signalling that there may have been more matching rows
+    than were returned. Combined with the distance-ordered ADQL emitted by
+    ``build_cone_adql``, ``truncated=True`` means "the {maxrec} closest rows
+    in angular separation were returned, but the cone may contain more sources
+    at larger separation." This is not a completeness guarantee for derived
+    quantities such as ``b_kpc / R_vir``, which also depend on redshift and
+    halo mass.
+    """
+    started = datetime.now(UTC).isoformat()
+    adql = build_cone_adql(
+        table,
+        ra_col,
+        dec_col,
+        ra_deg,
+        dec_deg,
+        radius_deg,
+        columns=columns,
+        top=maxrec,
     )
-    try:
-        df.attrs["provenance"] = prov
-    except Exception:
-        pass
-    return df
+    df = run_tap_sync(access_url, adql, maxrec=maxrec)
+    ended = datetime.now(UTC).isoformat()
+    truncated = bool(len(df) >= maxrec)
+    return df, {
+        "adql": adql,
+        "ts_start_utc": started,
+        "ts_end_utc": ended,
+        "ra_deg": ra_deg,
+        "dec_deg": dec_deg,
+        "radius_deg": radius_deg,
+        "maxrec": maxrec,
+        "truncated": truncated,
+    }
 
 
 def safe_search(

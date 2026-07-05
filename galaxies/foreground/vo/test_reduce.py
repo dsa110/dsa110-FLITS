@@ -5,9 +5,9 @@ from astropy.cosmology import Planck18
 
 from .reduce import (
     angular_separation_arcmin,
-    compute_rdelta_from_mdelta,
     impact_parameter_kpc,
     merge_and_rank,
+    rdelta_from_mdelta,
 )
 
 
@@ -41,9 +41,9 @@ def test_impact_parameter_monotonicity():
 @pytest.mark.unit
 def test_rdelta_formula():
     # M200 = 1e14 Msun at z=0.1: halo-scale radius (hundreds of kpc to few Mpc)
-    r200 = compute_rdelta_from_mdelta(1e14, 200.0, 0.1, Planck18)
+    r200 = rdelta_from_mdelta(1e14, 200.0, 0.1, Planck18)
     assert 500 < r200 < 5000
-    assert compute_rdelta_from_mdelta(5e14, 500.0, 0.3, Planck18) > 0
+    assert rdelta_from_mdelta(5e14, 500.0, 0.3, Planck18) > 0
 
 
 def _schema_df(**overrides):
@@ -87,6 +87,18 @@ def test_merge_and_rank_with_mdelta():
 
 @pytest.mark.unit
 def test_merge_and_rank_columns(sample_normalized_result):
-    out = merge_and_rank(sample_normalized_result, 150.115, 2.205, Planck18)
+    out = merge_and_rank(sample_normalized_result, frb_ra_deg=150.115, frb_dec_deg=2.205, cosmo=Planck18)
     for col in ("theta_arcmin", "b_kpc", "r_delta_computed", "rank_key"):
         assert col in out.columns
+
+
+@pytest.mark.unit
+def test_merge_and_rank_prefers_smaller_impact_parameter():
+    df = _schema_df(
+        name=["far", "near"], id=["2", "1"], ra=[150.2, 150.01], dec=[2.0, 2.0],
+        z=[0.2, 0.2],
+        service=["svc", "svc"], table=["tbl", "tbl"],
+    )
+    ranked = merge_and_rank(df, frb_ra_deg=150.0, frb_dec_deg=2.0)  # default Planck18
+    assert ranked.loc[0, "name"] == "near"
+    assert ranked.loc[0, "b_kpc"] < ranked.loc[1, "b_kpc"]

@@ -67,7 +67,7 @@ def _collect_candidates(frb, tables, radii_arcmin, maxrec):
     for radius in radii_arcmin:
         for _, table_row in tables.iterrows():
             try:
-                result = cone_query(
+                result, _ = cone_query(
                     VIZIER, table_row["table"], table_row["ra_col"], table_row["dec_col"],
                     ra_deg=frb.ra, dec_deg=frb.dec, radius_deg=radius / 60.0, maxrec=maxrec,
                 )
@@ -104,7 +104,7 @@ def test_frb_zach_recovery(tmp_path):
     if not all_candidates:
         pytest.fail("No candidates found in any search radius")
 
-    ranked = merge_and_rank(pd.concat(all_candidates, ignore_index=True), frb.ra, frb.dec, get_cosmology())
+    ranked = merge_and_rank(pd.concat(all_candidates, ignore_index=True), frb_ra_deg=frb.ra, frb_dec_deg=frb.dec, cosmo=get_cosmology())
     assert len(ranked) > 0, "Should find at least some foreground candidates"
 
     halo_matches = find_matching_objects(ranked, target_data["expected_halos"])
@@ -138,7 +138,7 @@ def test_frb_isha_control(tmp_path):
 
     all_candidates = _collect_candidates(frb, tables, radii_arcmin=[10], maxrec=500)
     if all_candidates:
-        ranked = merge_and_rank(pd.concat(all_candidates, ignore_index=True), frb.ra, frb.dec, get_cosmology())
+        ranked = merge_and_rank(pd.concat(all_candidates, ignore_index=True), frb_ra_deg=frb.ra, frb_dec_deg=frb.dec, cosmo=get_cosmology())
         close_objects = ranked[ranked["b_kpc"] < 200]
         print(f"Control case: {len(close_objects)} objects within 200 kpc of {len(ranked)} candidates")
 
@@ -161,7 +161,7 @@ def test_pipeline_completeness(tmp_path):
     if not all_candidates:
         pytest.skip("No candidates found for completeness test")
 
-    ranked = merge_and_rank(pd.concat(all_candidates, ignore_index=True), frb.ra, frb.dec, get_cosmology())
+    ranked = merge_and_rank(pd.concat(all_candidates, ignore_index=True), frb_ra_deg=frb.ra, frb_dec_deg=frb.dec, cosmo=get_cosmology())
     z_values = ranked["z"].dropna()
     impact_values = ranked["b_kpc"].dropna()
     if len(z_values) > 0:

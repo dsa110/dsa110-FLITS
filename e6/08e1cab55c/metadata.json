@@ -1,0 +1,27 @@
+{
+  "cli_version": "0.7.8",
+  "checkpoint_version": "branch-v1",
+  "checkpoint_id": "e608e1cab55c",
+  "strategy": "manual-commit",
+  "branch": "feat/vo-halos-integration",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "docs/entire-tracing-checkpoints.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/e6/08e1cab55c/0/metadata.json",
+      "transcript": "/e6/08e1cab55c/0/full.jsonl",
+      "compact_transcript": "/e6/08e1cab55c/0/transcript.jsonl",
+      "content_hash": "/e6/08e1cab55c/0/content_hash.txt",
+      "prompt": "/e6/08e1cab55c/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 321752,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 3427840,
+    "output_tokens": 22766,
+    "api_call_count": 44
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "cli_version": "0.7.8",
+  "checkpoint_id": "e608e1cab55c",
+  "session_id": "019f2a41-7d39-71f3-80c4-0dcf395822b9",
+  "strategy": "manual-commit",
+  "created_at": "2026-07-05T19:56:22.518517Z",
+  "branch": "feat/vo-halos-integration",
+  "checkpoints_count": 1,
+  "save_step_count": 1,
+  "files_touched": [
+    "docs/entire-tracing-checkpoints.md"
+  ],
+  "agent": "Codex",
+  "model": "gpt-5.5",
+  "turn_id": "29a610f97a35",
+  "token_usage": {
+    "input_tokens": 321752,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 3427840,
+    "output_tokens": 22766,
+    "api_call_count": 44
+  },
+  "session_metrics": {
+    "turn_count": 1
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-07-05T19:56:22.438986Z",
+    "agent_lines": 0,
+    "agent_removed": 0,
+    "human_added": 16,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 16,
+    "total_lines_changed": 16,
+    "agent_percentage": 0,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 429,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0,
+      "user_added_per_file": {
+        "docs/entire-tracing-checkpoints.md": 429
+      }
+    }
+  ]
+}

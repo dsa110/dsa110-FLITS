@@ -67,6 +67,13 @@ def main():
     ap.add_argument("burst")
     ap.add_argument("nlive", nargs="?", type=int, default=600)
     ap.add_argument("nproc", nargs="?", type=int, default=8)
+    # beta is the sampled parameter (ADR-0006); --beta-lo/--beta-hi drive the
+    # prior directly. The legacy --alpha-lo/--alpha-hi pair is a deprecated
+    # alias mapped through beta_bounds_from_alpha_bounds inside the library
+    # (only alpha >= 4 is reachable on the thin-screen branch, so the old
+    # default (2.0, 6.0) silently truncates to beta in [3, 4]).
+    ap.add_argument("--beta-lo", dest="beta_lo", type=float, default=None)
+    ap.add_argument("--beta-hi", dest="beta_hi", type=float, default=None)
     ap.add_argument("--alpha-lo", type=float, default=2.0)
     ap.add_argument("--alpha-hi", type=float, default=6.0)
     ap.add_argument(
@@ -117,14 +124,6 @@ def main():
         "shared across both bands (gain-marginal, 8-dim) instead of per-band zeta; "
         "gives a single coherent burst across the full band",
     )
-    # Per-band PBF (DEFAULT): CHIME and DSA are separate FRBModel instances, so each
-    # carries its own pulse-broadening function. The wilhelm test showed the bands want
-    # different shapes -- CHIME mildly prefers a Kolmogorov power-law tail, DSA an
-    # exponential -- and CHIME-powerlaw/DSA-exp beats all-exp by dlnZ=+4.0
-    # (.agents/experiment-powerlaw-pbf.md). The Kolmogorov default (beta=11/3) is
-    # physically motivated, but the +4.0 evidence is wilhelm-only so far; revisit
-    # when more bursts carry per-band PBF evidence. Pass --pbf-C exp to revert CHIME
-    # to a single global exponential PBF.
     ap.add_argument(
         "--gain-s2",
         dest="gain_s2",
@@ -136,11 +135,14 @@ def main():
         "across the whole ladder. Output is tagged _s2-<val> so it does not "
         "overwrite the profiled run.",
     )
-    ap.add_argument("--pbf-C", dest="pbf_C", default="powerlaw", choices=["exp", "powerlaw"])
-    ap.add_argument("--pbf-D", dest="pbf_D", default="exp", choices=["exp", "powerlaw"])
-    ap.add_argument("--beta-C", dest="beta_C", type=float, default=11.0 / 3.0)
-    ap.add_argument("--beta-D", dest="beta_D", type=float, default=11.0 / 3.0)
+    # The per-band --pbf-C/--pbf-D/--beta-C/--beta-D knobs are gone: ADR-0006
+    # removed the FLITS_PBF selector and model.pbf/.pbf_beta have zero kernel
+    # consumers -- the PBF family is driven by the sampled beta itself
+    # (power-law tail below 4, exponential member at the beta=4 limit).
     a = ap.parse_args()
+    if (a.beta_lo is None) != (a.beta_hi is None):
+        ap.error("--beta-lo and --beta-hi must be given together")
+    beta_bounds = (a.beta_lo, a.beta_hi) if a.beta_lo is not None else None
     multi = a.components_C > 1 or a.components_D > 1 or a.force_multi
 
     cfg_dir = f"{RUNS}/configs"
@@ -156,12 +158,6 @@ def main():
     print(f"[{a.burst}] preparing CHIME + DSA models ...", flush=True)
     model_C, init_C = prepare(cC, f"{a.burst}_chime", out_dir)
     model_D, init_D = prepare(cD, f"{a.burst}_dsa", out_dir)
-    model_C.pbf, model_C.pbf_beta = a.pbf_C, a.beta_C
-    model_D.pbf, model_D.pbf_beta = a.pbf_D, a.beta_D
-    print(
-        f"[{a.burst}] PBF: CHIME={a.pbf_C}(b={a.beta_C:.3g}) DSA={a.pbf_D}(b={a.beta_D:.3g})",
-        flush=True,
-    )
     print(
         f"[{a.burst}] CHIME init: tau={init_C.tau_1ghz:.3g} a={init_C.alpha:.2g} | "
         f"DSA init: tau={init_D.tau_1ghz:.3g} a={init_D.alpha:.2g}",
@@ -173,7 +169,8 @@ def main():
         init_C=init_C,
         model_D=model_D,
         init_D=init_D,
-        alpha_bounds=(a.alpha_lo, a.alpha_hi),
+        beta_bounds=beta_bounds,
+        alpha_bounds=None if beta_bounds else (a.alpha_lo, a.alpha_hi),
         nlive=a.nlive,
         nproc=a.nproc,
         marginalize_gain=a.marginalize_gain,
@@ -194,12 +191,17 @@ def main():
         return d["median"], d["err_minus"], d["err_plus"]
 
     a_m, a_lo, a_hi = med("alpha")
+    b_m, b_lo, b_hi = med("beta")
     t_m, t_lo, t_hi = med("tau_1ghz")
     summary = {
         "burst": a.burst,
         "marginalize_gain": bool(a.marginalize_gain),
         "marginalize_gain_gp": bool(a.marginalize_gain_gp),
         "shared_zeta": bool(a.shared_zeta),
+        # beta first: gate_one's beta-native path keys off "beta" in fit and
+        # rails against beta_bounds; alpha is the derived report-only value.
+        "beta": {"median": b_m, "err_minus": b_lo, "err_plus": b_hi},
+        "beta_bounds": list(res["beta_bounds"]),
         "alpha": {"median": a_m, "err_minus": a_lo, "err_plus": a_hi},
         "tau_1ghz": {"median": t_m, "err_minus": t_lo, "err_plus": t_hi},
         "log_evidence": res["log_evidence"],
@@ -208,10 +210,6 @@ def main():
         "components_C": a.components_C,
         "components_D": a.components_D,
         "gain_s2": a.gain_s2,
-        "pbf_C": a.pbf_C,
-        "pbf_D": a.pbf_D,
-        "beta_C": a.beta_C,
-        "beta_D": a.beta_D,
         "percentiles": {n: pct[n] for n in names},
         "ncall": res["ncall"],
     }
@@ -298,10 +296,9 @@ def main():
         tag = ""
     if a.gain_s2 is not None:  # fixed-s2 ladder: never clobber the profiled run
         tag += f"_s2-{a.gain_s2:g}"
-    # Non-default PBF gets its own file so PBF variants self-segregate (no clobber,
-    # no manual copy). Default (powerlaw/exp) stays suffix-free for ladder back-compat.
-    if (a.pbf_C, a.pbf_D) != ("powerlaw", "exp"):
-        tag += f"_pbf-{a.pbf_C}-{a.pbf_D}"
+    # No _pbf-* tag: beta drives the PBF family (ADR-0006), so beta-campaign
+    # outputs are suffix-free and cannot collide with the legacy alpha-era
+    # *_pbf-exp-exp.json artifacts.
     out = f"{out_dir}/{a.burst}_joint_fit{tag}.json"
     json.dump(summary, open(out, "w"), indent=2)
 
@@ -334,13 +331,16 @@ def main():
         npz["scint_mu_D"] = sumD["mu"]
     np.savez_compressed(f"{out_dir}/{a.burst}_joint_samples{tag}.npz", **npz)
 
+    # Rail check on the SAMPLED parameter: ADR-0004 flags a median within ~3
+    # sigma of either beta prior bound (a beta=4 rail is the exponential limit
+    # / alpha=4-as-limit case and the ADR-0007 re-open trigger).
+    bb_lo, bb_hi = res["beta_bounds"]
     edge = (
-        " [AT PRIOR EDGE]"
-        if (a_m - 1.5 * a_lo <= a.alpha_lo or a_m + 1.5 * a_hi >= a.alpha_hi)
-        else ""
+        " [BETA AT PRIOR EDGE]" if (b_m - 3.0 * b_lo <= bb_lo or b_m + 3.0 * b_hi >= bb_hi) else ""
     )
     print(
-        f"\n[{a.burst}] JOINT  alpha = {a_m:.2f} (+{a_hi:.2f}/-{a_lo:.2f}){edge}"
+        f"\n[{a.burst}] JOINT  beta = {b_m:.3f} (+{b_hi:.3f}/-{b_lo:.3f}){edge}"
+        f"   alpha = {a_m:.2f} (+{a_hi:.2f}/-{a_lo:.2f})"
         f"   tau_1GHz = {t_m:.3g} (+{t_hi:.2g}/-{t_lo:.2g}) ms"
         f"   lnZ = {res['log_evidence']:.1f}",
         flush=True,

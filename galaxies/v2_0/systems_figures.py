@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Characterizing figures for the dominant intervening systems of the sample:
-the three foreground galaxies whose interiors/CGM source a non-negligible sightline
-DM, and the four innermost foreground clusters along the FRB 20230307A field.
+the three foreground galaxies whose halos source the largest intervening
+sightline DM, and the four innermost foreground clusters along the
+FRB 20230307A field.
 
 Two composites for the manuscript:
   galaxies_cgm   - 1x3, per galaxy: mNFW hot-halo DM(b) column, sightline impact,
@@ -9,14 +10,18 @@ Two composites for the manuscript:
   clusters_icm   - 2x2, per cluster: FRB/ModifiedNFW baryon DM(b) column,
                    R500 and the sightline impact; annotated DM/b/R500.
 
-Everything is computed from the repo kernels (scattering_predict + build_unified)
-so the figure reproduces the photo-z-corrected sightline budget; a __main__
-self-check asserts that reproduction before the figures are trusted.
+The foreground set comes from sightline_budget.foreground_unified -- the SAME
+acquisition (census registry first, curated results/*_galaxies.csv fallback)
+and z < z_frb filter the tabulated budget uses -- and the three panel
+sightlines are picked live as the top-3 by capped intervening DM in
+results/sightline_dm_scattering_budget.csv. A self-check asserts each panel
+sightline's foreground DM sum reproduces that budget row before the figures
+are trusted (the pre-2026-07-06 version read a scratch/photoz-fix snapshot
+with its own filter and drifted from the budget).
 
-Galaxy inputs are the photo-z-corrected foreground catalogs (the canonical state
-adopted 2026-06-24; pending promotion to results/). Cluster inputs are the
-DESI-spec foreground clusters of Table~\\ref{tab:foreground}, whose R500 follows
-from the tabulated b and b/R500 and whose M500 follows from R500 at the cluster z.
+Cluster inputs are the DESI-spec foreground clusters of
+Table~\\ref{tab:foreground}, whose R500 follows from the tabulated b and
+b/R500 and whose M500 follows from R500 at the cluster z.
 """
 
 from __future__ import annotations
@@ -36,13 +41,12 @@ import matplotlib.pyplot as plt
 
 try:
     from galaxies.foreground import scattering_predict as scat
-    from galaxies.foreground.build_unified import build_unified_records
-    from galaxies.foreground.config import COSMO
-    from galaxies.foreground.sightline_budget import INTERIOR_B_OVER_RVIR
+    from galaxies.foreground.config import COSMO, TARGETS
+    from galaxies.foreground.sightline_budget import INTERIOR_B_OVER_RVIR, foreground_unified
+    from scattering.scat_analysis.burst_metadata import load_tns_name
 except ImportError:  # pragma: no cover - direct script execution
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
     from galaxies.foreground import scattering_predict as scat
-    from galaxies.foreground.build_unified import build_unified_records
     from galaxies.foreground.config import COSMO
     from galaxies.foreground.sightline_budget import INTERIOR_B_OVER_RVIR
 
@@ -56,16 +60,7 @@ TEXT_DARK = "#333333"
 GRID_COLOR = "#E5E5E5"
 BG_LIGHT = "#FAFBFC"
 
-# Three dominant foreground galaxies (nickname, TNS, RA, Dec, z_frb)
-# halos under the photo-z-corrected budget (2 galaxy-interior + 1 CGM grazer).
-# (Casey/FRB 20240229A is excluded: its only true foreground galaxy, UGC 06371,
-# grazes at b/R_vir~=1 for a negligible ~0.3 pc/cm^3; the closer "interior" object
-# in its field is a misclassified PSF star, e_zphot~=z, fqual=0.)
-GAL_TARGETS = [
-    ("phineas", "FRB 20230307A", "11h51m07.52s", "+71d41m44.3s", 0.2710),
-    ("whitney", "FRB 20220310F", "08h58m52.92s", "+73d29m27.0s", 0.4790),
-    ("isha", "FRB 20221113A", "04h45m38.64s", "+70d18m26.6s", 0.2505),
-]
+N_GAL_PANELS = 3  # top-N sightlines by capped intervening DM in the live budget
 
 # Four innermost foreground clusters (by b/R500) in the FRB 20230307A field
 # FRB 20230307A field from Table~\ref{tab:foreground} (objid, b_kpc, b/R500, z).
@@ -76,34 +71,32 @@ CLUSTER_TARGETS = [
     ("J115140.5+712732", 2105.0, 3.32, 0.176),
 ]
 
-# Reference sightline totals from the photo-z-corrected budget (DM_int raw, ms tau)
-# used only as a reproduction self-check, not plotted.
-_BUDGET_CHECK = {  # name: sum_dm_int_raw (FRB ModifiedNFW hot + cool columns)
-    "phineas": 297.2,
-    "whitney": 62.0,
-    "isha": 40.6,
-}
-
 _REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-DEFAULT_GAL_DIR = os.path.join(_REPO, "scratch", "photoz-fix")
+DEFAULT_RESULTS_DIR = os.path.join(_REPO, "results")
 DEFAULT_OUT_DIR = "/Users/jakobfaber/Developer/overleaf/Faber2026/figures"
 
 
-def dominant_foreground_halo(name: str, ra: str, dec: str, z_frb: float, gal_dir: str) -> dict:
+def dominant_foreground_halo(name: str, ra: str, dec: str, z_frb: float, results_dir: str) -> dict:
     """Return the dominant foreground halo record + sightline DM sum for a galaxy."""
-    df = pd.read_csv(os.path.join(gal_dir, f"{name}_galaxies.csv"))
     sc = SkyCoord(ra, dec, unit=(u.hourangle, u.deg))
-    uni = build_unified_records(
-        df, z_frb=z_frb, sight_ra=sc.ra.deg, sight_dec=sc.dec.deg, enrich=False
+    uni = foreground_unified(
+        name, z_frb, sc.ra.deg, sc.dec.deg, results_dir=results_dir, enrich=False
     )
-    z = pd.to_numeric(uni["z"], errors="coerce")
-    fg = uni[(z < z_frb) & (uni["mass_source"] != "cluster_catalog")].copy()
+    # Budget-wide DM sum (all foreground rows, clusters included) for the
+    # reproduction self-check against results/sightline_dm_scattering_budget.csv.
+    sum_all = (
+        pd.to_numeric(uni["dm_halo"], errors="coerce").fillna(0.0).sum()
+        + pd.to_numeric(uni["dm_cool"], errors="coerce").fillna(0.0).sum()
+    )
+    # Dominant GALAXY halo for the panel (clusters are characterized separately).
+    fg = uni[uni["mass_source"] != "cluster_catalog"].copy()
     fg["_pt"] = pd.to_numeric(fg["pred_tau_scat_ms_1GHz"], errors="coerce").fillna(-1.0)
     fg["_dh"] = pd.to_numeric(fg["dm_halo"], errors="coerce").fillna(0.0)
     dom = fg.sort_values(["_pt", "_dh"], ascending=False).iloc[0]
     sum_hot = pd.to_numeric(fg["dm_halo"], errors="coerce").fillna(0.0).sum()
     sum_cool = pd.to_numeric(fg["dm_cool"], errors="coerce").fillna(0.0).sum()
     return {
+        "sum_dm_int_all": float(sum_all),
         "z_gal": float(dom["z"]),
         "impact_kpc": float(dom["impact_kpc"]),
         "m_halo": float(dom["M_halo"]),
@@ -148,12 +141,30 @@ def _mass_label(source: str) -> str:
     }.get(source, source)
 
 
-def make_galaxy_figure(gal_dir: str):
-    """1x3 mNFW hot-halo DM(b) panels for the three dominant foreground galaxies."""
-    fig, axes = plt.subplots(1, 3, figsize=(13.4, 4.5), dpi=150, facecolor=BG_LIGHT)
-    for ax, (name, tns, ra, dec, z_frb) in zip(axes.ravel(), GAL_TARGETS):
+def select_gal_targets(results_dir: str, n: int = N_GAL_PANELS) -> list[tuple]:
+    """Top-n sightlines by capped intervening DM in the live budget CSV.
+
+    Returns (nickname, tns, ra, dec, z_frb, budget_row) tuples; the budget row
+    rides along for the reproduction self-check.
+    """
+    budget = pd.read_csv(os.path.join(results_dir, "sightline_dm_scattering_budget.csv"))
+    by_tns = {r["name"]: r for _, r in budget.iterrows()}
+    ranked = []
+    for name, ra, dec, z_frb in TARGETS:
+        row = by_tns.get(load_tns_name(name))
+        if row is None or not row["n_foreground"]:
+            continue
+        ranked.append((float(row["dm_intervening_capped"]), name, ra, dec, z_frb, row))
+    ranked.sort(key=lambda t: t[0], reverse=True)
+    return [(name, load_tns_name(name), ra, dec, z, row) for _, name, ra, dec, z, row in ranked[:n]]
+
+
+def make_galaxy_figure(targets: list[tuple], results_dir: str):
+    """1xN mNFW hot-halo DM(b) panels for the dominant foreground galaxies."""
+    fig, axes = plt.subplots(1, len(targets), figsize=(13.4, 4.5), dpi=150, facecolor=BG_LIGHT)
+    for ax, (name, tns, ra, dec, z_frb, _row) in zip(np.atleast_1d(axes).ravel(), targets):
         ax.set_facecolor(BG_LIGHT)
-        d = dominant_foreground_halo(name, ra, dec, z_frb, gal_dir)
+        d = dominant_foreground_halo(name, ra, dec, z_frb, results_dir)
         rvir, b, mh, zg = d["r_vir"], d["impact_kpc"], d["m_halo"], d["z_gal"]
         b_cap = INTERIOR_B_OVER_RVIR * rvir
         interior = d["b_over_rvir"] < INTERIOR_B_OVER_RVIR
@@ -331,12 +342,14 @@ def make_cluster_figure():
     return fig
 
 
-def _selfcheck(gal_dir: str) -> None:
-    """Assert the figure inputs reproduce the photo-z-corrected sightline budget."""
-    for name, _tns, ra, dec, z_frb in GAL_TARGETS:
-        d = dominant_foreground_halo(name, ra, dec, z_frb, gal_dir)
-        ref, tol = _BUDGET_CHECK[name], 1.0
-        assert abs(d["sum_dm_int"] - ref) < tol, f"{name}: DM_int {d['sum_dm_int']:.1f} != {ref}"
+def _selfcheck(targets: list[tuple], results_dir: str) -> None:
+    """Assert the figure inputs reproduce the live sightline budget CSV."""
+    for name, _tns, ra, dec, z_frb, row in targets:
+        d = dominant_foreground_halo(name, ra, dec, z_frb, results_dir)
+        ref, tol = float(row["dm_intervening"]), 1.0
+        assert abs(d["sum_dm_int_all"] - ref) < tol, (
+            f"{name}: DM_int {d['sum_dm_int_all']:.1f} != budget {ref:.1f}"
+        )
         # The dominant column sampled at its own impact must match its tabulated dm_halo.
         dm_at_b = scat.dm_halo_mnfw(d["m_halo"], d["z_gal"], d["impact_kpc"])
         assert abs(dm_at_b - d["dm_halo"]) < 0.5, f"{name}: dm_halo(b) mismatch"
@@ -354,15 +367,20 @@ def main():
     import argparse
 
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("--gal-dir", default=DEFAULT_GAL_DIR, help="dir of *_galaxies.csv inputs")
+    p.add_argument(
+        "--results-dir",
+        default=DEFAULT_RESULTS_DIR,
+        help="dir of *_galaxies.csv + sightline_dm_scattering_budget.csv",
+    )
     p.add_argument("--out-dir", default=DEFAULT_OUT_DIR, help="figure output directory")
     args = p.parse_args()
 
-    _selfcheck(args.gal_dir)
+    targets = select_gal_targets(args.results_dir)
+    _selfcheck(targets, args.results_dir)
     os.makedirs(args.out_dir, exist_ok=True)
 
     for fig, stem in (
-        (make_galaxy_figure(args.gal_dir), "galaxies_cgm"),
+        (make_galaxy_figure(targets, args.results_dir), "galaxies_cgm"),
         (make_cluster_figure(), "clusters_icm"),
     ):
         for ext in ("pdf", "svg", "png"):

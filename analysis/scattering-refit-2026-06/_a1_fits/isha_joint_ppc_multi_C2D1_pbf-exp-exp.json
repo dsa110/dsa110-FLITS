@@ -1,0 +1,10 @@
+{
+  "burst": "isha",
+  "alpha": 5.302383976911713,
+  "tau_1ghz": 0.022430155137642536,
+  "chi2_chime": 1.3278535491277705,
+  "chi2_dsa": 0.9323161333188961,
+  "components_C": 2,
+  "components_D": 1,
+  "suffix": "_C2D1_pbf-exp-exp"
+}

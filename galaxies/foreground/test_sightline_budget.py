@@ -72,7 +72,10 @@ def test_read_tau_fit_prefers_percentiles_and_reads_quality(tmp_path):
 
 
 def test_budget_ingests_allexp_joint_marginal(monkeypatch):
-    """ADR-0005 all-exp joint fits cap at MARGINAL; still overlay on fig:budget."""
+    """ADR-0005/0006 joint fits cap at MARGINAL; still overlay on fig:budget.
+
+    Pins casey's beta-campaign joint tau (roster re-lock 2026-07-06); before
+    the re-lock the roster pointed at the all-exp fit (tau=0.0609)."""
     b = sb.build_sightline_budget(
         "casey",
         "20h40m47.886s",
@@ -82,7 +85,7 @@ def test_budget_ingests_allexp_joint_marginal(monkeypatch):
         dm_mw_fn=_stub_dm_mw(),
         enrich=False,
     )
-    assert b["tau_obs_ms"] == pytest.approx(0.06086799947757, rel=1e-3)
+    assert b["tau_obs_ms"] == pytest.approx(0.018589939827674748, rel=1e-3)
     assert b["tau_obs_quality"] == "MARGINAL"
 
 

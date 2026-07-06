@@ -227,7 +227,8 @@ def _gain_marginal_multi_band(
     by 1-D ML on a SHARED-per-band value (state in the design notes); pass a float
     to fix it. Returns ``(lnZ, diag)`` with diagnostics:
     ``frac_culled`` (channels dropped by the eigenvalue guard), ``max_abs_g``
-    (per component), ``s2``, ``n_supported``.
+    (per component), ``s2``, ``n_supported`` (valid channels that kept the full
+    N-component solve; ``frac_culled`` is normalized by all valid channels).
 
     Eigenvalue conditioning guard: a channel is culled when
     min eig(M_f) / max eig(M_f) < ``eig_rel_floor`` (near-degenerate kernels in
@@ -688,9 +689,7 @@ class _JointLogLikelihoodGainSharedZeta:
         model: FRBModel, tau: float, beta: float, z1: float, x: float, t0: float, ddm: float
     ) -> float:
         zeta_nu = z1 * np.asarray(model.freq, dtype=float) ** x  # full channel axis
-        p = FRBParams(
-            c0=1.0, t0=t0, gamma=0.0, zeta=zeta_nu, tau_1ghz=tau, beta=beta, delta_dm=ddm
-        )
+        p = FRBParams(c0=1.0, t0=t0, gamma=0.0, zeta=zeta_nu, tau_1ghz=tau, beta=beta, delta_dm=ddm)
         return model.log_likelihood_gain_marginal(p, "M3")
 
     def __call__(self, theta: NDArray[np.floating]) -> float:
@@ -890,6 +889,7 @@ def fit_joint_scattering(
     components_C: int = 1,
     components_D: int = 1,
     gain_s2: float | None = None,
+    proper_gain_prior: bool = False,
     dt_min: float | None = None,
     force_multi: bool = False,
     **dynesty_kwargs,
@@ -910,6 +910,11 @@ def fit_joint_scattering(
         Deprecated alias for ``beta_bounds`` via ``beta_bounds_from_alpha_bounds``.
     nlive, dlogz, nproc, sample
         dynesty knobs (12-dim -> nlive ~600+ recommended).
+    proper_gain_prior
+        Route even a 1-component gain-marginal fit through the finite-variance
+        Gaussian gain prior used by the multi-component evidence kernel. Passing
+        ``gain_s2`` also enables this path; keep ``gain_s2`` fixed when comparing
+        evidence across component counts.
 
     Returns
     -------
@@ -927,13 +932,22 @@ def fit_joint_scattering(
     if model_C.data is None or model_D.data is None:
         raise ValueError("both FRBModels must have data loaded")
 
-    multi = bool(force_multi) or int(components_C) > 1 or int(components_D) > 1
+    components_C = int(components_C)
+    components_D = int(components_D)
+    if components_C < 1 or components_D < 1:
+        raise ValueError("components_C and components_D must be >= 1")
+
+    multi = (
+        bool(force_multi)
+        or components_C > 1
+        or components_D > 1
+        or bool(proper_gain_prior)
+        or gain_s2 is not None
+    )
     ptform = None
     if multi:
         names = JOINT_PARAM_NAMES_GAIN_MULTI(components_C, components_D)
-        spec = _joint_prior_spec_gain_multi(
-            init_C, init_D, beta_bounds, components_C, components_D
-        )
+        spec = _joint_prior_spec_gain_multi(init_C, init_D, beta_bounds, components_C, components_D)
         loglike = _JointLogLikelihoodGainMulti(
             model_C, model_D, n_C=components_C, n_D=components_D, s2=gain_s2
         )
@@ -1087,8 +1101,7 @@ def demo() -> None:
     bad[0] = tau_true * 5
     assert ll_true > ll(bad), "true tau not preferred"
     print(
-        f"demo OK: ll(beta={beta_true})={ll_true:.0f} > "
-        f"ll(beta={beta_true - 0.5})={ll_wrong:.0f}"
+        f"demo OK: ll(beta={beta_true})={ll_true:.0f} > ll(beta={beta_true - 0.5})={ll_wrong:.0f}"
     )
 
 

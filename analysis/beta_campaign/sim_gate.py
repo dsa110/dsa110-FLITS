@@ -74,7 +74,7 @@ def _railed(med: float, err_minus: float, err_plus: float) -> bool:
     return (med - 3.0 * err_minus <= lo) or (med + 3.0 * err_plus >= hi)
 
 
-def run_case(name, beta_true, tau, t_max_C, expect_rail, nlive, nproc, seed):
+def run_case(name, beta_true, tau, t_max_C, expect_rail, nlive, nproc, seed, maxcall):
     m_C, m_D = _make_bands(beta_true, tau, t_max_C, seed)
     res = fit_joint_scattering(
         model_C=m_C,
@@ -87,6 +87,9 @@ def run_case(name, beta_true, tau, t_max_C, expect_rail, nlive, nproc, seed):
         shared_zeta=True,
         verbose=False,
         rstate=np.random.default_rng(seed + 1),
+        # POC-proven budget (run_beta_poc.py defaults): bounds the gate's
+        # wall-time; recovery at this scale was 0.3% on beta
+        maxcall=maxcall,
     )
     b = res["percentiles"]["beta"]
     med, em, ep = b["median"], b["err_minus"], b["err_plus"]
@@ -118,16 +121,25 @@ def run_case(name, beta_true, tau, t_max_C, expect_rail, nlive, nproc, seed):
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--nlive", type=int, default=250)
+    ap.add_argument("--nlive", type=int, default=150)
     ap.add_argument("--nproc", type=int, default=4)
     ap.add_argument("--seed", type=int, default=20260706)
+    ap.add_argument("--maxcall", type=int, default=400_000)
     args = ap.parse_args()
 
     results = []
     for i, (name, beta_true, tau, t_max_C, expect_rail) in enumerate(CASES):
         print(f"[sim-gate] {name}: injecting beta={beta_true}, fitting ...", flush=True)
         r = run_case(
-            name, beta_true, tau, t_max_C, expect_rail, args.nlive, args.nproc, args.seed + 100 * i
+            name,
+            beta_true,
+            tau,
+            t_max_C,
+            expect_rail,
+            args.nlive,
+            args.nproc,
+            args.seed + 100 * i,
+            args.maxcall,
         )
         results.append(r)
         print(

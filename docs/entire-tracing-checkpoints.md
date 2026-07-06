@@ -4894,3 +4894,17 @@ preserving for future agents.
   - entire/checkpoints/v1 -> f36a8fd
 - note: `.entire/` remains host-local runtime state; only this ledger is tracked.
 29 -0
+
+## 2026-07-06T01:14:23-07:00 — jakob
+- repo: `/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS`
+- branch: `campaign/beta-thin-screen-pass1`
+- head: `7f814ce9`
+- origin/main: `25b8cc61`
+- worktree: clean
+- note: watched path changed: docs/adr/0007-extended-medium-pbf-for-shallow-alpha.md
+- tracked status: clean
+- local `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd4
+- `origin` `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd
+- note: `.entire/` remains host-local runtime state; only this ledger is tracked.

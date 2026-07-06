@@ -1,0 +1,11 @@
+{
+  "burst": "oran",
+  "beta": 3.987192656606904,
+  "alpha": 4.0,
+  "tau_1ghz": 0.8428116817186169,
+  "chi2_chime": 1.0246807577474968,
+  "chi2_dsa": 1.2195770981696326,
+  "components_C": 2,
+  "components_D": 1,
+  "suffix": "_C2D1"
+}

@@ -1,0 +1,378 @@
+{
+  "runs_root": "/Users/jakobfaber/Developer/scratch/flits-local-runs",
+  "missing": [],
+  "rows": [
+    {
+      "burst": "freya",
+      "alpha": 4.323299058036697,
+      "beta": 3.72168967493156,
+      "tau": 0.1193849491889905,
+      "rail": false,
+      "chi2_chime": 1.2923906729158352,
+      "chi2_dsa": 1.0303245366438598,
+      "l1": "PASS",
+      "l2": "PASS",
+      "l3": "PASS",
+      "tau_dnu": "N/A (no dnu_d)",
+      "final": "MARGINAL",
+      "reason": "L3 tau x dnu not evaluable (no dnu_d) -> capped at MARGINAL",
+      "suffix": "_sharedzeta",
+      "rail_class": "interior",
+      "rail_detail": {
+        "class": "interior",
+        "detail": "interior",
+        "three_sigma_lo": false,
+        "three_sigma_hi": false,
+        "edge_mass_lo": 0.0,
+        "edge_mass_hi": 1.7237544076155023e-39
+      },
+      "beta_err": [
+        0.014786911071232645,
+        0.014176762278296895
+      ],
+      "log_evidence": -10123.13975921703,
+      "ncall": 1044276
+    },
+    {
+      "burst": "casey",
+      "alpha": 4.0,
+      "beta": 3.990166991819069,
+      "tau": 0.018589939827674748,
+      "rail": true,
+      "chi2_chime": 1.565316767928453,
+      "chi2_dsa": 1.0210045747190157,
+      "l1": "PASS",
+      "l2": "MARGINAL",
+      "l3": "PASS",
+      "tau_dnu": "N/A (no dnu_d)",
+      "final": "MARGINAL",
+      "reason": "alpha prior-railed (within 0.1 of bound) -> unconstrained; L2 chi2_C=1.57(MARGINAL) chi2_D=1.02(PASS)",
+      "suffix": "_sharedzeta",
+      "rail_class": "railed-hi",
+      "rail_detail": {
+        "class": "railed-hi",
+        "detail": "railed-hi (exponential-consistent; alpha=4 as limit; ADR-0007 candidate)",
+        "three_sigma_lo": false,
+        "three_sigma_hi": true,
+        "edge_mass_lo": 0.0,
+        "edge_mass_hi": 0.9999999999999999
+      },
+      "beta_err": [
+        0.0069331474683487215,
+        0.006622198764558718
+      ],
+      "log_evidence": -61007.02130564228,
+      "ncall": 1177086
+    },
+    {
+      "burst": "chromatica",
+      "alpha": 4.0,
+      "beta": 3.9898361542602863,
+      "tau": 0.22022872243262984,
+      "rail": true,
+      "chi2_chime": 11.592319676424335,
+      "chi2_dsa": 9.250748791961385,
+      "l1": "PASS",
+      "l2": "FAIL",
+      "l3": "PASS",
+      "tau_dnu": "N/A (no dnu_d)",
+      "final": "FAIL",
+      "reason": "L2 catastrophic chi2_C=11.59(FAIL) chi2_D=9.25(MARGINAL)",
+      "suffix": "_sharedzeta",
+      "rail_class": "railed-hi",
+      "rail_detail": {
+        "class": "railed-hi",
+        "detail": "railed-hi (exponential-consistent; alpha=4 as limit; ADR-0007 candidate)",
+        "three_sigma_lo": false,
+        "three_sigma_hi": true,
+        "edge_mass_lo": 0.0,
+        "edge_mass_hi": 1.0
+      },
+      "beta_err": [
+        0.006742810445071967,
+        0.006771611527993215
+      ],
+      "log_evidence": -84787.46588350354,
+      "ncall": 807089
+    },
+    {
+      "burst": "wilhelm",
+      "alpha": 4.021011224467348,
+      "beta": 3.979207216453846,
+      "tau": 0.26930674993199494,
+      "rail": true,
+      "chi2_chime": 1.5714498874722578,
+      "chi2_dsa": 6.726710910040721,
+      "l1": "PASS",
+      "l2": "MARGINAL",
+      "l3": "PASS",
+      "tau_dnu": "N/A (no dnu_d)",
+      "final": "MARGINAL",
+      "reason": "alpha prior-railed (within 0.1 of bound) -> unconstrained; L2 chi2_C=1.57(MARGINAL) chi2_D=6.73(MARGINAL)",
+      "suffix": "_sharedzeta",
+      "rail_class": "railed-hi",
+      "rail_detail": {
+        "class": "railed-hi",
+        "detail": "railed-hi (exponential-consistent; alpha=4 as limit; ADR-0007 candidate)",
+        "three_sigma_lo": false,
+        "three_sigma_hi": false,
+        "edge_mass_lo": 2.5324987610821325e-171,
+        "edge_mass_hi": 0.999999999999621
+      },
+      "beta_err": [
+        0.0012534305297888793,
+        0.0005923414884150269
+      ],
+      "log_evidence": -2676.513223665906,
+      "ncall": 1000943
+    },
+    {
+      "burst": "hamilton",
+      "alpha": 4.022233269097418,
+      "beta": 3.9780111726602723,
+      "tau": 0.024470729413943397,
+      "rail": true,
+      "chi2_chime": 3.955615522833022,
+      "chi2_dsa": 0.997605531337867,
+      "l1": "PASS",
+      "l2": "MARGINAL",
+      "l3": "PASS",
+      "tau_dnu": "N/A (no dnu_d)",
+      "final": "MARGINAL",
+      "reason": "alpha prior-railed (within 0.1 of bound) -> unconstrained; L2 chi2_C=3.96(MARGINAL) chi2_D=1.00(PASS)",
+      "suffix": "_sharedzeta",
+      "rail_class": "railed-hi",
+      "rail_detail": {
+        "class": "railed-hi",
+        "detail": "railed-hi (exponential-consistent; alpha=4 as limit; ADR-0007 candidate)",
+        "three_sigma_lo": false,
+        "three_sigma_hi": false,
+        "edge_mass_lo": 0.0,
+        "edge_mass_hi": 0.9999564707406625
+      },
+      "beta_err": [
+        0.003359406283738764,
+        0.0015302477576382145
+      ],
+      "log_evidence": -12369.98448980269,
+      "ncall": 1127829
+    },
+    {
+      "burst": "mahi",
+      "alpha": 4.240680424922565,
+      "beta": 3.7851720198511734,
+      "tau": 0.21930274316476195,
+      "rail": false,
+      "chi2_chime": 1.0384276202716827,
+      "chi2_dsa": 0.8963057783075391,
+      "l1": "PASS",
+      "l2": "PASS",
+      "l3": "PASS",
+      "tau_dnu": "N/A (no dnu_d)",
+      "final": "MARGINAL",
+      "reason": "L3 tau x dnu not evaluable (no dnu_d) -> capped at MARGINAL",
+      "suffix": "_C1D1",
+      "rail_class": "railed-hi",
+      "rail_detail": {
+        "class": "railed-hi",
+        "detail": "railed-hi (exponential-consistent; alpha=4 as limit; ADR-0007 candidate)",
+        "three_sigma_lo": false,
+        "three_sigma_hi": true,
+        "edge_mass_lo": 3.059314498229598e-05,
+        "edge_mass_hi": 0.09735419925421672
+      },
+      "beta_err": [
+        0.1548532616320255,
+        0.13796351156615572
+      ],
+      "log_evidence": 28436.36669099548,
+      "ncall": 910349
+    },
+    {
+      "burst": "zach",
+      "alpha": 4.0,
+      "beta": 3.9898946227484458,
+      "tau": 0.2940239093266775,
+      "rail": true,
+      "chi2_chime": 2.5131695088139154,
+      "chi2_dsa": 1.3084150038112266,
+      "l1": "PASS",
+      "l2": "MARGINAL",
+      "l3": "PASS",
+      "tau_dnu": "N/A (no dnu_d)",
+      "final": "MARGINAL",
+      "reason": "alpha prior-railed (within 0.1 of bound) -> unconstrained; L2 chi2_C=2.51(MARGINAL) chi2_D=1.31(PASS)",
+      "suffix": "_C1D1",
+      "rail_class": "railed-hi",
+      "rail_detail": {
+        "class": "railed-hi",
+        "detail": "railed-hi (exponential-consistent; alpha=4 as limit; ADR-0007 candidate)",
+        "three_sigma_lo": false,
+        "three_sigma_hi": true,
+        "edge_mass_lo": 0.0,
+        "edge_mass_hi": 1.0
+      },
+      "beta_err": [
+        0.0066341230999129586,
+        0.007049663796868
+      ],
+      "log_evidence": 31751.479644258132,
+      "ncall": 1061556
+    },
+    {
+      "burst": "oran",
+      "alpha": 4.0,
+      "beta": 3.987192656606904,
+      "tau": 0.8428116817186169,
+      "rail": true,
+      "chi2_chime": 1.0246807577474968,
+      "chi2_dsa": 1.2195770981696326,
+      "l1": "PASS",
+      "l2": "PASS",
+      "l3": "PASS",
+      "tau_dnu": "N/A (no dnu_d)",
+      "final": "MARGINAL",
+      "reason": "alpha prior-railed (within 0.1 of bound) -> unconstrained",
+      "suffix": "_C2D1",
+      "rail_class": "railed-hi",
+      "rail_detail": {
+        "class": "railed-hi",
+        "detail": "railed-hi (exponential-consistent; alpha=4 as limit; ADR-0007 candidate)",
+        "three_sigma_lo": false,
+        "three_sigma_hi": true,
+        "edge_mass_lo": 5.7141470084177944e-05,
+        "edge_mass_hi": 0.9139465488430455
+      },
+      "beta_err": [
+        0.020749040492434645,
+        0.008830187736797779
+      ],
+      "log_evidence": 25133.73558278138,
+      "ncall": 1174661
+    },
+    {
+      "burst": "isha",
+      "alpha": 4.173320063285557,
+      "beta": 3.8405020353757404,
+      "tau": 0.31384875520730254,
+      "rail": false,
+      "chi2_chime": 1.054457130012372,
+      "chi2_dsa": 0.9059256817231529,
+      "l1": "PASS",
+      "l2": "PASS",
+      "l3": "PASS",
+      "tau_dnu": "N/A (no dnu_d)",
+      "final": "MARGINAL",
+      "reason": "L3 tau x dnu not evaluable (no dnu_d) -> capped at MARGINAL",
+      "suffix": "_C2D1",
+      "rail_class": "railed-hi",
+      "rail_detail": {
+        "class": "railed-hi",
+        "detail": "railed-hi (exponential-consistent; alpha=4 as limit; ADR-0007 candidate)",
+        "three_sigma_lo": false,
+        "three_sigma_hi": true,
+        "edge_mass_lo": 2.5402461519126817e-17,
+        "edge_mass_hi": 0.08899997746399825
+      },
+      "beta_err": [
+        0.10534124025912206,
+        0.08498783961230627
+      ],
+      "log_evidence": 33896.97661472287,
+      "ncall": 893541
+    },
+    {
+      "burst": "johndoeII",
+      "alpha": 4.0,
+      "beta": 3.9892720851784795,
+      "tau": 2.1874487967572502,
+      "rail": true,
+      "chi2_chime": 1.0942408359204094,
+      "chi2_dsa": 1.2662610554563856,
+      "l1": "PASS",
+      "l2": "PASS",
+      "l3": "PASS",
+      "tau_dnu": "N/A (no dnu_d)",
+      "final": "MARGINAL",
+      "reason": "alpha prior-railed (within 0.1 of bound) -> unconstrained",
+      "suffix": "_C2D1",
+      "rail_class": "railed-hi",
+      "rail_detail": {
+        "class": "railed-hi",
+        "detail": "railed-hi (exponential-consistent; alpha=4 as limit; ADR-0007 candidate)",
+        "three_sigma_lo": false,
+        "three_sigma_hi": true,
+        "edge_mass_lo": 1.0729718491425848e-12,
+        "edge_mass_hi": 0.9432661003716822
+      },
+      "beta_err": [
+        0.007809406908335426,
+        0.007396486198182561
+      ],
+      "log_evidence": 6078.557002579236,
+      "ncall": 1158066
+    },
+    {
+      "burst": "whitney_fine",
+      "alpha": 4.032301539988532,
+      "beta": 3.9682118629022796,
+      "tau": 1.1821129548071687,
+      "rail": true,
+      "chi2_chime": 1.085857549016285,
+      "chi2_dsa": 1.4152378012367963,
+      "l1": "PASS",
+      "l2": "PASS",
+      "l3": "PASS",
+      "tau_dnu": "N/A (no dnu_d)",
+      "final": "MARGINAL",
+      "reason": "alpha prior-railed (within 0.1 of bound) -> unconstrained",
+      "suffix": "_C2D2",
+      "rail_class": "railed-hi",
+      "rail_detail": {
+        "class": "railed-hi",
+        "detail": "railed-hi (exponential-consistent; alpha=4 as limit; ADR-0007 candidate)",
+        "three_sigma_lo": false,
+        "three_sigma_hi": false,
+        "edge_mass_lo": 0.0,
+        "edge_mass_hi": 0.8605031331680038
+      },
+      "beta_err": [
+        0.016606900670341318,
+        0.008936461404079221
+      ],
+      "log_evidence": 28299.308695170024,
+      "ncall": 1734489
+    },
+    {
+      "burst": "phineas",
+      "alpha": 5.257141807025097,
+      "beta": 3.2280705713741678,
+      "tau": 0.4693716400435134,
+      "rail": false,
+      "chi2_chime": 1.0635940358657583,
+      "chi2_dsa": 1.2434717996123592,
+      "l1": "PASS",
+      "l2": "PASS",
+      "l3": "MARGINAL",
+      "tau_dnu": "N/A (no dnu_d)",
+      "final": "MARGINAL",
+      "reason": "L3 alpha=5.26 off Kolmogorov",
+      "suffix": "_C3D3",
+      "rail_class": "interior",
+      "rail_detail": {
+        "class": "interior",
+        "detail": "interior",
+        "three_sigma_lo": false,
+        "three_sigma_hi": false,
+        "edge_mass_lo": 2.2674403608461084e-60,
+        "edge_mass_hi": 3.182272263145771e-112
+      },
+      "beta_err": [
+        0.01810635534125904,
+        0.02045649538605021
+      ],
+      "log_evidence": 22344.43205975903,
+      "ncall": 2801202
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "burst": "casey",
+  "beta": 3.990166991819069,
+  "alpha": 4.0,
+  "tau_1ghz": 0.018589939827674748,
+  "chi2_chime": 1.565316767928453,
+  "chi2_dsa": 1.0210045747190157,
+  "components_C": 1,
+  "components_D": 1,
+  "suffix": "_sharedzeta"
+}

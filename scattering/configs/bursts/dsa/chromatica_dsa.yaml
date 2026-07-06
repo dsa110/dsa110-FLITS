@@ -3,7 +3,7 @@
 # Run Configuration for 'chromatica'
 # ==========================================================
 path: "/arc/home/jfaber/baseband_morphologies/chime_dsa_codetections/data/DSA_bursts/chromatica_dsa_I_272_368_2500b_cntr_bpc.npy"
-dm_init: 0.0
+dm_init: 272.664
 telescope: "dsa"
 steps: 10000
 f_factor: 384

@@ -7,7 +7,7 @@ import argparse
 import fnmatch
 import socket
 import subprocess
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 
@@ -44,7 +44,6 @@ WATCHED_PATHS = (
     "docs-analysis/",
     "scripts/",
     "configs/",
-    "analyses/",
     "analysis/",
 )
 
@@ -104,7 +103,7 @@ def main() -> int:
     repo = Path(__file__).resolve().parents[1]
     ledger = repo / "docs" / "entire-tracing-checkpoints.md"
 
-    timestamp = datetime.now(timezone.utc).astimezone().isoformat(timespec="seconds")
+    timestamp = datetime.now(UTC).astimezone().isoformat(timespec="seconds")
     host = socket.gethostname().split(".")[0]
 
     branch = run(["git", "branch", "--show-current"], repo)

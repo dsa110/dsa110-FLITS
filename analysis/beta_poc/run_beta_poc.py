@@ -56,7 +56,7 @@ from scattering.scat_analysis.turbulence import (  # noqa: E402
     alpha_from_beta as alpha_from_beta_thin_screen,
 )
 
-# --- freya band geometry (scattering/configs/telescopes.yaml; run_freya_fitting.py) ---
+# --- freya band geometry (scattering/configs/telescopes.yaml) ---
 CHIME = dict(f_min=0.40019, f_max=0.80019, df_MHz=0.390625)
 DSA = dict(f_min=1.31125, f_max=1.49875, df_MHz=0.03051757812)
 

@@ -6,7 +6,7 @@
 # "Scintillometry of Fast Radio Bursts: Resolution effects in two-screen models"
 # by Pradeep et al. (2025).
 #
-# This script uses the `frb_scintillator` module to run simulations with
+# This script uses the `engine` module to run simulations with
 # parameters specified in the paper's appendices and generates plots
 # matching the publication.
 #
@@ -22,7 +22,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import astropy.units as u
 
-# Assumes the updated frb_scintillator.py (v2.3) is in the same directory or path
+# Assumes the updated engine.py (v2.3) is in the same directory or path
 from screen import ScreenCfg
 from engine import SimCfg, FRBScintillator
 

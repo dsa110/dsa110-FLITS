@@ -108,32 +108,26 @@ print('✓ Simulation engine with numba acceleration works')
 - **End-to-End**: Create synthetic FRB data, add noise, fit parameters, verify recovery.
 
 ### Module Status
-- ✅ **WORKING**: `flits/` (core models), `scattering/` (pipeline), `simulation/` (engine), `dispersion/`
-- ❌ **BROKEN**: `scintillation/` (import error), `crossmatching/` (missing dependencies), `animations/` (requires manim)
-- **Focus changes on working modules only.**
+- ✅ **WORKING**: `flits/` (shared package + batch), `scattering/` (pipeline), `scintillation/`, `simulation/` (engine), `dispersion/`, `crossmatching/`
 
 ## Project Structure
 
 ### Key Directories
 ```
 FLITS/
-├── flits/                    # Core FRB modeling package
-│   ├── models.py            # FRBModel class
-│   ├── params.py            # FRBParams dataclass  
-│   ├── sampler.py           # FRBFitter MCMC interface
-│   └── plotting.py          # Visualization utilities
-├── scattering/              # Advanced scattering analysis
-│   ├── run_scat_analysis.py # Main analysis script
-│   ├── scat_analysis/       # Analysis pipeline modules
-│   └── configs/             # YAML configuration files
+├── flits/                    # Shared package (batch runner, fitting diagnostics, plotting)
+├── scattering/              # Scattering analysis
+│   ├── run_scat_analysis.py # Main analysis script (flits-scat entry point)
+│   ├── scat_analysis/       # Analysis pipeline modules (burstfit.py = physics kernel)
+│   └── configs/             # YAML configuration files (bursts/, telescopes, sampler)
 ├── simulation/              # FRB simulation engine
 │   ├── engine.py            # Main simulation engine
 │   └── *.py                 # Supporting modules
 ├── tests/                   # Unit tests
 ├── dispersion/              # Dispersion measure analysis
-├── crossmatching/           # TOA crossmatching (broken)
-├── scintillation/           # Scintillation analysis (broken)
-└── animations/              # Visualization (requires manim)
+├── crossmatching/           # TOA crossmatching
+├── scintillation/           # Scintillation analysis
+└── galaxies/                # Host/foreground galaxy attribution
 ```
 
 ### Critical Files

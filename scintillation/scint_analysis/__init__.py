@@ -5,10 +5,24 @@
 # easily importable from the top level of the package.
 
 # Core data structures from core.py
-from .core import DynamicSpectrum, ACF
+# Interpretation functions based on Bhat et al. (2004) and Nimmo et al. (2025)
+from .analysis import (
+    estimate_emission_region_size,
+    interpret_modulation_index,
+    scattering_scintillation_consistency,
+    two_screen_coherence_constraint,
+)
 
 # Configuration loading from config.py
 from .config import load_config
+from .core import ACF, DynamicSpectrum
+
+# 2D fitting module
+from .fitting_2d import (
+    Scintillation2DModel,
+    Scintillation2DResult,
+    fit_2d_scintillation,
+)
 
 # Noise modeling and synthesis tools from noise_model.py
 from .noise import NoiseDescriptor, estimate_noise_descriptor
@@ -19,27 +33,11 @@ from .pipeline import ScintillationAnalysis
 
 # Key plotting functions from plotting.py
 from .plotting import (
-    plot_analysis_overview, 
-    plot_noise_distribution,
-    plot_2d_fit_overview,
-    plot_gamma_scaling,
     plot_2d_acf_grid,
-)
-
-# 2D fitting module
-from .fitting_2d import (
-    Scintillation2DModel,
-    Scintillation2DResult,
-    fit_2d_scintillation,
-    compare_1d_vs_2d,
-)
-
-# Interpretation functions based on Bhat et al. (2004) and Nimmo et al. (2025)
-from .analysis import (
-    interpret_modulation_index,
-    estimate_emission_region_size,
-    two_screen_coherence_constraint,
-    scattering_scintillation_consistency,
+    plot_2d_fit_overview,
+    plot_analysis_overview,
+    plot_gamma_scaling,
+    plot_noise_distribution,
 )
 
 # Interactive widgets for manual analysis (requires ipywidgets)

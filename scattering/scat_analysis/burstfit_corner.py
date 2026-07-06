@@ -14,7 +14,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-from chainconsumer import ChainConsumer
 
 def diagnose_sampler_convergence(sampler, param_names):
     """Diagnose MCMC convergence issues"""
@@ -345,40 +344,6 @@ def make_beautiful_corner_wide(samples, param_names, best_params=None, title="")
         print(f"{name}: {q50:.3f} [{q16:.3f}, {q84:.3f}]")
     
     return fig
-    
-def make_chainconsumer_plot(samples, param_names, best_params=None):
-    """Use ChainConsumer for publication-quality plots"""
-
-    c = ChainConsumer()
-
-    # Parameter labels
-    label_map = {
-        'c0': r'$c_0$',
-        't0': r'$t_0$ [ms]',
-        'gamma': r'$\gamma$',
-        'zeta': r'$\zeta$ [ms]',
-        'tau_1ghz': r'$\tau_{1\,\rm GHz}$ [ms]'
-    }
-
-    # Create parameter dictionary
-    param_dict = {label_map.get(name, name): samples[:, i] 
-                  for i, name in enumerate(param_names)}
-
-    c.add_chain(param_dict, name="MCMC")
-
-    if best_params is not None:
-        truth_dict = {label_map.get(name, name): getattr(best_params, name) 
-                     for name in param_names}
-        c.add_truth(truth_dict, color='red')
-
-    fig = c.plotter.plot(
-        figsize=(10, 10),
-        truth_alpha=0.8,
-        diagonal_tick_labels=False
-    )
-
-    return fig
-
     
 def quick_chain_check(sampler):
     """Quick check if chains are good enough for plotting"""

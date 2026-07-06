@@ -167,9 +167,12 @@ def test_force_multi_routes_n1_through_multi_loglike(monkeypatch):
     assert captured["loglike_cls"] is bj._JointLogLikelihoodGainMulti
     assert captured["ndim"] == len(bj.JOINT_PARAM_NAMES_GAIN_MULTI(1, 1))
 
-    # Contrast: without force_multi, N=1 does NOT take the multi path -- proving the
-    # gate flip is force_multi, not an unconditional N=1 reroute.
+    # Contrast: with neither force_multi nor gain_s2 (which, per upstream dsa110#43,
+    # now also routes N=1 through the proper kernel -- fixed s2 must never be
+    # silently ignored), N=1 does NOT take the multi path -- proving the gate flip
+    # is explicit, not an unconditional N=1 reroute.
     captured.clear()
+    legacy = {k: v for k, v in common.items() if k != "gain_s2"}
     with pytest.raises(_RoutedToSampler):
-        bj.fit_joint_scattering(force_multi=False, **common)
+        bj.fit_joint_scattering(force_multi=False, **legacy)
     assert captured["loglike_cls"] is not bj._JointLogLikelihoodGainMulti

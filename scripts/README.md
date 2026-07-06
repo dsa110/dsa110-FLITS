@@ -1,54 +1,31 @@
 # FLITS Scripts
 
-Utility scripts for development, demos, and testing.
+Utility scripts for demos, repo tooling, and data-migration audits.
 
 ## Structure
 
 ```
 scripts/
-├── demos/              # Demo scripts showing pipeline usage
-│   ├── demo_batch.py
-│   └── run_single_burst.py
-└── dev/                # Development utilities
-    └── create_dummy_db.py
+├── demos/
+│   └── run_single_burst.py   # single-burst analysis end-to-end
+├── hpcc/                     # cluster foreground-search launch scripts
+├── manuscript/               # manuscript figure regeneration
+├── migration/                # host-migration audit scripts (machine_inventory.yaml)
+├── entire_checkpoint.py      # post-commit Entire tracing checkpoint hook
+└── query_machine_inventory.py # query machine_inventory.yaml
 ```
 
 ## Demos
 
-### `demo_batch.py`
-
-Demonstrates batch processing of multiple bursts using the `flits-batch` CLI.
-
-**Usage:**
-
-```bash
-python scripts/demos/demo_batch.py
-```
-
 ### `run_single_burst.py`
 
-Example script for running a single burst analysis end-to-end.
-
-**Usage:**
+Run a single burst analysis end-to-end (any burst/telescope):
 
 ```bash
 python scripts/demos/run_single_burst.py --burst casey --telescope dsa
-```
-
-## Development Tools
-
-### `create_dummy_db.py`
-
-Creates a dummy `flits_results.db` for testing database interactions.
-
-**Usage:**
-
-```bash
-python scripts/dev/create_dummy_db.py
 ```
 
 ## See Also
 
 - Simulation scripts: `simulation/scripts/`
 - Main pipelines: `scattering/`, `scintillation/`
-- Analysis notebooks: `analyses/`

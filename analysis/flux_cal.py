@@ -145,16 +145,20 @@ def load_dsa_sefd_beam(nick):
 
 
 def _dsa_burst_config(nick):
-    """(npy_path, f_factor, t_factor) from configs/batch/dsa/<nick>_dsa.yaml (the fit's own binning)."""
+    """(npy_path, f_factor, t_factor) from scattering/configs/bursts/dsa/<nick>_dsa.yaml (the fit's own binning)."""
     from pathlib import Path
 
     import yaml
 
-    cfg = Path(__file__).resolve().parents[1] / "configs" / "batch" / "dsa" / f"{nick}_dsa.yaml"
+    root = Path(__file__).resolve().parents[1]
+    fname = "johndoeII" if nick == "johndoeii" else nick
+    cfg = root / "scattering" / "configs" / "bursts" / "dsa" / f"{fname}_dsa.yaml"
     if not cfg.exists():
-        raise FileNotFoundError(f"{cfg} missing -- no DSA batch config for {nick}")
+        raise FileNotFoundError(f"{cfg} missing -- no DSA burst config for {nick}")
     c = yaml.safe_load(cfg.read_text())
-    return (cfg.parent / c["path"]).resolve(), int(c.get("f_factor", 1)), int(c.get("t_factor", 1))
+    # config `path` values are host-specific; the npy is staged at data/dsa/ (external, iacobus:burst_npys)
+    npy = root / "data" / "dsa" / Path(c["path"]).name
+    return npy, int(c.get("f_factor", 1)), int(c.get("t_factor", 1))
 
 
 def dsa_band_fluence_jy_ms_hz(nick):
@@ -189,16 +193,15 @@ def _band_burst_config(nick, band):
     import yaml
 
     tel = {"C": "chime", "D": "dsa"}[band]
-    cfg = Path(__file__).resolve().parents[1] / "configs" / "batch" / tel / f"{nick}_{tel}.yaml"
+    root = Path(__file__).resolve().parents[1]
+    fname = "johndoeII" if nick == "johndoeii" else nick
+    cfg = root / "scattering" / "configs" / "bursts" / tel / f"{fname}_{tel}.yaml"
     if not cfg.exists():
-        raise FileNotFoundError(f"{cfg} missing -- no {tel} batch config for {nick}")
+        raise FileNotFoundError(f"{cfg} missing -- no {tel} burst config for {nick}")
     c = yaml.safe_load(cfg.read_text())
-    return (
-        (cfg.parent / c["path"]).resolve(),
-        int(c.get("f_factor", 1)),
-        int(c.get("t_factor", 1)),
-        tel,
-    )
+    # config `path` values are host-specific; npys are staged at data/<tel>/ (external)
+    npy = root / "data" / tel / Path(c["path"]).name
+    return npy, int(c.get("f_factor", 1)), int(c.get("t_factor", 1)), tel
 
 
 def joint_c0_gamma(nick, band):

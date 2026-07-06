@@ -47,7 +47,7 @@ production estimator and adds the orthogonal DM/position/timing checks that tigh
 - Inputs: `crossmatching/notebook_reproduction_fixture.json` (per burst: `name`, `chime_id`, `dm`,
   `source_coord`, `dm_uncertainty`; `chime.toa_unix_400`; `dsa.dsa_mjd`).
 - Tests: `tests/test_crossmatching_notebook_reproduction.py` (golden reproduction, must keep passing).
-- Validated prototype to promote: `.experiments/chance-coincidence/{inputs,estimator_analytic}.py`.
+- Validated prototype to promote: `analysis/chance-coincidence/{inputs,estimator_analytic}.py`.
 
 **Current Behavior:** the fixture → `reproduce_notebook_result` → `toa_crossmatch_results.json`
 (residual + geometric delay + DM-uncertainty error). No chance probability, no independent DM test, no
@@ -477,7 +477,7 @@ open question)*
 **Experiment:** [experiment-chance-coincidence-falsealarm.md](experiment-chance-coincidence-falsealarm.md)
 **Files analyzed:** `crossmatching/toa_crossmatch.py:99,128,151,91-93`, `crossmatching/plotting.py:84,90,150`,
 `crossmatching/notebook_reproduction_fixture.json`, `tests/test_crossmatching_notebook_reproduction.py`,
-`.experiments/chance-coincidence/{inputs,estimator_analytic,estimator_mc,run}.py`.
+`analysis/chance-coincidence/{inputs,estimator_analytic,estimator_mc,run}.py`.
 **External:** CHIME/FRB Catalogue 1 — Amiri et al. 2021, ApJS 257, 59; Foster et al. 2018 (arXiv:1808.07809);
 Law et al. 2017 (arXiv:1705.07553).
 

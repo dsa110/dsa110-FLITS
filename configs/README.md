@@ -9,12 +9,10 @@ configs/
 ├── README.md           # This file
 ├── bursts.yaml         # Burst metadata (DM, positions, dates)
 ├── telescopes.yaml     # Telescope parameters (symlink → scattering/configs/)
-├── sampler.yaml        # MCMC sampler settings (symlink → scattering/configs/)
-└── batch/              # Batch processing configs
-    ├── manifest.yaml
-    ├── chime/          # CHIME-specific batch configs (12 bursts)
-    └── dsa/            # DSA-110-specific batch configs (12 bursts)
+└── sampler.yaml        # MCMC sampler settings (symlink → scattering/configs/)
 ```
+
+Per-burst run configs live in `scattering/configs/bursts/{chime,dsa}/` (12 bursts each).
 
 ## Configuration Files
 
@@ -70,26 +68,6 @@ casey_dm = bursts['bursts']['casey']['dm']  # 491.207
 - Production steps
 - Convergence criteria
 
-### `batch/`
-
-**Purpose:** Batch processing configurations for running multiple bursts
-
-**Structure:**
-
-- `manifest.yaml` - Batch job definitions
-- `chime/*.yaml` - Per-burst configs for CHIME data (12 files)
-- `dsa/*.yaml` - Per-burst configs for DSA-110 data (12 files)
-
-**Usage:**
-
-```bash
-# Run batch analysis for all CHIME bursts
-flits-batch --config configs/batch/manifest.yaml --telescope chime
-
-# Run single burst from batch config
-flits-scat configs/batch/dsa/casey_dsa.yaml
-```
-
 ## Pipeline-Specific Configs
 
 Some configs remain in pipeline directories for modularity:
@@ -104,14 +82,13 @@ These contain **run parameters** (input paths, processing options), not scientif
 **Previously:**
 
 - `bursts.yaml` was in repository root
-- `batch_configs/` was in repository root
+- `batch_configs/` (later `configs/batch/`, retired) was in repository root
 - Telescope/sampler configs only in `scattering/configs/`
 
 **Now:**
 
-- All configs centralized in `configs/`
-- Symlinks provide backward compatibility
-- Clear separation: metadata (`bursts.yaml`) vs. run params (pipeline configs)
+- Scientific metadata centralized here (`bursts.yaml`); symlinks provide backward compatibility
+- Run parameters live with their pipeline: `scattering/configs/bursts/{chime,dsa}/`
 
 ## See Also
 

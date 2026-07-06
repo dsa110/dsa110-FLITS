@@ -1,6 +1,15 @@
 # Extended-medium PBF family for shallow-alpha sightlines
 
-**Status:** proposed (2026-07-05) — science acceptance is the owner's call
+**Status:** deferred (2026-07-06) — owner decision: sequenced behind the
+β-coherent thin-screen campaign
+([plan](../rse/specs/plan-beta-coherent-thin-screen-campaign.md)). The
+thin-screen family (power-law-tail members for `beta < 4`, exponential limit at
+`beta = 4`) has not yet been run successfully on the full sample; that pass
+comes first, assuming thin-screen throughout. This ADR re-opens **per burst, on
+evidence**: a β posterior railing at the `beta = 4` boundary (ADR-0004
+rail-MARGINAL) and/or structured rise-time residuals in the campaign fits is
+the trigger for testing the extended-medium kernel on that sightline. The
+proposal below is unchanged; only its sequencing is decided.
 
 **Depends on:** [ADR-0003](0003-single-exponential-pbf.md),
 [ADR-0004](0004-l1-sub-kolmogorov-alpha-floor.md),

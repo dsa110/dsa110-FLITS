@@ -60,12 +60,14 @@ def discover_scint_configs(base_dir, telescopes) -> dict[str, dict[str, Path]]:
 
     Scint configs are hand-tuned (RFI / manual burst windows can't be derived
     without inspecting the data), so they are resolved from
-    <base_dir>/<telescope>/<burst>_<telescope>.yaml rather than generated.
+    <base_dir>/<burst>_<telescope>.yaml (the flat scintillation/configs/bursts
+    layout) rather than generated. Variant configs (e.g. *_hi, *_temp) don't
+    match the glob and are ignored.
     """
     base = Path(base_dir)
     found: dict[str, dict[str, Path]] = {}
     for telescope in telescopes:
-        for cfg in sorted((base / telescope).glob(f"*_{telescope}.yaml")):
+        for cfg in sorted(base.glob(f"*_{telescope}.yaml")):
             burst = cfg.stem[: -len(f"_{telescope}")]
             found.setdefault(burst, {})[telescope] = cfg
     return found
@@ -245,7 +247,7 @@ class BatchRunner:
 
     def _discover_scint_configs(self) -> dict[str, dict[str, Path]]:
         base = self.config.scint_config_dir or (
-            Path(__file__).resolve().parents[2] / "configs" / "batch"
+            Path(__file__).resolve().parents[2] / "scintillation" / "configs" / "bursts"
         )
         return discover_scint_configs(base, self.config.telescopes)
 

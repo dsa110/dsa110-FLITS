@@ -67,8 +67,8 @@ def loglog_slope(freq_hz, y):
 def main() -> None:
     fits = joint_dsa_params()
     nicks = []
-    for cfg in sorted((REPO / "configs" / "batch" / "dsa").glob("*_dsa.yaml")):
-        nick = cfg.name[: -len("_dsa.yaml")]
+    for cfg in sorted((REPO / "scattering" / "configs" / "bursts" / "dsa").glob("*_dsa.yaml")):
+        nick = cfg.name[: -len("_dsa.yaml")].lower()
         npy, _, _ = _dsa_burst_config(nick)
         if nick in fits and npy.exists():
             nicks.append(nick)

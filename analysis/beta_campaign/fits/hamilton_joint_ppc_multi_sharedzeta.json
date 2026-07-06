@@ -1,0 +1,11 @@
+{
+  "burst": "hamilton",
+  "beta": 3.9780111726602723,
+  "alpha": 4.022233269097418,
+  "tau_1ghz": 0.024470729413943397,
+  "chi2_chime": 3.955615522833022,
+  "chi2_dsa": 0.997605531337867,
+  "components_C": 1,
+  "components_D": 1,
+  "suffix": "_sharedzeta"
+}

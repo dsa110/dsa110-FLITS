@@ -108,6 +108,9 @@ def main() -> int:
             missing.append(burst)
             continue
         fit = json.loads(fp.read_text())
+        if "beta" not in fit:  # legacy alpha-era file sharing the campaign name
+            missing.append(burst)
+            continue
         ppc_fp = jdir / f"{burst}_joint_ppc_multi{suffix}.json"
         ppc = json.loads(ppc_fp.read_text()) if ppc_fp.exists() else None
         verdict = _gate.gate_one(burst, fit, ppc)

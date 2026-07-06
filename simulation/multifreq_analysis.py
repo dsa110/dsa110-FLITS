@@ -9,7 +9,7 @@
 # resolved two-screen system.
 #
 # Key Features:
-# - Uses the `frb_scintillator` module for the core simulation.
+# - Uses the `engine` module for the core simulation.
 # - Implements Monte Carlo averaging by running multiple trials per frequency
 #   to obtain statistically robust measurements and error bars.
 # - Correctly scales screen sizes with frequency based on the nu^-2 law.
@@ -23,7 +23,7 @@ import astropy.units as u
 from scipy.optimize import curve_fit
 from tqdm import trange
 
-# Assumes the updated frb_scintillator.py is in the same directory or path
+# Assumes the updated engine.py is in the same directory or path
 from screen import ScreenCfg
 from engine import SimCfg, FRBScintillator
 

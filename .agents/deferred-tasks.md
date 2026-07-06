@@ -60,10 +60,15 @@ docs close-out, so none are `@agent`.
   environmental); CLI smoke vs live VizieR GLADE2 correct; adversarial port review
   0 critical / 0 major / 3 minor, all three fixed (keyword-only markers, --solver case,
   exists=True parity); verify-gate records test/reproduce/adversarial-review pass.
-- [ ] Push `feat/ffh-integration` + open PR; on approval merge (one-way door). @human
-  **Pushed + PR #123 open 2026-07-05** (user-approved batch: push+PR only; archives held
-  until merge). Remaining: merge on approval.
-- [ ] Archive `frb-foreground-halos` AND `subhalos` per the los_halos recipe (plan
+- [x] Push `feat/ffh-integration` + open PR; on approval merge (one-way door). @human
+  **DONE 2026-07-05**: pushed, PR #123 opened, user-approved merge → `cb6bb1a7`;
+  feature branch deleted local+remote.
+- [x] Archive `frb-foreground-halos` AND `subhalos` per the los_halos recipe (plan
   Phase 10: subhalos consolidation proof first; commit ffh's untracked review
   artifacts + AGENTS.md into the archive commit; batch pushes/archives into one
   approval ask). @human
+  **DONE 2026-07-05** post-#123-merge per the approved sequencing: subhalos proof
+  (clean @ d830c0d0, no open PRs, no FLITS code refs) → archived; ffh archive-prep
+  commit `0c47c46` (archive-notice README + AGENTS.md + docs/reviews/; gurobi.log
+  and machine-local results symlink left untracked) pushed → archived. Both
+  isArchived: true. DATA_LOCATIONS.md dates updated.

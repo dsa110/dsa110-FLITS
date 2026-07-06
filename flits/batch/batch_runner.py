@@ -39,7 +39,7 @@ class BatchConfig:
     diagnostics: bool = False  # Disable for speed in batch mode
     plot: bool = True
     save_samplers: bool = True
-    scint_config_dir: Path | None = None  # default: <repo>/configs/batch
+    scint_config_dir: Path | None = None  # default: <repo>/scintillation/configs/bursts
 
 
 @dataclass

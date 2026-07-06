@@ -103,7 +103,7 @@ Surfaced while building the manifest. CHIME configs are clean; DSA needs care:
   necessarily placeholder); (b) some `t0` are wild (mahi `t0_D`=183 ms); (c) DSA
   onpulse crops sometimes collapse to <1.5 ms. Candidate causes to check before
   any conclusion: the joint fits were produced with different `BurstDataset`
-  framing (`f_factor`/`t_factor`/`outer_trim`/crop) than `configs/batch/*`; arc
+  framing (`f_factor`/`t_factor`/`outer_trim`/crop) than the retired `configs/batch/*` tree; arc
   files were re-generated/re-centered vs the joint-fit inputs; or a DSA-loader/
   crop bug. Until reconciled, treat stored Δν/τ as not-yet-regenerable from the
   arc data. (NOTE: an earlier version of this bullet claimed a clean "DSA

@@ -23,34 +23,36 @@ conda activate flits
 # Navigate to FLITS root
 cd /path/to/FLITS
 
-# Run the pipeline
-python3 -m scattering.scat_analysis.pipeline \
-    data/chime/freya_chime_I_912_4067_32000b_cntr_bpc.npy \
-    --outpath ./scattering/scat_process/ \
-    --telescope chime \
-    --t_factor 4 \
-    --f_factor 32 \
-    --likelihood studentt \
-    --alpha-fixed 4.0 \
-    --fitting-method nested \
-    --no-plot
+# Run the pipeline from a per-burst YAML config (the flits-scat console script)
+flits-scat scattering/configs/bursts/chime/freya_chime.yaml
+
+# Equivalent without the console script:
+python3 scattering/run_scat_analysis.py scattering/configs/bursts/chime/freya_chime.yaml
 ```
+
+The former `python3 -m scattering.scat_analysis.pipeline <npy> ...` raw-file
+runner was removed in the 2026-07 cleanup; `flits-scat` + a YAML config is the
+supported CLI. For fully programmatic raw-`.npy` runs, use the Python API
+below — `BurstPipeline` accepts a `.npy` path directly.
 
 ---
 
-## Command Arguments Explained
+## Run Options Explained
 
-| Argument           | Description                            | Recommended Value                  |
+These live in the per-burst YAML config (see `scattering/configs/bursts/`);
+`flits-scat` flags override a subset per run (`flits-scat --help`).
+
+| Option             | Description                            | Recommended Value                  |
 | ------------------ | -------------------------------------- | ---------------------------------- |
-| `data_path`        | Path to the `.npy` data file           | Required                           |
-| `--outpath`        | Output directory for results           | `./scattering/scat_process/`       |
-| `--telescope`      | Telescope name (must match YAML entry) | `chime`, `dsa`                     |
-| `--t_factor`       | Time downsampling factor               | 4 (adjust for data size)           |
-| `--f_factor`       | Frequency downsampling factor          | 32 (adjust for data size)          |
-| `--likelihood`     | Likelihood function                    | `studentt` (robust to RFI)         |
-| `--alpha-fixed`    | Fix scattering index                   | `4.0` (thin screen) or omit to fit |
-| `--fitting-method` | Sampler choice                         | `nested` (recommended)             |
-| `--no-plot`        | Skip plotting (faster)                 | Use for initial runs               |
+| `path`             | Path to the `.npy` data file           | Required                           |
+| `telescope`        | Telescope name (must match YAML entry) | `chime`, `dsa`                     |
+| `t_factor`         | Time downsampling factor               | 4 (adjust for data size)           |
+| `f_factor`         | Frequency downsampling factor          | 32 (adjust for data size)          |
+| `dm_init`          | Reference DM for smearing model        | from `configs/bursts.yaml`         |
+| `steps`            | MCMC steps                             | 10000                              |
+| `nproc`            | Worker processes                       | 4–16                               |
+| `model_scan`       | BIC/evidence model comparison          | `true`                             |
+| `plot`             | Diagnostic plots                       | `true` (disable for initial runs)  |
 
 ---
 

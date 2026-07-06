@@ -148,7 +148,7 @@ def main() -> int:
     results = check_tau_deltanu_consistency(pd.DataFrame(rows))
 
     out_rows = []
-    for row, res in zip(rows, results):
+    for row, res in zip(rows, results, strict=True):
         out_rows.append(
             {
                 **row,

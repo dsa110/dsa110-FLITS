@@ -161,7 +161,8 @@ def _gain_marginal_multi_band(
     by 1-D ML on a SHARED-per-band value (state in the design notes); pass a float
     to fix it. Returns ``(lnZ, diag)`` with diagnostics:
     ``frac_culled`` (channels dropped by the eigenvalue guard), ``max_abs_g``
-    (per component), ``s2``, ``n_supported``.
+    (per component), ``s2``, ``n_supported`` (valid channels that kept the full
+    N-component solve; ``frac_culled`` is normalized by all valid channels).
 
     Eigenvalue conditioning guard: a channel is culled when
     min eig(M_f) / max eig(M_f) < ``eig_rel_floor`` (near-degenerate kernels in
@@ -642,6 +643,7 @@ def fit_joint_scattering(
     components_C: int = 1,
     components_D: int = 1,
     gain_s2: float | None = None,
+    proper_gain_prior: bool = False,
     dt_min: float | None = None,
     **dynesty_kwargs,
 ) -> Dict[str, Any]:
@@ -659,6 +661,11 @@ def fit_joint_scattering(
         enough to detect shallow (sub-Kolmogorov) slopes.
     nlive, dlogz, nproc, sample
         dynesty knobs (12-dim -> nlive ~600+ recommended).
+    proper_gain_prior
+        Route even a 1-component gain-marginal fit through the finite-variance
+        Gaussian gain prior used by the multi-component evidence kernel. Passing
+        ``gain_s2`` also enables this path; keep ``gain_s2`` fixed when comparing
+        evidence across component counts.
 
     Returns
     -------
@@ -670,7 +677,17 @@ def fit_joint_scattering(
     if model_C.data is None or model_D.data is None:
         raise ValueError("both FRBModels must have data loaded")
 
-    multi = (int(components_C) > 1 or int(components_D) > 1)
+    components_C = int(components_C)
+    components_D = int(components_D)
+    if components_C < 1 or components_D < 1:
+        raise ValueError("components_C and components_D must be >= 1")
+
+    multi = (
+        components_C > 1
+        or components_D > 1
+        or bool(proper_gain_prior)
+        or gain_s2 is not None
+    )
     ptform = None
     if multi:
         names = JOINT_PARAM_NAMES_GAIN_MULTI(components_C, components_D)
@@ -678,8 +695,8 @@ def fit_joint_scattering(
             init_C, init_D, alpha_bounds, components_C, components_D)
         loglike = _JointLogLikelihoodGainMulti(
             model_C, model_D, n_C=components_C, n_D=components_D, s2=gain_s2)
-        # dt_min: a few channel time-samples of each band (data-derived). The
-        # binding constraint is the tighter (smaller-dt) band's resolution.
+        # dt_min: a few channel time-samples of each band (data-derived). Use the
+        # coarser band's resolution so separated components are resolvable in both.
         if dt_min is None:
             dts = []
             for m in (model_C, model_D):
@@ -793,7 +810,8 @@ def demo() -> None:
     ll_wrong = ll(vec(alpha_true + 1.5))
     assert ll_true > ll_wrong, f"true alpha not preferred: {ll_true} <= {ll_wrong}"
     # and the shared-tau model with a wrong tau is worse too
-    bad = vec(alpha_true); bad[0] = tau_true * 5
+    bad = vec(alpha_true)
+    bad[0] = tau_true * 5
     assert ll_true > ll(bad), "true tau not preferred"
     print(f"demo OK: ll(alpha={alpha_true})={ll_true:.0f} > "
           f"ll(alpha={alpha_true+1.5})={ll_wrong:.0f}")

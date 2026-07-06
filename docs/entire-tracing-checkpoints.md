@@ -4773,3 +4773,17 @@ preserving for future agents.
 - `origin` `entire/*` refs:
   - entire/checkpoints/v1 -> f36a8fd
 - note: `.entire/` remains host-local runtime state; only this ledger is tracked.
+
+## 2026-07-05T20:30:45-07:00 — jakob
+- repo: `/Users/jakobfaber/Developer/scratch/worktrees/flits-cleanup`
+- branch: `chore/repo-cleanup-2026-07`
+- head: `8210f5f0`
+- origin/main: `e3589b7c`
+- worktree: clean
+- note: watched path changed: DATA_SOURCES.md
+- tracked status: clean
+- local `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd4
+- `origin` `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd
+- note: `.entire/` remains host-local runtime state; only this ledger is tracked.

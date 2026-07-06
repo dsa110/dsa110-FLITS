@@ -48,3 +48,22 @@ docs close-out, so none are `@agent`.
 - [x] **Citable-α roster locked (#4, 2026-06-26):** [ADR-0005](../docs/adr/0005-citable-alpha-roster.md) — Tier A **5** fully adjudicated + Tier B **3** provisional (all-exp s² pending) + whitney exemplar; graded from `_a1_fits/` via `grade_allexp.py`.
 - [x] **Faber2026 Fork-B consistency pass** (2026-06-25): hybrid authority model in `CONTEXT.md`; abstract/conclusions N=6 energies + qualitative α + explicit pending; unified `tab:alpha` (9 rows incl. whitney); energies trust boundary (6 rows, exclusion caption); freya α=4.356 in `budget.tex`; population stats hedged in `results.tex`.
 - [x] Regenerate `analysis/burst_energies/burst_energies.{json,tex}` with the energy trust boundary (#39). **Done 2026-06-24** on jakob-mbp using the local arc replica `~/Developer/dsa110-local-data/DSA_bursts/` (24 cubes; the "arc mount" reachable from here — `DATA_SOURCES.md` local replica), staged under `data/{dsa,chime}/`. Ran `python analysis/calculate_burst_energies.py` in the `flits` env. `--check` PASS; the quality gate refused the 3 FAIL joint fits (johndoeii, oran, whitney). Result: 6-burst energy table = {chromatica, hamilton, isha, phineas, wilhelm, zach} (verified against `burst_energies.json`); the gate excluded the 3 α<1.5 FAIL joint fits (johndoeii, oran, whitney per `joint_gate_verdicts.md`), and casey/mahi are absent (no qualifying spec-z / DSA fluence input). `quality_flag` stamped on every row (all MARGINAL), all calibrated, E_iso 4.6e38–1.1e41 erg. Artifacts now show as `M` in the working tree (tracked); commit/push left to the user per the push gate.
+
+- [x] **Integrate frb-foreground-halos into `galaxies/foreground/vo/`** per
+  [`docs/rse/specs/plan-ffh-integration.md`](../docs/rse/specs/plan-ffh-integration.md)
+  Phases 1–8 (union-merge: ffh core for the shared lineage, keep vo-unique
+  RegTAP/caching/xmatch, port ffh's 7 net-new modules + 55 tests, argparse CLI).
+  Branch `feat/ffh-integration` (plan committed `46cd2a9`). Stale vo/ drift stashed
+  ("stale vo/ drift (pre-ffh-integration…)"), baseline 44 offline green re-verified. @agent
+  **DONE 2026-07-05** through `92eee7b`: offline 102 / regression 151 / default suite 541
+  all green; live smokes match main baseline (zach recovery fails identically on main —
+  environmental); CLI smoke vs live VizieR GLADE2 correct; adversarial port review
+  0 critical / 0 major / 3 minor, all three fixed (keyword-only markers, --solver case,
+  exists=True parity); verify-gate records test/reproduce/adversarial-review pass.
+- [ ] Push `feat/ffh-integration` + open PR; on approval merge (one-way door). @human
+  **Pushed + PR #123 open 2026-07-05** (user-approved batch: push+PR only; archives held
+  until merge). Remaining: merge on approval.
+- [ ] Archive `frb-foreground-halos` AND `subhalos` per the los_halos recipe (plan
+  Phase 10: subhalos consolidation proof first; commit ffh's untracked review
+  artifacts + AGENTS.md into the archive commit; batch pushes/archives into one
+  approval ask). @human

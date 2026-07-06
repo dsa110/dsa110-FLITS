@@ -1,0 +1,79 @@
+# Canonical CHIME/DSA target list, transcribed from
+# /Users/jakobfaber/Documents/research/caltech/ovro/dsa110/chime_dsa_codetections/halos/los_halos/run_foreground_for_list.py
+# (DEFAULT_FRBS, lines 57-70).
+#
+# Names are normalized to the no-space TNS form (the canonical source contains
+# "FRB 20220207 C"; here it is "FRB 20220207C" to match the existing
+# results/chime_dsa_glade2_candidates_ranked.csv).
+#
+# RA/Dec are in degrees (J2000 / ICRS); redshift is spectroscopic where known.
+# Hosts without spectroscopic z use `redshift: null` (not z=1 placeholders).
+# Those sightlines are included in the denominator but marked status=z_frb_unknown
+# and excluded from foreground intersection headline counts.
+
+targets:
+  - name: FRB 20220207C
+    ra: 310.1995250000
+    dec: 72.8823272222
+    redshift: 0.0430
+
+  - name: FRB 20220310F
+    ra: 134.7205000000
+    dec: 73.4908333333
+    redshift: 0.4790
+
+  - name: FRB 20220506D
+    ra: 318.0448333333
+    dec: 72.8272777778
+    redshift: 0.3005
+
+  - name: FRB 20221113A
+    ra: 71.4110000000
+    dec: 70.3073888889
+    redshift: 0.2505
+
+  - name: FRB 20221203A
+    ra: 315.1295416667
+    dec: 72.0375611111
+    redshift: 0.5100
+
+  - name: FRB 20230307A
+    ra: 177.7813333333
+    dec: 71.6956388889
+    redshift: 0.2710
+
+  - name: FRB 20230325A
+    ra: 88.1880000000
+    dec: 74.2004722222
+    redshift: null
+
+  - name: FRB 20230814B
+    ra: 335.9747500000
+    dec: 73.0259055600
+    redshift: null
+
+  - name: FRB 20230913A
+    ra: 305.0371666667
+    dec: 70.7927666667
+    redshift: 0.3024
+
+  # 20240119A returns 0 GLADE+ rows at the default 10 arcmin cone radius,
+  # 17 rows at 30 arcmin, and 20 rows at 60 arcmin (manually verified via TAP
+  # on 2026-04-27). The 10 arcmin null result is a real catalog-density edge
+  # case in this RA/Dec region, not a pipeline bug — the run-catalog summary
+  # records the sightline with status="no_candidates_in_cone" so the 12-FRB
+  # denominator stays internally consistent.
+  - name: FRB 20240119A
+    ra: 39.7665000000
+    dec: 71.0178611111
+    redshift: null
+
+  - name: FRB 20240203A
+    ra: 312.6191250000
+    dec: 73.9000000000
+    redshift: 0.0740
+
+  - name: FRB 20240229A
+    ra: 169.9835416700
+    dec: 70.6762222200
+    redshift: 0.2870

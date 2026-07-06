@@ -4567,3 +4567,47 @@ preserving for future agents.
 - `origin` `entire/*` refs:
   - entire/checkpoints/v1 -> 7c16cb0
 - note: `.entire/` remains host-local runtime state; only this ledger is tracked.
+
+## 2026-07-05T14:29:27-07:00 — jakob
+- repo: `/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS`
+- branch: `main`
+- head: `030c159c`
+- origin/main: `030c159c`
+- worktree: clean
+- note: watched path changed: DATA_LOCATIONS.md
+- tracked status: clean
+- local `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd4
+- `origin` `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd
+- note: `.entire/` remains host-local runtime state; only this ledger is tracked.
+
+## 2026-07-05T15:26:05-07:00 — jakob
+- repo: `/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS`
+- branch: `feat/ffh-integration`
+- head: `46cd2a9b`
+- origin/main: `030c159c`
+- worktree: dirty
+- note: watched path changed: docs/rse/specs/handoff-2026-07-05-14-38-frb-foreground-halos-migration.md
+- tracked status:
+  - M docs/entire-tracing-checkpoints.md
+- local `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd4
+- `origin` `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd
+- note: `.entire/` remains host-local runtime state; only this ledger is tracked.
+
+## 2026-07-05T15:45:43-07:00 — jakob
+- repo: `/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS`
+- branch: `feat/ffh-integration`
+- head: `c094e092`
+- origin/main: `030c159c`
+- worktree: dirty
+- note: watched path changed: DATA_LOCATIONS.md
+- tracked status:
+  - M docs/entire-tracing-checkpoints.md
+- local `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd4
+- `origin` `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd
+- note: `.entire/` remains host-local runtime state; only this ledger is tracked.

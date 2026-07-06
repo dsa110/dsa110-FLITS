@@ -1,0 +1,11 @@
+targets:
+  - name: TEST_COSMOS
+    ra: 150.1167
+    dec: 2.2058
+  - name: TEST_STRIPE82
+    ra: 0.0
+    dec: -0.3
+  - name: TEST_GAMA_G12
+    ra: 180.0
+    dec: 0.0
+

@@ -56,10 +56,10 @@ noise; cannot probe P far below `1/realisations` (the baseline μ~10⁻⁹ is in
 ## Experiment Setup
 
 **Environment:** host `casa6` conda env (Python 3, numpy); no baseband_analysis needed. Code in
-`.experiments/chance-coincidence/`. MC seeded (`seed=1..5`) for reproducibility.
+`analysis/chance-coincidence/`. MC seeded (`seed=1..5`) for reproducibility.
 
 **Test data:** the real 12 bursts (name, DM, coord, 400 MHz TOA) from
-`crossmatching/notebook_reproduction_fixture.json` → `.experiments/chance-coincidence/bursts.json`.
+`crossmatching/notebook_reproduction_fixture.json` → `analysis/chance-coincidence/bursts.json`.
 
 **Sourced inputs** (`inputs.py`; conservative = chance-maximising):
 - CHIME rate: 525 /sky/day central (CHIME/FRB Catalogue 1, Amiri et al. 2021, ApJS 257, 59);
@@ -71,14 +71,14 @@ noise; cannot probe P far below `1/realisations` (the baseline μ~10⁻⁹ is in
 ## Experiments Run
 
 ### Experiment 1: Approach A (analytic)
-**Code:** `.experiments/chance-coincidence/estimator_analytic.py` (`mu_analytic`, `run`).
+**Code:** `analysis/chance-coincidence/estimator_analytic.py` (`mu_analytic`, `run`).
 **Execution:** `python3 run.py`
 **Results:** ✅ per-burst P at conservative baseline ranges **1.7×10⁻⁹ (mahi) – 6.3×10⁻⁹ (chromatica)**;
 `Σμ = 5.46×10⁻⁸`; `P(≥1 chance assoc in 12) = 5.46×10⁻⁸`. Anti-correlates with DM (higher DM → lower
 CHIME DM-density → smaller f_DM), as expected.
 
 ### Experiment 2: Approach B (Monte-Carlo) and A↔B cross-validation
-**Code:** `.experiments/chance-coincidence/estimator_mc.py` (`run`).
+**Code:** `analysis/chance-coincidence/estimator_mc.py` (`run`).
 **Execution:** `python3 run.py` (5 seeds × 2×10⁶ realisations).
 **Observations:** at the baseline μ~10⁻⁹ the MC sees **zero** hits in 2×10⁶ draws → only an upper
 limit, as expected; the MC cannot probe that regime. So agreement was tested at an **inflated, still-
@@ -166,7 +166,7 @@ statistic), extend Approach B with the CHIME/FRB catalogue. Until then, A is suf
 ## References
 
 **Research:** [Research: co-detection validation rigor](research-codetection-validation-rigor.md)
-**Code (this experiment):** `.experiments/chance-coincidence/inputs.py`,
+**Code (this experiment):** `analysis/chance-coincidence/inputs.py`,
 `estimator_analytic.py`, `estimator_mc.py`, `run.py`, `bursts.json`.
 **Code (integration target):** `crossmatching/toa_crossmatch.py:99,128`, `crossmatching/plotting.py:84`.
 **External:** CHIME/FRB Catalogue 1 — Amiri et al. 2021, ApJS 257, 59 (all-sky rate, DM distribution).

@@ -94,8 +94,6 @@ extend-exclude = [
   ".git",
   ".pytest_cache",
   ".ruff_cache",
-  "analysis_results",
-  "out_dir",
 ]
 
 [tool.ruff.lint]

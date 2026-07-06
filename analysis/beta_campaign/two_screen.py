@@ -4,7 +4,7 @@
 For each fleet output {burst}_joint_fit{suffix}.json, join the campaign
 tau_1ghz / beta-derived alpha with the DSA decorrelation bandwidth recorded in
 scintillation/configs/bursts/{burst}_dsa.yaml stored_fits, and evaluate the
-single-screen statistic 2*pi*tau*delta_nu = C1 via the batch pipeline's
+single-screen statistic tau x delta_nu = C1/(2*pi) via the batch pipeline's
 check_tau_deltanu_consistency (flits/batch/analysis_logic.py -- the one source
 of truth for C_THIN_SCREEN/C_EXTENDED/C_RANGE and the screen verdicts).
 
@@ -190,11 +190,12 @@ def main() -> int:
     md = [
         "# Two-screen consistency (beta campaign, DSA band)",
         "",
-        "2*pi*tau*delta_nu = C1: product in [0.1, 2] => one screen "
-        "(0.159 thin ... 1.0 extended); product >> 2 => the resolved delta_nu_d "
-        "samples a NEARER screen than the scattering one (wilhelm pattern).",
+        "product = tau(1.4 GHz)[s] x dnu_d(1.4 GHz)[Hz] = C1/(2*pi): one screen "
+        "gives 0.159 (thin) ... 1.0 (extended); accepted range [0.1, 2]; "
+        "product >> 2 => the resolved delta_nu_d samples a NEARER screen than "
+        "the scattering one (wilhelm pattern).",
         "",
-        "| burst | beta | tau_1GHz [ms] | tau_1.4GHz [ms] | dnu_d(1.4 GHz) [MHz] | 2pi.tau.dnu | verdict |",
+        "| burst | beta | tau_1GHz [ms] | tau_1.4GHz [ms] | dnu_d(1.4 GHz) [MHz] | tau.dnu | verdict |",
         "|---|---|---|---|---|---|---|",
     ]
     for r in out_rows:

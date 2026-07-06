@@ -4640,3 +4640,136 @@ preserving for future agents.
 - `origin` `entire/*` refs:
   - entire/checkpoints/v1 -> f36a8fd
 - note: `.entire/` remains host-local runtime state; only this ledger is tracked.
+
+## 2026-07-05T19:42:51-07:00 — jakob
+- repo: `/Users/jakobfaber/Developer/scratch/worktrees/flits-cleanup`
+- branch: `chore/repo-cleanup-2026-07`
+- head: `4957cccf`
+- origin/main: `e3589b7c`
+- worktree: clean
+- note: watched path changed: configs/batch/chime/casey_chime.yaml
+- tracked status: clean
+- local `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd4
+- `origin` `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd
+- note: `.entire/` remains host-local runtime state; only this ledger is tracked.
+
+## 2026-07-05T19:43:37-07:00 — jakob
+- repo: `/Users/jakobfaber/Developer/scratch/worktrees/flits-cleanup`
+- branch: `chore/repo-cleanup-2026-07`
+- head: `40fbacc4`
+- origin/main: `e3589b7c`
+- worktree: dirty
+- note: watched path changed: analysis/beta_poc/run_beta_poc.py
+- tracked status:
+  - M docs/entire-tracing-checkpoints.md
+- local `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd4
+- `origin` `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd
+- note: `.entire/` remains host-local runtime state; only this ledger is tracked.
+
+## 2026-07-05T19:44:11-07:00 — jakob
+- repo: `/Users/jakobfaber/Developer/scratch/worktrees/flits-cleanup`
+- branch: `chore/repo-cleanup-2026-07`
+- head: `4e81bc44`
+- origin/main: `e3589b7c`
+- worktree: dirty
+- note: watched path changed: docs/literature/Bhat_MultiFreqObsPulseBroadening_2004.md
+- tracked status:
+  - M docs/entire-tracing-checkpoints.md
+- local `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd4
+- `origin` `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd
+- note: `.entire/` remains host-local runtime state; only this ledger is tracked.
+
+## 2026-07-05T19:44:46-07:00 — jakob
+- repo: `/Users/jakobfaber/Developer/scratch/worktrees/flits-cleanup`
+- branch: `chore/repo-cleanup-2026-07`
+- head: `4b184892`
+- origin/main: `e3589b7c`
+- worktree: dirty
+- note: watched path changed: docs/adr/0006-beta-coherent-scattering-comodel.md
+- tracked status:
+  - M docs/entire-tracing-checkpoints.md
+- local `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd4
+- `origin` `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd
+- note: `.entire/` remains host-local runtime state; only this ledger is tracked.
+
+## 2026-07-05T19:44:49-07:00 — jakob
+- repo: `/Users/jakobfaber/Developer/scratch/worktrees/flits-cleanup`
+- branch: `chore/repo-cleanup-2026-07`
+- head: `4b184892`
+- origin/main: `e3589b7c`
+- worktree: dirty
+- note: watched path changed: docs/adr/0006-beta-coherent-scattering-comodel.md
+- tracked status:
+  - M docs/entire-tracing-checkpoints.md
+- local `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd4
+- `origin` `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd
+- note: `.entire/` remains host-local runtime state; only this ledger is tracked.
+
+## 2026-07-05T19:54:39-07:00 — jakob
+- repo: `/Users/jakobfaber/Developer/scratch/worktrees/flits-cleanup`
+- branch: `chore/repo-cleanup-2026-07`
+- head: `e76c8809`
+- origin/main: `e3589b7c`
+- worktree: dirty
+- note: watched path changed: analysis/burst_energies/plot_bandpass_check.py
+- tracked status:
+  - M docs/entire-tracing-checkpoints.md
+  - D  scattering/batch_process_dsa.py
+  - D  scattering/compare_resolutions.py
+  - D  scattering/configs/bursts/copy_yaml.py
+  - D  scattering/dsa_diagnostics/dsa_fitting_summary.json
+  - D  scattering/notebooks/run_scat_analysis_walkthrough.py
+  - D  scattering/notebooks/scattering_analysis.py
+  - D  scattering/notebooks/update_nb_path.py
+  -  M scattering/scat_analysis/__init__.py
+  - D  scattering/scat_analysis/__pycache__.code-workspace
+  -  M scattering/scat_analysis/burstfit_corner.py
+  - D  scattering/scat_analysis/pipeline/__main__.py
+  -  M scattering/scat_analysis/pipeline/core.py
+  - D  scattering/simple_runtime_test.py
+  - D  scattering/test_quick_runtime.py
+- local `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd4
+- `origin` `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd
+- note: `.entire/` remains host-local runtime state; only this ledger is tracked.
+
+## 2026-07-05T20:03:12-07:00 — jakob
+- repo: `/Users/jakobfaber/Developer/scratch/worktrees/flits-cleanup`
+- branch: `chore/repo-cleanup-2026-07`
+- head: `b218642a`
+- origin/main: `e3589b7c`
+- worktree: dirty
+- note: watched path changed: configs/README.md
+- tracked status:
+  - M docs/entire-tracing-checkpoints.md
+- local `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd4
+- `origin` `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd
+- note: `.entire/` remains host-local runtime state; only this ledger is tracked.
+
+## 2026-07-05T20:04:08-07:00 — jakob
+- repo: `/Users/jakobfaber/Developer/scratch/worktrees/flits-cleanup`
+- branch: `chore/repo-cleanup-2026-07`
+- head: `3b7e4304`
+- origin/main: `e3589b7c`
+- worktree: dirty
+- note: watched path changed: analysis/chance-coincidence/bursts.json
+- tracked status:
+  - M docs/entire-tracing-checkpoints.md
+- local `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd4
+- `origin` `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd
+- note: `.entire/` remains host-local runtime state; only this ledger is tracked.

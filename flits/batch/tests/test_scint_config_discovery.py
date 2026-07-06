@@ -19,6 +19,10 @@ def test_discovers_hand_tuned_scint_configs():
     # variant configs (_hi, _temp) must not be swallowed as bursts
     assert "casey_chime_hi" not in found
     assert all("_temp" not in b and not b.endswith("_hi") for b in found)
+    # keys are lowercased to match BurstInfo.from_filename burst names
+    assert "johndoeii" in dsa_bursts
+    assert "johndoeII" not in found
+    assert found["johndoeii"]["dsa"].name == "johndoeII_dsa.yaml"
 
 
 def test_missing_telescope_dir_is_empty_not_error():

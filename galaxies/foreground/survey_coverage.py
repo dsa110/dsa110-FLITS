@@ -24,7 +24,31 @@ FOOTPRINT_RULES: dict[str, str] = {
 
 
 def survey_in_footprint(survey_key: str, coord: SkyCoord) -> bool:
-    """Return whether the sightline lies inside the catalog's nominal sky footprint."""
+    """Return whether the sightline lies inside the catalog's sky footprint.
+
+    Exact CDS MOC containment when a cached MOC exists (survey_footprint_mocs;
+    the declination rules below are RA-blind and return True for the whole
+    +70..+74 deg co-detection sample, which mislabels genuinely-uncovered
+    positions as "searched and empty" -- the empty-vs-uncovered conflation the
+    coverage semantics forbid). Falls back to the nominal declination rule only
+    if the MOC cannot be loaded.
+    """
+    if survey_key in FOOTPRINT_RULES and FOOTPRINT_RULES[survey_key] != "all_sky":
+        try:
+            import astropy.units as u
+            from astropy.coordinates import Latitude, Longitude
+
+            from .survey_footprint_mocs import CDS_MOC_IDS, load_survey_moc
+
+            if survey_key in CDS_MOC_IDS:
+                moc = load_survey_moc(survey_key)
+                return bool(
+                    moc.contains_lonlat(
+                        Longitude(coord.ra.deg * u.deg), Latitude(coord.dec.deg * u.deg)
+                    )
+                )
+        except Exception:
+            pass  # offline / no cached MOC: fall through to the nominal rule
     rule = FOOTPRINT_RULES.get(survey_key, "all_sky")
     dec = coord.dec.deg
     if rule == "all_sky":
@@ -65,12 +89,22 @@ def classify_coverage(
     raw_count: int,
     foreground_count: int,
 ) -> str:
-    if not in_footprint:
-        return "no_footprint"
+    """Coverage status for one burst x survey query.
+
+    Data beats footprint: a query that RETURNED objects constrained the
+    sightline regardless of the nominal MOC (catalogs carry supplementary
+    sources outside their nominal footprint), so raw hits are classified
+    before the footprint test. A zero-yield query is only "searched and
+    empty" (footprint_empty) when the position is inside the footprint;
+    outside it the survey simply does not apply (no_footprint) -- absence
+    of coverage is NOT absence of foreground.
+    """
     if foreground_count > 0:
         return "foreground"
     if raw_count > 0:
         return "catalog_hits"
+    if not in_footprint:
+        return "no_footprint"
     return "footprint_empty"
 
 

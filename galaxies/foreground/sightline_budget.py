@@ -350,11 +350,74 @@ def _lookup_tau_fit(name: str, bursts_dir: str | None) -> dict | None:
     return best
 
 
-def _scattering_verdict(tau_obs: float, tau_interv: float, tau_interv_hi: float, n_fg: int) -> str:
+# Surveys with the depth/photo-z to actually constrain an intervening screen;
+# the all-sky layers (NED, GLADE+, cluster compendia) are too shallow to turn
+# "no rows" into "no foreground" on their own.
+DEEP_SURVEYS = frozenset({"DESI_DR8_NORTH", "SDSS_DR12"})
+_APPLIED_STATUSES = frozenset({"foreground", "catalog_hits", "footprint_empty"})
+
+
+def _coverage_for(name: str, results_dir: str) -> dict:
+    """Per-burst survey applicability from results/survey_coverage.csv.
+
+    A survey constrains a sightline iff it APPLIED there: it returned
+    redshift-usable objects (with_z_count > 0), or its footprint genuinely
+    contains the position and the search came back empty. status ==
+    no_footprint means the survey does not apply -- absence of coverage is not
+    absence of foreground (owner directive, 2026-07-06). A catalog_hits row
+    with with_z_count == 0 is raw detections without redshifts (e.g. SDSS
+    supplementary imaging outside the NGC footprint) and cannot identify
+    foreground, so it does not count as a deep constraint. Missing coverage
+    table -> unknown (treated as constrained, the historical behavior, so the
+    budget still builds).
+    """
+    path = os.path.join(results_dir, "survey_coverage.csv")
+    out = {
+        "deep_imaging_constrained": True,
+        "surveys_not_applicable": "",
+        "coverage_known": False,
+    }
+    if not os.path.exists(path):
+        return out
+    df = pd.read_csv(path)
+    rows = df[df["nickname"].str.lower() == name.lower()]
+    if rows.empty:
+        return out
+    not_applicable = sorted(rows.loc[rows["status"] == "no_footprint", "survey"])
+    deep_applied = any(
+        r["survey"] in DEEP_SURVEYS
+        and r["status"] in _APPLIED_STATUSES
+        and (
+            r["status"] == "footprint_empty"
+            or int(r.get("foreground_count", 0)) > 0
+            or int(r.get("with_z_count", 0)) > 0
+        )
+        for _, r in rows.iterrows()
+    )
+    return {
+        "deep_imaging_constrained": bool(deep_applied),
+        "surveys_not_applicable": ";".join(not_applicable),
+        "coverage_known": True,
+    }
+
+
+def _scattering_verdict(
+    tau_obs: float,
+    tau_interv: float,
+    tau_interv_hi: float,
+    n_fg: int,
+    deep_constrained: bool = True,
+) -> str:
     if not math.isfinite(tau_obs) or tau_obs <= 0.0:
         return f"no scattering measurement (predicted intervening tau={tau_interv:.2g} ms)"
     if n_fg == 0:
-        return "no intervening screen; scattering is host / Milky-Way"
+        if not deep_constrained:
+            return (
+                "no foreground objects in applicable catalogs, but position is "
+                "outside the deep-imaging footprints -- intervening screen "
+                "unconstrained (not excluded); host / Milky-Way assumed"
+            )
+        return "no intervening screen detected (deep-imaging-constrained); scattering is host / Milky-Way"
     ratio = tau_interv / tau_obs
     ratio_hi = (tau_interv_hi / tau_obs) if math.isfinite(tau_interv_hi) else ratio
     if ratio >= 0.5:
@@ -454,6 +517,8 @@ def build_sightline_budget(
         "best_impact_kpc": math.nan,
     }
     best_tau = -1.0
+
+    coverage = _coverage_for(name, results_dir)
 
     csv_path = os.path.join(results_dir, f"{name.lower()}_galaxies.csv")
     matches: pd.DataFrame | None = None
@@ -593,7 +658,13 @@ def build_sightline_budget(
             else f"scattering fit present but quality_flag={tau_obs_quality}; tau not locked in"
         )
     else:
-        verdict_scat = _scattering_verdict(tau_obs_f, tau_int, tau_int_hi, n_fg)
+        verdict_scat = _scattering_verdict(
+            tau_obs_f,
+            tau_int,
+            tau_int_hi,
+            n_fg,
+            deep_constrained=coverage["deep_imaging_constrained"],
+        )
     if z_is_placeholder:
         verdict_dm = "z_frb is a placeholder (unknown host z); cosmic & host DM budget unavailable"
     else:
@@ -622,14 +693,10 @@ def build_sightline_budget(
         "dm_intervening_capped": f"PREDICTED ({dm_regime})",
         "dm_host": "RESIDUAL" if math.isfinite(dm_host) else "NOT_AVAILABLE",
         "dm_host_pred": (
-            f"PREDICTED ({host_pred_method})"
-            if math.isfinite(dm_host_pred)
-            else "NOT_AVAILABLE"
+            f"PREDICTED ({host_pred_method})" if math.isfinite(dm_host_pred) else "NOT_AVAILABLE"
         ),
         "dm_host_unattrib": (
-            "RESIDUAL_MINUS_PRED"
-            if math.isfinite(dm_host_unattrib)
-            else "NOT_AVAILABLE"
+            "RESIDUAL_MINUS_PRED" if math.isfinite(dm_host_unattrib) else "NOT_AVAILABLE"
         ),
         "tau_obs": (
             f"MEASURED ({tau_obs_quality})"
@@ -685,6 +752,9 @@ def build_sightline_budget(
         "tau_intervening_hi": tau_int_hi,
         "n_foreground": n_fg,
         "n_intersecting": n_isect,
+        "deep_imaging_constrained": coverage["deep_imaging_constrained"],
+        "surveys_not_applicable": coverage["surveys_not_applicable"],
+        "coverage_known": coverage["coverage_known"],
         "verdict_scattering": verdict_scat,
         "verdict_dm": verdict_dm,
         "cgm_budget_flags": flags,

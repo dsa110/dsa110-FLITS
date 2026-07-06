@@ -1,0 +1,52 @@
+{
+  "beta_bounds": [
+    3.0,
+    4.0
+  ],
+  "nlive": 150,
+  "seed": 20260706,
+  "results": [
+    {
+      "case": "interior-3.7",
+      "beta_true": 3.7,
+      "beta_median": 3.6974089179664045,
+      "err_minus": 0.03374143370028637,
+      "err_plus": 0.035096568053986754,
+      "alpha_derived": 4.356532923599951,
+      "log_evidence": -18407.471882423535,
+      "ncall": 236095,
+      "expect_rail": false,
+      "railed": false,
+      "ok": true,
+      "detail": "|med-true|=0.0026, 3sig=0.1053, railed=False"
+    },
+    {
+      "case": "interior-3.3",
+      "beta_true": 3.3,
+      "beta_median": 3.269755531590091,
+      "err_minus": 0.03798390601755175,
+      "err_plus": 0.0355573405679408,
+      "alpha_derived": 5.150212698810514,
+      "log_evidence": -23790.378626820762,
+      "ncall": 253401,
+      "expect_rail": false,
+      "railed": false,
+      "ok": true,
+      "detail": "|med-true|=0.0302, 3sig=0.1067, railed=False"
+    },
+    {
+      "case": "rail-4.0",
+      "beta_true": 4.0,
+      "beta_median": 3.9378957396870202,
+      "err_minus": 0.049026451765112,
+      "err_plus": 0.029092156864293894,
+      "alpha_derived": 4.064094532064981,
+      "log_evidence": -18351.879642280495,
+      "ncall": 254974,
+      "expect_rail": true,
+      "railed": true,
+      "ok": true,
+      "detail": "railed=True, gap-to-4=0.062"
+    }
+  ]
+}

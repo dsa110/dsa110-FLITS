@@ -1,5 +1,10 @@
 # FLITS Repository - Analysis Inventory
 
+> **Snapshot note (2026-07-05):** this inventory predates the repo cleanup
+> (`chore/repo-cleanup-2026-07`); some listed files (animations/, toa_utilities.py,
+> frb_scintillator.py, configs/batch/, one-off scripts) have since been deleted —
+> treat entries as historical, verify against the tree.
+
 This document catalogs all the various analyses performed within the FLITS repository, distinguishing between core pipeline functionality and burst-specific analyses.
 
 ---

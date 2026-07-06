@@ -1,0 +1,11 @@
+{
+  "burst": "freya",
+  "beta": 3.72168967493156,
+  "alpha": 4.323299058036697,
+  "tau_1ghz": 0.1193849491889905,
+  "chi2_chime": 1.2923906729158352,
+  "chi2_dsa": 1.0303245366438598,
+  "components_C": 1,
+  "components_D": 1,
+  "suffix": "_sharedzeta"
+}

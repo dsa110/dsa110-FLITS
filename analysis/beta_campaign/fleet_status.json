@@ -1,0 +1,114 @@
+[
+  {
+    "burst": "freya",
+    "suffix": "_sharedzeta",
+    "rc": 0,
+    "minutes": 3.5678810318311056,
+    "ppc_rc": 0,
+    "beta": 3.72168967493156,
+    "alpha": 4.323299058036697,
+    "tau_1ghz": 0.1193849491889905
+  },
+  {
+    "burst": "casey",
+    "suffix": "_sharedzeta",
+    "rc": 0,
+    "minutes": 20.912445120016734,
+    "ppc_rc": 0,
+    "beta": 3.990166991819069,
+    "alpha": 4.0,
+    "tau_1ghz": 0.018589939827674748
+  },
+  {
+    "burst": "chromatica",
+    "suffix": "_sharedzeta",
+    "rc": 0,
+    "minutes": 3.795872914791107,
+    "ppc_rc": 0,
+    "beta": 3.9898361542602863,
+    "alpha": 4.0,
+    "tau_1ghz": 0.22022872243262984
+  },
+  {
+    "burst": "wilhelm",
+    "suffix": "_sharedzeta",
+    "rc": 0,
+    "minutes": 1.7405720829963685,
+    "ppc_rc": 0,
+    "beta": 3.979207216453846,
+    "alpha": 4.021011224467348,
+    "tau_1ghz": 0.26930674993199494
+  },
+  {
+    "burst": "hamilton",
+    "suffix": "_sharedzeta",
+    "rc": 0,
+    "minutes": 4.252808133761088,
+    "ppc_rc": 0,
+    "beta": 3.9780111726602723,
+    "alpha": 4.022233269097418,
+    "tau_1ghz": 0.024470729413943397
+  },
+  {
+    "burst": "mahi",
+    "suffix": "_C1D1",
+    "rc": 0,
+    "minutes": 7.695974886417389,
+    "ppc_rc": 0,
+    "beta": 3.7851720198511734,
+    "alpha": 4.240680424922565,
+    "tau_1ghz": 0.21930274316476195
+  },
+  {
+    "burst": "zach",
+    "suffix": "_C1D1",
+    "rc": 0,
+    "minutes": 11.962728929519653,
+    "ppc_rc": 0,
+    "beta": 3.9898946227484458,
+    "alpha": 4.0,
+    "tau_1ghz": 0.2940239093266775
+  },
+  {
+    "burst": "oran",
+    "suffix": "_C2D1",
+    "rc": 0,
+    "minutes": 10.191141851743062,
+    "ppc_rc": 0,
+    "beta": 3.987192656606904,
+    "alpha": 4.0,
+    "tau_1ghz": 0.8428116817186169
+  },
+  {
+    "burst": "isha",
+    "suffix": "_C2D1",
+    "rc": 0,
+    "minutes": 9.417198864618937,
+    "ppc_rc": 0,
+    "beta": 3.8405020353757404,
+    "alpha": 4.173320063285557,
+    "tau_1ghz": 0.31384875520730254
+  },
+  {
+    "burst": "johndoeII",
+    "suffix": "_C2D1",
+    "rc": 0,
+    "minutes": 8.289981385072073,
+    "ppc_rc": 0,
+    "beta": 3.9892720851784795,
+    "alpha": 4.0,
+    "tau_1ghz": 2.1874487967572502
+  },
+  {
+    "burst": "whitney_fine",
+    "suffix": "_C2D2",
+    "rc": -15,
+    "minutes": 18.345731552441915
+  },
+  {
+    "burst": "phineas",
+    "suffix": "_C3D3",
+    "rc": -15,
+    "minutes": 18.260020983219146
+  }
+]

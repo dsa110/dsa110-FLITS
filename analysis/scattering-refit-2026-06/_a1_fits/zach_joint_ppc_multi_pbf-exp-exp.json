@@ -1,0 +1,10 @@
+{
+  "burst": "zach",
+  "alpha": 3.3185812027012114,
+  "tau_1ghz": 0.416290521844411,
+  "chi2_chime": 2.296284283642746,
+  "chi2_dsa": 1.2998885316065134,
+  "components_C": 1,
+  "components_D": 1,
+  "suffix": "_pbf-exp-exp"
+}

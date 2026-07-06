@@ -1,0 +1,10 @@
+{
+  "burst": "casey",
+  "alpha": 2.3960197471557962,
+  "tau_1ghz": 0.06086799947757,
+  "chi2_chime": 1.4113708106836127,
+  "chi2_dsa": 0.9874380052779991,
+  "components_C": 1,
+  "components_D": 1,
+  "suffix": "_sharedzeta_pbf-exp-exp"
+}

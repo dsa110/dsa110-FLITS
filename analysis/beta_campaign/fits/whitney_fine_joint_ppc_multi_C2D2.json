@@ -1,0 +1,11 @@
+{
+  "burst": "whitney_fine",
+  "beta": 3.9682118629022796,
+  "alpha": 4.032301539988532,
+  "tau_1ghz": 1.1821129548071687,
+  "chi2_chime": 1.085857549016285,
+  "chi2_dsa": 1.4152378012367963,
+  "components_C": 2,
+  "components_D": 2,
+  "suffix": "_C2D2"
+}

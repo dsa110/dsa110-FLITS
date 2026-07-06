@@ -1,0 +1,580 @@
+{
+  "runs_root": "/Users/jakobfaber/Developer/scratch/flits-local-runs",
+  "dnu_reference_mhz": 1400.0,
+  "missing_campaign_fit": [],
+  "missing_delta_nu": [],
+  "rows": [
+    {
+      "burst_name": "freya",
+      "telescope": "dsa",
+      "tau_1ghz": 0.1193849491889905,
+      "tau_1ghz_err": 0.001199331727144294,
+      "delta_nu_dc": 0.09338606310713195,
+      "delta_nu_dc_err": 0.015808817529946857,
+      "alpha": 4.323299058036697,
+      "beta": 3.72168967493156,
+      "tau_at_1p4ghz_ms": 0.02787368449548379,
+      "tau_delta_nu_product": 2.6030136593235347,
+      "tau_delta_nu_product_err": 0.44142521528512374,
+      "implied_tau_from_dnu_ms": 0.00197695167612756,
+      "is_consistent": false,
+      "quality_flag": "different_screens",
+      "screen_verdict": "different_screens",
+      "interpretation": "Resolved \u0394\u03bd_d implies a near-screen \u03c4\u22481.98e-03 ms \u226a fitted pulse-broadening \u03c4=0.028 ms \u2192 different screens (resolved near vs far scattering screen)"
+    },
+    {
+      "burst_name": "casey",
+      "telescope": "dsa",
+      "tau_1ghz": 0.018589939827674748,
+      "tau_1ghz_err": 4.975691728792073e-05,
+      "delta_nu_dc": 12.495731613287836,
+      "delta_nu_dc_err": 0.39567918031243593,
+      "alpha": 4.0,
+      "beta": 3.990166991819069,
+      "tau_at_1p4ghz_ms": 0.004839113866012795,
+      "tau_delta_nu_product": 60.468268115835606,
+      "tau_delta_nu_product_err": 1.9215646049821111,
+      "implied_tau_from_dnu_ms": 1.4774623823568348e-05,
+      "is_consistent": false,
+      "quality_flag": "different_screens",
+      "screen_verdict": "different_screens",
+      "interpretation": "Resolved \u0394\u03bd_d implies a near-screen \u03c4\u22481.48e-05 ms \u226a fitted pulse-broadening \u03c4=0.005 ms \u2192 different screens (resolved near vs far scattering screen)"
+    },
+    {
+      "burst_name": "chromatica",
+      "telescope": "dsa",
+      "tau_1ghz": 0.22022872243262984,
+      "tau_1ghz_err": 0.003950710931002799,
+      "delta_nu_dc": 1.6381774662064765,
+      "delta_nu_dc_err": 0.05983221161654911,
+      "alpha": 4.0,
+      "beta": 3.9898361542602863,
+      "tau_at_1p4ghz_ms": 0.057327343407077756,
+      "tau_delta_nu_product": 93.9123621669552,
+      "tau_delta_nu_product_err": 3.821424162206108,
+      "implied_tau_from_dnu_ms": 0.00011269825021712821,
+      "is_consistent": false,
+      "quality_flag": "different_screens",
+      "screen_verdict": "different_screens",
+      "interpretation": "Resolved \u0394\u03bd_d implies a near-screen \u03c4\u22481.13e-04 ms \u226a fitted pulse-broadening \u03c4=0.057 ms \u2192 different screens (resolved near vs far scattering screen)"
+    },
+    {
+      "burst_name": "wilhelm",
+      "telescope": "dsa",
+      "tau_1ghz": 0.26930674993199494,
+      "tau_1ghz_err": 0.005688545876972262,
+      "delta_nu_dc": 0.12906626382552383,
+      "delta_nu_dc_err": 0.01634039246458545,
+      "alpha": 4.021011224467348,
+      "beta": 3.979207216453846,
+      "tau_at_1p4ghz_ms": 0.06960889939650526,
+      "tau_delta_nu_product": 8.984160574113695,
+      "tau_delta_nu_product_err": 1.1531589823132324,
+      "implied_tau_from_dnu_ms": 0.0014304259572910068,
+      "is_consistent": false,
+      "quality_flag": "different_screens",
+      "screen_verdict": "different_screens",
+      "interpretation": "Resolved \u0394\u03bd_d implies a near-screen \u03c4\u22481.43e-03 ms \u226a fitted pulse-broadening \u03c4=0.070 ms \u2192 different screens (resolved near vs far scattering screen)"
+    },
+    {
+      "burst_name": "hamilton",
+      "telescope": "dsa",
+      "tau_1ghz": 0.024470729413943397,
+      "tau_1ghz_err": 0.0003238860333686696,
+      "delta_nu_dc": 0.25970822090491935,
+      "delta_nu_dc_err": 0.03679388583008252,
+      "alpha": 4.022233269097418,
+      "beta": 3.9780111726602723,
+      "tau_at_1p4ghz_ms": 0.006322456764874451,
+      "tau_delta_nu_product": 1.6419939981538156,
+      "tau_delta_nu_product_err": 0.23364072494647573,
+      "implied_tau_from_dnu_ms": 0.000710873661770564,
+      "is_consistent": true,
+      "quality_flag": "good",
+      "screen_verdict": "same_screen",
+      "interpretation": "Consistent with extended medium (C \u2248 1.0)"
+    },
+    {
+      "burst_name": "mahi",
+      "telescope": "dsa",
+      "tau_1ghz": 0.21930274316476195,
+      "tau_1ghz_err": 0.02613757430288187,
+      "delta_nu_dc": 1.6561857167914142,
+      "delta_nu_dc_err": 0.3033118000652629,
+      "alpha": 4.240680424922565,
+      "beta": 3.7851720198511734,
+      "tau_at_1p4ghz_ms": 0.05264556169348787,
+      "tau_delta_nu_product": 87.19082732921584,
+      "tau_delta_nu_product_err": 19.051713488699033,
+      "implied_tau_from_dnu_ms": 0.00011147284517358886,
+      "is_consistent": false,
+      "quality_flag": "different_screens",
+      "screen_verdict": "different_screens",
+      "interpretation": "Resolved \u0394\u03bd_d implies a near-screen \u03c4\u22481.11e-04 ms \u226a fitted pulse-broadening \u03c4=0.053 ms \u2192 different screens (resolved near vs far scattering screen)"
+    },
+    {
+      "burst_name": "zach",
+      "telescope": "dsa",
+      "tau_1ghz": 0.2940239093266775,
+      "tau_1ghz_err": 0.0007098609207548956,
+      "delta_nu_dc": 0.4915504894803766,
+      "delta_nu_dc_err": 0.05379054869961435,
+      "alpha": 4.0,
+      "beta": 3.9898946227484458,
+      "tau_at_1p4ghz_ms": 0.07653683603880611,
+      "tau_delta_nu_product": 37.621719218154475,
+      "tau_delta_nu_product_err": 4.117960248186974,
+      "implied_tau_from_dnu_ms": 0.00037558651234741343,
+      "is_consistent": false,
+      "quality_flag": "different_screens",
+      "screen_verdict": "different_screens",
+      "interpretation": "Resolved \u0394\u03bd_d implies a near-screen \u03c4\u22483.76e-04 ms \u226a fitted pulse-broadening \u03c4=0.077 ms \u2192 different screens (resolved near vs far scattering screen)"
+    },
+    {
+      "burst_name": "oran",
+      "telescope": "dsa",
+      "tau_1ghz": 0.8428116817186169,
+      "tau_1ghz_err": 0.07559908200842369,
+      "delta_nu_dc": 0.3401531135022873,
+      "delta_nu_dc_err": 0.06468945548193442,
+      "alpha": 4.0,
+      "beta": 3.987192656606904,
+      "tau_at_1p4ghz_ms": 0.21939079594924435,
+      "tau_delta_nu_product": 74.62646231588046,
+      "tau_delta_nu_product_err": 15.691678572125822,
+      "implied_tau_from_dnu_ms": 0.0005427547967611272,
+      "is_consistent": false,
+      "quality_flag": "different_screens",
+      "screen_verdict": "different_screens",
+      "interpretation": "Resolved \u0394\u03bd_d implies a near-screen \u03c4\u22485.43e-04 ms \u226a fitted pulse-broadening \u03c4=0.219 ms \u2192 different screens (resolved near vs far scattering screen)"
+    },
+    {
+      "burst_name": "isha",
+      "telescope": "dsa",
+      "tau_1ghz": 0.31384875520730254,
+      "tau_1ghz_err": 0.021154778418294384,
+      "delta_nu_dc": 0.5063877029134755,
+      "delta_nu_dc_err": 0.2512207181695265,
+      "alpha": 4.173320063285557,
+      "beta": 3.8405020353757404,
+      "tau_at_1p4ghz_ms": 0.07706928810255459,
+      "tau_delta_nu_product": 39.02693976742946,
+      "tau_delta_nu_product_err": 19.53929037873134,
+      "implied_tau_from_dnu_ms": 0.0003645817876784892,
+      "is_consistent": false,
+      "quality_flag": "different_screens",
+      "screen_verdict": "different_screens",
+      "interpretation": "Resolved \u0394\u03bd_d implies a near-screen \u03c4\u22483.65e-04 ms \u226a fitted pulse-broadening \u03c4=0.077 ms \u2192 different screens (resolved near vs far scattering screen)"
+    },
+    {
+      "burst_name": "johndoeII",
+      "telescope": "dsa",
+      "tau_1ghz": 2.1874487967572502,
+      "tau_1ghz_err": 0.06656136251469369,
+      "delta_nu_dc": 0.4982457937396792,
+      "delta_nu_dc_err": 0.07418008408392032,
+      "alpha": 4.0,
+      "beta": 3.9892720851784795,
+      "tau_at_1p4ghz_ms": 0.569410869626523,
+      "tau_delta_nu_product": 283.7065707010679,
+      "tau_delta_nu_product_err": 43.11211552291759,
+      "implied_tau_from_dnu_ms": 0.00037053947330071733,
+      "is_consistent": false,
+      "quality_flag": "different_screens",
+      "screen_verdict": "different_screens",
+      "interpretation": "Resolved \u0394\u03bd_d implies a near-screen \u03c4\u22483.71e-04 ms \u226a fitted pulse-broadening \u03c4=0.569 ms \u2192 different screens (resolved near vs far scattering screen)"
+    },
+    {
+      "burst_name": "whitney_fine",
+      "telescope": "dsa",
+      "tau_1ghz": 1.1821129548071687,
+      "tau_1ghz_err": 0.024537716122533082,
+      "delta_nu_dc": 20.563377962920175,
+      "delta_nu_dc_err": 2.8861298265868496,
+      "alpha": 4.032301539988532,
+      "beta": 3.9682118629022796,
+      "tau_at_1p4ghz_ms": 0.30438740174262024,
+      "tau_delta_nu_product": 6259.233189184727,
+      "tau_delta_nu_product_err": 888.0573022622222,
+      "implied_tau_from_dnu_ms": 8.978083966530419e-06,
+      "is_consistent": false,
+      "quality_flag": "different_screens",
+      "screen_verdict": "different_screens",
+      "interpretation": "Resolved \u0394\u03bd_d implies a near-screen \u03c4\u22488.98e-06 ms \u226a fitted pulse-broadening \u03c4=0.304 ms \u2192 different screens (resolved near vs far scattering screen)"
+    },
+    {
+      "burst_name": "phineas",
+      "telescope": "dsa",
+      "tau_1ghz": 0.4693716400435134,
+      "tau_1ghz_err": 0.008087528930231402,
+      "delta_nu_dc": 7.794457079889615,
+      "delta_nu_dc_err": 1.1271010221925732,
+      "alpha": 5.257141807025097,
+      "beta": 3.2280705713741678,
+      "tau_at_1p4ghz_ms": 0.08003888684103058,
+      "tau_delta_nu_product": 623.8596682045546,
+      "tau_delta_nu_product_err": 90.85009309879936,
+      "implied_tau_from_dnu_ms": 2.368602868606894e-05,
+      "is_consistent": false,
+      "quality_flag": "different_screens",
+      "screen_verdict": "different_screens",
+      "interpretation": "Resolved \u0394\u03bd_d implies a near-screen \u03c4\u22482.37e-05 ms \u226a fitted pulse-broadening \u03c4=0.080 ms \u2192 different screens (resolved near vs far scattering screen)"
+    }
+  ],
+  "delta_nu_provenance": {
+    "freya": {
+      "delta_nu_dc": 0.09338606310713195,
+      "delta_nu_dc_err": 0.015808817529946857,
+      "config": "scintillation/configs/bursts/freya_dsa.yaml",
+      "subbands": [
+        {
+          "subband": "subband_0",
+          "model": "Gen-Lorentz",
+          "component": "lg_1_gamma",
+          "ref_mhz": 1328.7852026697053,
+          "gamma_mhz": 0.06813918765273952,
+          "gamma_err": 0.012713959018238298,
+          "scaled_mhz": 0.0853925932884367,
+          "scaled_err": 0.015933238550821283
+        },
+        {
+          "subband": "subband_1",
+          "model": "Lorentzian+Lorentzian",
+          "component": "l_1_gamma",
+          "ref_mhz": 1446.1443919908843,
+          "gamma_mhz": 0.5204099016291346,
+          "gamma_err": 0.16421175914221997,
+          "scaled_mhz": 0.4523325501620173,
+          "scaled_err": 0.14273041989951432
+        },
+        {
+          "subband": "subband_2",
+          "model": "Lorentzian",
+          "component": "l_1_gamma",
+          "ref_mhz": 1415.0877014488035,
+          "gamma_mhz": 1.1641124761036252,
+          "gamma_err": 0.5819902206343603,
+          "scaled_mhz": 1.1113954116692353,
+          "scaled_err": 0.5556346780290122
+        },
+        {
+          "subband": "subband_3",
+          "model": "Lorentzian",
+          "component": "l_1_gamma",
+          "ref_mhz": 1467.754354549894,
+          "gamma_mhz": 1.4214093718208778,
+          "gamma_err": 0.389449567538488,
+          "scaled_mhz": 1.1587292858425484,
+          "scaled_err": 0.3174782917657792
+        }
+      ]
+    },
+    "casey": {
+      "delta_nu_dc": 12.495731613287836,
+      "delta_nu_dc_err": 0.39567918031243593,
+      "config": "scintillation/configs/bursts/casey_dsa.yaml",
+      "subbands": [
+        {
+          "subband": "subband_2",
+          "model": "Lorentzian",
+          "component": "l_1_gamma",
+          "ref_mhz": 1458.0481849259318,
+          "gamma_mhz": 14.700667417684805,
+          "gamma_err": 0.46549879702039904,
+          "scaled_mhz": 12.495731613287838,
+          "scaled_err": 0.395679180312436
+        }
+      ]
+    },
+    "chromatica": {
+      "delta_nu_dc": 1.6381774662064765,
+      "delta_nu_dc_err": 0.05983221161654911,
+      "config": "scintillation/configs/bursts/chromatica_dsa.yaml",
+      "subbands": [
+        {
+          "subband": "subband_1",
+          "model": "Gen-Lorentz+Gaussian",
+          "component": "lg_1_gamma",
+          "ref_mhz": 1435.3546719843725,
+          "gamma_mhz": 1.9772980879684479,
+          "gamma_err": 0.15151288740062643,
+          "scaled_mhz": 1.7895645996335305,
+          "scaled_err": 0.13712757895750766
+        },
+        {
+          "subband": "subband_2",
+          "model": "Lorentzian",
+          "component": "l_1_gamma",
+          "ref_mhz": 1396.0111102067392,
+          "gamma_mhz": 1.310704400834986,
+          "gamma_err": 0.08902957580106903,
+          "scaled_mhz": 1.325749285516445,
+          "scaled_err": 0.0900514993563062
+        },
+        {
+          "subband": "subband_3",
+          "model": "Lorentzian",
+          "component": "l_1_gamma",
+          "ref_mhz": 1459.6353573172717,
+          "gamma_mhz": 2.2858018476908915,
+          "gamma_err": 0.11651451035114088,
+          "scaled_mhz": 1.9345199933265176,
+          "scaled_err": 0.0986085692487428
+        }
+      ]
+    },
+    "wilhelm": {
+      "delta_nu_dc": 0.12906626382552383,
+      "delta_nu_dc_err": 0.01634039246458545,
+      "config": "scintillation/configs/bursts/wilhelm_dsa.yaml",
+      "subbands": [
+        {
+          "subband": "subband_0",
+          "model": "Lorentzian+Gaussian",
+          "component": "l_1_gamma",
+          "ref_mhz": 1339.6512290411852,
+          "gamma_mhz": 0.130892567845863,
+          "gamma_err": 0.02358051628927267,
+          "scaled_mhz": 0.15626518120832308,
+          "scaled_err": 0.028151435269175754
+        },
+        {
+          "subband": "subband_1",
+          "model": "Gen-Lorentz+Lorentzian",
+          "component": "lg_1_gamma",
+          "ref_mhz": 1399.3380677193554,
+          "gamma_mhz": 0.2094759583056407,
+          "gamma_err": 0.07350495299554674,
+          "scaled_mhz": 0.20987468074965418,
+          "scaled_err": 0.0736448643951295
+        },
+        {
+          "subband": "subband_2",
+          "model": "Lorentzian+Gaussian",
+          "component": "l_1_gamma",
+          "ref_mhz": 1464.6868386781703,
+          "gamma_mhz": 0.104451163254202,
+          "gamma_err": 0.031186325804331578,
+          "scaled_mhz": 0.08710320502333857,
+          "scaled_err": 0.02600668911506878
+        },
+        {
+          "subband": "subband_3",
+          "model": "Lorentzian+Lorentzian",
+          "component": "l_1_gamma",
+          "ref_mhz": 1472.3785202669706,
+          "gamma_mhz": 0.17720782126166412,
+          "gamma_err": 0.042755833348305426,
+          "scaled_mhz": 0.14469621480869982,
+          "scaled_err": 0.03491159251575167
+        }
+      ]
+    },
+    "hamilton": {
+      "delta_nu_dc": 0.25970822090491935,
+      "delta_nu_dc_err": 0.03679388583008252,
+      "config": "scintillation/configs/bursts/hamilton_dsa.yaml",
+      "subbands": [
+        {
+          "subband": "subband_0",
+          "model": "Lorentzian",
+          "component": "l_1_gamma",
+          "ref_mhz": 1340.872130880677,
+          "gamma_mhz": 0.4255878641652475,
+          "gamma_err": 0.09402654203252063,
+          "scaled_mhz": 0.5062541391496364,
+          "scaled_err": 0.11184841040346996
+        },
+        {
+          "subband": "subband_1",
+          "model": "Lorentzian",
+          "component": "l_1_gamma",
+          "ref_mhz": 1434.6373921536708,
+          "gamma_mhz": 0.2535270619358476,
+          "gamma_err": 0.042987110962786367,
+          "scaled_mhz": 0.22979040774096773,
+          "scaled_err": 0.038962411666508545
+        }
+      ]
+    },
+    "mahi": {
+      "delta_nu_dc": 1.6561857167914142,
+      "delta_nu_dc_err": 0.3033118000652629,
+      "config": "scintillation/configs/bursts/mahi_dsa.yaml",
+      "subbands": [
+        {
+          "subband": "subband_0",
+          "model": "Lorentzian",
+          "component": "l_1_gamma",
+          "ref_mhz": 1405.0,
+          "gamma_mhz": 1.6814146687222555,
+          "gamma_err": 0.3079321990617767,
+          "scaled_mhz": 1.6561857167914142,
+          "scaled_err": 0.3033118000652629
+        }
+      ]
+    },
+    "zach": {
+      "delta_nu_dc": 0.4915504894803766,
+      "delta_nu_dc_err": 0.05379054869961435,
+      "config": "scintillation/configs/bursts/zach_dsa.yaml",
+      "subbands": [
+        {
+          "subband": "subband_0",
+          "model": "Lorentzian+Lorentzian",
+          "component": "l_1_gamma",
+          "ref_mhz": 1336.1563975256392,
+          "gamma_mhz": 0.2207452568311541,
+          "gamma_err": 0.06830668471474154,
+          "scaled_mhz": 0.2660567867481197,
+          "scaled_err": 0.08232773518899089
+        },
+        {
+          "subband": "subband_2",
+          "model": "Lorentzian+Gaussian",
+          "component": "l_1_gamma",
+          "ref_mhz": 1460.0474116881003,
+          "gamma_mhz": 0.6267415746406091,
+          "gamma_err": 0.12927408242858734,
+          "scaled_mhz": 0.5298254457671926,
+          "scaled_err": 0.10928379593797762
+        },
+        {
+          "subband": "subband_3",
+          "model": "Lorentzian",
+          "component": "l_1_gamma",
+          "ref_mhz": 1470.0282842259483,
+          "gamma_mhz": 0.9171544583392122,
+          "gamma_err": 0.11368160912453906,
+          "scaled_mhz": 0.7544871727058012,
+          "scaled_err": 0.09351894337659833
+        }
+      ]
+    },
+    "oran": {
+      "delta_nu_dc": 0.3401531135022873,
+      "delta_nu_dc_err": 0.06468945548193442,
+      "config": "scintillation/configs/bursts/oran_dsa.yaml",
+      "subbands": [
+        {
+          "subband": "subband_0",
+          "model": "Lorentzian",
+          "component": "l_1_gamma",
+          "ref_mhz": 1341.8335910792773,
+          "gamma_mhz": 0.267827982500344,
+          "gamma_err": 0.058666835486905315,
+          "scaled_mhz": 0.3173755407605369,
+          "scaled_err": 0.06952006457108012
+        },
+        {
+          "subband": "subband_1",
+          "model": "Lorentzian+Lorentzian",
+          "component": "l_1_gamma",
+          "ref_mhz": 1435.598852352271,
+          "gamma_mhz": 0.538650963926099,
+          "gamma_err": 0.19528609481083806,
+          "scaled_mhz": 0.4871774458255792,
+          "scaled_err": 0.1766245439936662
+        }
+      ]
+    },
+    "isha": {
+      "delta_nu_dc": 0.5063877029134755,
+      "delta_nu_dc_err": 0.2512207181695265,
+      "config": "scintillation/configs/bursts/isha_dsa.yaml",
+      "subbands": [
+        {
+          "subband": "subband_1",
+          "model": "Lorentzian",
+          "component": "l_1_gamma",
+          "ref_mhz": 1455.4079846980303,
+          "gamma_mhz": 0.5954312559567765,
+          "gamma_err": 0.2953955376116302,
+          "scaled_mhz": 0.5063877029134755,
+          "scaled_err": 0.2512207181695265
+        }
+      ]
+    },
+    "johndoeII": {
+      "delta_nu_dc": 0.4982457937396792,
+      "delta_nu_dc_err": 0.07418008408392032,
+      "config": "scintillation/configs/bursts/johndoeII_dsa.yaml",
+      "subbands": [
+        {
+          "subband": "subband_0",
+          "model": "Lorentzian+Lorentzian",
+          "component": "l_1_gamma",
+          "ref_mhz": 1352.0739052580172,
+          "gamma_mhz": 0.5338648589696211,
+          "gamma_err": 0.19576334732040604,
+          "scaled_mhz": 0.6136796941164439,
+          "scaled_err": 0.22503071532871605
+        },
+        {
+          "subband": "subband_1",
+          "model": "Lorentzian",
+          "component": "l_1_gamma",
+          "ref_mhz": 1445.7170763470617,
+          "gamma_mhz": 0.5505814459422425,
+          "gamma_err": 0.08934865603479668,
+          "scaled_mhz": 0.4841728932602495,
+          "scaled_err": 0.07857184004311775
+        }
+      ]
+    },
+    "whitney_fine": {
+      "delta_nu_dc": 20.563377962920175,
+      "delta_nu_dc_err": 2.8861298265868496,
+      "config": "scintillation/configs/bursts/whitney_dsa.yaml",
+      "subbands": [
+        {
+          "subband": "subband_0",
+          "model": "Gaussian+Lorentzian",
+          "component": "l_2_gamma",
+          "ref_mhz": 1405.0,
+          "gamma_mhz": 28.675462925314488,
+          "gamma_err": 3.9067349724276714,
+          "scaled_mhz": 28.266189835613677,
+          "scaled_err": 3.8509757507902704
+        },
+        {
+          "subband": "subband_2",
+          "model": "Gen-Lorentz+Gaussian",
+          "component": "lg_1_gamma",
+          "ref_mhz": 1448.67776330783,
+          "gamma_mhz": 12.272679298157428,
+          "gamma_err": 5.003518342246902,
+          "scaled_mhz": 10.692638307830372,
+          "scaled_err": 4.3593424549335
+        }
+      ]
+    },
+    "phineas": {
+      "delta_nu_dc": 7.794457079889615,
+      "delta_nu_dc_err": 1.1271010221925732,
+      "config": "scintillation/configs/bursts/phineas_dsa.yaml",
+      "subbands": [
+        {
+          "subband": "subband_0",
+          "model": "Lorentzian",
+          "component": "l_1_gamma",
+          "ref_mhz": 1339.3002197623312,
+          "gamma_mhz": 9.885028232272205,
+          "gamma_err": 1.2785891203792985,
+          "scaled_mhz": 12.478960105144335,
+          "scaled_err": 1.6141039002796331
+        },
+        {
+          "subband": "subband_1",
+          "model": "Lorentzian",
+          "component": "l_1_gamma",
+          "ref_mhz": 1433.0654810353249,
+          "gamma_mhz": 3.7723706151187053,
+          "gamma_err": 1.7801422814749825,
+          "scaled_mhz": 3.336702239762868,
+          "scaled_err": 1.5745549267850099
+        }
+      ]
+    }
+  }
+}

@@ -88,18 +88,23 @@ def main():
         z = np.load(fp, allow_pickle=True)
         cD = float(z["chi2D"])
         # beta-campaign npz carry the sampled beta; alpha-era ones only alpha
-        label = f"β={float(z['beta']):.2f}" if "beta" in z.files else f"α={float(z['alpha']):.2f}"
+        # (mathtext, not literal unicode -- the manuscript font lacks those glyphs)
+        label = (
+            rf"$\beta$={float(z['beta']):.2f}"
+            if "beta" in z.files
+            else rf"$\alpha$={float(z['alpha']):.2f}"
+        )
         ax_d = axes[row, col * 2]
         ax_m = axes[row, col * 2 + 1]
         _mini(ax_d, ax_m, z)
         ax_d.set_title(f"{b.removesuffix('_fine')}\nDSA data", fontsize=7)
-        ax_m.set_title(f"model  {label} χ²={cD:.1f}", fontsize=7)
+        ax_m.set_title(rf"model  {label} $\chi^2$={cD:.1f}", fontsize=7)
     for j in range(n, nrows * ncols):
         row, col = divmod(j, ncols)
         axes[row, col * 2].axis("off")
         axes[row, col * 2 + 1].axis("off")
     fig.suptitle(
-        "Joint-fit DSA dynamic spectra — data vs recovered model (all co-detections)", fontsize=10
+        "Joint-fit DSA dynamic spectra -- data vs recovered model (all co-detections)", fontsize=10
     )
     fig.tight_layout(rect=[0, 0, 1, 0.97])
     for ext in ("pdf", "svg", "png"):

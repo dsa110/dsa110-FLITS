@@ -1244,8 +1244,116 @@ def plot_gamma_scaling(
     if save_path:
         plt.savefig(save_path, bbox_inches='tight', dpi=300)
         log.info(f"Gamma scaling plot saved to: {save_path}")
-    
+
     plt.tight_layout()
+    return fig
+
+
+def plot_subband_gamma_summary(
+    acf_results: dict,
+    subband_fits: list,
+    ref_alpha: float = 4.0,
+    lag_zoom_mhz: float = 12.0,
+    save_path=None,
+    figsize: tuple = (13, 8),
+):
+    """
+    Two-panel summary from per-sub-band 1D fits: gamma(nu) scaling (left)
+    and a stacked column of sub-band ACFs with their fit overlays (right).
+
+    Reconstruction of the freya DSA summary-figure design from the 2025-06
+    notebook epoch (the original generating cell was overwritten; see the
+    Faber2026 experiment doc experiment-freya-chime-instrumental-origin.md,
+    arm J, 2026-07-05). Unlike plot_gamma_scaling / plot_2d_acf_grid this
+    takes the *1D* stored fits reconstructed by analysis.load_saved_fit, not
+    a 2D global fit result.
+
+    Parameters
+    ----------
+    acf_results : dict
+        Pipeline ACF results (subband_lags_mhz, subband_acfs,
+        subband_acfs_err, subband_center_freqs_mhz).
+    subband_fits : list
+        One analysis.load_saved_fit() dict per sub-band (None entries are
+        skipped). Each needs 'params', 'redchi', 'best_fit_curve'.
+    ref_alpha : float
+        Exponent of the reference power law drawn through the
+        inverse-variance-weighted amplitude fit (default 4 -> gamma ~ nu^4).
+    lag_zoom_mhz : float
+        Half-range of the ACF column x-axis.
+
+    Returns
+    -------
+    fig : matplotlib.figure.Figure
+    """
+    center_freqs = np.asarray(acf_results['subband_center_freqs_mhz'], dtype=float)
+    n_sub = len(center_freqs)
+    errs_list = acf_results.get('subband_acfs_err', [None] * n_sub)
+
+    gamma = np.full(n_sub, np.nan)
+    gamma_err = np.full(n_sub, np.nan)
+    redchi = np.full(n_sub, np.nan)
+    for i in range(n_sub):
+        fit = subband_fits[i] if i < len(subband_fits) else None
+        if not fit:
+            continue
+        for pname, pinfo in fit['params'].items():
+            if 'gamma' in pname or 'sigma' in pname:
+                gamma[i] = pinfo['value']
+                gamma_err[i] = pinfo.get('stderr') or np.nan
+                break
+        redchi[i] = fit.get('redchi', np.nan)
+
+    fig = plt.figure(figsize=figsize)
+    gs = fig.add_gridspec(max(n_sub, 1), 2, width_ratios=[1.15, 1.0],
+                          hspace=0.45, wspace=0.25)
+
+    # --- left: gamma vs frequency with gamma ~ nu^ref_alpha reference ---
+    ax = fig.add_subplot(gs[:, 0])
+    ok = np.isfinite(gamma) & np.isfinite(gamma_err) & (gamma_err > 0)
+    if np.any(ok):
+        nu_ref = float(np.mean(center_freqs[ok]))
+        w = 1.0 / gamma_err[ok] ** 2
+        basis = (center_freqs[ok] / nu_ref) ** ref_alpha
+        g0 = np.sum(w * gamma[ok] * basis) / np.sum(w * basis ** 2)
+        nu_fine = np.linspace(center_freqs.min() - 25, center_freqs.max() + 25, 200)
+        ax.plot(nu_fine, g0 * (nu_fine / nu_ref) ** ref_alpha, '--', color='gray',
+                lw=1.5, label=rf"$\gamma \propto \nu^{{{ref_alpha:g}}}$")
+    ax.errorbar(center_freqs[ok], gamma[ok], yerr=gamma_err[ok], fmt='o',
+                color='purple', ms=7, capsize=4, capthick=1.5,
+                label=r"Lorentzian Component ($\gamma$)")
+    ax.set_xlabel("Center Frequency (MHz)")
+    ax.set_ylabel(r"Decorrelation Bandwidth, $\gamma$ (MHz)")
+    ax.legend(loc='upper left', fontsize=11)
+
+    # --- right: stacked sub-band ACF panels with fit overlays ---
+    colors = [plt.get_cmap('plasma')(x) for x in np.linspace(0.15, 0.75, max(n_sub, 2))]
+    for i in range(n_sub):
+        axr = fig.add_subplot(gs[i, 1])
+        lags = np.asarray(acf_results['subband_lags_mhz'][i], dtype=float)
+        acf = np.asarray(acf_results['subband_acfs'][i], dtype=float)
+        errs = errs_list[i]
+        sel = (np.abs(lags) <= lag_zoom_mhz) & (lags != 0)
+        if errs is not None:
+            axr.errorbar(lags[sel], acf[sel], yerr=np.asarray(errs)[sel],
+                         fmt='none', ecolor='lightgrey', alpha=0.8, zorder=0)
+        axr.plot(lags[sel], acf[sel], color=colors[i], lw=0.9, alpha=0.85)
+        fit = subband_fits[i] if i < len(subband_fits) else None
+        if fit is not None:
+            axr.plot(lags[sel], np.asarray(fit['best_fit_curve'])[sel], 'k-', lw=1.8)
+        label = f"$\\nu_c$={center_freqs[i]:.0f} MHz"
+        if np.isfinite(redchi[i]):
+            label += f"\n$\\chi_r^2$={redchi[i]:.2f}"
+        axr.text(0.03, 0.92, label, transform=axr.transAxes, va='top', fontsize=9,
+                 bbox=dict(facecolor='white', alpha=0.75, boxstyle='round,pad=0.25'))
+        if i == n_sub - 1:
+            axr.set_xlabel("Frequency Lag (MHz)")
+        if i == max(n_sub // 2 - 1, 0):
+            axr.set_ylabel("ACF Power  ($m^2$)")
+
+    if save_path:
+        fig.savefig(save_path, bbox_inches='tight', dpi=300)
+        log.info(f"Sub-band gamma summary saved to: {save_path}")
     return fig
 
 

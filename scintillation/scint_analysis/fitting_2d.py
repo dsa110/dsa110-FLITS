@@ -596,59 +596,6 @@ def fit_2d_scintillation(
     )
 
 
-def compare_1d_vs_2d(
-    acf_results: dict,
-    fit_1d_results: List[dict],
-    fit_2d_result: Scintillation2DResult,
-) -> dict:
-    """
-    Compare 1D sub-band fits with 2D global fit.
-    
-    Parameters
-    ----------
-    acf_results : dict
-        Original ACF results
-    fit_1d_results : List[dict]
-        Results from individual sub-band fits (with 'gamma' and 'gamma_err' keys)
-    fit_2d_result : Scintillation2DResult
-        Result from 2D fit
-        
-    Returns
-    -------
-    dict
-        Comparison statistics including AIC/BIC differences
-    """
-    center_freqs = np.array(acf_results['subband_center_freqs_mhz'])
-    
-    # Extract 1D gammas
-    gamma_1d = np.array([r.get('gamma', np.nan) for r in fit_1d_results])
-    gamma_1d_err = np.array([r.get('gamma_err', np.nan) for r in fit_1d_results])
-    
-    # Get 2D predicted gammas
-    gamma_2d = fit_2d_result.subband_gamma
-    gamma_2d_err = fit_2d_result.subband_gamma_err
-    
-    # Compute residuals
-    residuals = gamma_1d - gamma_2d
-    pull = residuals / np.sqrt(gamma_1d_err**2 + gamma_2d_err**2)
-    
-    # Chi-squared of 1D vs 2D
-    chi2_comparison = np.nansum(pull**2)
-    npoints = np.sum(~np.isnan(pull))
-    
-    return {
-        'gamma_1d': gamma_1d,
-        'gamma_1d_err': gamma_1d_err,
-        'gamma_2d': gamma_2d,
-        'gamma_2d_err': gamma_2d_err,
-        'residuals': residuals,
-        'pull': pull,
-        'chi2_comparison': chi2_comparison,
-        'npoints': npoints,
-        'center_freqs': center_freqs,
-    }
-
-
 # ==============================================================================
 # MCMC Extension (optional, requires emcee)
 # ==============================================================================

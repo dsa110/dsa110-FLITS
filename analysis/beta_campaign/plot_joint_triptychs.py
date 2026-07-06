@@ -18,7 +18,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 
 RUNS = os.environ.get("FLITS_RUNS", "/Users/jakobfaber/Developer/scratch/flits-local-runs")
 JDIR = os.path.join(RUNS, "data/joint")
-OUT = os.path.join(JDIR, "triptychs")
+OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "triptychs")
 os.makedirs(OUT, exist_ok=True)
 
 CMAP = plt.get_cmap("magma").copy()

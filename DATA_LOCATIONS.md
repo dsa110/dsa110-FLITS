@@ -122,7 +122,7 @@ Authoritative staging on iacobus CloudDocs `Dropbox-Migration/`; codetection-sco
 
 ## Related repos
 
-- subhalos: https://github.com/jakobtfaber/subhalos — archive pending; consolidated into frb-foreground-halos (June 2026), itself integrated into `galaxies/foreground/vo/`
-- frb-foreground-halos: https://github.com/jakobtfaber/frb-foreground-halos — archive pending; integrated into `galaxies/foreground/vo/` 2026-07-05 (`feat/ffh-integration`). Physical results data: `~/Data/frb-foreground-halos/results/` (symlink pattern per the ~/Data convention)
+- subhalos: https://github.com/jakobtfaber/subhalos — archived 2026-07-05; consolidated into frb-foreground-halos (June 2026), itself integrated into `galaxies/foreground/vo/`
+- frb-foreground-halos: https://github.com/jakobtfaber/frb-foreground-halos — archived 2026-07-05; integrated into `galaxies/foreground/vo/` (PR #123). Physical results data: `~/Data/frb-foreground-halos/results/` (symlink pattern per the ~/Data convention)
 - los_halos: https://github.com/jakobtfaber/los_halos — archived 2026-07-05; VO-TAP pipeline integrated into `galaxies/foreground/vo/`
 - dsa110-scat: git + iacobus `archive/dsa110-scat/`

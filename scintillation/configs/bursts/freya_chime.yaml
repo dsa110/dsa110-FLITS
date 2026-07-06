@@ -38,6 +38,14 @@ analysis:
     fit_lagrange_mhz: 1.0
     reference_frequency_mhz: 600.0
     force_model: null
+    # CHIME upchannelization prints a comb into the frequency ACF at harmonics
+    # of the coarse-channel spacing (400 MHz / 1024); exclude those lags from
+    # the Lorentzian fit (dsa110-FLITS PR #130; Faber2026 instrumental-origin
+    # experiment arm B1).
+    harmonic_mask:
+      enable: true
+      spacing_mhz: 0.390625
+      halfwidth_mhz: 0.05
   grid_regularization:
     # No-op if this npz's grid is uniform; on a gapped grid the index-lag ACF
     # axis is stretched by mean/native spacing (issue #120, E1/E2 experiment).

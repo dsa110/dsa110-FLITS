@@ -643,6 +643,8 @@ def _scan_fit_windows(
     off_burst_spectrum_mean: float | None,
     max_lag_mhz: float,
     scan_lags_mhz: list[float],
+    harmonic_mask_spacing_mhz: float | None = None,
+    harmonic_mask_halfwidth_mhz: float = 0.05,
 ) -> tuple[list[dict], float | None]:
     """Refit the ACF Lorentzian per fit window; return per-window records and
     the spread (max - min) of the successful widths (None if fewer than two
@@ -670,6 +672,8 @@ def _scan_fit_windows(
                 off_burst_spectrum_mean=off_burst_spectrum_mean,
                 max_lag_mhz=max_lag_mhz,
                 fit_lag_mhz=float(fit_lag),
+                harmonic_mask_spacing_mhz=harmonic_mask_spacing_mhz,
+                harmonic_mask_halfwidth_mhz=harmonic_mask_halfwidth_mhz,
             )
             record = {
                 "fit_lag_mhz": float(fit_lag),
@@ -705,6 +709,8 @@ def run_notebook_style_analysis(
     max_lag_mhz: float = 20.0,
     fit_lag_mhz: float = 2.0,
     fit_lag_scan_mhz: list[float] | None = None,
+    harmonic_mask_spacing_mhz: float | None = None,
+    harmonic_mask_halfwidth_mhz: float = 0.05,
     write_figures: bool = True,
 ) -> NotebookStyleResult:
     output = Path(output_dir)
@@ -721,6 +727,8 @@ def run_notebook_style_analysis(
         off_burst_spectrum_mean=off_mean,
         max_lag_mhz=max_lag_mhz,
         fit_lag_mhz=fit_lag_mhz,
+        harmonic_mask_spacing_mhz=harmonic_mask_spacing_mhz,
+        harmonic_mask_halfwidth_mhz=harmonic_mask_halfwidth_mhz,
     )
     structure_result = estimate_structure_bandwidth(
         on_spectrum,
@@ -749,6 +757,8 @@ def run_notebook_style_analysis(
             off_burst_spectrum_mean=off_mean,
             max_lag_mhz=max_lag_mhz,
             scan_lags_mhz=list(fit_lag_scan_mhz),
+            harmonic_mask_spacing_mhz=harmonic_mask_spacing_mhz,
+            harmonic_mask_halfwidth_mhz=harmonic_mask_halfwidth_mhz,
         )
 
     result_path = output / f"{burst_id}_scintillation.json"
@@ -916,6 +926,7 @@ def run_config_path(
         else _default_output_dir(cfg)
     )
     scan_cfg = fitting_cfg.get("fit_lag_scan_mhz")
+    hm_cfg = fitting_cfg.get("harmonic_mask") or {}
     return run_notebook_style_analysis(
         spectrum,
         burst_id=cfg.get("burst_id", "freya"),
@@ -925,6 +936,10 @@ def run_config_path(
         max_lag_mhz=float(acf_cfg.get("max_lag_mhz", 20.0)),
         fit_lag_mhz=float(fitting_cfg.get("fit_lagrange_mhz", 2.0)),
         fit_lag_scan_mhz=[float(v) for v in scan_cfg] if scan_cfg else None,
+        harmonic_mask_spacing_mhz=(
+            float(hm_cfg.get("spacing_mhz", 0.390625)) if hm_cfg.get("enable") else None
+        ),
+        harmonic_mask_halfwidth_mhz=float(hm_cfg.get("halfwidth_mhz", 0.05)),
         write_figures=write_figures,
     )
 

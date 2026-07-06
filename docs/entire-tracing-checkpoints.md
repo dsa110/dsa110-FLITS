@@ -4922,3 +4922,81 @@ preserving for future agents.
 - `origin` `entire/*` refs:
   - entire/checkpoints/v1 -> f36a8fd
 - note: `.entire/` remains host-local runtime state; only this ledger is tracked.
+
+## 2026-07-06T01:54:23-07:00 — jakob
+- repo: `/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS`
+- branch: `campaign/beta-thin-screen-pass1`
+- head: `82d22ca1`
+- origin/main: `25b8cc61`
+- worktree: clean
+- note: watched path changed: analysis/beta_campaign/grade_beta_campaign.py
+- tracked status: clean
+- local `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd4
+- `origin` `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd
+- note: `.entire/` remains host-local runtime state; only this ledger is tracked.
+
+## 2026-07-06T02:20:44-07:00 — jakob
+- repo: `/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS`
+- branch: `campaign/beta-thin-screen-pass1`
+- head: `32502023`
+- origin/main: `25b8cc61`
+- worktree: dirty
+- note: watched path changed: analysis/scattering-refit-2026-06/_a1_fits/casey_joint_fit_sharedzeta_pbf-exp-exp.json
+- tracked status:
+  - M docs/entire-tracing-checkpoints.md
+  -  M galaxies/foreground/sightline_budget.py
+  -  M galaxies/foreground/survey_coverage.py
+  -  M results/sightline_dm_scattering_budget.md
+  -  M results/sightline_dm_scattering_budget.svg
+- local `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd4
+- `origin` `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd
+- note: `.entire/` remains host-local runtime state; only this ledger is tracked.
+
+## 2026-07-06T02:21:08-07:00 — jakob
+- repo: `/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS`
+- branch: `campaign/beta-thin-screen-pass1`
+- head: `bbf1b54e`
+- origin/main: `25b8cc61`
+- worktree: dirty
+- note: watched path changed: analysis/beta_campaign/sim_gate_results.json
+- tracked status:
+  - M docs/entire-tracing-checkpoints.md
+- local `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd4
+- `origin` `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd
+- note: `.entire/` remains host-local runtime state; only this ledger is tracked.
+
+## 2026-07-06T02:34:17-07:00 — jakob
+- repo: `/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS`
+- branch: `campaign/beta-thin-screen-pass1`
+- head: `7a531398`
+- origin/main: `25b8cc61`
+- worktree: dirty
+- note: watched path changed: analysis/beta_campaign/grade_beta_campaign.py
+- tracked status:
+  - M docs/entire-tracing-checkpoints.md
+- local `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd4
+- `origin` `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd
+- note: `.entire/` remains host-local runtime state; only this ledger is tracked.
+
+## 2026-07-06T02:35:26-07:00 — jakob
+- repo: `/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS`
+- branch: `campaign/beta-thin-screen-pass1`
+- head: `4552794f`
+- origin/main: `25b8cc61`
+- worktree: dirty
+- note: watched path changed: analysis/beta_campaign/two_screen.py
+- tracked status:
+  - M docs/entire-tracing-checkpoints.md
+- local `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd4
+- `origin` `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd
+- note: `.entire/` remains host-local runtime state; only this ledger is tracked.

@@ -49,4 +49,7 @@ dependencies:
     # `LIBRARY_PATH=<libf2c_dir> pip install .`. Runtime also needs the
     # setuptools<81 pin above; the scipy>=1.14 integrate.simps removal is
     # shimmed in sightline_budget._load_pygedm.
-    - pygedm>=3.3.0  # offline NE2001/YMW16/YT2020 (see build note above)
+    # Deliberately NOT listed as an active dep: with no macOS arm64 wheel the
+    # build failure would fail `conda env create` for everyone (verified
+    # 2026-07-05); install manually per the note when DM_MW is needed.
+    # - pygedm>=3.3.0  # offline NE2001/YMW16/YT2020 (see build note above)

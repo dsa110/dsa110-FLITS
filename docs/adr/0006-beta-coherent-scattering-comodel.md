@@ -69,6 +69,17 @@ Corollaries for fit design:
   measure departure from the assumed scattering family (burst morphology,
   extended medium, inner scale), not a turbulence spectral index. This is why a
   shallow apparent `alpha < 4` does not map to any `beta` on the thin-screen
-  branch; the extended-medium closure `alpha = 8/(6-beta)` for `beta > 4`
-  (docs/literature/Bhat_MultiFreqObsPulseBroadening_2004.md) is the branch such
-  sightlines would need, and it is not implemented.
+  branch.
+
+**Correction (2026-07-05, verified against Bhat 2004 Eq. 4 in
+docs/literature/Bhat_MultiFreqObsPulseBroadening_2004.md):** an earlier version
+of this addendum claimed the steep-spectrum closure `alpha = 8/(6-beta)` for
+`beta > 4` was "the branch such sightlines would need". It is not: for
+`4 < beta < 6` that branch gives `alpha > 4` as well — *steeper*, not
+shallower, than the exponential limit. Neither branch of the pure power-law
+closure reaches `alpha < 4`. The mechanisms the literature actually offers for
+shallow alpha are an inner-scale cutoff, refractive bias near the weak/strong
+transition, transversely truncated screens, and PBF misspecification — Bhat
+2004 §7 shows the same pulsar yielding `alpha ~ 3.1` under the thin-screen PBF
+but Kolmogorov-consistent alpha under the extended-medium (uniform-LOS) PBF.
+See ADR-0007 for the proposed response.

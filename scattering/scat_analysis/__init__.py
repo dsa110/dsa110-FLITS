@@ -1,10 +1,11 @@
-from .burstfit import FRBModel, FRBParams, FRBFitter
-# Refactored pipeline components
-from .pipeline.io import BurstDataset
+from .burstfit import FRBFitter, FRBModel, FRBParams
 from .pipeline.core import BurstPipeline
 from .pipeline.diagnostics import BurstDiagnostics
-# from .burstfit_interactive import InitialGuessWidget # Requires ipywidgets
 
+# Refactored pipeline components
+from .pipeline.io import BurstDataset
+
+# from .burstfit_interactive import InitialGuessWidget # Requires ipywidgets
 from .visualization import plot_scattering_diagnostic
 
 __all__ = [
@@ -19,33 +20,29 @@ __all__ = [
 ]
 
 from .burstfit import build_priors
-from .dm_preprocessing import refine_dm_init
 
 # Model selection (BIC-based)
 from .burstfit_modelselect import fit_models_bic
+from .dm_preprocessing import refine_dm_init
 
 # Nested sampling (evidence-based model selection)
 try:
     from .burstfit_nested import (
-        fit_models_evidence,
-        fit_single_model_nested,
         NestedSamplingResult,
-        interpret_bayes_factor,
+        fit_models_evidence,
     )
 except ImportError:
     # dynesty not installed
     fit_models_evidence = None
-    fit_single_model_nested = None
     NestedSamplingResult = None
-    interpret_bayes_factor = None
 
 # Physical priors from NE2001
 try:
     from .priors_physical import (
-        build_physical_priors,
-        get_ne2001_scattering,
         PhysicalPriors,
+        build_physical_priors,
         get_burst_priors_from_catalog,
+        get_ne2001_scattering,
     )
 except ImportError:
     # mwprop not installed
@@ -55,19 +52,18 @@ except ImportError:
     get_burst_priors_from_catalog = None
 
 # Robustness diagnostics
-from .burstfit_robust import (
-    subband_consistency,
-    leave_one_out_influence,
-    dm_optimization_check,
-    fit_subband_profiles,
-)
-
 # Data-driven initial guess estimation
 from .burstfit_init import (
+    InitialGuessResult,
     data_driven_initial_guess,
-    quick_initial_guess,
-    estimate_spectral_index,
     estimate_pulse_width,
     estimate_scattering_from_tail,
-    InitialGuessResult,
+    estimate_spectral_index,
+    quick_initial_guess,
+)
+from .burstfit_robust import (
+    dm_optimization_check,
+    fit_subband_profiles,
+    leave_one_out_influence,
+    subband_consistency,
 )

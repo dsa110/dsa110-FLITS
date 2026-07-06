@@ -2,7 +2,7 @@
 # ============================================================================
 # validate_unresolved_case.py
 #
-# This script serves as a validation test for the frb_scintillator module.
+# This script serves as a validation test for the engine module.
 # It simulates the "unresolved" two-screen case from Pradeep et al. (2025)
 # and verifies that the total modulation index squared (the peak of the ACF)
 # approaches the theoretical value of 3, as predicted by Eq. 4.26.
@@ -24,7 +24,7 @@ import matplotlib.pyplot as plt
 import astropy.units as u
 import sys
 
-# Add the parent directory to the path to find the frb_scintillator module
+# Add the parent directory to the path to find the engine module
 # This allows the script to be run from within the validation/ directory
 sys.path.append('..')
 from screen import ScreenCfg

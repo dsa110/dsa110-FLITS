@@ -62,7 +62,7 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
     from galaxies.foreground import config
     from galaxies.foreground import scattering_predict as scat
-    from galaxies.foreground.build_unified import MASS_PRIORITY, build_unified_records
+    from galaxies.foreground.build_unified import MASS_PRIORITY
 
 
 # Every MASS_PRIORITY source except the trailing "assumed" default is a real
@@ -454,6 +454,49 @@ def _nz(x: float) -> float:
     return x if math.isfinite(x) else 0.0
 
 
+def foreground_unified(
+    name: str,
+    z_frb: float,
+    sight_ra: float,
+    sight_dec: float,
+    *,
+    results_dir: str = "results",
+    enrich: bool = False,
+    registry_path: str | Path | None = None,
+    use_registry: bool = True,
+) -> pd.DataFrame:
+    """The budget's foreground set for one sightline as unified records.
+
+    Registry-first acquisition (falling back to results/{name}_galaxies.csv),
+    then build_unified_records, filtered to z < z_frb. Single source of truth
+    for every consumer -- build_sightline_budget and the dominant-systems
+    figure (galaxies/v2_0/systems_figures.py) -- so figure annotations cannot
+    drift from the tabulated budget.
+    """
+    csv_path = os.path.join(results_dir, f"{name.lower()}_galaxies.csv")
+    matches: pd.DataFrame | None = None
+    if use_registry:
+        try:
+            from galaxies.foreground.census_registry import (
+                load_intervening_census_registry,
+                registry_to_matches,
+            )
+
+            registry = load_intervening_census_registry(registry_path)
+            matches = registry_to_matches(registry, name, z_frb)
+        except (ImportError, OSError, ValueError):
+            matches = None
+    if matches is None or matches.empty:
+        matches = pd.read_csv(csv_path) if os.path.exists(csv_path) else pd.DataFrame()
+    if not len(matches):
+        return pd.DataFrame()
+    unified = build_unified_records(
+        matches, z_frb=z_frb, sight_ra=sight_ra, sight_dec=sight_dec, enrich=enrich
+    )
+    z = pd.to_numeric(unified["z"], errors="coerce")
+    return unified[z < float(z_frb)].copy()  # NaN z compares False: foreground only
+
+
 def build_sightline_budget(
     name: str,
     ra_str: str,
@@ -525,32 +568,19 @@ def build_sightline_budget(
 
     coverage = _coverage_for(name, results_dir)
 
-    csv_path = os.path.join(results_dir, f"{name.lower()}_galaxies.csv")
-    matches: pd.DataFrame | None = None
-    if use_registry:
-        try:
-            from galaxies.foreground.census_registry import (
-                load_intervening_census_registry,
-                registry_to_matches,
-            )
-
-            registry = load_intervening_census_registry(registry_path)
-            matches = registry_to_matches(registry, name, z_frb)
-        except (ImportError, OSError, ValueError):
-            matches = None
-    if matches is None or matches.empty:
-        if os.path.exists(csv_path):
-            matches = pd.read_csv(csv_path)
-        else:
-            matches = pd.DataFrame()
-    if len(matches):
-        unified = build_unified_records(
-            matches, z_frb=z_frb, sight_ra=sight.ra.deg, sight_dec=sight.dec.deg, enrich=enrich
-        )
+    unified = foreground_unified(
+        name,
+        z_frb,
+        sight.ra.deg,
+        sight.dec.deg,
+        results_dir=results_dir,
+        enrich=enrich,
+        registry_path=registry_path,
+        use_registry=use_registry,
+    )
+    if len(unified):
         for _, row in unified.iterrows():
             z = _f(row.get("z"))
-            if not (math.isfinite(z) and z < float(z_frb)):  # foreground galaxies only
-                continue
             n_fg += 1
             if _truthy(row.get("intersects_rvir")):
                 n_isect += 1

@@ -655,6 +655,27 @@ def _make_noise_model(template, lags):
     return nmod, p
 
 
+def harmonic_lag_mask(lags, spacing_mhz, halfwidth_mhz):
+    """Boolean mask (True = keep) excluding lags near k*spacing_mhz, k >= 1.
+
+    CHIME upchannelized products carry bandpass structure that repeats every
+    coarse channel (400 MHz / 1024 = 0.390625 MHz), printing a comb of spikes
+    into the frequency ACF at harmonics of that spacing (visible in the
+    2025-03 scintbw_freya fine-channel ACFs; quantified in the Faber2026
+    instrumental-origin experiment, arm B1: masking +/-0.05 MHz moves the
+    freya CHIME fit 35.19 -> 42.21 kHz). Excluding the comb keeps the
+    Lorentzian fit from being pulled by instrumental power. The zero-lag
+    neighbourhood (|lag| < spacing/2) is never masked here; the k=0 region is
+    governed by the fit range itself.
+    """
+    lags = np.asarray(lags, dtype=float)
+    if spacing_mhz is None or spacing_mhz <= 0:
+        return np.ones(lags.shape, dtype=bool)
+    dist = np.abs(np.abs(lags) - np.round(np.abs(lags) / spacing_mhz) * spacing_mhz)
+    near = (dist <= float(halfwidth_mhz)) & (np.abs(lags) >= 0.5 * spacing_mhz)
+    return ~near
+
+
 def _fit_acf_models(
     acf_object,
     fit_lagrange_mhz: float,
@@ -671,6 +692,13 @@ def _fit_acf_models(
 
     # --- data slice & weights ---
     m = (np.abs(acf_object.lags) <= fit_lagrange_mhz) & (acf_object.lags != 0)
+    hm_cfg = (config or {}).get("analysis", {}).get("fitting", {}).get("harmonic_mask", {})
+    if hm_cfg.get("enable"):
+        m &= harmonic_lag_mask(
+            acf_object.lags,
+            float(hm_cfg.get("spacing_mhz", 0.390625)),
+            float(hm_cfg.get("halfwidth_mhz", 0.05)),
+        )
     x, y = acf_object.lags[m], acf_object.acf[m]
     w = None if acf_object.err is None else 1.0 / np.maximum(acf_object.err[m], 1e-9)
 

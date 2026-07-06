@@ -997,6 +997,13 @@ def fit_joint_scattering(
             f"marginalize_gain_gp={marginalize_gain_gp}, shared_zeta={shared_zeta}"
         )
 
+    # maxcall is a run_nested() knob, not a sampler-constructor one: pop it out
+    # of dynesty_kwargs so callers can bound a runaway fit's likelihood budget.
+    run_kwargs = {"dlogz": dlogz, "print_progress": verbose}
+    maxcall = dynesty_kwargs.pop("maxcall", None)
+    if maxcall is not None:
+        run_kwargs["maxcall"] = int(maxcall)
+
     if nproc is not None and nproc > 1:
         # fork so workers inherit memory instead of re-importing __main__ (spawn
         # default crashes); identical pattern to burstfit_nested.
@@ -1019,11 +1026,11 @@ def fit_joint_scattering(
                 queue_size=int(nproc),
                 **dynesty_kwargs,
             )
-            sampler.run_nested(dlogz=dlogz, print_progress=verbose)
+            sampler.run_nested(**run_kwargs)
             results = sampler.results
     else:
         sampler = NestedSampler(loglike, ptform, ndim, nlive=nlive, sample=sample, **dynesty_kwargs)
-        sampler.run_nested(dlogz=dlogz, print_progress=verbose)
+        sampler.run_nested(**run_kwargs)
         results = sampler.results
 
     weights = np.exp(results.logwt - results.logz[-1])

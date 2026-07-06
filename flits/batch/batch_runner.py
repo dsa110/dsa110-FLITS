@@ -62,13 +62,14 @@ def discover_scint_configs(base_dir, telescopes) -> dict[str, dict[str, Path]]:
     without inspecting the data), so they are resolved from
     <base_dir>/<burst>_<telescope>.yaml (the flat scintillation/configs/bursts
     layout) rather than generated. Variant configs (e.g. *_hi, *_temp) don't
-    match the glob and are ignored.
+    match the glob and are ignored. Burst keys are lowercased to match
+    BurstInfo.from_filename (else johndoeII's config is silently missed).
     """
     base = Path(base_dir)
     found: dict[str, dict[str, Path]] = {}
     for telescope in telescopes:
         for cfg in sorted(base.glob(f"*_{telescope}.yaml")):
-            burst = cfg.stem[: -len(f"_{telescope}")]
+            burst = cfg.stem[: -len(f"_{telescope}")].lower()
             found.setdefault(burst, {})[telescope] = cfg
     return found
 

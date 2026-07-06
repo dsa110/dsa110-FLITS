@@ -130,13 +130,14 @@ not across the column.)
 
 ## Manuscript joint figures — regeneration runbook
 
-Three manuscript figures live in `analysis/scattering-refit-2026-06/dsa_figs/`:
-`tau_nu_ladder.png`, `joint_ppc_montage.png`, and the per-burst `*_joint_ppc.png`.
-**The committed PNGs are base/mixed-PBF (CHIME powerlaw / DSA exp) and are
-SUPERSEDED by ADR-0003 — they must be regenerated from the all-exp family before
-manuscript use.** This is the runbook; the underlying α science is the rest of
-this doc + `LADDER_SUMMARY.md`. Do not overwrite `dsa_figs/` until the
-`@decision` gates in `.agents/deferred-tasks.md` (#32/#33) clear.
+**HISTORICAL (2026-07-05):** `dsa_figs/` no longer exists — the all-exp regen
+landed via PR #78 and the directory was later removed as generated artifacts
+(`9096a608`; the PR #78 renders remain in git history). The manuscript has since
+moved past this plan entirely: Faber2026 carries a 12-burst β-co-model
+`jointmodel_montage` from `batch_jointmodel.py`, and the all-exp joint τ was
+folded into `fig:budget` (`b1f44298`) rather than a standalone ladder. The
+runbook below is preserved for provenance; the underlying α science is the rest
+of this doc + `LADDER_SUMMARY.md`.
 
 **Canonical input set.** All-exp single-exp PBF (`--pbf-C exp --pbf-D exp`), each
 burst at its own best-model — the family is **heterogeneous**, not uniform (e.g.

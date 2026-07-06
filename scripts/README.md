@@ -51,4 +51,3 @@ python scripts/dev/create_dummy_db.py
 
 - Simulation scripts: `simulation/scripts/`
 - Main pipelines: `scattering/`, `scintillation/`
-- Analysis notebooks: `analyses/`

@@ -70,5 +70,5 @@ Corollaries for fit design:
   extended medium, inner scale), not a turbulence spectral index. This is why a
   shallow apparent `alpha < 4` does not map to any `beta` on the thin-screen
   branch; the extended-medium closure `alpha = 8/(6-beta)` for `beta > 4`
-  (papers/Bhat_MultiFreqObsPulseBroadening_2004.md) is the branch such
+  (docs/literature/Bhat_MultiFreqObsPulseBroadening_2004.md) is the branch such
   sightlines would need, and it is not implemented.

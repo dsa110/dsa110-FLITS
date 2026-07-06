@@ -59,7 +59,13 @@ def main() -> int:
     rows, excluded = [], []
     for r in verdicts["rows"]:
         if r["final"] == "FAIL":
-            excluded.append(f"{r['burst']} ({r['reason'].split(';')[0]})")
+            excluded.append(f"{r['burst']} (gate FAIL: {r['reason'].split(';')[0]})")
+            continue
+        # railed-hi is the physical square-law boundary member (quotable as a
+        # limit); railed-lo (beta=3 prior edge, alpha=6 ceiling) and
+        # unconstrained (mass at both bounds) are NOT citable rows.
+        if r["rail_class"] in ("railed-lo", "unconstrained"):
+            excluded.append(f"{r['burst']} ({r['rail_detail']['detail']})")
             continue
         railed = r["rail_class"] == "railed-hi"
         b, (em, ep) = r["beta"], r["beta_err"]
@@ -80,7 +86,7 @@ def main() -> int:
         *rows,
     ]
     if excluded:
-        lines.append(f"% excluded (gate FAIL): {'; '.join(excluded)}")
+        lines.append(f"% excluded (not citable): {'; '.join(excluded)}")
     if verdicts["missing"]:
         lines.append(f"% missing campaign fits: {', '.join(verdicts['missing'])}")
     out.write_text("\n".join(lines) + "\n")

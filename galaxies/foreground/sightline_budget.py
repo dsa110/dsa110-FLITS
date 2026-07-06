@@ -384,13 +384,18 @@ def _coverage_for(name: str, results_dir: str) -> dict:
     if rows.empty:
         return out
     not_applicable = sorted(rows.loc[rows["status"] == "no_footprint", "survey"])
+
+    def _count(r, key):
+        v = r.get(key, 0)
+        return int(v) if pd.notna(v) else 0
+
     deep_applied = any(
         r["survey"] in DEEP_SURVEYS
         and r["status"] in _APPLIED_STATUSES
         and (
             r["status"] == "footprint_empty"
-            or int(r.get("foreground_count", 0)) > 0
-            or int(r.get("with_z_count", 0)) > 0
+            or _count(r, "foreground_count") > 0
+            or _count(r, "with_z_count") > 0
         )
         for _, r in rows.iterrows()
     )

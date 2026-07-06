@@ -47,8 +47,19 @@ def survey_in_footprint(survey_key: str, coord: SkyCoord) -> bool:
                         Longitude(coord.ra.deg * u.deg), Latitude(coord.dec.deg * u.deg)
                     )
                 )
-        except Exception:
-            pass  # offline / no cached MOC: fall through to the nominal rule
+        except Exception as exc:
+            # Fall through to the nominal declination rule, but VISIBLY: the
+            # dec rules return True for the whole +70..+74 deg sample, so a
+            # silently broken MOC cache would mislabel uncovered positions as
+            # "searched and empty" (the exact conflation the MOC path fixes).
+            import warnings
+
+            warnings.warn(
+                f"exact-MOC containment unavailable for {survey_key} "
+                f"({type(exc).__name__}: {exc}); falling back to the "
+                "declination-only footprint rule",
+                stacklevel=2,
+            )
     rule = FOOTPRINT_RULES.get(survey_key, "all_sky")
     dec = coord.dec.deg
     if rule == "all_sky":

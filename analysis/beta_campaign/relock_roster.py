@@ -60,8 +60,15 @@ def _entry(r: dict, runs_root: Path) -> dict:
             "posterior railed at beta=4 (square-law/exponential member): alpha = 4 "
             "quotable only as a geometry-conditioned limit; ADR-0007 re-open candidate"
         )
-    else:
+    elif r["rail_class"] == "interior":
         e["alpha"] = round(r["alpha"], 4)
+    else:
+        # railed-lo (beta=3 prior edge, alpha=6 L1 ceiling) or mass at both
+        # bounds: not a measurement and not a physical boundary member --
+        # neither alpha nor a limit is quotable.
+        e["alpha_unconstrained"] = True
+        e["alpha_note"] = r["rail_detail"]["detail"]
+        e["excluded_from_tab_beta"] = "beta unconstrained (" + r["rail_class"] + ")"
     if burst == "zach":
         e["excluded_from_tab_beta"] = (
             "Pass-2 fixed-s2 multiplicity (C2D3 vs C2D2) not robust "
@@ -95,10 +102,11 @@ def main() -> int:
         e["tns"] = load_tns_name(e["nickname"]) or e["nickname"]
         cc, cd = r["chi2_chime"], r["chi2_dsa"]
         clean = all(x is not None and x < CHI2_TIER_A_MAX for x in (cc, cd))
+        citable_rail = r["rail_class"] in ("interior", "railed-hi")
         if r["burst"] == "whitney_fine":
             e["note"] = "multiplicity exemplar (C2D2 after local re-prep)"
             exemplar = e
-        elif clean:
+        elif clean and citable_rail:
             tier_a.append(e)
         else:
             e["caveat"] = r["reason"]

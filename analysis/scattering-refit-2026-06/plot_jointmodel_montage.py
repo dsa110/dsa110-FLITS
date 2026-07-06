@@ -1,7 +1,8 @@
 """Assemble a manuscript montage: per-burst DSA data | model mini-panels.
 
-  python plot_jointmodel_montage.py <fig-dir-with-npz> <out-base>
+python plot_jointmodel_montage.py <fig-dir-with-npz> <out-base>
 """
+
 from __future__ import annotations
 
 import sys
@@ -24,7 +25,7 @@ ORDER = [
     "mahi",
     "oran",
     "phineas",
-    "whitney",
+    "whitney_fine",  # beta-campaign fit name (manuscript nickname: whitney)
     "wilhelm",
     "zach",
 ]
@@ -58,7 +59,9 @@ def _mini(ax_d, ax_m, z):
 def main():
     fig_dir = Path(sys.argv[1])
     out_base = Path(sys.argv[2])
-    npz_dir = fig_dir if list(fig_dir.glob("*_jointmodel*.npz")) else fig_dir.parent / "data" / "joint"
+    npz_dir = (
+        fig_dir if list(fig_dir.glob("*_jointmodel*.npz")) else fig_dir.parent / "data" / "joint"
+    )
     if not list(npz_dir.glob("*_jointmodel*.npz")):
         npz_dir = Path(
             sys.argv[1].replace("jointmodel_figs", "data/joint")
@@ -83,18 +86,21 @@ def main():
         row, col = divmod(i, ncols)
         fp = sorted(npz_dir.glob(f"{b}_jointmodel*.npz"))[0]
         z = np.load(fp, allow_pickle=True)
-        al = float(z["alpha"])
         cD = float(z["chi2D"])
+        # beta-campaign npz carry the sampled beta; alpha-era ones only alpha
+        label = f"β={float(z['beta']):.2f}" if "beta" in z.files else f"α={float(z['alpha']):.2f}"
         ax_d = axes[row, col * 2]
         ax_m = axes[row, col * 2 + 1]
         _mini(ax_d, ax_m, z)
-        ax_d.set_title(f"{b}\nDSA data", fontsize=7)
-        ax_m.set_title(f"model  α={al:.2f} χ²={cD:.1f}", fontsize=7)
+        ax_d.set_title(f"{b.removesuffix('_fine')}\nDSA data", fontsize=7)
+        ax_m.set_title(f"model  {label} χ²={cD:.1f}", fontsize=7)
     for j in range(n, nrows * ncols):
         row, col = divmod(j, ncols)
         axes[row, col * 2].axis("off")
         axes[row, col * 2 + 1].axis("off")
-    fig.suptitle("Joint-fit DSA dynamic spectra — data vs recovered model (all co-detections)", fontsize=10)
+    fig.suptitle(
+        "Joint-fit DSA dynamic spectra — data vs recovered model (all co-detections)", fontsize=10
+    )
     fig.tight_layout(rect=[0, 0, 1, 0.97])
     for ext in ("pdf", "svg", "png"):
         fp = out_base.with_suffix(f".{ext}")

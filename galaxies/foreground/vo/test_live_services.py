@@ -64,7 +64,7 @@ def test_end_to_end_pipeline_vizier(tmp_path, sample_targets):
     test_table = tables.iloc[0]
     target = sample_targets[0]
 
-    result = cone_query(
+    result, _ = cone_query(
         VIZIER, test_table["table"], test_table["ra_col"], test_table["dec_col"],
         ra_deg=target.ra, dec_deg=target.dec, radius_deg=0.1, maxrec=50,
     )

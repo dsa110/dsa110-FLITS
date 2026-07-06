@@ -1,10 +1,6 @@
-"""Shared helpers: TAP session timeout injection and provenance records."""
+"""Shared helpers: TAP session timeout injection."""
 
 from __future__ import annotations
-
-import json
-from datetime import UTC, datetime
-from typing import Any
 
 
 def set_tap_timeout(tap_service: object, timeout_seconds: float = 10.0) -> None:
@@ -28,17 +24,3 @@ def set_tap_timeout(tap_service: object, timeout_seconds: float = 10.0) -> None:
         session.request = request_with_timeout
     except Exception:
         return
-
-
-def make_provenance(adql: str | None, service: str, table: str, extra: dict[str, Any] | None = None) -> str:
-    """JSON provenance record (sorted keys) for one query."""
-    meta: dict[str, Any] = {
-        "service": service,
-        "table": table,
-        "timestamp_utc": datetime.now(UTC).isoformat(),
-    }
-    if adql is not None:
-        meta["adql"] = adql
-    if extra:
-        meta.update(extra)
-    return json.dumps(meta, sort_keys=True)

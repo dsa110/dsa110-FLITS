@@ -1,11 +1,13 @@
-"""Normalize heterogeneous catalog tables into the common candidate schema."""
+"""Normalize heterogeneous catalog rows into the foreground-candidate schema."""
 
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass, fields
+from dataclasses import dataclass
 
 import pandas as pd
+
+from .provenance import make_provenance
 
 SCHEMA_COLUMNS = [
     "name",
@@ -24,8 +26,10 @@ SCHEMA_COLUMNS = [
 ]
 
 
-@dataclass
+@dataclass(frozen=True)
 class ColumnMapping:
+    """Map normalized schema fields to source DataFrame columns."""
+
     name: str | None = None
     id: str | None = None
     ra: str | None = None
@@ -36,87 +40,114 @@ class ColumnMapping:
     m_delta: str | None = None
     r_delta: str | None = None
     delta_def: str | None = None
-    z_source: str | None = None  # optional metadata: 'velocity' if cz/v_rad detected
+    z_source: str | None = None
+
+    def as_provenance_dict(self) -> dict[str, str | None]:
+        """Return mapping fields as a deterministic provenance payload."""
+        return {
+            "name": self.name,
+            "id": self.id,
+            "ra": self.ra,
+            "dec": self.dec,
+            "z": self.z,
+            "z_type": self.z_type,
+            "richness": self.richness,
+            "m_delta": self.m_delta,
+            "r_delta": self.r_delta,
+            "delta_def": self.delta_def,
+            "z_source": self.z_source,
+        }
 
 
-def _infer_z_type(z_value, z_source_col: str | None) -> str:
-    if z_value is None or (isinstance(z_value, float) and pd.isna(z_value)):
+def infer_z_type(z_value: object, z_column: str | None) -> str:
+    """Infer redshift type from value presence and source-column name."""
+    if z_value is None or pd.isna(z_value):
         return "none"
-    if z_source_col:
-        s = z_source_col.lower()
-        if "phot" in s:
-            return "photo"
-        if "spec" in s:
-            return "spec"
+    z_name = (z_column or "").lower()
+    if "phot" in z_name or "photo" in z_name:
+        return "photo"
+    if "spec" in z_name or "zsp" in z_name:
+        return "spec"
     return "unknown"
+
+
+def _series_or_none(df: pd.DataFrame, source: str | None) -> pd.Series:
+    if source and source in df.columns:
+        return df[source]
+    return pd.Series([None] * len(df), index=df.index)
 
 
 def normalize(
     df: pd.DataFrame,
     mapping: ColumnMapping,
+    *,
     service: str,
     table: str,
+    adql: str | None = None,
     extra_provenance: dict | None = None,
 ) -> pd.DataFrame:
-    """Map arbitrary columns into the common schema.
+    """Normalize arbitrary catalog rows into the stable candidate schema."""
+    data = {
+        "name": _series_or_none(df, mapping.name),
+        "id": _series_or_none(df, mapping.id),
+        "ra": _series_or_none(df, mapping.ra),
+        "dec": _series_or_none(df, mapping.dec),
+        "z": _series_or_none(df, mapping.z),
+        "z_type": _series_or_none(df, mapping.z_type),
+        "richness": _series_or_none(df, mapping.richness),
+        "m_delta": _series_or_none(df, mapping.m_delta),
+        "r_delta": _series_or_none(df, mapping.r_delta),
+        "delta_def": _series_or_none(df, mapping.delta_def),
+    }
 
-    Returns a DataFrame with stable column order and a ``provenance_json``
-    column (sorted keys) recording service, table, and the column mapping.
-    """
-    data = {}
-    for field in SCHEMA_COLUMNS[:10]:  # all mapped fields, excluding service/table/provenance
-        src = getattr(mapping, field)
-        data[field] = df[src] if src in df.columns else pd.Series([None] * len(df))
+    out = pd.DataFrame(data, index=df.index)
+    if mapping.z_type is None:
+        out["z_type"] = out["z"].map(lambda value: infer_z_type(value, mapping.z))
 
-    if mapping.z_type is None and mapping.z is not None:
-        data["z_type"] = df[mapping.z].map(lambda v: _infer_z_type(v, mapping.z))
-
-    out = pd.DataFrame(data)
     out["service"] = service
     out["table"] = table
 
-    prov_base = {
-        "service": service,
-        "table": table,
-        "column_mapping": {f.name: getattr(mapping, f.name) for f in fields(mapping)},
-    }
-    if extra_provenance:
-        prov_base.update(extra_provenance)
-    out["provenance_json"] = json.dumps(prov_base, sort_keys=True)
+    provenance = make_provenance(
+        adql,
+        service=service,
+        table=table,
+        column_mapping=mapping.as_provenance_dict(),
+        extra=extra_provenance,
+    )
+    out["provenance_json"] = provenance
 
-    return out[SCHEMA_COLUMNS]
+    is_photo = out["z_type"].astype(str) == "photo"
+    if is_photo.any():
+        photo_provenance = json.loads(provenance)
+        photo_provenance["z_prior"] = True
+        out.loc[is_photo, "provenance_json"] = json.dumps(photo_provenance, sort_keys=True)
+
+    return out[SCHEMA_COLUMNS].reset_index(drop=True)
 
 
 def to_common_schema(
     df: pd.DataFrame,
+    *,
     ra_col: str,
     dec_col: str,
-    z_col: str,
+    z_col: str | None,
     service: str,
     table: str,
     id_col: str | None = None,
+    name_col: str | None = None,
+    adql: str | None = None,
 ) -> pd.DataFrame:
-    """Map a raw DataFrame to the common schema with z_type inference.
-
-    Classifies z_type from the column header (spec vs photo, else per-value).
-    Photo-z rows are preserved and marked ``z_prior=true`` in provenance.
-    """
-    mapping = ColumnMapping(id=id_col, ra=ra_col, dec=dec_col, z=z_col)
-    z_header = (z_col or "").lower()
-    if "phot" in z_header:
-        explicit_zt = "photo"
-    elif "spec" in z_header:
-        explicit_zt = "spec"
-    else:
-        explicit_zt = None
-
-    out = normalize(df, mapping, service=service, table=table)
-    if explicit_zt is not None:
-        out.loc[:, "z_type"] = explicit_zt
-
-    is_photo = out["z_type"].astype(str) == "photo"
-    if is_photo.any():
-        prov = json.loads(out.loc[is_photo.index[0], "provenance_json"]) if len(out) else {}
-        prov["z_prior"] = True
-        out.loc[is_photo, "provenance_json"] = json.dumps(prov, sort_keys=True)
-    return out
+    """Convenience wrapper for the common RA/Dec/redshift case."""
+    return normalize(
+        df,
+        ColumnMapping(
+            name=name_col,
+            id=id_col,
+            ra=ra_col,
+            dec=dec_col,
+            z=z_col,
+        ),
+        service=service,
+        table=table,
+        adql=adql,
+    )

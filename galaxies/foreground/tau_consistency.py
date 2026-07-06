@@ -115,14 +115,26 @@ def load_citable_budget_nicknames() -> frozenset[str]:
 
 
 def find_citable_joint_json(burst: str) -> Path | None:
-    """Canonical all-exp joint fit JSON for a citable-roster burst."""
+    """Canonical joint fit JSON for a citable-roster burst.
+
+    Any roster entry (tier lists or the multiplicity exemplar) may carry a
+    repo-relative "fit_json" override -- how a re-locked roster points rows at
+    beta-campaign fits outside the legacy _a1_fits glob. Fallback: the all-exp
+    _a1_fits naming convention.
+    """
     burst = _normalize_burst(burst)
     if CITABLE_ROSTER_JSON.exists():
         with open(CITABLE_ROSTER_JSON) as fh:
             roster = json.load(fh)
-        exemplar = roster.get("multiplicity_exemplar") or {}
-        if str(exemplar.get("nickname", "")).lower() == burst:
-            override = exemplar.get("fit_json")
+        entries = list(roster.get("tier_a_fully_adjudicated", []))
+        entries += roster.get("tier_b_provisional_pending_s2", [])
+        exemplar = roster.get("multiplicity_exemplar")
+        if exemplar:
+            entries.append(exemplar)
+        for entry in entries:
+            if str(entry.get("nickname", "")).lower() != burst:
+                continue
+            override = entry.get("fit_json")
             if override:
                 path = REPO_ROOT / str(override)
                 if path.exists():
@@ -273,7 +285,9 @@ def build_tau_consistency_row(burst: str) -> dict:
     alpha_j = row.get("alpha_joint_free")
     tau_c = row.get("tau_consistency_1ghz_ms")
     if np.isfinite(tau_j) and np.isfinite(tau_c) and tau_j > 0:
-        row["pbf_alpha_tension"] = abs(alpha_j - ALPHA_CONSISTENCY) > 0.5 or abs(tau_c - tau_j) / tau_j > 0.2
+        row["pbf_alpha_tension"] = (
+            abs(alpha_j - ALPHA_CONSISTENCY) > 0.5 or abs(tau_c - tau_j) / tau_j > 0.2
+        )
     else:
         row["pbf_alpha_tension"] = False
     return row

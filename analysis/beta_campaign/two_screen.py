@@ -84,7 +84,12 @@ def dsa_delta_nu(burst: str, alpha: float) -> dict | None:
             if not _GAMMA_RE.match(key):
                 continue
             v, e = p.get("value"), p.get("stderr")
-            if v and e and math.isfinite(v) and math.isfinite(e) and v > 0 and e > 0:
+            # v > e (S/N >= 1): a gamma consistent with zero is not a measured
+            # decorrelation scale -- whitney subband_1's BIC winner rails
+            # lg_1_gamma at its 0.06 MHz lower bound (0.06 +/- 0.12) and would
+            # otherwise dominate the inverse-variance mean via its small
+            # absolute error.
+            if v and e and math.isfinite(v) and math.isfinite(e) and e > 0 and v > e:
                 gammas.append((float(v), float(e), key))
         if not gammas:
             continue  # pure-Gaussian winner: no decorrelation Lorentzian recorded

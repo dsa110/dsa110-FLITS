@@ -17,7 +17,7 @@ import numpy as np
 from scipy.optimize import curve_fit
 
 from . import config as config_module
-from .analysis import calculate_acf
+from .analysis import calculate_acf, harmonic_lag_mask
 from .core import ACF, DynamicSpectrum
 
 log = logging.getLogger(__name__)
@@ -160,6 +160,8 @@ def measure_scintillation_bandwidth(
     off_burst_spectrum_mean: float | None = None,
     max_lag_mhz: float = 20.0,
     fit_lag_mhz: float = 2.0,
+    harmonic_mask_spacing_mhz: float | None = None,
+    harmonic_mask_halfwidth_mhz: float = 0.05,
 ) -> ACFBandwidthResult:
     """Measure ``Delta nu_d`` from the frequency ACF Lorentzian HWHM.
 
@@ -207,6 +209,12 @@ def measure_scintillation_bandwidth(
     acf_vals = np.asarray(acf_obj.acf, dtype=float)
     fit_mask = (np.abs(lags) > 0.5 * channel_width_mhz) & (np.abs(lags) <= fit_lag_mhz)
     fit_mask &= np.isfinite(lags) & np.isfinite(acf_vals)
+    if harmonic_mask_spacing_mhz:
+        # Exclude the coarse-channel harmonic comb (CHIME upchan artifact);
+        # see harmonic_lag_mask in analysis.py.
+        fit_mask &= harmonic_lag_mask(
+            lags, harmonic_mask_spacing_mhz, harmonic_mask_halfwidth_mhz
+        )
     if int(fit_mask.sum()) < 5:
         return _failed_fit_result(
             acf_obj,

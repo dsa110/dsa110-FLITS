@@ -41,6 +41,14 @@ analysis:
     fit_lagrange_mhz: 1.0
     reference_frequency_mhz: 700.0
     force_model: null
+    # CHIME upchannelization prints a comb into the frequency ACF at harmonics
+    # of the coarse-channel spacing (400 MHz / 1024); exclude those lags from
+    # the Lorentzian fit (dsa110-FLITS PR #130; Faber2026 instrumental-origin
+    # experiment arm B1).
+    harmonic_mask:
+      enable: true
+      spacing_mhz: 0.390625
+      halfwidth_mhz: 0.05
     # Grid-locked instrumental ripple sits at ~0.40 MHz, inside the 1.0 MHz
     # window; the window choice is a systematic comparable to the statistical
     # error (E2 experiment: 44.7/57.2/67.7 kHz at 1.0/0.3/0.2). Report it.

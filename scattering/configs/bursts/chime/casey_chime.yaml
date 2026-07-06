@@ -6,6 +6,9 @@ sampcfg_path: ../../sampler.yaml
 dm_init: 0.0
 telescope: chime
 steps: 10000
+# f/t provenance: the retired configs/batch tree carried 64/24 for casey CHIME
+# (PR #126). No casey joint flux-cal artifact exists yet, so 32/4 has never fed
+# a result — pick deliberately before any casey joint fit consumes this file.
 f_factor: 32
 t_factor: 4
 likelihood: studentt

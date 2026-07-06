@@ -1,0 +1,10 @@
+{
+  "burst": "chromatica",
+  "alpha": 3.28420838764534,
+  "tau_1ghz": 0.1957395759415959,
+  "chi2_chime": 1.1355676138874533,
+  "chi2_dsa": 1.1567372208577056,
+  "components_C": 1,
+  "components_D": 1,
+  "suffix": "_sharedzeta_pbf-exp-exp"
+}

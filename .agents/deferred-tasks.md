@@ -72,3 +72,14 @@ docs close-out, so none are `@agent`.
   commit `0c47c46` (archive-notice README + AGENTS.md + docs/reviews/; gurobi.log
   and machine-local results symlink left untracked) pushed → archived. Both
   isArchived: true. DATA_LOCATIONS.md dates updated.
+
+- [ ] **CHIME-band Δν_d for the two-screen consistency table.** The β-campaign
+  two-screen surface (`analysis/beta_campaign/two_screen.py`, 2026-07-06) is
+  DSA-band only: `scintillation/configs/bursts/*_chime*.yaml` carry no
+  `stored_fits`, and the only CHIME ACF material on disk is unadjudicated
+  experiment sweeps (`~/Data/Faber2026/dsa110/scintillation-data/exp-*`,
+  casey/freya only, with the instrumental-origin question still open). Adding
+  CHIME rows means running a fresh CHIME ACF campaign through
+  `scint_analysis` and adjudicating the harmonic-mask/instrumental caveats
+  first. **@decision** — science scope call (which bursts, whether the
+  DSA-band product alone suffices for the manuscript's two-screen claims).

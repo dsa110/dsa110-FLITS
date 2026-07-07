@@ -42,6 +42,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import cm
 from matplotlib.colors import Normalize
+from matplotlib.lines import Line2D
+from matplotlib.transforms import blended_transform_factory
 from matplotlib.patches import Rectangle
 
 __all__ = ["BandSpectrum", "plot_codetection", "plot_codetection_observations"]
@@ -56,6 +58,10 @@ _BAND_LINE_COLORS = ("#262626", "#b2182b", "#2166ac", "#1b7837")
 _HATCH_ZORDER = 0.5
 _DATA_ZORDER = 2.0
 _TICK_ZORDER = 10.0
+_OUTBOARD_GRID_LEFT = 0.18
+_OUTBOARD_BRACKET_X = -0.010
+_OUTBOARD_TEXT_X = -0.034
+_INTEXT_LABEL_X = 0.025  # axes-fraction inset from left spine for in-band tags
 
 
 @dataclass
@@ -351,6 +357,158 @@ def _band_waterfall_labels(
         )
 
 
+def _band_outboard_labels(ax, bands: Sequence[BandSpectrum]) -> None:
+    """Horizontal telescope names in the left margin, bracketed to each band."""
+    trans = blended_transform_factory(ax.transAxes, ax.transData)
+    label_fs = max(6.0, _resolve_rc_fontsize("axes.labelsize") - 0.5)
+    cap_dx = 0.004
+
+    for b in bands:
+        if not b.label:
+            continue
+        f_lo, f_hi = b.frange
+        f_mid = 0.5 * (f_lo + f_hi)
+        band_h = max(f_hi - f_lo, 1e-6)
+        cap = min(0.04 * band_h, 0.12 * band_h + 3.0)
+        y0, y1 = f_lo + cap, f_hi - cap
+        if y1 <= y0:
+            y0, y1 = f_lo, f_hi
+            cap = 0.0
+
+        bracket_kw = dict(transform=trans, color="0.25", lw=0.9, clip_on=False, zorder=7)
+        ax.plot([_OUTBOARD_BRACKET_X, _OUTBOARD_BRACKET_X], [y0, y1], **bracket_kw)
+        if cap > 0:
+            for y in (y0, y1):
+                ax.plot(
+                    [_OUTBOARD_BRACKET_X - cap_dx, _OUTBOARD_BRACKET_X + cap_dx],
+                    [y, y],
+                    **bracket_kw,
+                )
+
+        ax.text(
+            _OUTBOARD_TEXT_X,
+            f_mid,
+            b.label,
+            transform=trans,
+            ha="right",
+            va="center",
+            fontsize=label_fs,
+            fontweight="bold",
+            color="black",
+            clip_on=False,
+            zorder=7,
+        )
+
+
+def _band_intext_labels(ax, bands: Sequence[BandSpectrum], fmin: float, fmax: float) -> None:
+    """Horizontal telescope names inside each band at the left (off-pulse) edge.
+
+    A semi-opaque white box keeps them legible over the dark magma noise floor
+    (or grey RFI stripes) without stealing horizontal data width or colliding
+    with the y-axis tick numerals / title. One constant font for every band, so
+    a thin band's height never shrinks the other band's label.
+    """
+    trans = blended_transform_factory(ax.transAxes, ax.transData)
+    label_fs = max(6.5, _resolve_rc_fontsize("axes.labelsize") - 1.0)
+    fspan = max(fmax - fmin, 1e-6)
+    for b in bands:
+        if not b.label:
+            continue
+        f_lo, f_hi = b.frange
+        # Keep the tag off the band edges so a thin band (mahi, oran) never
+        # bleeds the box into the gap; clamp toward the band centre.
+        edge_pad = min(0.30 * (f_hi - f_lo), 0.045 * fspan)
+        f_mid = float(np.clip(0.5 * (f_lo + f_hi), f_lo + edge_pad, f_hi - edge_pad))
+        ax.text(
+            _INTEXT_LABEL_X,
+            f_mid,
+            b.label,
+            transform=trans,
+            ha="left",
+            va="center",
+            fontsize=label_fs,
+            fontweight="bold",
+            color="black",
+            zorder=8,
+            clip_on=True,
+            bbox=dict(
+                boxstyle="round,pad=0.25",
+                facecolor="white",
+                edgecolor="0.6",
+                alpha=0.78,
+                linewidth=0.5,
+            ),
+        )
+
+
+def _band_gap_labels(
+    ax,
+    bands: Sequence[BandSpectrum],
+    gaps: Sequence[tuple[float, float]],
+    data_t0: float,
+    data_t1: float,
+) -> None:
+    """Telescope names centered in the hatched inter-band gap (no burst data there)."""
+    if len(bands) < 2 or not gaps:
+        return
+    label_fs = max(6.5, _resolve_rc_fontsize("axes.labelsize") - 0.5)
+    x = 0.5 * (data_t0 + data_t1)
+    lo_band, hi_band = bands[0], bands[-1]
+    for g0, g1 in gaps:
+        gap_h = max(g1 - g0, 1e-6)
+        if lo_band.label:
+            ax.text(
+                x,
+                g0 + 0.24 * gap_h,
+                lo_band.label,
+                ha="center",
+                va="center",
+                fontsize=label_fs,
+                fontweight="bold",
+                color="0.30",
+                zorder=5,
+                clip_on=True,
+            )
+        if hi_band.label:
+            ax.text(
+                x,
+                g1 - 0.24 * gap_h,
+                hi_band.label,
+                ha="center",
+                va="center",
+                fontsize=label_fs,
+                fontweight="bold",
+                color="0.30",
+                zorder=5,
+                clip_on=True,
+            )
+
+
+def _band_line_color(index: int) -> str:
+    return _BAND_LINE_COLORS[index % len(_BAND_LINE_COLORS)]
+
+
+def _profile_band_legend(ax, bands: Sequence[BandSpectrum]) -> None:
+    handles = [
+        Line2D([0], [0], color=_band_line_color(i), lw=1.4, label=b.label)
+        for i, b in enumerate(bands)
+        if b.label
+    ]
+    if not handles:
+        return
+    fs = max(6.0, _resolve_rc_fontsize("axes.labelsize") - 2.0)
+    ax.legend(
+        handles=handles,
+        loc="center left",
+        fontsize=fs,
+        framealpha=0.92,
+        edgecolor="0.75",
+        handlelength=1.6,
+        borderpad=0.35,
+        labelspacing=0.35,
+    )
+
+
 def _unit_peak(y: np.ndarray) -> np.ndarray:
     y = np.asarray(y, float)
     if not np.any(np.isfinite(y)):
@@ -378,6 +536,7 @@ def plot_codetection(
     gap_label: bool = True,
     symmetric_time_axis: bool = False,
     band_labels: bool = False,
+    band_label_style: str = "strip",
     show_column_titles: bool = True,
     per_band_marginals: bool = False,
 ):
@@ -420,12 +579,29 @@ def plot_codetection(
         data_t0 = min(float(b.time_ms[0]) for b in bands)
         data_t1 = max(float(b.time_ms[-1]) for b in bands)
     data_span = max(data_t1 - data_t0, 1e-6)
-    strip_w = _LABEL_STRIP_FRAC * data_span if band_labels else 0.0
-    tick_reserve = _YTICK_RESERVE_FRAC * data_span if band_labels else 0.0
-    label_margin = strip_w + tick_reserve
-    axis_t0 = data_t0 - label_margin
-    strip_t0 = data_t0 - strip_w
-    t0, t1 = axis_t0, data_t1
+    outboard_labels = band_labels and band_label_style == "outboard"
+    tag_labels = band_labels and band_label_style == "tag"
+    gap_labels = band_labels and band_label_style == "gap"
+    keyed_labels = band_labels and band_label_style == "keyed"
+    if outboard_labels or tag_labels or gap_labels or keyed_labels:
+        # Both keep the full data-width time axis (no strip gutter, no xlim
+        # expansion). Outboard writes into a widened left margin; tag writes
+        # inside the data, so it needs only the normal ylabel/tick margin.
+        strip_w = 0.0
+        tick_reserve = 0.0
+        label_margin = 0.0
+        axis_t0 = data_t0
+        strip_t0 = data_t0
+        t0, t1 = data_t0, data_t1
+        grid_left = _OUTBOARD_GRID_LEFT if outboard_labels else 0.08
+    else:
+        strip_w = _LABEL_STRIP_FRAC * data_span if band_labels else 0.0
+        tick_reserve = _YTICK_RESERVE_FRAC * data_span if band_labels else 0.0
+        label_margin = strip_w + tick_reserve
+        axis_t0 = data_t0 - label_margin
+        strip_t0 = data_t0 - strip_w
+        t0, t1 = axis_t0, data_t1
+        grid_left = 0.08
     fmin, fmax = bands[0].frange[0], bands[-1].frange[1]
     gaps = [(lo.frange[1], hi.frange[0]) for lo, hi in zip(bands[:-1], bands[1:], strict=False)
             if hi.frange[0] > lo.frange[1] + 1e-6]
@@ -464,7 +640,7 @@ def plot_codetection(
         figsize = (w, 4.7)
 
     fig = plt.figure(figsize=figsize)
-    outer = fig.add_gridspec(1, len(cols), wspace=col_wspace, left=0.08, right=0.985,
+    outer = fig.add_gridspec(1, len(cols), wspace=col_wspace, left=grid_left, right=0.985,
                              top=0.94 if title else 0.96, bottom=0.12)
 
     for j, (key, ctitle, cmap, nrm) in enumerate(cols):
@@ -474,6 +650,10 @@ def plot_codetection(
         ax_ts = fig.add_subplot(inner[0, 0])
         ax_wf = fig.add_subplot(inner[1, 0], sharex=ax_ts)
         ax_sp = fig.add_subplot(inner[1, 1], sharey=ax_wf)
+        ax_leg = None
+        if keyed_labels and j == 0:
+            ax_leg = fig.add_subplot(inner[0, 1])
+            ax_leg.axis("off")
 
         # --- waterfall (each band drawn to scale) ---
         for b in bands:
@@ -493,14 +673,21 @@ def plot_codetection(
             _rfi_channel_markers(ax_wf, b, data_t0, data_t1)
         for g0, g1 in gaps:
             _hatch_rect(ax_wf, data_t0, data_t1, g0, g1)
-            if gap_label and j == 0:
+            if gap_label and j == 0 and not gap_labels and not keyed_labels:
                 ax_wf.text((t0 + t1) / 2, (g0 + g1) / 2, "no coverage",
                            ha="center", va="center", fontsize=6.5,
                            style="italic", color="0.4", zorder=4)
         ax_wf.set_ylim(fmin, fmax)
         ax_wf.set_xlim(t0, t1)
-        if band_labels and j == 0:
-            _band_waterfall_labels(ax_wf, bands, strip_t0, strip_w, fmin, fmax)
+        if band_labels and j == 0 and not keyed_labels:
+            if outboard_labels:
+                _band_outboard_labels(ax_wf, bands)
+            elif tag_labels:
+                _band_intext_labels(ax_wf, bands, fmin, fmax)
+            elif gap_labels:
+                _band_gap_labels(ax_wf, bands, gaps, data_t0, data_t1)
+            else:
+                _band_waterfall_labels(ax_wf, bands, strip_t0, strip_w, fmin, fmax)
         _raise_axis_ticks(ax_wf)
         ax_wf.set_xlabel("Time (ms)")
         if j == 0:
@@ -533,6 +720,8 @@ def plot_codetection(
                             linestyle="--",
                         )
                 ax_ts.set_ylim(-0.05, 1.15)
+                if keyed_labels and j == 0 and ax_leg is not None:
+                    _profile_band_legend(ax_leg, bands)
             else:
                 ax_ts.plot(tref, prof[key], color="black", lw=0.8)
                 if key == "data" and show_model_on_data:
@@ -551,11 +740,12 @@ def plot_codetection(
                            color="#34495e", lw=0.7)
             ax_sp.set_xlim(-0.6 * resid_clip, 0.6 * resid_clip)
         else:
-            for b in bands:
+            for i, b in enumerate(bands):
                 spec = _nanmean(getattr(b, key), axis=1)
                 if per_band_scale:
                     spec = _unit_peak(spec)
-                ax_sp.plot(spec, b.freq_mhz, color="black", lw=0.7)
+                line_color = _band_line_color(i) if keyed_labels else "black"
+                ax_sp.plot(spec, b.freq_mhz, color=line_color, lw=0.7)
             if key == "data" and show_model_on_data:
                 for b in bands:
                     spec = _nanmean(b.model, axis=1)

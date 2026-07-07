@@ -94,35 +94,29 @@ def _load(halo_csv: str):
 CLUSTER_MASS = 1.0e14  # M200 threshold for "cluster" (vs galaxy-scale halo)
 
 
-def _galaxy_path(turns=1.35, k=0.85, w=0.42, r0=0.42, core_r=0.42, n=80):
-    """Two-armed spiral 'mini galaxy' glyph as a single filled Path.
+def _galaxy_path(incl=0.42, n=64):
+    """Inclined-disk 'mini galaxy' glyph as a single filled Path.
 
-    Each arm is a ribbon between radial offsets r*(1 +/- w) along a log spiral
-    r(theta) ~ exp(k*theta) rescaled to start at r0; arm thickness therefore
-    tapers toward the core, which is a filled circle of radius core_r. The two
-    arms are 180 deg apart. Normalized to unit max extent so scatter's s
-    parameter scales it like a builtin marker.
-
-    Defaults are tuned so the glyph reads as a spiral galaxy at small marker
-    size (thick arms w=0.42, prominent core, >1 turn): a thin two-arm spiral
-    collapses into an ambiguous S-squiggle when rasterized at ~12 px.
+    An ellipse of aspect `incl` (inclined disk) tilted 25 deg, with a small
+    round central bulge. This reads instantly as a galaxy at ~12 px raster,
+    where a filled two-arm spiral collapses into an ambiguous S/yin-yang shape.
+    Normalized to unit max extent so scatter's `s` scales it like a builtin
+    marker.
     """
-    th = np.linspace(0.0, turns * 2.0 * np.pi, n)
-    g = (np.exp(k * th) - 1.0) / (np.exp(k * th[-1]) - 1.0)
-    r = r0 + (1.0 - r0) * g
-    verts, codes = [], []
-    for rot in (0.0, np.pi):
-        xo = (r * (1 + w)) * np.cos(th + rot)
-        yo = (r * (1 + w)) * np.sin(th + rot)
-        xi = (r * (1 - w))[::-1] * np.cos(th[::-1] + rot)
-        yi = (r * (1 - w))[::-1] * np.sin(th[::-1] + rot)
-        v = np.column_stack([np.concatenate([xo, xi]), np.concatenate([yo, yi])])
-        verts.append(v)
-        codes.append([MplPath.MOVETO] + [MplPath.LINETO] * (len(v) - 2)
-                     + [MplPath.CLOSEPOLY])
-    core = MplPath.circle((0.0, 0.0), core_r)
-    verts.append(core.vertices)
-    codes.append(list(core.codes))
+    t = np.linspace(0.0, 2.0 * np.pi, n, endpoint=False)
+    tilt = np.deg2rad(25.0)
+    ct, st = np.cos(tilt), np.sin(tilt)
+    # Disk ellipse (semi-axes 1.0 x incl), rotated by tilt.
+    dx, dy = np.cos(t), incl * np.sin(t)
+    disk = np.column_stack([dx * ct - dy * st, dx * st + dy * ct])
+    disk = np.vstack([disk, disk[0]])  # closing vertex for CLOSEPOLY
+    # Central bulge: small circle.
+    bulge = MplPath.circle((0.0, 0.0), 0.32)
+    verts = [disk, bulge.vertices]
+    codes = [
+        [MplPath.MOVETO] + [MplPath.LINETO] * (len(disk) - 2) + [MplPath.CLOSEPOLY],
+        list(bulge.codes),
+    ]
     p = MplPath(np.vstack(verts), np.concatenate(codes).astype(np.uint8))
     m = np.abs(p.vertices).max()
     return MplPath(p.vertices / m, p.codes)

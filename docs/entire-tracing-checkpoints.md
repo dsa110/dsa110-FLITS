@@ -5179,3 +5179,17 @@ preserving for future agents.
 - `origin` `entire/*` refs:
   - entire/checkpoints/v1 -> f36a8fd
 - note: `.entire/` remains host-local runtime state; only this ledger is tracked.
+
+## 2026-07-07T07:55:24-07:00 — jakob
+- repo: `/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS`
+- branch: `main`
+- head: `a78d64dc`
+- origin/main: `9b6cf8b4`
+- worktree: clean
+- note: watched path changed: docs/rse/specs/reproducibility-foreground-galaxies.md
+- tracked status: clean
+- local `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd4
+- `origin` `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd
+- note: `.entire/` remains host-local runtime state; only this ledger is tracked.

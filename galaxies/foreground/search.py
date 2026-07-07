@@ -18,6 +18,7 @@ from .config import (
     DEFAULT_Z_EPS,
     ENABLE_CLUSTER_ENGINE,
     ENABLE_EXTRA_ENGINES,
+    ENABLE_LEGACY_DR9_PHOTOZ,
     FOREGROUND_AMBIGUITY_KMS,
     FOREGROUND_PHOTOZ_FLOOR,
     MAX_SEARCH_RADIUS_DEG,
@@ -29,7 +30,12 @@ from .config import (
     VIZIER_CATALOGS,
 )
 from .engines import VizierEngine, query_ps1_gi_mags
-from .engines_extra import ClusterEngine, DesiDr1Engine, NedTapEngine
+from .engines_extra import (
+    ClusterEngine,
+    DesiDr1Engine,
+    LegacySurveyDr9PhotozSweepEngine,
+    NedTapEngine,
+)
 from .survey_coverage import (
     classify_coverage,
     engine_survey_key,
@@ -198,7 +204,7 @@ def _is_duplicate(row_a: pd.Series, row_b: pd.Series, coord_a: SkyCoord, coord_b
 def _best_duplicate_position(matches: pd.DataFrame, positions: list[int]) -> int:
     rows = [matches.iloc[pos] for pos in positions]
     finite_error_positions = [
-        pos for pos, row in zip(positions, rows) if math.isfinite(_redshift_error(row))
+        pos for pos, row in zip(positions, rows, strict=True) if math.isfinite(_redshift_error(row))
     ]
     if len(finite_error_positions) >= 2:
         return min(finite_error_positions, key=lambda pos: _redshift_error(matches.iloc[pos]))
@@ -302,12 +308,16 @@ def run_search(
         os.makedirs(output_dir)
 
     engines = [NedTapEngine()]
-    for cat_name, cat_id in VIZIER_CATALOGS.items():
+    for _cat_name, cat_id in VIZIER_CATALOGS.items():
         engines.append(VizierEngine(cat_id))
     if ENABLE_EXTRA_ENGINES:
         # Opt-in DESI DR1 zpix spec-z engine. Covers only 3/12 targets
         # (Whitney/Phineas/Casey); returns empty elsewhere and degrades gracefully.
         engines.append(DesiDr1Engine())
+    if ENABLE_LEGACY_DR9_PHOTOZ:
+        # Opt-in Legacy Surveys DR9 9.1 photo-z sweep lookup. Requires paired local
+        # DR9 9.0 and 9.1-photo-z FITS sweep files under FLITS_LEGACY_DR9_SWEEP_CACHE.
+        engines.append(LegacySurveyDr9PhotozSweepEngine())
     if ENABLE_CLUSTER_ENGINE:
         # All-sky cluster catalogs (PSZ2 + MCXC/MCXC-II) supply M500/R500 so the
         # r200-relative impact cut and mNFW foreground DM have catalog masses.
@@ -367,9 +377,11 @@ def run_search(
                     if df.empty:
                         print(f"      {engine_name}: 0/{raw_count} results have redshifts.")
                     else:
+                        coord_ra_deg = coord.ra.deg
+                        coord_dec_deg = coord.dec.deg
                         df["impact_kpc"] = df.apply(
-                            lambda row: calculate_impact_parameter(
-                                row["ra"], row["dec"], row["z"], coord.ra.deg, coord.dec.deg
+                            lambda row, coord_ra_deg=coord_ra_deg, coord_dec_deg=coord_dec_deg: calculate_impact_parameter(
+                                row["ra"], row["dec"], row["z"], coord_ra_deg, coord_dec_deg
                             ),
                             axis=1,
                         )

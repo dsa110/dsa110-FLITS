@@ -90,6 +90,67 @@ def test_desi_dr1_empty_paths_do_not_query(monkeypatch):
     assert ee.DesiDr1Engine().query_agngal([]).empty
 
 
+def test_legacy_dr9_sweep_filename_and_bounds():
+    assert ee._sweep_filename(170, 70) == "sweep-170p070-180p075.fits"
+    assert ee._sweep_filename(170, 70, pz=True) == "sweep-170p070-180p075-pz.fits"
+    assert ee._sweep_filename(0, -5) == "sweep-000m005-010p000.fits"
+
+    bounds = ee._candidate_sweep_bounds(
+        SkyCoord(177.75 * u.deg, 71.7 * u.deg),
+        1.0 * u.arcmin,
+    )
+    assert (170, 70) in bounds
+
+
+def test_legacy_dr9_photoz_engine_reads_local_paired_sweeps(tmp_path):
+    root = tmp_path / "north" / "sweep"
+    (root / "9.0").mkdir(parents=True)
+    (root / "9.1-photo-z").mkdir(parents=True)
+    tractor_path = root / "9.0" / "sweep-170p070-180p075.fits"
+    photoz_path = root / "9.1-photo-z" / "sweep-170p070-180p075-pz.fits"
+    Table(
+        {
+            "RA": [177.75, 177.751, 178.5],
+            "DEC": [71.7, 71.701, 71.7],
+            "TYPE": ["REX", "PSF", "EXP"],
+            "BRICK_PRIMARY": [True, True, False],
+            "RELEASE": [9001, 9001, 9001],
+            "BRICKID": [1, 1, 1],
+            "OBJID": [10, 11, 12],
+            "FLUX_G": [10.0, 20.0, 30.0],
+            "FLUX_R": [15.0, 25.0, 35.0],
+            "FLUX_Z": [18.0, 28.0, 38.0],
+        }
+    ).write(tractor_path)
+    Table(
+        {
+            "RELEASE": [9001, 9001, 9001],
+            "BRICKID": [1, 1, 1],
+            "OBJID": [10, 11, 12],
+            "Z_PHOT_MEAN": [0.12, 0.2, 0.3],
+            "Z_PHOT_STD": [0.03, 0.04, 0.05],
+            "Z_PHOT_L68": [0.09, 0.16, 0.25],
+            "Z_PHOT_U68": [0.15, 0.24, 0.35],
+        }
+    ).write(photoz_path)
+
+    engine = ee.LegacySurveyDr9PhotozSweepEngine(cache_dir=tmp_path)
+    result = engine.query(SkyCoord(177.75 * u.deg, 71.7 * u.deg), 1.0 * u.arcmin)
+
+    assert len(result) == 1
+    assert result.loc[0, "catalog"] == ee.LEGACY_DR9_PHOTOZ_CATALOG
+    assert result.loc[0, "type"] == "REX"
+    assert result.loc[0, "z"] == 0.12
+    assert result.loc[0, "e_zphot"] == 0.03
+    assert result.loc[0, "source_sweep"] == "sweep-170p070-180p075-pz.fits"
+
+
+def test_legacy_dr9_photoz_engine_empty_without_cache():
+    engine = ee.LegacySurveyDr9PhotozSweepEngine(cache_dir=None)
+    result = engine.query(SkyCoord(177.75 * u.deg, 71.7 * u.deg), 1.0 * u.arcmin)
+    assert result.empty
+
+
 def test_standardize_cluster_columns_psz2():
     raw = pd.DataFrame({"RAdeg": [10.0], "DEdeg": [72.0], "z": [0.20], "MSZ": [5.0]})
     out = ee._standardize_cluster_columns(raw, "J/A+A/594/A27/psz2")

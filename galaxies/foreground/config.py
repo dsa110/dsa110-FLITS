@@ -29,7 +29,7 @@ SPEED_OF_LIGHT_KMS = 299792.458
 # not gate via the photo-z error path. Matched on the `catalog` column substring;
 # DESI VII/292/north is the lone photo-z catalog.
 SPEC_Z_CATALOG_SUBSTRINGS = ("ned", "vii/291", "glade", "sdss", "desi_dr1")
-PHOTO_Z_CATALOG_SUBSTRINGS = ("vii/292",)
+PHOTO_Z_CATALOG_SUBSTRINGS = ("vii/292", "legacy_dr9_photoz")
 MAX_SEARCH_RADIUS_DEG = (
     2.0  # Cap angular query radius (low-z clusters otherwise blow up Vizier query cones)
 )
@@ -61,6 +61,8 @@ VIZIER_CATALOGS = {
 # Opt-in extra search engines (TAP-backed). Disabled by default so run_search()
 # output is byte-for-byte unchanged unless explicitly enabled.
 EXTRA_SEARCH_ENGINES = {"DESI_DR1": "desi_dr1.zpix"}
+LEGACY_DR9_PHOTOZ_ROOT_URL = "https://portal.nersc.gov/cfs/cosmo/data/legacysurvey/dr9"
+LEGACY_DR9_PHOTOZ_CACHE_ENV = "FLITS_LEGACY_DR9_SWEEP_CACHE"
 
 # Opt-in enricher catalogs (cross-matched photometry, not foreground search).
 ENRICHER_CATALOGS = {
@@ -71,6 +73,7 @@ ENRICHER_CATALOGS = {
 }
 
 ENABLE_EXTRA_ENGINES = False
+ENABLE_LEGACY_DR9_PHOTOZ = False
 ENABLE_ENRICHERS = False
 
 # All-sky galaxy-cluster catalogs. Only all-sky catalogs reach the sample's

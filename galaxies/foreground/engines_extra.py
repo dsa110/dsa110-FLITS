@@ -1,16 +1,23 @@
 """Additional opt-in catalog engines for galaxy searches."""
 
+import math
 import os
+import shutil
+import urllib.request
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
 import pyvo
 from astropy import units as u
 from astropy.coordinates import SkyCoord
+from astropy.table import Table
 
+from .config import LEGACY_DR9_PHOTOZ_CACHE_ENV, LEGACY_DR9_PHOTOZ_ROOT_URL
 from .engines import BaseEngine, VizierEngine
 
 NOIRLAB_TAP_URL = "https://datalab.noirlab.edu/tap"
+LEGACY_DR9_PHOTOZ_CATALOG = "LEGACY_DR9_PHOTOZ"
 
 
 def _mask_sentinels(df: pd.DataFrame) -> pd.DataFrame:
@@ -33,6 +40,194 @@ def _ensure_standard_columns(df: pd.DataFrame, catalog: str) -> pd.DataFrame:
             df[column] = np.nan
     df["catalog"] = catalog
     return df
+
+
+def _dec_token(dec_deg: int) -> str:
+    prefix = "m" if dec_deg < 0 else "p"
+    return f"{prefix}{abs(dec_deg):03d}"
+
+
+def _sweep_filename(ra_min: int, dec_min: int, pz: bool = False) -> str:
+    ra_max = (ra_min + 10) % 360
+    dec_max = dec_min + 5
+    suffix = "-pz" if pz else ""
+    return f"sweep-{ra_min:03d}{_dec_token(dec_min)}-{ra_max:03d}{_dec_token(dec_max)}{suffix}.fits"
+
+
+def _candidate_sweep_bounds(coord: SkyCoord, radius: u.Quantity) -> list[tuple[int, int]]:
+    radius_deg = radius.to(u.deg).value
+    ra0 = coord.ra.deg % 360.0
+    dec0 = coord.dec.deg
+    dra = radius_deg / max(abs(math.cos(math.radians(dec0))), 1.0e-6)
+    ra_values = np.arange(math.floor((ra0 - dra) / 10.0) * 10, ra0 + dra + 10.0, 10.0)
+    dec_values = np.arange(
+        math.floor((dec0 - radius_deg) / 5.0) * 5,
+        dec0 + radius_deg + 5.0,
+        5.0,
+    )
+
+    bounds = set()
+    for ra in ra_values:
+        ra_min = int(ra) % 360
+        for dec in dec_values:
+            dec_min = int(dec)
+            if -90 <= dec_min < 90:
+                bounds.add((ra_min, dec_min))
+    return sorted(bounds)
+
+
+def _resolve_legacy_sweep_path(
+    cache_dir: Path,
+    region: str,
+    sweep_version: str,
+    filename: str,
+) -> Path:
+    candidates = [
+        cache_dir / region / "sweep" / sweep_version / filename,
+        cache_dir / "sweep" / sweep_version / filename,
+        cache_dir / sweep_version / filename,
+        cache_dir / filename,
+    ]
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+    return candidates[0]
+
+
+def _download_file(url: str, path: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with urllib.request.urlopen(url, timeout=120) as response, path.open("wb") as out:
+        shutil.copyfileobj(response, out)
+
+
+def _legacy_file_url(region: str, sweep_version: str, filename: str) -> str:
+    return f"{LEGACY_DR9_PHOTOZ_ROOT_URL}/{region}/sweep/{sweep_version}/{filename}"
+
+
+def _read_fits_table(path: Path) -> pd.DataFrame:
+    return Table.read(path).to_pandas()
+
+
+def _column(df: pd.DataFrame, name: str) -> str | None:
+    lower = {column.lower(): column for column in df.columns}
+    return lower.get(name.lower())
+
+
+def _series(df: pd.DataFrame, name: str, default=np.nan) -> pd.Series:
+    column = _column(df, name)
+    if column is None:
+        return pd.Series(default, index=df.index)
+    return df[column]
+
+
+def _decode_bytes(value):
+    return value.decode() if isinstance(value, bytes) else value
+
+
+def _read_legacy_dr9_pair(tractor_path: Path, photoz_path: Path) -> pd.DataFrame:
+    tractor = _read_fits_table(tractor_path)
+    photoz = _read_fits_table(photoz_path)
+    if len(tractor) != len(photoz):
+        join_cols = [
+            col
+            for col in ("RELEASE", "BRICKID", "OBJID")
+            if _column(tractor, col) is not None and _column(photoz, col) is not None
+        ]
+        if len(join_cols) != 3:
+            return pd.DataFrame()
+        left = tractor.rename(columns={_column(tractor, col): col for col in join_cols})
+        right = photoz.rename(columns={_column(photoz, col): col for col in join_cols})
+        merged = left.merge(right, on=join_cols, suffixes=("", "_photoz"))
+    else:
+        merged = tractor.reset_index(drop=True).copy()
+        for column in photoz.columns:
+            if column not in merged.columns:
+                merged[column] = photoz[column].to_numpy()
+
+    out = pd.DataFrame(index=merged.index)
+    out["ra"] = pd.to_numeric(_series(merged, "RA"), errors="coerce")
+    out["dec"] = pd.to_numeric(_series(merged, "DEC"), errors="coerce")
+    out["z"] = pd.to_numeric(_series(merged, "Z_PHOT_MEAN"), errors="coerce")
+    out["e_zphot"] = pd.to_numeric(_series(merged, "Z_PHOT_STD"), errors="coerce")
+    out["z_phot_l68"] = pd.to_numeric(_series(merged, "Z_PHOT_L68"), errors="coerce")
+    out["z_phot_u68"] = pd.to_numeric(_series(merged, "Z_PHOT_U68"), errors="coerce")
+    out["release"] = _series(merged, "RELEASE")
+    out["brickid"] = _series(merged, "BRICKID")
+    out["objid"] = _series(merged, "OBJID")
+    out["type"] = _series(merged, "TYPE", "").map(_decode_bytes)
+    out["flux_g"] = pd.to_numeric(_series(merged, "FLUX_G"), errors="coerce")
+    out["flux_r"] = pd.to_numeric(_series(merged, "FLUX_R"), errors="coerce")
+    out["flux_z"] = pd.to_numeric(_series(merged, "FLUX_Z"), errors="coerce")
+    out["brick_primary"] = _series(merged, "BRICK_PRIMARY", True).astype(bool)
+    out["catalog"] = LEGACY_DR9_PHOTOZ_CATALOG
+    out["source_sweep"] = photoz_path.name
+    return out
+
+
+class LegacySurveyDr9PhotozSweepEngine(BaseEngine):
+    """DESI Legacy Surveys DR9 9.1 photo-z sweep lookup from paired local FITS files.
+
+    The 9.1 photo-z sweeps are row-matched to the DR9 9.0 sweep catalogs, so this
+    engine reads both files: the 9.0 sweep supplies position/morphology/fluxes and
+    the 9.1-photo-z sweep supplies `Z_PHOT_*`. By default it only uses files already
+    present under `FLITS_LEGACY_DR9_SWEEP_CACHE`; set `download_missing=True` for a
+    deliberate NERSC fetch of the overlapping sweep tiles.
+    """
+
+    def __init__(
+        self,
+        cache_dir: str | Path | None = None,
+        region: str = "north",
+        download_missing: bool = False,
+        require_resolved: bool = True,
+    ):
+        cache = cache_dir or os.environ.get(LEGACY_DR9_PHOTOZ_CACHE_ENV)
+        self.cache_dir = Path(cache).expanduser() if cache else None
+        self.region = region
+        self.download_missing = download_missing
+        self.require_resolved = require_resolved
+
+    def query(self, coord, radius) -> pd.DataFrame:
+        if self.cache_dir is None:
+            return pd.DataFrame()
+
+        frames = []
+        for ra_min, dec_min in _candidate_sweep_bounds(coord, radius):
+            tractor_name = _sweep_filename(ra_min, dec_min)
+            photoz_name = _sweep_filename(ra_min, dec_min, pz=True)
+            tractor_path = _resolve_legacy_sweep_path(self.cache_dir, self.region, "9.0", tractor_name)
+            photoz_path = _resolve_legacy_sweep_path(
+                self.cache_dir,
+                self.region,
+                "9.1-photo-z",
+                photoz_name,
+            )
+            if self.download_missing:
+                if not tractor_path.exists():
+                    _download_file(_legacy_file_url(self.region, "9.0", tractor_name), tractor_path)
+                if not photoz_path.exists():
+                    _download_file(_legacy_file_url(self.region, "9.1-photo-z", photoz_name), photoz_path)
+            if not tractor_path.exists() or not photoz_path.exists():
+                continue
+
+            frame = _read_legacy_dr9_pair(tractor_path, photoz_path)
+            if not frame.empty:
+                frames.append(frame)
+
+        if not frames:
+            return pd.DataFrame()
+
+        df = pd.concat(frames, ignore_index=True)
+        df = df[df["brick_primary"]].copy()
+        if self.require_resolved and "type" in df.columns:
+            df = df[df["type"].astype(str).str.upper() != "PSF"].copy()
+        if df.empty:
+            return pd.DataFrame()
+
+        positions = SkyCoord(df["ra"].to_numpy() * u.deg, df["dec"].to_numpy() * u.deg)
+        df = df.loc[coord.separation(positions) <= radius].copy()
+        df = df[df["z"] > -90.0].reset_index(drop=True)
+        return df
 
 
 def _tap_box_query(

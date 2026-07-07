@@ -19,6 +19,7 @@ DSA_FCH1_MHZ = 1498.75
 DSA_FOFF_MHZ = -0.03051757812
 DEFAULT_DM_STEP = 0.05
 DEFAULT_DATA_DIR = Path("~/Data/Faber2026/dsa110/DSA_bursts").expanduser()
+FREQ_DESCENDING_TELESCOPES = frozenset({"chime", "dsa"})
 
 
 def residual_delay_s(
@@ -371,12 +372,15 @@ def _measure_manifest_row(
     telescope = row["telescope"]
     burst = row["burst"]
     dm_ref = _dm_ref(row)
+    dm_ref_source = _dm_ref_source(row)
     if not path.exists():
         return _row_failure(row, dm_ref, str(path), "input file missing")
     data = np.load(path, mmap_mode="r")
-    wf = np.asarray(data, dtype=float)
+    wf = _orient_waterfall_to_ascending_frequency(np.asarray(data, dtype=float), telescope)
     freq = _freq_grid_mhz(telescope, wf.shape[0])
+    freq_source = _freq_grid_source(telescope, wf.shape[0])
     dt_s = CHIME_DT_S if telescope == "chime" else DSA_DT_S
+    dt_s_source = f"dispersion.dm_power_analysis.{telescope.upper()}_DT_S"
     wf, freq, dt_s, factors = _downsample_for_fit(wf, freq, dt_s, max_channels, max_time)
     try:
         result = measure_dm_power(
@@ -405,6 +409,9 @@ def _measure_manifest_row(
         "downsample_freq_factor": factors["freq"],
         "downsample_time_factor": factors["time"],
         "source_manifest_filename": row["filename"],
+        "dm_ref_provenance": dm_ref_source,
+        "freq_mhz_provenance": freq_source,
+        "dt_s_provenance": dt_s_source,
     }
 
 
@@ -492,7 +499,7 @@ def _log_rebin_positive_power(power: np.ndarray, n_bins: int) -> np.ndarray:
     if edges.size < 2:
         return np.full(n_bins, np.nan)
     bins = []
-    for lo, hi in zip(edges[:-1], edges[1:], strict=True):
+    for lo, hi in zip(edges[:-1], edges[1:]):  # noqa: B905 - h17 Python lacks zip(strict=...)
         mask = (idx >= lo) & (idx < hi)
         bins.append(float(np.nanmean(p[mask])) if np.any(mask) else np.nan)
     if len(bins) < n_bins:
@@ -598,6 +605,37 @@ def _dm_ref(row: dict[str, Any]) -> float:
     if row.get("fixture"):
         return float(row["fixture"]["dm"])
     return float(row["dm_pc_cm3"])
+
+
+def _dm_ref_source(row: dict[str, Any]) -> str:
+    if row["telescope"] == "chime" and row.get("side_input"):
+        return "crossmatching/chime_side_inputs.json:dm_dsa"
+    if row.get("fixture"):
+        return "crossmatching/notebook_reproduction_fixture.json:dm"
+    return "data-manifest.csv:dm_pc_cm3"
+
+
+def _freq_grid_source(telescope: str, nchan: int) -> str:
+    if telescope == "chime":
+        return (
+            "synthetic CHIME intensity grid from CHIME_DF_MHZ="
+            f"{CHIME_DF_MHZ} MHz, start=400+CHIME_DF_MHZ/2, nchan={nchan}; "
+            "raw rows flipped from freq_descending telescope config"
+        )
+    if telescope == "dsa":
+        return (
+            "synthetic DSA filterbank grid from DSA_FCH1_MHZ="
+            f"{DSA_FCH1_MHZ}, DSA_FOFF_MHZ={DSA_FOFF_MHZ}, nchan={nchan}; "
+            "raw rows flipped from freq_descending telescope config"
+        )
+    raise ValueError(f"unknown telescope {telescope!r}")
+
+
+def _orient_waterfall_to_ascending_frequency(wf: np.ndarray, telescope: str) -> np.ndarray:
+    """Return waterfall rows in ascending frequency order for DM-delay math."""
+    if telescope in FREQ_DESCENDING_TELESCOPES:
+        return np.flipud(wf)
+    return wf
 
 
 def _downsample_for_fit(

@@ -14,6 +14,9 @@ import pytest
 from dispersion.chime_dm import K_DM
 from dispersion.dm_power_analysis import (
     DEFAULT_DM_STEP,
+    _dm_ref_source,
+    _freq_grid_source,
+    _orient_waterfall_to_ascending_frequency,
     fit_dm_power_result,
     mark_diagnostic_candidate_only,
     measure_dm_power,
@@ -185,6 +188,24 @@ def test_global_score_curve_max_has_bootstrap_and_grid_floor_error():
 
 def test_default_dm_trial_spacing_is_fine_enough_for_diagnostic_curves():
     assert DEFAULT_DM_STEP <= 0.05
+
+
+def test_dm_power_manifest_rows_carry_explicit_provenance_sources():
+    chime_row = {"telescope": "chime", "side_input": {"dm_dsa": 462.174}}
+    dsa_row = {"telescope": "dsa", "fixture": {"dm": 462.174}}
+
+    assert _dm_ref_source(chime_row) == "crossmatching/chime_side_inputs.json:dm_dsa"
+    assert _dm_ref_source(dsa_row) == "crossmatching/notebook_reproduction_fixture.json:dm"
+    assert "CHIME_DF_MHZ" in _freq_grid_source("chime", 32768)
+    assert "DSA_FCH1_MHZ" in _freq_grid_source("dsa", 6144)
+
+
+def test_manifest_cube_rows_are_flipped_to_ascending_frequency_order():
+    raw_descending = np.array([[800.0, 801.0], [600.0, 601.0], [400.0, 401.0]])
+
+    oriented = _orient_waterfall_to_ascending_frequency(raw_descending, "chime")
+
+    assert oriented.tolist() == [[400.0, 401.0], [600.0, 601.0], [800.0, 801.0]]
 
 
 def test_diagnostic_candidate_marking_preserves_peak_without_accepting_dm():

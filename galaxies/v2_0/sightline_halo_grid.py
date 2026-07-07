@@ -94,14 +94,18 @@ def _load(halo_csv: str):
 CLUSTER_MASS = 1.0e14  # M200 threshold for "cluster" (vs galaxy-scale halo)
 
 
-def _galaxy_path(incl=0.42, n=64):
+def _galaxy_path(incl=0.30, bulge_r=0.42, n=64):
     """Inclined-disk 'mini galaxy' glyph as a single filled Path.
 
-    An ellipse of aspect `incl` (inclined disk) tilted 25 deg, with a small
-    round central bulge. This reads instantly as a galaxy at ~12 px raster,
-    where a filled two-arm spiral collapses into an ambiguous S/yin-yang shape.
-    Normalized to unit max extent so scatter's `s` scales it like a builtin
-    marker.
+    An ellipse of aspect `incl` (inclined disk) tilted 25 deg, with a round
+    central bulge that PROTRUDES beyond the disk minor axis (bulge_r > incl):
+    the classic edge-on-galaxy silhouette. The protrusion is load-bearing --
+    a bulge hidden inside the same-color disk renders as a plain tilted
+    ellipse, which in this figure shares a silhouette class with the R200
+    halo Ellipse patches it must be distinguished from. This reads instantly
+    as a galaxy at ~12 px raster, where a filled two-arm spiral collapses
+    into an ambiguous S/yin-yang shape. Normalized to unit max extent so
+    scatter's `s` scales it like a builtin marker.
     """
     t = np.linspace(0.0, 2.0 * np.pi, n, endpoint=False)
     tilt = np.deg2rad(25.0)
@@ -110,8 +114,8 @@ def _galaxy_path(incl=0.42, n=64):
     dx, dy = np.cos(t), incl * np.sin(t)
     disk = np.column_stack([dx * ct - dy * st, dx * st + dy * ct])
     disk = np.vstack([disk, disk[0]])  # closing vertex for CLOSEPOLY
-    # Central bulge: small circle.
-    bulge = MplPath.circle((0.0, 0.0), 0.32)
+    # Central bulge: protrudes above/below the disk plane.
+    bulge = MplPath.circle((0.0, 0.0), bulge_r)
     verts = [disk, bulge.vertices]
     codes = [
         [MplPath.MOVETO] + [MplPath.LINETO] * (len(disk) - 2) + [MplPath.CLOSEPOLY],

@@ -252,33 +252,48 @@ def make_galaxy_figure(targets: list[tuple], results_dir: str):
 
 
 def make_cluster_figure():
-    """2x2 mNFW baryon-column DM(b) panels for the four innermost foreground clusters."""
-    fig, axes = plt.subplots(2, 2, figsize=(9.6, 7.6), dpi=150, facecolor=BG_LIGHT)
+    """2x2 mNFW baryon-column DM(b) panels for the four innermost foreground clusters.
+
+    Palette matches the foreground-halo census figure (Figure 2,
+    sightline_halo_grid): magma ramp for the mass/DM story, ink text, faint gray
+    spines/grid, and the same soft corridor tint for the inside-R500 region.
+    """
+    # Colors consistent with sightline_halo_grid (Figure 2).
+    INK = "#22252b"        # text/spines
+    FAINT = "#9aa0a8"      # secondary gray (grid, R500 line)
+    CORRIDOR = "#eef0f3"   # soft inside-R500 band (Fig. 2 impact corridor)
+    PANEL_BG = "white"
+    _magma = plt.get_cmap("magma")
+    CURVE_C = _magma(0.45)     # mNFW column curve: magma mid-tone
+    CROSS_C = _magma(0.72)     # inside-R500 crossing (bright, = Fig 2 cluster hue)
+    OUTSIDE_C = _magma(0.30)   # outside-R500 markers: darker magma
+
+    fig, axes = plt.subplots(2, 2, figsize=(9.6, 7.6), dpi=150, facecolor=PANEL_BG)
     for ax, (objid, b_kpc, b_over_r500, z) in zip(axes.ravel(), CLUSTER_TARGETS):
-        ax.set_facecolor(BG_LIGHT)
+        ax.set_facecolor(PANEL_BG)
         c = cluster_params(b_kpc, b_over_r500, z)
         r500, m500 = c["r500_kpc"], c["m500_msun"]
         r_trunc = c["rvir_mnfw_kpc"]
 
         bb = np.linspace(1.0, r_trunc, 240)
         dm_b = np.array([scat.dm_cluster_mnfw_model(m500, z, float(x)) for x in bb])
-        ax.plot(bb, dm_b, color=HALO_COLOR, lw=2.2, zorder=4, label="hot mNFW column")
+        ax.plot(bb, dm_b, color=CURVE_C, lw=2.2, zorder=4, label="hot mNFW column")
 
-        ax.axvspan(0, r500, color=INTERV_COLOR, alpha=0.07, zorder=0)
-        ax.axvline(r500, color=TEXT_DARK, ls="--", lw=1.1, zorder=3)
+        ax.axvspan(0, r500, color=CORRIDOR, zorder=0)
+        ax.axvline(r500, color=FAINT, ls="--", lw=1.1, zorder=3)
         ax.text(
             r500,
             ax.get_ylim()[1] * 0.96 if dm_b.max() > 0 else 1.0,
             "$R_{500}$",
             fontsize=7,
-            color=TEXT_DARK,
+            color=INK,
             ha="right",
             va="top",
             rotation=90,
         )
 
         inside = b_over_r500 < 1.0
-        impact_color = HOST_COLOR if inside else INTERV_COLOR
+        impact_color = CROSS_C if inside else OUTSIDE_C
         if b_kpc <= r_trunc:
             ax.axvline(b_kpc, color=impact_color, lw=2.0, zorder=5)
             ax.scatter(
@@ -292,7 +307,7 @@ def make_cluster_figure():
                 f"$b={b_kpc:.0f}$ kpc\n(beyond $R_{{\\rm vir,mNFW}}$)",
                 transform=ax.transAxes,
                 fontsize=7.5,
-                color=INTERV_COLOR,
+                color=OUTSIDE_C,
                 ha="right",
                 va="bottom",
                 fontweight="bold",
@@ -313,32 +328,31 @@ def make_cluster_figure():
             fontsize=7.6,
             va="top",
             ha="right",
-            color=TEXT_DARK,
-            bbox=dict(boxstyle="round,pad=0.35", fc="white", ec=GRID_COLOR, alpha=0.9),
+            color=INK,
+            bbox=dict(boxstyle="round,pad=0.35", fc="white", ec=FAINT, alpha=0.9),
         )
 
-        ax.set_title(objid, fontsize=10, fontweight="bold", color=DARK_BLUE)
-        ax.set_xlabel("impact parameter $b$ (kpc)", fontsize=9, color=TEXT_DARK)
-        ax.set_ylabel("hot-baryon DM (pc cm$^{-3}$)", fontsize=9, color=TEXT_DARK)
+        ax.set_title(objid, fontsize=10, fontweight="bold", color=INK)
+        ax.set_xlabel("impact parameter $b$ (kpc)", fontsize=9, color=INK)
+        ax.set_ylabel("hot-baryon DM (pc cm$^{-3}$)", fontsize=9, color=INK)
         ax.set_xlim(0, r_trunc)
         ax.set_ylim(bottom=0)
-        ax.grid(True, ls=":", color=GRID_COLOR, alpha=0.8, zorder=0)
+        for side in ("top", "right"):
+            ax.spines[side].set_visible(False)
+        for side in ("left", "bottom"):
+            ax.spines[side].set_color(FAINT)
+        ax.tick_params(colors=FAINT, labelcolor=INK)
+        ax.grid(True, ls=":", color=FAINT, alpha=0.5, zorder=0)
         if ax is axes.ravel()[0]:
             ax.legend(
                 loc="upper left",
                 fontsize=7.5,
                 frameon=True,
                 facecolor="white",
-                edgecolor=GRID_COLOR,
+                edgecolor=FAINT,
             )
 
-    fig.suptitle(
-        "Foreground clusters of FRB 20230307A: mNFW baryon column vs. impact",
-        fontsize=12,
-        fontweight="bold",
-        color=DARK_BLUE,
-    )
-    fig.tight_layout(rect=(0, 0, 1, 0.96))
+    fig.tight_layout()
     return fig
 
 

@@ -276,9 +276,8 @@ def make_grid(halo_csv: str = DEFAULT_HALO_CSV):
         lb = legend_ax.get_window_extent()
         xpp = x_hi / lb.width
         ypp = (2 * Y_LIM) / lb.height
-        legend_ax.text(0.5, 0.80, "key", transform=legend_ax.transAxes,
-                       ha="center", va="top", fontsize=11, color=ink,
-                       fontstyle="italic")
+        # No panel title: the swatch/marker labels are self-explanatory, and a
+        # centered "key" text collided with the 500-kpc swatch circle anyway.
         # Two R200 swatches side by side (small + large), each with its label
         # below, so nothing overlaps. Circle radius = R200 on this panel's scale.
         for cxf, r_kpc in [(0.20, 200), (0.52, 500)]:

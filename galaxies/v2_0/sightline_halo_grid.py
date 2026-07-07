@@ -6,8 +6,8 @@ One panel per co-detection FRB sightline. Each foreground halo (z < z_frb) is
 drawn at (redshift, signed projected impact parameter), as an open gray circle
 whose radius is the halo's projected virial radius (R200, delta_def=200 in the
 catalog) converted to kpc, with a filled marker colored by log10(M_halo/Msun).
-The black star marks the FRB host at (z_frb, 0); the horizontal line is the
-sightline.
+A black spiral-galaxy glyph marks the FRB host at (z_frb, 0); the horizontal
+line is the sightline.
 
 The y coordinate is the true projected offset of the halo from the sightline,
 signed by the declination difference (halo north of the FRB is +), so halos
@@ -35,18 +35,23 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
 from matplotlib.colors import ListedColormap
 from matplotlib.patches import Ellipse
-
-# Deterministic save geometry regardless of run location. The repo matplotlibrc
-# sets savefig.bbox=tight, auto-loaded only when the process starts inside
-# pipeline/, which made the output size cwd-dependent. Passing bbox_inches=None
-# to savefig does NOT override the rc (it falls back to the rc value), so we pin
-# the rcParams directly. 'standard' (not 'tight') is required here: tight
-# re-lays-out the axes after the display-space circle radii were computed against
-# the drawn geometry, distorting the R200 circles.
-plt.rcParams["savefig.bbox"] = "standard"
-plt.rcParams["savefig.pad_inches"] = 0.05
+from matplotlib.path import Path as MplPath
 
 _REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# Deterministic style regardless of run location. matplotlib auto-loads the
+# repo matplotlibrc (serif/CM fonts, savefig.bbox=tight, ...) only when the
+# process starts inside pipeline/, which made both the fonts and the output
+# size cwd-dependent. Load that rc explicitly by path so every run gets the
+# same fonts, then re-pin the save geometry: 'standard' (not 'tight') is
+# required here because tight re-lays-out the axes after the display-space
+# circle radii were computed against the drawn geometry, distorting the R200
+# circles. (Passing bbox_inches=None to savefig does NOT override the rc.)
+_RC = os.path.join(_REPO, "matplotlibrc")
+if os.path.exists(_RC):
+    matplotlib.rc_file(_RC)
+plt.rcParams["savefig.bbox"] = "standard"
+plt.rcParams["savefig.pad_inches"] = 0.05
 DEFAULT_RESULTS_DIR = os.path.join(_REPO, "results")
 DEFAULT_HALO_CSV = os.path.expanduser(
     "~/Data/frb-foreground-halos/results/chime_dsa_gladep_candidates_ranked.csv"
@@ -69,7 +74,7 @@ def _load(halo_csv: str):
     The panel roster is every sightline with a known FRB redshift -- including
     those with zero foreground halos (a clean sightline is an informative null),
     matching the reference figure which shows empty panels. Sightlines without a
-    spectroscopic FRB redshift cannot be placed (no star, no z<z_frb cut) and are
+    spectroscopic FRB redshift cannot be placed (no host marker, no z<z_frb cut) and are
     dropped.
     """
     df = pd.read_csv(halo_csv)
@@ -87,6 +92,43 @@ def _load(halo_csv: str):
 
 
 CLUSTER_MASS = 1.0e14  # M200 threshold for "cluster" (vs galaxy-scale halo)
+
+
+def _galaxy_path(turns=1.35, k=0.85, w=0.42, r0=0.42, core_r=0.42, n=80):
+    """Two-armed spiral 'mini galaxy' glyph as a single filled Path.
+
+    Each arm is a ribbon between radial offsets r*(1 +/- w) along a log spiral
+    r(theta) ~ exp(k*theta) rescaled to start at r0; arm thickness therefore
+    tapers toward the core, which is a filled circle of radius core_r. The two
+    arms are 180 deg apart. Normalized to unit max extent so scatter's s
+    parameter scales it like a builtin marker.
+
+    Defaults are tuned so the glyph reads as a spiral galaxy at small marker
+    size (thick arms w=0.42, prominent core, >1 turn): a thin two-arm spiral
+    collapses into an ambiguous S-squiggle when rasterized at ~12 px.
+    """
+    th = np.linspace(0.0, turns * 2.0 * np.pi, n)
+    g = (np.exp(k * th) - 1.0) / (np.exp(k * th[-1]) - 1.0)
+    r = r0 + (1.0 - r0) * g
+    verts, codes = [], []
+    for rot in (0.0, np.pi):
+        xo = (r * (1 + w)) * np.cos(th + rot)
+        yo = (r * (1 + w)) * np.sin(th + rot)
+        xi = (r * (1 - w))[::-1] * np.cos(th[::-1] + rot)
+        yi = (r * (1 - w))[::-1] * np.sin(th[::-1] + rot)
+        v = np.column_stack([np.concatenate([xo, xi]), np.concatenate([yo, yi])])
+        verts.append(v)
+        codes.append([MplPath.MOVETO] + [MplPath.LINETO] * (len(v) - 2)
+                     + [MplPath.CLOSEPOLY])
+    core = MplPath.circle((0.0, 0.0), core_r)
+    verts.append(core.vertices)
+    codes.append(list(core.codes))
+    p = MplPath(np.vstack(verts), np.concatenate(codes).astype(np.uint8))
+    m = np.abs(p.vertices).max()
+    return MplPath(p.vertices / m, p.codes)
+
+
+GALAXY_MARKER = _galaxy_path()
 
 
 def _crossing_mask(sub: pd.DataFrame) -> np.ndarray:
@@ -143,10 +185,11 @@ def make_grid(halo_csv: str = DEFAULT_HALO_CSV):
         ax.axhspan(-300, 300, color=corridor_c, zorder=0)
         ax.axhline(0.0, color=sightline_c, lw=0.9, zorder=1)
 
-        # FRB host: a haloed star so it reads over any overlapping disk.
-        ax.scatter([z_frb], [0.0], marker="*", s=340, color="white",
+        # FRB host: a haloed spiral-galaxy glyph so it reads over any
+        # overlapping disk.
+        ax.scatter([z_frb], [0.0], marker=GALAXY_MARKER, s=900, color="white",
                    edgecolors="none", zorder=5)
-        ax.scatter([z_frb], [0.0], marker="*", s=210, color=ink,
+        ax.scatter([z_frb], [0.0], marker=GALAXY_MARKER, s=680, color=ink,
                    edgecolors="none", zorder=6)
 
         # Title in a translucent chip so it stays legible over any halo disk.
@@ -250,8 +293,8 @@ def make_grid(halo_csv: str = DEFAULT_HALO_CSV):
                            fontsize=8.5, color=ink, va="top", ha="center",
                            linespacing=1.3)
         # FRB host + cluster-crossing entries, right column.
-        legend_ax.scatter([0.82 * x_hi], [300], s=200, marker="*", color=ink,
-                          zorder=4)
+        legend_ax.scatter([0.82 * x_hi], [300], s=520, marker=GALAXY_MARKER,
+                          color=ink, zorder=4)
         legend_ax.text(0.88 * x_hi, 300, "FRB\nhost", fontsize=8.5, color=ink,
                        va="center", ha="left", linespacing=1.3)
         legend_ax.scatter([0.82 * x_hi], [-120], s=90, facecolors="none",

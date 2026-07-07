@@ -4,7 +4,10 @@ import numpy as np
 from numpy.fft import fft, fftfreq
 from scipy.optimize import curve_fit
 
-from flits.common.constants import K_DM
+try:
+    from flits.common.constants import K_DM
+except ModuleNotFoundError:
+    from dispersion.chime_dm import K_DM
 
 __all__ = ["DMPhaseEstimator", "dmphase_trial_to_physical_residual_dm", "quadratic"]
 

@@ -18,6 +18,7 @@ per-channel delay carries the estimator's sign, ``-K_DM*DM*(1/f^2 - 1/f_ref^2)``
 import numpy as np
 import pytest
 
+from dispersion.dm_phase_analysis import measure_dm_phase
 from dispersion.dmphasev2 import DMPhaseEstimator, dmphase_trial_to_physical_residual_dm
 from flits.common.constants import K_DM
 
@@ -77,3 +78,29 @@ def test_dmphase_trial_sign_converts_to_physical_residual_dm():
 
     assert est.dm_best == pytest.approx(-residual_true, abs=0.5)
     assert physical_residual == pytest.approx(residual_true, abs=0.5)
+
+
+def test_dmphase_analysis_reports_absolute_candidate_with_physical_sign():
+    rng = np.random.default_rng(4)
+    freqs = np.linspace(400.0, 800.0, 64)
+    dt, n_t, residual_true, dm_ref = 1.0e-3, 1024, 4.0, 500.0
+    ref = freqs.max()
+    delay = K_DM * residual_true * (1.0 / freqs**2 - 1.0 / ref**2)
+    t = np.arange(n_t) * dt
+    wf = np.exp(-0.5 * ((t[:, None] - 0.45 - delay[None, :]) / 2.0e-3) ** 2).T
+    wf += 0.02 * rng.standard_normal(wf.shape)
+
+    result = measure_dm_phase(
+        wf,
+        freqs,
+        dt,
+        dm_ref,
+        np.arange(-6.0, 6.1, 0.5),
+        f_cut_hz=(20.0, 800.0),
+        n_boot=20,
+        random_state=5,
+    )
+
+    assert result["physical_residual_dm"] == pytest.approx(residual_true, abs=0.75)
+    assert result["candidate_dm"] == pytest.approx(dm_ref + residual_true, abs=0.75)
+    assert result["candidate_sigma"] >= 0.25

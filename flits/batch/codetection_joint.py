@@ -1,7 +1,7 @@
 """Adapter: joint-fit band cubes → ``BandSpectrum`` for ``plot_codetection``."""
 from __future__ import annotations
 
-from typing import Mapping
+from collections.abc import Mapping
 
 import numpy as np
 
@@ -28,6 +28,9 @@ def crop_band_dict(b: Mapping, xlim: tuple[float, float]) -> dict:
 
 def band_dict_to_spectrum(b: Mapping, *, label: str) -> BandSpectrum:
     """Convert GHz-axis joint band dict to ``BandSpectrum`` (MHz frequencies)."""
+    valid = None
+    if "valid" in b and b["valid"] is not None:
+        valid = np.asarray(b["valid"], bool).reshape(-1)
     return BandSpectrum(
         freq_mhz=np.asarray(b["f"], float) * 1e3,
         time_ms=np.asarray(b["t"], float),
@@ -35,6 +38,7 @@ def band_dict_to_spectrum(b: Mapping, *, label: str) -> BandSpectrum:
         model=np.asarray(b["m"], float),
         sigma=np.asarray(b["noise"], float).reshape(-1) if "noise" in b else None,
         label=label,
+        channel_valid=valid,
     )
 
 

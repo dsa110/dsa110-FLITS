@@ -35,15 +35,27 @@ also differ.
 """
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass, replace
-from typing import Optional, Sequence, Union
 
-import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.patches import Rectangle
+import numpy as np
+from matplotlib import cm
 from matplotlib.colors import Normalize
+from matplotlib.patches import Rectangle
 
-__all__ = ["BandSpectrum", "plot_codetection"]
+__all__ = ["BandSpectrum", "plot_codetection", "plot_codetection_observations"]
+
+# Match the hatch-gap fill (unobserved band / flagged channel).
+_GAP_FILL = "0.93"
+_LABEL_STRIP_FRAC = 0.088
+_YTICK_RESERVE_FRAC = 0.045  # left margin for y-axis tick numerals
+_XTICK_RESERVE_FRAC = 0.028  # bottom inset on lowest band for x-axis ticks
+_BAND_LABEL_V_INSET = 0.04   # keep labels off band edges / axis ticks
+_BAND_LINE_COLORS = ("#262626", "#b2182b", "#2166ac", "#1b7837")
+_HATCH_ZORDER = 0.5
+_DATA_ZORDER = 2.0
+_TICK_ZORDER = 10.0
 
 
 @dataclass
@@ -65,14 +77,18 @@ class BandSpectrum:
         channels. If ``None``, per-channel MAD of ``data - model`` is used.
     label : str, optional
         Short band label, e.g. ``"CHIME"`` / ``"DSA"``.
+    channel_valid : (nchan,) bool ndarray, optional
+        Per-channel validity (``burstfit`` ``valid`` mask). ``False`` marks
+        dead/RFI channels for grey overlay on the waterfall.
     """
 
     freq_mhz: np.ndarray
     time_ms: np.ndarray
     data: np.ndarray
     model: np.ndarray
-    sigma: Optional[Union[float, np.ndarray]] = None
-    label: Optional[str] = None
+    sigma: float | np.ndarray | None = None
+    label: str | None = None
+    channel_valid: np.ndarray | None = None
 
     @property
     def frange(self) -> tuple[float, float]:
@@ -101,7 +117,7 @@ def _interp_along_time(t_out, t_in, arr: np.ndarray) -> np.ndarray:
     out = np.empty((arr.shape[0], t_out.size))
     for i in range(arr.shape[0]):
         row = arr[i]
-        out[i] = np.interp(t_out, t_in, row, left=row[0], right=row[-1])
+        out[i] = np.interp(t_out, t_in, row, left=np.nan, right=np.nan)
     return out
 
 
@@ -130,6 +146,19 @@ def _regrid_bands(bands: Sequence[BandSpectrum]) -> tuple[list[BandSpectrum], np
     return [_regrid_band(b, t_common) for b in bands], t_common
 
 
+def _finite_percentile(arr: np.ndarray, pct: float, default: float = 1.0) -> float:
+    finite = arr[np.isfinite(arr)]
+    if finite.size == 0:
+        return default
+    return float(np.percentile(finite, pct))
+
+
+def _cmap_with_bad(name: str):
+    c = cm.get_cmap(name).copy()
+    c.set_bad(color="white", alpha=0.0)
+    return c
+
+
 def _band_array(b: BandSpectrum, key: str) -> np.ndarray:
     if key == "resid":
         sig = b.noise_per_channel()[:, None]
@@ -137,9 +166,200 @@ def _band_array(b: BandSpectrum, key: str) -> np.ndarray:
     return getattr(b, key)
 
 
+def _nanmean(arr: np.ndarray, axis: int) -> np.ndarray:
+    arr = np.asarray(arr, float)
+    valid = np.isfinite(arr)
+    count = valid.sum(axis=axis)
+    total = np.where(valid, arr, 0.0).sum(axis=axis)
+    return np.divide(total, count, out=np.full(total.shape, np.nan), where=count > 0)
+
+
 def _hatch_rect(ax, x0, x1, y0, y1):
-    ax.add_patch(Rectangle((x0, y0), x1 - x0, y1 - y0, facecolor="0.93",
-                           edgecolor="0.55", hatch="////", lw=0.0, zorder=3))
+    ax.add_patch(
+        Rectangle(
+            (x0, y0),
+            x1 - x0,
+            y1 - y0,
+            facecolor="white",
+            edgecolor="0.55",
+            hatch="////",
+            lw=0.0,
+            zorder=_HATCH_ZORDER,
+        )
+    )
+
+
+def _time_edges_ms(time_ms: np.ndarray) -> np.ndarray:
+    t = np.asarray(time_ms, float)
+    if t.size == 0:
+        return t
+    if t.size == 1:
+        return np.array([t[0] - 0.5, t[0] + 0.5])
+    edges = np.empty(t.size + 1)
+    edges[1:-1] = 0.5 * (t[:-1] + t[1:])
+    edges[0] = t[0] - 0.5 * (t[1] - t[0])
+    edges[-1] = t[-1] + 0.5 * (t[-1] - t[-2])
+    return edges
+
+
+def _no_data_time_spans(band: BandSpectrum, key: str) -> list[tuple[float, float]]:
+    arr = _band_array(band, key)
+    if arr.ndim != 2 or arr.shape[1] == 0:
+        return []
+    missing = np.all(~np.isfinite(arr), axis=0)
+    if not np.any(missing):
+        return []
+    edges = _time_edges_ms(band.time_ms)
+    spans: list[tuple[float, float]] = []
+    start: int | None = None
+    for i, is_missing in enumerate(missing):
+        if is_missing and start is None:
+            start = i
+        if start is not None and (not is_missing or i == missing.size - 1):
+            stop = i + 1 if is_missing else i
+            spans.append((float(edges[start]), float(edges[stop])))
+            start = None
+    return spans
+
+
+def _channel_edges_mhz(freq_mhz: np.ndarray) -> np.ndarray:
+    """Channel boundary frequencies (length nchan + 1)."""
+    f = np.asarray(freq_mhz, float)
+    if f.size == 0:
+        return f
+    if f.size == 1:
+        half = 0.5
+        return np.array([f[0] - half, f[0] + half])
+    edges = np.empty(f.size + 1)
+    edges[1:-1] = 0.5 * (f[:-1] + f[1:])
+    edges[0] = f[0] - 0.5 * (f[1] - f[0])
+    edges[-1] = f[-1] + 0.5 * (f[-1] - f[-2])
+    return edges
+
+
+def _rfi_channel_markers(ax, band: BandSpectrum, t0: float, t1: float) -> None:
+    """Grey horizontal stripes on dead/RFI channels (``~channel_valid``)."""
+    if band.channel_valid is None:
+        return
+    valid = np.asarray(band.channel_valid, bool).reshape(-1)
+    if valid.size != band.freq_mhz.size or valid.all():
+        return
+    edges = _channel_edges_mhz(band.freq_mhz)
+    for i in np.where(~valid)[0]:
+        ax.add_patch(
+            Rectangle(
+                (t0, edges[i]),
+                t1 - t0,
+                edges[i + 1] - edges[i],
+                facecolor=_GAP_FILL,
+                edgecolor="none",
+                lw=0.0,
+                zorder=4,
+            )
+        )
+
+
+def _resolve_rc_fontsize(key: str) -> float:
+    """Resolve an rcParams font-size entry to points."""
+    val = plt.rcParams[key]
+    if isinstance(val, (int, float)):
+        return float(val)
+    scales = {
+        "xx-small": 0.6,
+        "x-small": 0.75,
+        "small": 0.9,
+        "medium": 1.0,
+        "large": 1.2,
+        "x-large": 1.4,
+        "xx-large": 1.8,
+    }
+    base = float(plt.rcParams["font.size"])
+    return base * scales.get(str(val), 1.0)
+
+
+def _band_label_fontsize(label: str, band_height_mhz: float, axis_fs: float) -> float:
+    """Pick a band-label size that fits the grey strip and band height."""
+    n = max(len(label), 1)
+    # Empirical: bold +90° text spans ≈ fs * n * 2.35 MHz on these axes.
+    fs_cap = (0.75 * band_height_mhz) / (n * 2.35)
+    return max(6.0, min(axis_fs * 0.62, fs_cap))
+
+
+def _raise_axis_ticks(ax) -> None:
+    """Draw spines and inward ticks above hatched / data patches."""
+    ax.set_axisbelow(False)
+    for spine in ax.spines.values():
+        spine.set_zorder(_TICK_ZORDER)
+    for axis in (ax.xaxis, ax.yaxis):
+        axis.set_zorder(_TICK_ZORDER)
+        for line in axis.get_ticklines():
+            line.set_zorder(_TICK_ZORDER)
+        for label in axis.get_ticklabels():
+            label.set_zorder(_TICK_ZORDER)
+
+
+def _band_waterfall_labels(
+    ax,
+    bands: Sequence[BandSpectrum],
+    strip_t0: float,
+    strip_w: float,
+    fmin: float,
+    fmax: float,
+):
+    """Vertical telescope names left of the data window (no strip fill)."""
+    f_span = max(fmax - fmin, 1e-6)
+    xtick_reserve = _XTICK_RESERVE_FRAC * f_span
+    axis_fs = _resolve_rc_fontsize("axes.labelsize")
+    n = len(bands)
+
+    entries: list[tuple[BandSpectrum, float, float, float]] = []
+    for i, b in enumerate(bands):
+        if not b.label:
+            continue
+        f_lo, f_hi = b.frange
+        band_h = max(f_hi - f_lo, 1e-6)
+        v_inset = _BAND_LABEL_V_INSET * band_h
+        strip_lo = f_lo + v_inset
+        if i == 0:
+            strip_lo = max(strip_lo, f_lo + xtick_reserve)
+        strip_hi = f_hi - v_inset
+        if i == n - 1:
+            strip_hi = min(strip_hi, f_hi - 0.5 * v_inset)
+        strip_hi = max(strip_hi, strip_lo + 0.05 * band_h)
+        entries.append((b, strip_lo, strip_hi, strip_hi - strip_lo))
+
+    if not entries:
+        return
+
+    label_fs = min(
+        _band_label_fontsize(b.label, strip_h, axis_fs) for b, _, _, strip_h in entries
+    )
+
+    for b, strip_lo, strip_hi, _strip_h in entries:
+        ax.text(
+            strip_t0 + 0.5 * strip_w,
+            0.5 * (strip_lo + strip_hi),
+            b.label,
+            rotation=90,
+            ha="center",
+            va="center",
+            fontsize=label_fs,
+            fontweight="bold",
+            color="black",
+            zorder=6,
+            clip_on=True,
+        )
+
+
+def _unit_peak(y: np.ndarray) -> np.ndarray:
+    y = np.asarray(y, float)
+    if not np.any(np.isfinite(y)):
+        return np.zeros_like(y)
+    peak = float(np.nanmax(y))
+    if peak > 0:
+        return y / peak
+    scale = float(np.nanmax(np.abs(y)))
+    return y / scale if scale > 0 else np.zeros_like(y)
 
 
 def plot_codetection(
@@ -150,11 +370,16 @@ def plot_codetection(
     resid_clip: float = 5.0,
     per_band_scale: bool = False,
     show_model_on_data: bool = True,
+    columns: Sequence[str] = ("data", "model", "resid"),
     col_wspace: float = 0.15,
     marg_pad: float = 0.05,
-    figsize: tuple[float, float] = (10.2, 4.7),
-    title: Optional[str] = None,
+    figsize: tuple[float, float] | None = None,
+    title: str | None = None,
     gap_label: bool = True,
+    symmetric_time_axis: bool = False,
+    band_labels: bool = False,
+    show_column_titles: bool = True,
+    per_band_marginals: bool = False,
 ):
     """Render the data | model | residual triptych with marginals.
 
@@ -173,6 +398,9 @@ def plot_codetection(
         intensity scale is used (honest cross-band comparison).
     show_model_on_data : bool
         Overlay the model (red) on the data column's time series and spectrum.
+    columns : sequence of str
+        Subset of ``("data", "model", "resid")`` to render. Use ``("data",)``
+        for a single connected observations panel.
     col_wspace, marg_pad : float
         Spacing between the three columns, and between a waterfall and its
         marginal panels, respectively.
@@ -185,35 +413,59 @@ def plot_codetection(
         raise ValueError("`bands` must contain at least one BandSpectrum")
     bands = sorted(bands, key=lambda b: b.frange[0])
     bands, tref = _regrid_bands(bands)
-    t0 = float(tref[0])
-    t1 = float(tref[-1])
+    if symmetric_time_axis:
+        half = max(abs(float(tref[0])), abs(float(tref[-1])))
+        data_t0, data_t1 = -half, half
+    else:
+        data_t0 = min(float(b.time_ms[0]) for b in bands)
+        data_t1 = max(float(b.time_ms[-1]) for b in bands)
+    data_span = max(data_t1 - data_t0, 1e-6)
+    strip_w = _LABEL_STRIP_FRAC * data_span if band_labels else 0.0
+    tick_reserve = _YTICK_RESERVE_FRAC * data_span if band_labels else 0.0
+    label_margin = strip_w + tick_reserve
+    axis_t0 = data_t0 - label_margin
+    strip_t0 = data_t0 - strip_w
+    t0, t1 = axis_t0, data_t1
     fmin, fmax = bands[0].frange[0], bands[-1].frange[1]
-    gaps = [(lo.frange[1], hi.frange[0]) for lo, hi in zip(bands[:-1], bands[1:])
+    gaps = [(lo.frange[1], hi.frange[0]) for lo, hi in zip(bands[:-1], bands[1:], strict=False)
             if hi.frange[0] > lo.frange[1] + 1e-6]
 
-    # intensity scales
-    all_model = np.concatenate([b.model.ravel() for b in bands])
-    norm = Normalize(0, np.percentile(all_model, 99.5))
-    bnorm = ({id(b): Normalize(0, np.percentile(b.model, 99.5)) for b in bands}
-             if per_band_scale else None)
+    # intensity scales (ignore NaN padding from unequal snippet lengths)
+    norm = Normalize(0, _finite_percentile(np.concatenate([b.model for b in bands]), 99.5))
+    bnorm = (
+        {id(b): Normalize(0, _finite_percentile(b.model, 99.5)) for b in bands}
+        if per_band_scale
+        else None
+    )
+    water_cmap_bad = _cmap_with_bad(water_cmap)
     rnorm = Normalize(-resid_clip, resid_clip)
 
     # marginal projections (channel-averaged profile; time-averaged spectrum)
-    prof = {k: np.nanmean(np.concatenate([_band_array(b, k) for b in bands], axis=0), axis=0)
+    prof = {k: _nanmean(np.concatenate([_band_array(b, k) for b in bands], axis=0), axis=0)
             for k in ("data", "model", "resid")}
     pmax = float(np.nanmax([np.nanmax(prof["data"]), np.nanmax(prof["model"])]))
     if not np.isfinite(pmax) or pmax <= 0:
         pmax = 1.0
-    smax = max(np.max(b.data.mean(1)) for b in bands)
-    smax = max(smax, max(np.max(b.model.mean(1)) for b in bands))
+    if per_band_scale:
+        smax = 1.0
+    else:
+        smax = max(np.nanmax(_nanmean(b.data, axis=1)) for b in bands)
+        smax = max(smax, max(np.nanmax(_nanmean(b.model, axis=1)) for b in bands))
 
-    cols = [("data", "Data", water_cmap, norm),
-            ("model", "Model (2-D fit)", water_cmap, norm),
-            ("resid", r"Residual / $\sigma$", resid_cmap, rnorm)]
+    all_cols = [("data", "Data", water_cmap, norm),
+                ("model", "Model (2-D fit)", water_cmap, norm),
+                ("resid", r"Residual / $\sigma$", resid_cmap, rnorm)]
+    cols = [c for c in all_cols if c[0] in columns]
+    if not cols:
+        raise ValueError(f"`columns` must include at least one of data/model/resid; got {columns!r}")
+
+    if figsize is None:
+        w = 3.6 * len(cols) + 0.6
+        figsize = (w, 4.7)
 
     fig = plt.figure(figsize=figsize)
-    outer = fig.add_gridspec(1, 3, wspace=col_wspace, left=0.06, right=0.985,
-                             top=0.90, bottom=0.12)
+    outer = fig.add_gridspec(1, len(cols), wspace=col_wspace, left=0.08, right=0.985,
+                             top=0.94 if title else 0.96, bottom=0.12)
 
     for j, (key, ctitle, cmap, nrm) in enumerate(cols):
         inner = outer[0, j].subgridspec(2, 2, width_ratios=[4, 1.05],
@@ -226,17 +478,30 @@ def plot_codetection(
         # --- waterfall (each band drawn to scale) ---
         for b in bands:
             use = bnorm[id(b)] if (bnorm is not None and key != "resid") else nrm
-            ax_wf.imshow(_band_array(b, key), origin="lower", aspect="auto",
-                         cmap=cmap, norm=use,
-                         extent=[b.time_ms[0], b.time_ms[-1], b.frange[0], b.frange[1]])
+            arr = np.ma.masked_invalid(_band_array(b, key))
+            ax_wf.imshow(
+                arr,
+                origin="lower",
+                aspect="auto",
+                cmap=water_cmap_bad if key != "resid" else cmap,
+                norm=use,
+                extent=[b.time_ms[0], b.time_ms[-1], b.frange[0], b.frange[1]],
+                zorder=_DATA_ZORDER,
+            )
+            for nt0, nt1 in _no_data_time_spans(b, key):
+                _hatch_rect(ax_wf, nt0, nt1, b.frange[0], b.frange[1])
+            _rfi_channel_markers(ax_wf, b, data_t0, data_t1)
         for g0, g1 in gaps:
-            _hatch_rect(ax_wf, t0, t1, g0, g1)
+            _hatch_rect(ax_wf, data_t0, data_t1, g0, g1)
             if gap_label and j == 0:
                 ax_wf.text((t0 + t1) / 2, (g0 + g1) / 2, "no coverage",
                            ha="center", va="center", fontsize=6.5,
                            style="italic", color="0.4", zorder=4)
         ax_wf.set_ylim(fmin, fmax)
         ax_wf.set_xlim(t0, t1)
+        if band_labels and j == 0:
+            _band_waterfall_labels(ax_wf, bands, strip_t0, strip_w, fmin, fmax)
+        _raise_axis_ticks(ax_wf)
         ax_wf.set_xlabel("Time (ms)")
         if j == 0:
             ax_wf.set_ylabel("Frequency (MHz)")
@@ -249,13 +514,34 @@ def plot_codetection(
             ax_ts.plot(tref, prof["resid"], color="#34495e", lw=0.8)
             ax_ts.set_ylim(-0.6 * resid_clip, 0.6 * resid_clip)
         else:
-            ax_ts.plot(tref, prof[key], color="black", lw=0.8)
-            if key == "data" and show_model_on_data:
-                ax_ts.plot(tref, prof["model"], color="crimson", lw=0.9, alpha=0.85)
-            ax_ts.set_ylim(-0.05 * pmax, 1.15 * pmax)
+            if per_band_marginals:
+                for i, b in enumerate(bands):
+                    color = _BAND_LINE_COLORS[i % len(_BAND_LINE_COLORS)]
+                    ax_ts.plot(
+                        b.time_ms,
+                        _unit_peak(_nanmean(_band_array(b, key), axis=0)),
+                        color=color,
+                        lw=0.8,
+                    )
+                    if key == "data" and show_model_on_data:
+                        ax_ts.plot(
+                            b.time_ms,
+                            _unit_peak(_nanmean(b.model, axis=0)),
+                            color=color,
+                            lw=0.8,
+                            alpha=0.55,
+                            linestyle="--",
+                        )
+                ax_ts.set_ylim(-0.05, 1.15)
+            else:
+                ax_ts.plot(tref, prof[key], color="black", lw=0.8)
+                if key == "data" and show_model_on_data:
+                    ax_ts.plot(tref, prof["model"], color="crimson", lw=0.9, alpha=0.85)
+                ax_ts.set_ylim(-0.05 * pmax, 1.15 * pmax)
         ax_ts.set_xlim(t0, t1)
         ax_ts.tick_params(labelbottom=False, labelleft=False)
-        ax_ts.set_title(ctitle, fontsize=10, pad=4)
+        if show_column_titles:
+            ax_ts.set_title(ctitle, fontsize=10, pad=4)
 
         # --- right spectrum ---
         if key == "resid":
@@ -266,20 +552,56 @@ def plot_codetection(
             ax_sp.set_xlim(-0.6 * resid_clip, 0.6 * resid_clip)
         else:
             for b in bands:
-                ax_sp.plot(getattr(b, key).mean(1), b.freq_mhz, color="black", lw=0.7)
+                spec = _nanmean(getattr(b, key), axis=1)
+                if per_band_scale:
+                    spec = _unit_peak(spec)
+                ax_sp.plot(spec, b.freq_mhz, color="black", lw=0.7)
             if key == "data" and show_model_on_data:
                 for b in bands:
-                    ax_sp.plot(b.model.mean(1), b.freq_mhz, color="crimson", lw=0.8)
+                    spec = _nanmean(b.model, axis=1)
+                    if per_band_scale:
+                        spec = _unit_peak(spec)
+                    ax_sp.plot(spec, b.freq_mhz, color="crimson", lw=0.8)
             ax_sp.set_xlim(-0.05 * smax, 1.2 * smax)
         for g0, g1 in gaps:
-            ax_sp.axhspan(g0, g1, facecolor="0.93", edgecolor="0.55", hatch="////", lw=0)
+            ax_sp.axhspan(
+                g0,
+                g1,
+                facecolor="white",
+                edgecolor="0.55",
+                hatch="////",
+                lw=0,
+                zorder=_HATCH_ZORDER,
+            )
         ax_sp.set_ylim(fmin, fmax)
         ax_sp.tick_params(labelleft=False, labelbottom=False)
-        ax_sp.set_xlabel("spec.", fontsize=7)
+        _raise_axis_ticks(ax_sp)
 
     if title:
         fig.suptitle(title, fontsize=10, y=0.985)
     return fig
+
+
+def plot_codetection_observations(
+    bands: Sequence[BandSpectrum],
+    *,
+    title: str | None = None,
+    per_band_scale: bool = True,
+    **kwargs,
+):
+    """Single connected CHIME+gap+DSA data panel (waterfall + marginals)."""
+    return plot_codetection(
+        bands,
+        columns=("data",),
+        show_model_on_data=False,
+        per_band_scale=per_band_scale,
+        symmetric_time_axis=False,
+        band_labels=True,
+        show_column_titles=False,
+        per_band_marginals=True,
+        title=None,
+        **kwargs,
+    )
 
 
 # ---------------------------------------------------------------------------

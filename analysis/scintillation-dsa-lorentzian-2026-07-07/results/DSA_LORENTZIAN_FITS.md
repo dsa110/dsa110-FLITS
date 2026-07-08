@@ -98,11 +98,11 @@ quality flags remain in the tables and per-burst diagnostics.
 
 ## ACF Fit Figures
 
-Each burst figure follows the CHIME scintillation-bandwidth analysis
-layout: the left panel shows frequency-lag ACF profiles centered at
-each DSA sub-band frequency, and the right panel shows selected
-Lorentzian bandwidths versus frequency with a reference
-$\gamma\propto\nu^4$ curve.
+Each burst figure follows the manuscript scintillation-summary
+layout: the left panel shows selected Lorentzian bandwidths versus
+DSA sub-band center frequency with a reference
+$\gamma\propto\nu^4$ curve, and the right column shows stacked
+frequency-lag ACF panels with fitted Lorentzian overlays.
 
 ### casey
 

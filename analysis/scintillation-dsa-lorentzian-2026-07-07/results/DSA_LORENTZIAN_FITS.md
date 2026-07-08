@@ -31,6 +31,16 @@ is retained and the fallback policy is recorded.
 | wilhelm | 4 | [1, 1, 1, 2] | 1 | c1=0.7069, c2=14.71 | largest viable candidate |
 | zach | 4 | [1, 2, 2, 2] | 2 | c1=0.668, c2=18.68 | largest viable candidate |
 
+## Paper Summary Figure
+
+The sample-level summary shows all selected Lorentzian bandwidth
+components. Filled circles are unflagged components used as clean
+bandwidth measurements; triangles are selected components with
+quality flags. The status grid marks whether each produced DSA
+sub-band is clean, mixed, or flagged-only.
+
+![DSA Lorentzian bandwidth summary](figures/dsa_lorentzian_summary.png)
+
 ## Component Rows
 
 | burst | subband | freq MHz | n | component | dnu MHz | dnu err | m | redchi | flags |

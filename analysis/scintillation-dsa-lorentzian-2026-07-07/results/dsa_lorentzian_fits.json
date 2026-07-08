@@ -5334,6 +5334,8 @@
     "max_components": 3,
     "n_failure": 0,
     "n_success": 12,
-    "notes": "Fresh DSA ACFs from npz; YAML stored_fits and pkl ACF products are not read. Pipeline caches, diagnostic plots, MC noise templates, and 2D fits are disabled. When enabled, figures show each sub-band ACF with the selected Lorentzian model."
+    "notes": "Fresh DSA ACFs from npz; YAML stored_fits and pkl ACF products are not read. Pipeline caches, diagnostic plots, MC noise templates, and 2D fits are disabled. When enabled, figures show a sample-level summary and each sub-band ACF with the selected Lorentzian model.",
+    "summary_figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/dsa_lorentzian_summary.png",
+    "summary_figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/dsa_lorentzian_summary.svg"
   }
 }

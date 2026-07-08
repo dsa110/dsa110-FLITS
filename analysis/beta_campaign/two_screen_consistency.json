@@ -169,20 +169,20 @@
     {
       "burst_name": "johndoeII",
       "telescope": "dsa",
-      "tau_1ghz": 2.1874487967572502,
-      "tau_1ghz_err": 0.06656136251469369,
-      "delta_nu_dc": 0.4982457937396792,
-      "delta_nu_dc_err": 0.07418008408392032,
-      "alpha": 4.0,
-      "beta": 3.9892720851784795,
-      "tau_at_1p4ghz_ms": 0.569410869626523,
-      "tau_delta_nu_product": 283.7065707010679,
-      "tau_delta_nu_product_err": 43.11211552291759,
-      "implied_tau_from_dnu_ms": 0.00037053947330071733,
+      "tau_1ghz": 2.219292440306282,
+      "tau_1ghz_err": 0.07507547183606533,
+      "delta_nu_dc": 0.4973669740051203,
+      "delta_nu_dc_err": 0.0740575912034883,
+      "alpha": 4.066411381454531,
+      "beta": 3.9357229813477077,
+      "tau_at_1p4ghz_ms": 0.5649341473221315,
+      "tau_delta_nu_product": 280.9795873657714,
+      "tau_delta_nu_product_err": 42.903817684605016,
+      "implied_tau_from_dnu_ms": 0.0003711941959071411,
       "is_consistent": false,
       "quality_flag": "different_screens",
       "screen_verdict": "different_screens",
-      "interpretation": "Resolved \u0394\u03bd_d implies a near-screen \u03c4\u22483.71e-04 ms \u226a fitted pulse-broadening \u03c4=0.569 ms \u2192 different screens (resolved near vs far scattering screen)"
+      "interpretation": "Resolved \u0394\u03bd_d implies a near-screen \u03c4\u22483.71e-04 ms \u226a fitted pulse-broadening \u03c4=0.565 ms \u2192 different screens (resolved near vs far scattering screen)"
     },
     {
       "burst_name": "whitney_fine",
@@ -496,8 +496,8 @@
       ]
     },
     "johndoeII": {
-      "delta_nu_dc": 0.4982457937396792,
-      "delta_nu_dc_err": 0.07418008408392032,
+      "delta_nu_dc": 0.4973669740051203,
+      "delta_nu_dc_err": 0.0740575912034883,
       "config": "scintillation/configs/bursts/johndoeII_dsa.yaml",
       "subbands": [
         {
@@ -507,8 +507,8 @@
           "ref_mhz": 1352.0739052580172,
           "gamma_mhz": 0.5338648589696211,
           "gamma_err": 0.19576334732040604,
-          "scaled_mhz": 0.6136796941164439,
-          "scaled_err": 0.22503071532871605
+          "scaled_mhz": 0.6151009508660256,
+          "scaled_err": 0.22555187714340605
         },
         {
           "subband": "subband_1",
@@ -517,8 +517,8 @@
           "ref_mhz": 1445.7170763470617,
           "gamma_mhz": 0.5505814459422425,
           "gamma_err": 0.08934865603479668,
-          "scaled_mhz": 0.4841728932602495,
-          "scaled_err": 0.07857184004311775
+          "scaled_mhz": 0.4831407647725316,
+          "scaled_err": 0.0784043456716447
         }
       ]
     },

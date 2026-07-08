@@ -2,6 +2,14 @@ The smoking gun is real and reproduces independently: on pure noise, the design 
 
 # Multi-Component Gain-Marginal Joint Likelihood — Integrated Plan
 
+**Status note (2026-07-07):** this is a planning-era document. The core
+mandatory likelihood fixes were subsequently landed, and several per-burst
+predictions below are historical hypotheses rather than current fit verdicts.
+For wilhelm in particular, do not read "shape misfit" as evidence against the
+exponential/EMG branch: the β-coherent fits prefer the β≈4 exponential limit,
+while the residual issue is bright-pulse profile structure left within that
+preferred model family.
+
 This plan integrates the implemented design, its self-check, the adversarial verdict (independently reproduced below on the merge singularity), and the per-burst diagnosis into one honest build/compute plan. **Status of the core claim:** the N-template likelihood math is correct and verified on synthetic data; it is **NOT production-ready as written** — three required fixes (min-separation prior, proper gain prior for valid evidence, normalization constant) stand between it and a trustworthy sampler run.
 
 Self-check (synthetic, PASS): `/Users/jakobfaber/Developer/scratch/2026-06/flits-refit/multicomp_selfcheck.py`
@@ -96,7 +104,7 @@ Predictions from the α/χ²/lag-1 signature (HPCC table) — NOT fits (real dat
 **Genuinely recoverable — hidden-pulse, α interior (test A primary):**
 | Burst | α | Cause | Expected |
 |---|---|---|---|
-| wilhelm | 2.63 | hidden pulse, DSA | DSA lag1=−0.15 sharp under-fit → N=2 whitens DSA, α barely moves; narrow Δν_d. Borderline→clean. |
+| wilhelm | 2.63 | hidden pulse, DSA | Historical prediction. Later checks found a leading DSA component, but native-time C2D2 did not whiten the DSA residual; treat the remaining issue as bright-pulse profile structure within the β≈4 exponential/EMG-preferred branch, not as EMG rejection. |
 | chromatica | 3.98 | hidden pulse, DSA (strong) | DSA χ²=9.09,lag1=+0.88 biggest fail; big ΔlnZ, α~4. Strong recover. |
 | mahi | 3.52 | hidden pulse, DSA | long resolved tail + lag1=+0.67 → real 2nd comp on tail; cleanly recovered. |
 | phineas | 3.82 | hidden pulse, DSA (weak) | lag1=+0.81 but χ²=2.14 → low-amp secondary; CHECK ΔlnZ clears 5; if marginal, Δν_d widens. |

@@ -17,6 +17,12 @@ exemplar. Graded from `_a1_fits/` via `grade_allexp.py`.
 **#3** partial s² remains for Tier B (johndoeII/oran/phineas) + isha/mahi.
 **#6, #7** unblocked for Tier A; full N=8 after Tier B s² pull.
 
+**Update 2026-07-07:** the JohnDoeII C2D1/free-α sub-K interpretation referenced
+in the older decision answers is superseded. The promoted beta-native product is
+JohnDoeII C2D2 with `beta=3.936`, `tau_1GHz=2.219 ms`, `chi2_C/D=1.09/1.23`,
+and a β=4-limit α interpretation. Treat the older JohnDoeII sub-K statements in
+this map as historical context only.
+
 ## Assets / state of record
 
 - [`plan-manuscript-completion.md`](plan-manuscript-completion.md) — full scope, per-section exclusion table.
@@ -86,12 +92,14 @@ Kolmogorov-prior bound with a physical-impossibility bound), and
 multi-screen/anisotropic media legitimately flatten α below 2. A posterior within
 ~3σ of *either* prior bound is separately flagged rail-MARGINAL regardless of value
 (already implemented — chromatica/freya/hamilton rail the 6.0 upper bound in
-`joint_gate_verdicts.md`). johndoeII (α≈1.37, un-railed, tight ±0.05) is therefore
-citable as a sub-Kolmogorov result (overall MARGINAL). **Code implementation
-deferred**: the gate hardcodes `ALPHA_MIN = 1.5`; changing it regenerates every
-gated joint verdict, so it is a reviewed full-regeneration pass (+ test + the dead
-`ALPHA_MARGINAL_MIN` / contract prose, tracked in `.agents/deferred-tasks.md`), not
-a silent one-line edit — code and ADR are knowingly inconsistent until then.
+`joint_gate_verdicts.md`). This historically made johndoeII (α≈1.37, un-railed,
+tight ±0.05) citable as a sub-Kolmogorov result (overall MARGINAL), but that
+specific JohnDoeII claim is now superseded by the promoted beta-native C2D2
+β=4-limit product. **Code implementation deferred**: the gate hardcodes
+`ALPHA_MIN = 1.5`; changing it regenerates every gated joint verdict, so it is a
+reviewed full-regeneration pass (+ test + the dead `ALPHA_MARGINAL_MIN` /
+contract prose, tracked in `.agents/deferred-tasks.md`), not a silent one-line
+edit — code and ADR are knowingly inconsistent until then.
 
 ---
 
@@ -148,8 +156,9 @@ rule unchanged; roster graded on all-exp `_a1_fits/` with ADR-0004 floor.
 **Tier A (5, fully adjudicated):** casey 2.40, wilhelm 2.56 (DSA-shape caveat),
 chromatica 3.28, zach 3.32 (C1D1; no profile-bias claim), freya 4.36.
 
-**Tier B (3, provisional — all-exp fixed-s² pending):** johndoeII 1.53, oran 2.66,
-phineas 3.32.
+**Tier B (legacy provisional — all-exp fixed-s² pending):** oran 2.66 and
+phineas 3.32 remain legacy free-α rows. The old johndoeII 1.53 row is
+superseded by the beta-native C2D2 β=4-limit product.
 
 **Multiplicity exemplar (prose):** whitney 5.12 (C2D2, fixed-s² confirmed).
 

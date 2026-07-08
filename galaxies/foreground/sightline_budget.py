@@ -312,9 +312,10 @@ def _lookup_dm_obs(name: str, configs_dir: str | None) -> float | None:
 
 
 def _lookup_tau_fit(name: str, bursts_dir: str | None) -> dict | None:
-    """Find the best scattering τ for a target (all-exp joint, then CHIME single-band).
+    """Find the best scattering τ for a target (citable joint, then CHIME single-band).
 
-    Prefers canonical all-exp joint fits from the citable-α roster (ADR-0005).
+    Prefers the citable joint roster (legacy all-exp rows or beta re-lock
+    overrides such as JohnDoeII C2D2).
     Falls back to CHIME fit_results.json, preferring quality-PASS when several exist.
     """
     from galaxies.foreground.tau_consistency import load_allexp_joint_tau_for_budget

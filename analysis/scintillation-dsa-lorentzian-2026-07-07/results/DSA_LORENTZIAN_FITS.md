@@ -99,10 +99,10 @@ sub-band is clean, mixed, or flagged-only.
 ## ACF Fit Figures
 
 Each burst figure follows the CHIME scintillation-bandwidth analysis
-layout: a left panel shows selected decorrelation bandwidths versus
-sub-band center frequency with a reference $\Delta\nu\propto\nu^4$
-curve, and the right column stacks the zoomed sub-band ACFs with
-selected Lorentzian overlays.
+layout: the left panel shows normalized frequency ACFs offset by
+DSA sub-band center frequency, and the right panel shows selected
+decorrelation bandwidths versus frequency with a reference
+$\Delta\nu\propto\nu^4$ curve.
 
 ### casey
 

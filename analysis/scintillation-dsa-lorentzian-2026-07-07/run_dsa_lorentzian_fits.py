@@ -354,6 +354,29 @@ def _reference_power_law(
     }
 
 
+def _bandwidth_axis_limits(rows: list[dict[str, Any]]) -> tuple[float, float]:
+    clean = [
+        float(row["dnu_mhz"])
+        for row in rows
+        if row.get("usable", True)
+        and np.isfinite(float(row.get("dnu_mhz", np.nan)))
+        and float(row["dnu_mhz"]) > 0
+    ]
+    values = clean or [
+        float(row["dnu_mhz"])
+        for row in rows
+        if np.isfinite(float(row.get("dnu_mhz", np.nan))) and float(row["dnu_mhz"]) > 0
+    ]
+    if not values:
+        return 0.1, 1.0
+
+    lo = min(values)
+    hi = max(values)
+    if np.isclose(lo, hi):
+        return float(lo / 1.8), float(hi * 1.8)
+    return float(lo / 1.45), float(hi * 1.45)
+
+
 def _plot_burst_acfs(
     burst: str,
     plot_subbands: list[dict[str, Any]],
@@ -364,14 +387,15 @@ def _plot_burst_acfs(
 
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt  # noqa: PLC0415
+    from matplotlib.ticker import FuncFormatter, NullFormatter  # noqa: PLC0415
 
     plt.rcParams.update(
         {
             "axes.edgecolor": "#111827",
             "axes.labelcolor": "#111827",
             "axes.linewidth": 0.8,
-            "font.family": "serif",
-            "font.size": 9,
+            "font.family": "DejaVu Sans",
+            "font.size": 8,
             "legend.fontsize": 8,
             "savefig.dpi": 240,
             "svg.fonttype": "none",
@@ -382,23 +406,21 @@ def _plot_burst_acfs(
 
     figure_dir.mkdir(parents=True, exist_ok=True)
     n_subbands = len(plot_subbands)
-    nrows = max(n_subbands, 1)
     fig = plt.figure(
-        figsize=(11.2, max(5.4, 2.15 * nrows + 0.7)),
+        figsize=(9.6, 4.8),
         constrained_layout=True,
     )
     gs = fig.add_gridspec(
-        nrows,
+        1,
         2,
-        width_ratios=[1.15, 1.0],
-        hspace=0.34,
-        wspace=0.25,
+        width_ratios=[1.38, 1.0],
+        wspace=0.28,
     )
-    ax_bw = fig.add_subplot(gs[:, 0])
-    uncertainty_color = "#d1d5db"
+    ax_acf = fig.add_subplot(gs[0, 0])
+    ax_bw = fig.add_subplot(gs[0, 1])
     fit_color = "#111827"
     component_colors = ["#d97706", "#0f766e", "#7c3aed"]
-    stack_colors = [plt.get_cmap("plasma")(x) for x in np.linspace(0.15, 0.78, nrows)]
+    stack_colors = [plt.get_cmap("plasma")(x) for x in np.linspace(0.15, 0.78, max(n_subbands, 1))]
 
     component_rows = []
     for payload in plot_subbands:
@@ -420,19 +442,16 @@ def _plot_burst_acfs(
 
     clean_rows = [row for row in component_rows if row["usable"]]
     flagged_rows = [row for row in component_rows if not row["usable"]]
-    for rows, marker, color, label, alpha, size in [
-        (clean_rows, "o", "#7c3aed", "unflagged Lorentzian", 0.9, 40),
-        (flagged_rows, "^", "#d97706", "flagged Lorentzian", 0.55, 48),
-    ]:
-        if not rows:
-            continue
-        x = [row["center_freq_mhz"] for row in rows]
-        y = [row["dnu_mhz"] for row in rows]
+    bandwidth_limits = _bandwidth_axis_limits(component_rows)
+    bandwidth_rows = clean_rows or flagged_rows
+    if bandwidth_rows:
+        x = [row["center_freq_mhz"] for row in bandwidth_rows]
+        y = [row["dnu_mhz"] for row in bandwidth_rows]
         yerr = [
             row["dnu_err_mhz"]
             if row["usable"] and np.isfinite(row["dnu_err_mhz"]) and row["dnu_err_mhz"] > 0
             else 0.0
-            for row in rows
+            for row in bandwidth_rows
         ]
         if any(err > 0 for err in yerr):
             ax_bw.errorbar(
@@ -445,22 +464,28 @@ def _plot_burst_acfs(
                 alpha=0.55,
                 zorder=1,
             )
+        marker = "o" if clean_rows else "^"
+        color = "#3b82f6" if clean_rows else "#d97706"
+        edge = "#111827" if clean_rows else "#b45309"
+        label = "usable" if clean_rows else "flagged only"
         ax_bw.scatter(
             x,
             y,
             marker=marker,
-            s=size,
+            s=36,
             color=color,
-            edgecolors="#111827" if rows[0]["usable"] else "#b45309",
+            edgecolors=edge,
             linewidths=0.55,
-            alpha=alpha,
+            alpha=0.92 if clean_rows else 0.55,
             label=label,
             zorder=3,
         )
 
     reference = _reference_power_law(component_rows, ref_alpha=4.0)
     if reference is not None:
-        freqs = np.array([row["center_freq_mhz"] for row in component_rows], dtype=float)
+        freqs = np.array(
+            [row["center_freq_mhz"] for row in clean_rows or component_rows], dtype=float
+        )
         nu = np.linspace(float(np.nanmin(freqs)) - 8.0, float(np.nanmax(freqs)) + 8.0, 240)
         dnu = reference["scale_mhz"] * (nu / reference["nu_ref_mhz"]) ** reference["alpha"]
         ax_bw.plot(
@@ -468,83 +493,101 @@ def _plot_burst_acfs(
             dnu,
             "--",
             color="#6b7280",
-            lw=1.4,
+            lw=1.25,
             label=rf"$\Delta\nu \propto \nu^{{{reference['alpha']:g}}}$",
             zorder=2,
         )
 
-    for row in component_rows:
+    for row in bandwidth_rows:
         ax_bw.annotate(
             str(row["subband"]),
             (row["center_freq_mhz"], row["dnu_mhz"]),
             xytext=(4, 3),
             textcoords="offset points",
-            fontsize=7,
+            fontsize=6.5,
             color="#374151",
+        )
+    if flagged_rows and clean_rows:
+        ax_bw.text(
+            0.02,
+            0.03,
+            f"{len(flagged_rows)} flagged selected component(s) omitted",
+            transform=ax_bw.transAxes,
+            fontsize=6.8,
+            color="#92400e",
+            ha="left",
+            va="bottom",
         )
 
     if component_rows:
         ax_bw.set_yscale("log")
-    ax_bw.set_title("Sub-band bandwidth scaling", fontsize=11, pad=7)
-    ax_bw.set_xlabel("Center Frequency (MHz)")
-    ax_bw.set_ylabel(r"Decorrelation Bandwidth, $\Delta\nu$ (MHz)")
-    ax_bw.grid(True, alpha=0.28, which="both")
+        ax_bw.set_ylim(*bandwidth_limits)
+        ax_bw.yaxis.set_major_formatter(FuncFormatter(lambda value, _: f"{value:g}"))
+        ax_bw.yaxis.set_minor_formatter(NullFormatter())
+    ax_bw.set_title("Bandwidth vs frequency", fontsize=9.5, pad=5)
+    ax_bw.set_xlabel("Center frequency (MHz)", fontsize=8.5)
+    ax_bw.set_ylabel(r"$\Delta\nu_d$ (MHz)", fontsize=8.5)
+    ax_bw.grid(True, alpha=0.22, which="major")
     ax_bw.spines["top"].set_visible(False)
     ax_bw.spines["right"].set_visible(False)
-    ax_bw.legend(loc="upper left", frameon=True, framealpha=0.86, fontsize=8)
+    ax_bw.tick_params(labelsize=8, top=False, right=False, which="both")
+    ax_bw.legend(loc="upper right", frameon=False, fontsize=7.2)
 
+    acf_offsets = []
+    acf_labels = []
+    acf_lag_zoom = 1.0
+    offset_step = 1.28
     for row_idx, payload in enumerate(plot_subbands):
-        ax = fig.add_subplot(gs[row_idx, 1])
-        lags = payload["lags"]
-        acf = payload["acf"]
-        err = payload["err"]
+        lags = np.asarray(payload["lags"], dtype=float)
+        acf = np.asarray(payload["acf"], dtype=float)
         subband = payload["summary"]
         fit = payload["fit"]
         fit_range = float(subband["fit_range_mhz"])
         lag_zoom = min(fit_range, 12.0)
+        acf_lag_zoom = max(acf_lag_zoom, lag_zoom)
 
         display = np.isfinite(lags) & np.isfinite(acf) & (np.abs(lags) <= lag_zoom)
         nonzero = display & (lags != 0)
-        err_ok = err is not None and np.any(np.isfinite(err[nonzero]) & (err[nonzero] > 0))
+        if not np.any(nonzero):
+            continue
 
-        if err_ok:
-            idx = _decimated_indices(nonzero, max_points=34)
-            ax.errorbar(
-                lags[idx],
-                acf[idx],
-                yerr=np.asarray(err)[idx],
-                fmt="none",
-                elinewidth=0.45,
-                capsize=0,
-                ecolor=uncertainty_color,
-                alpha=0.85,
-                zorder=1,
-            )
+        xfit = np.linspace(-lag_zoom, lag_zoom, 700)
+        yfit = _model_curve(xfit, fit)
+        finite_y = np.concatenate(
+            [
+                acf[nonzero][np.isfinite(acf[nonzero])],
+                yfit[np.isfinite(yfit)],
+            ]
+        )
+        scale = float(np.nanpercentile(np.abs(finite_y), 99.5)) if finite_y.size else 1.0
+        if not np.isfinite(scale) or scale <= 0:
+            scale = 1.0
 
-        ax.plot(
+        offset = row_idx * offset_step
+        acf_offsets.append(offset)
+        acf_labels.append(f"{float(subband['center_freq_mhz']):.0f}")
+        ax_acf.plot(
             lags[nonzero],
-            acf[nonzero],
+            acf[nonzero] / scale + offset,
             color=stack_colors[row_idx],
-            lw=0.95,
-            alpha=0.86,
+            lw=0.9,
+            alpha=0.82,
             zorder=2,
         )
 
         zero = display & (lags == 0)
         if np.any(zero):
-            ax.scatter(
+            ax_acf.scatter(
                 lags[zero],
-                acf[zero],
-                s=13,
+                acf[zero] / scale + offset,
+                s=14,
                 facecolors="white",
                 edgecolors="#4b5563",
                 linewidths=0.8,
                 zorder=4,
             )
 
-        xfit = np.linspace(-lag_zoom, lag_zoom, 700)
-        yfit = _model_curve(xfit, fit)
-        ax.plot(xfit, yfit, color=fit_color, lw=1.75, zorder=5)
+        ax_acf.plot(xfit, yfit / scale + offset, color=fit_color, lw=1.55, zorder=5)
         constant = float(fit.get("constant", 0.0))
 
         components = subband["selected_components"]
@@ -556,81 +599,30 @@ def _plot_burst_acfs(
             if not (np.isfinite(gamma) and gamma > 0 and np.isfinite(m)):
                 continue
             y_component = constant + _lorentzian_curve(xfit, gamma, m)
-            ax.plot(
+            ax_acf.plot(
                 xfit,
-                y_component,
+                y_component / scale + offset,
                 color=component_colors[(comp_idx - 1) % len(component_colors)],
-                lw=0.95,
+                lw=0.9,
                 ls="--",
-                alpha=0.62,
+                alpha=0.6,
                 zorder=3,
             )
 
-        y_candidates = [acf[nonzero], yfit[np.isfinite(yfit)]]
-        finite_y = np.concatenate([v[np.isfinite(v)] for v in y_candidates if v.size])
-        if finite_y.size:
-            lo, hi = np.nanpercentile(finite_y, [0.5, 99.5])
-            pad = max(0.04, 0.14 * (hi - lo))
-            ax.set_ylim(lo - pad, hi + pad)
+    ax_acf.set_title("Frequency ACFs, offset by sub-band", fontsize=9.5, pad=5)
+    ax_acf.set_xlabel("Frequency lag (MHz)", fontsize=8.5)
+    ax_acf.set_ylabel("Sub-band center frequency (MHz)", fontsize=8.5)
+    ax_acf.set_xlim(-acf_lag_zoom, acf_lag_zoom)
+    if acf_offsets:
+        ax_acf.set_yticks(acf_offsets)
+        ax_acf.set_yticklabels(acf_labels)
+        ax_acf.set_ylim(-0.55, acf_offsets[-1] + 1.45)
+    ax_acf.grid(True, color="#e5e7eb", lw=0.5, alpha=0.65)
+    ax_acf.spines["top"].set_visible(False)
+    ax_acf.spines["right"].set_visible(False)
+    ax_acf.tick_params(labelsize=8, top=False, right=False, which="both")
 
-        dnu_values = [
-            _format_sigfig(float(component.get("dnu_mhz", np.nan)))
-            for component in components
-        ]
-        label = [
-            rf"$\nu_c$={float(subband['center_freq_mhz']):.0f} MHz",
-            r"$\Delta\nu$=" + ", ".join(dnu_values) + " MHz",
-            rf"$\chi_r^2$={_format_sigfig(float(subband.get('selected_redchi', np.nan)))}",
-        ]
-        flag_note = _flag_note(components)
-        if flag_note:
-            label.append(flag_note)
-        ax.text(
-            0.03,
-            0.93,
-            "\n".join(label),
-            transform=ax.transAxes,
-            va="top",
-            ha="left",
-            fontsize=8,
-            color="#111827",
-            linespacing=1.25,
-            bbox={"facecolor": "white", "edgecolor": "none", "alpha": 0.75, "pad": 2.5},
-        )
-        ax.set_xlim(-lag_zoom, lag_zoom)
-        if row_idx == n_subbands - 1:
-            ax.set_xlabel("Frequency Lag (MHz)")
-        if row_idx == max(n_subbands // 2 - 1, 0):
-            ax.set_ylabel(r"ACF ($m^2$)", fontsize=8, labelpad=2)
-        ax.grid(True, color="#e5e7eb", lw=0.55, alpha=0.8)
-        ax.spines["top"].set_visible(False)
-        ax.spines["right"].set_visible(False)
-        ax.xaxis.set_ticks_position("bottom")
-        ax.yaxis.set_ticks_position("left")
-        ax.tick_params(
-            axis="x",
-            which="both",
-            direction="out",
-            bottom=True,
-            top=False,
-            labelbottom=True,
-            labeltop=False,
-            length=3,
-            width=0.8,
-        )
-        ax.tick_params(
-            axis="y",
-            which="both",
-            direction="out",
-            left=True,
-            right=False,
-            labelleft=True,
-            labelright=False,
-            length=3,
-            width=0.8,
-        )
-
-    fig.suptitle(f"{burst}: DSA scintillation bandwidth analysis", fontsize=12)
+    fig.suptitle(f"{burst}: DSA scintillation bandwidth analysis", fontsize=10.5)
     png = figure_dir / f"{burst}_dsa_acf_lorentzian_fits.png"
     svg = figure_dir / f"{burst}_dsa_acf_lorentzian_fits.svg"
     fig.savefig(png, dpi=240, bbox_inches="tight")
@@ -1152,10 +1144,10 @@ def _write_markdown(
             "## ACF Fit Figures",
             "",
             "Each burst figure follows the CHIME scintillation-bandwidth analysis",
-            "layout: a left panel shows selected decorrelation bandwidths versus",
-            "sub-band center frequency with a reference $\\Delta\\nu\\propto\\nu^4$",
-            "curve, and the right column stacks the zoomed sub-band ACFs with",
-            "selected Lorentzian overlays.",
+            "layout: the left panel shows normalized frequency ACFs offset by",
+            "DSA sub-band center frequency, and the right panel shows selected",
+            "decorrelation bandwidths versus frequency with a reference",
+            "$\\Delta\\nu\\propto\\nu^4$ curve.",
             "",
         ]
     )
@@ -1270,7 +1262,7 @@ def main() -> int:
                 "Fresh DSA ACFs from npz; YAML stored_fits and pkl ACF products are not read. "
                 "Pipeline caches, diagnostic plots, MC noise templates, and 2D fits are disabled. "
                 "When enabled, figures show a sample-level summary plus CHIME-style per-burst "
-                "bandwidth scaling and stacked ACF diagnostics."
+                "offset-ACF and bandwidth-scaling diagnostics."
             ),
         },
         "results": results,

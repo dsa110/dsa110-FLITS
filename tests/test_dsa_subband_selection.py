@@ -221,3 +221,40 @@ def test_write_markdown_places_summary_figure_before_diagnostic_panels(tmp_path)
     assert "## Paper Summary Figure" in text
     assert "figures/dsa_lorentzian_summary.png" in text
     assert text.index("## Paper Summary Figure") < text.index("## ACF Fit Figures")
+
+
+def test_reference_power_law_fits_chime_style_gamma_scaling():
+    rows = [
+        {
+            "center_freq_mhz": 1320.0,
+            "dnu_mhz": 2.0 * (1320.0 / 1400.0) ** 4,
+            "dnu_err_mhz": 0.05,
+            "usable": True,
+        },
+        {
+            "center_freq_mhz": 1400.0,
+            "dnu_mhz": 2.0,
+            "dnu_err_mhz": 0.05,
+            "usable": True,
+        },
+        {
+            "center_freq_mhz": 1480.0,
+            "dnu_mhz": 2.0 * (1480.0 / 1400.0) ** 4,
+            "dnu_err_mhz": 0.05,
+            "usable": True,
+        },
+        {
+            "center_freq_mhz": 1400.0,
+            "dnu_mhz": 20.0,
+            "dnu_err_mhz": 0.05,
+            "usable": False,
+        },
+    ]
+
+    fit = driver._reference_power_law(rows, ref_alpha=4.0, nu_ref_mhz=1400.0)
+
+    assert fit == {
+        "alpha": 4.0,
+        "nu_ref_mhz": 1400.0,
+        "scale_mhz": 2.0,
+    }

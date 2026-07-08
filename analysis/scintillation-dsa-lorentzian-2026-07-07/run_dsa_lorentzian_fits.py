@@ -53,6 +53,10 @@ BURSTS = [
 ]
 
 
+def _lorentzian_curve(x: np.ndarray, gamma: float, m: float) -> np.ndarray:
+    return (m**2) / (1.0 + (x / gamma) ** 2)
+
+
 def _jsonable(value: Any) -> Any:
     if isinstance(value, dict):
         return {str(k): _jsonable(v) for k, v in value.items()}
@@ -119,6 +123,16 @@ def _selected_fit(verdict: dict[str, Any]) -> dict[str, Any]:
     return {"n": n_pref, "success": False, "components": []}
 
 
+def _model_curve(x: np.ndarray, fit: dict[str, Any]) -> np.ndarray:
+    y = np.full_like(x, float(fit.get("constant", 0.0)), dtype=float)
+    for component in fit.get("components", []):
+        gamma = float(component.get("dnu_mhz", np.nan))
+        m = float(component.get("m", np.nan))
+        if np.isfinite(gamma) and gamma > 0 and np.isfinite(m):
+            y += _lorentzian_curve(x, gamma, m)
+    return y
+
+
 def _component_quality_flags(component: dict[str, Any], *, fit_range_mhz: float) -> list[str]:
     flags = []
     dnu = float(component.get("dnu_mhz", np.nan))
@@ -141,11 +155,137 @@ def _component_quality_flags(component: dict[str, Any], *, fit_range_mhz: float)
     return flags
 
 
+def _plot_burst_acfs(
+    burst: str,
+    plot_subbands: list[dict[str, Any]],
+    *,
+    figure_dir: Path,
+) -> dict[str, str]:
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt  # noqa: PLC0415
+
+    figure_dir.mkdir(parents=True, exist_ok=True)
+    n_subbands = len(plot_subbands)
+    ncols = 2 if n_subbands > 1 else 1
+    nrows = int(np.ceil(n_subbands / ncols))
+    fig, axes = plt.subplots(
+        nrows,
+        ncols,
+        figsize=(6.6 * ncols, 3.8 * nrows),
+        squeeze=False,
+        constrained_layout=True,
+    )
+    axes_flat = axes.ravel()
+
+    for ax, payload in zip(axes_flat, plot_subbands, strict=False):
+        lags = payload["lags"]
+        acf = payload["acf"]
+        err = payload["err"]
+        subband = payload["summary"]
+        fit = payload["fit"]
+        fit_range = float(subband["fit_range_mhz"])
+
+        display = np.isfinite(lags) & np.isfinite(acf) & (np.abs(lags) <= fit_range)
+        nonzero = display & (lags != 0)
+        err_ok = err is not None and np.any(np.isfinite(err[nonzero]) & (err[nonzero] > 0))
+
+        if err_ok:
+            idx = np.where(nonzero)[0]
+            step = max(1, len(idx) // 80)
+            ax.errorbar(
+                lags[idx],
+                acf[idx],
+                yerr=np.asarray(err)[idx],
+                fmt=".",
+                ms=2.5,
+                lw=0.35,
+                elinewidth=0.35,
+                capsize=0,
+                color="#35618f",
+                alpha=0.45,
+                errorevery=step,
+                label="ACF",
+            )
+        else:
+            ax.plot(lags[nonzero], acf[nonzero], ".", ms=2.5, color="#35618f", alpha=0.45)
+
+        zero = display & (lags == 0)
+        if np.any(zero):
+            ax.plot(lags[zero], acf[zero], "o", ms=3.0, color="#6b7280", alpha=0.65)
+
+        xfit = np.linspace(-fit_range, fit_range, 900)
+        yfit = _model_curve(xfit, fit)
+        ax.plot(xfit, yfit, color="#111827", lw=1.8, label=f"{subband['n_preferred']}L fit")
+        constant = float(fit.get("constant", 0.0))
+        ax.axhline(constant, color="#9ca3af", lw=0.8, ls=":", label="constant")
+
+        for comp_idx, component in enumerate(subband["selected_components"], start=1):
+            gamma = float(component.get("dnu_mhz", np.nan))
+            m = float(component.get("m", np.nan))
+            if not (np.isfinite(gamma) and gamma > 0 and np.isfinite(m)):
+                continue
+            y_component = constant + _lorentzian_curve(xfit, gamma, m)
+            ax.plot(xfit, y_component, lw=1.0, ls="--", alpha=0.75, label=f"c{comp_idx}")
+
+        y_candidates = [acf[nonzero], yfit[np.isfinite(yfit)]]
+        finite_y = np.concatenate([v[np.isfinite(v)] for v in y_candidates if v.size])
+        if finite_y.size:
+            lo, hi = np.nanpercentile(finite_y, [1, 99])
+            pad = max(0.05, 0.12 * (hi - lo))
+            ax.set_ylim(lo - pad, hi + pad)
+
+        flags = [
+            f"c{i}: " + ",".join(c.get("quality_flags", []))
+            for i, c in enumerate(subband["selected_components"], start=1)
+            if c.get("quality_flags")
+        ]
+        comp_text = "\n".join(
+            f"c{i} dnu={c.get('dnu_mhz', np.nan):.3g} MHz"
+            for i, c in enumerate(subband["selected_components"], start=1)
+        )
+        if flags:
+            comp_text = comp_text + "\n" + "\n".join(flags)
+        ax.text(
+            0.02,
+            0.98,
+            comp_text,
+            transform=ax.transAxes,
+            va="top",
+            ha="left",
+            fontsize=8,
+            bbox={"facecolor": "white", "edgecolor": "#d1d5db", "alpha": 0.82, "pad": 3},
+        )
+        ax.set_title(
+            f"subband {subband['index']} | {subband['center_freq_mhz']:.1f} MHz | "
+            f"redchi {subband.get('selected_redchi', np.nan):.2g}",
+            fontsize=10,
+        )
+        ax.set_xlabel("Frequency lag (MHz)")
+        ax.set_ylabel("ACF")
+        ax.grid(True, color="#e5e7eb", lw=0.6)
+        ax.legend(loc="lower right", fontsize=8, frameon=False, ncols=2)
+
+    for ax in axes_flat[n_subbands:]:
+        ax.axis("off")
+
+    fig.suptitle(f"{burst} DSA frequency ACF Lorentzian fits", fontsize=14)
+    png = figure_dir / f"{burst}_dsa_acf_lorentzian_fits.png"
+    svg = figure_dir / f"{burst}_dsa_acf_lorentzian_fits.svg"
+    fig.savefig(png, dpi=160)
+    fig.savefig(svg)
+    svg.write_text("\n".join(line.rstrip() for line in svg.read_text().splitlines()) + "\n")
+    plt.close(fig)
+    return {"figure_png": str(png), "figure_svg": str(svg)}
+
+
 def _fit_one_burst(
     config_path: Path,
     *,
     output_dir: Path,
     max_components: int,
+    make_figures: bool,
 ) -> dict[str, Any]:
     loaded = config_mod.load_config(config_path)
     cfg = _config_for_fresh_acf(loaded, output_dir=output_dir)
@@ -162,6 +302,7 @@ def _fit_one_burst(
     configured_fit_range = float(fit_cfg.get("fit_lagrange_mhz", 45.0))
 
     subbands = []
+    plot_subbands = []
     for i, acf in enumerate(acf_results["subband_acfs"]):
         lags = np.asarray(acf_results["subband_lags_mhz"][i], dtype=float)
         acf_arr = np.asarray(acf, dtype=float)
@@ -216,6 +357,8 @@ def _fit_one_burst(
                         "redchi": f.get("redchi"),
                         "n_params": f.get("n_params"),
                         "ndata": f.get("ndata"),
+                        "constant": f.get("constant"),
+                        "constant_err": f.get("constant_err"),
                         "components": sorted(
                             f.get("components", []),
                             key=lambda c: float(c.get("dnu_mhz", np.inf)),
@@ -223,6 +366,15 @@ def _fit_one_burst(
                     }
                     for f in verdict.get("fits", [])
                 ],
+            }
+        )
+        plot_subbands.append(
+            {
+                "lags": lags,
+                "acf": acf_arr,
+                "err": err,
+                "summary": subbands[-1],
+                "fit": fit,
             }
         )
 
@@ -236,7 +388,7 @@ def _fit_one_burst(
                 if not comp.get("quality_flags"):
                     usable_component_bands[comp_idx].append(float(dnu))
 
-    return {
+    result = {
         "burst": burst,
         "config_path": str(config_path),
         "input_data_path": cfg.get("input_data_path"),
@@ -255,6 +407,9 @@ def _fit_one_burst(
         },
         "subbands": subbands,
     }
+    if make_figures:
+        result.update(_plot_burst_acfs(burst, plot_subbands, figure_dir=output_dir / "figures"))
+    return result
 
 
 def _write_csv(rows: list[dict[str, Any]], path: Path) -> None:
@@ -322,7 +477,15 @@ def _write_markdown(results: list[dict[str, Any]], rows: list[dict[str, Any]], p
             "{selected_redchi:.4g} | {quality_flags} |".format(**row)
         )
 
-    path.write_text("\n".join(lines) + "\n")
+    lines.extend(["", "## ACF Fit Figures", ""])
+    for result in results:
+        figure_png = result.get("figure_png")
+        if not figure_png:
+            continue
+        rel = Path(figure_png).relative_to(path.parent)
+        lines.extend([f"### {result['burst']}", "", f"![{result['burst']} ACF fits]({rel})", ""])
+
+    path.write_text("\n".join(lines).rstrip() + "\n")
 
 
 def _flatten_rows(results: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -366,6 +529,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--max-components", type=int, default=3, choices=(1, 2, 3))
     parser.add_argument("--bursts", nargs="*", default=BURSTS, help="Burst nicknames to run.")
+    parser.add_argument("--no-figures", action="store_true", help="Skip ACF/fitted-curve plots.")
     parser.add_argument(
         "--keep-going",
         action="store_true",
@@ -394,6 +558,7 @@ def main() -> int:
                 config_path,
                 output_dir=args.output_dir,
                 max_components=args.max_components,
+                make_figures=not args.no_figures,
             )
         except Exception as exc:
             logging.exception("%s failed", burst)
@@ -414,9 +579,12 @@ def main() -> int:
             "n_success": len(results),
             "n_failure": len(failures),
             "failures": failures,
+            "figures_enabled": not args.no_figures,
+            "figure_directory": str(args.output_dir / "figures") if not args.no_figures else None,
             "notes": (
                 "Fresh DSA ACFs from npz; YAML stored_fits and pkl ACF products are not read. "
-                "Pipeline caches, diagnostic plots, MC noise templates, and 2D fits are disabled."
+                "Pipeline caches, diagnostic plots, MC noise templates, and 2D fits are disabled. "
+                "When enabled, figures show each sub-band ACF with the selected Lorentzian model."
             ),
         },
         "results": results,

@@ -9,6 +9,8 @@
     "1": 1.0588192500506122
   },
   "config_path": "scintillation/configs/bursts/chromatica_dsa.yaml",
+  "figure_png": "analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/chromatica_dsa_acf_lorentzian_fits.png",
+  "figure_svg": "analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/chromatica_dsa_acf_lorentzian_fits.svg",
   "fit_lagrange_mhz": 25.0,
   "input_data_path": "/Users/jakobfaber/Data/Faber2026/dsa110/scintillation/data/chromatica.npz",
   "max_components": 3,
@@ -35,6 +37,8 @@
               "quality_flags": []
             }
           ],
+          "constant": -0.07122429930987009,
+          "constant_err": 0.009861050652050458,
           "n": 1,
           "n_params": 3,
           "ndata": 321,
@@ -59,6 +63,8 @@
               "m_err": 0.09342408340006995
             }
           ],
+          "constant": -0.14788589780373312,
+          "constant_err": 0.09206712544330166,
           "n": 2,
           "n_params": 5,
           "ndata": 321,
@@ -89,6 +95,8 @@
               "m_err": 15945.747793568908
             }
           ],
+          "constant": -0.14792067215595475,
+          "constant_err": 84.2654952678884,
           "n": 3,
           "n_params": 7,
           "ndata": 321,
@@ -136,6 +144,8 @@
               "m_err": 0.016244951070194132
             }
           ],
+          "constant": -0.29335530474446314,
+          "constant_err": 0.02453426146171093,
           "n": 1,
           "n_params": 3,
           "ndata": 658,
@@ -164,6 +174,8 @@
               ]
             }
           ],
+          "constant": -0.9676110842433391,
+          "constant_err": 0.423382366405679,
           "n": 2,
           "n_params": 5,
           "ndata": 658,
@@ -194,6 +206,8 @@
               "m_err": 0.46316997366765056
             }
           ],
+          "constant": -0.9675520840576193,
+          "constant_err": 2.0212930344099176,
           "n": 3,
           "n_params": 7,
           "ndata": 658,
@@ -253,6 +267,8 @@
               "quality_flags": []
             }
           ],
+          "constant": -0.17782577056126292,
+          "constant_err": 0.012236979477335621,
           "n": 1,
           "n_params": 3,
           "ndata": 799,
@@ -277,6 +293,8 @@
               "m_err": 0.1234461517514494
             }
           ],
+          "constant": -0.18581678558168774,
+          "constant_err": 0.014354078484099362,
           "n": 2,
           "n_params": 5,
           "ndata": 799,
@@ -307,6 +325,8 @@
               "m_err": 2473551823.1504674
             }
           ],
+          "constant": -0.1858249329234654,
+          "constant_err": 0.018039378783966855,
           "n": 3,
           "n_params": 7,
           "ndata": 799,
@@ -354,6 +374,8 @@
               "m_err": 0.027233332269371635
             }
           ],
+          "constant": -0.29299567981747443,
+          "constant_err": 0.015951422126719357,
           "n": 1,
           "n_params": 3,
           "ndata": 819,
@@ -385,6 +407,8 @@
               ]
             }
           ],
+          "constant": -411.97629704022165,
+          "constant_err": 356570.9507198924,
           "n": 2,
           "n_params": 5,
           "ndata": 819,
@@ -415,6 +439,8 @@
               "m_err": null
             }
           ],
+          "constant": -12.6770922385997,
+          "constant_err": null,
           "n": 3,
           "n_params": 7,
           "ndata": 819,

@@ -8,6 +8,8 @@
     "1": 16.68187175911345
   },
   "config_path": "scintillation/configs/bursts/casey_dsa.yaml",
+  "figure_png": "analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/casey_dsa_acf_lorentzian_fits.png",
+  "figure_svg": "analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/casey_dsa_acf_lorentzian_fits.svg",
   "fit_lagrange_mhz": 25.0,
   "input_data_path": "/Users/jakobfaber/Data/Faber2026/dsa110/scintillation/data/casey.npz",
   "max_components": 3,
@@ -32,6 +34,8 @@
               "quality_flags": []
             }
           ],
+          "constant": -0.1850281922660058,
+          "constant_err": 0.006042347862317009,
           "n": 1,
           "n_params": 3,
           "ndata": 819,
@@ -56,6 +60,8 @@
               "m_err": null
             }
           ],
+          "constant": -221.54547912350486,
+          "constant_err": null,
           "n": 2,
           "n_params": 5,
           "ndata": 819,
@@ -63,33 +69,35 @@
           "success": false
         },
         {
-          "aic": 527.163125745569,
-          "bic": 560.1197143325405,
-          "chi2": 1532.5018683498101,
+          "aic": 527.0854026971022,
+          "bic": 560.0419912840737,
+          "chi2": 1532.356440919568,
           "components": [
             {
               "dnu_err": null,
-              "dnu_mhz": 4.217451098861444,
-              "m": 1.3383415264911491e-08,
+              "dnu_mhz": 4.3683193377463105,
+              "m": 0.6374845648797727,
               "m_err": null
             },
             {
               "dnu_err": null,
-              "dnu_mhz": 4.3682836089330905,
-              "m": 0.6374775441826908,
+              "dnu_mhz": 4.496377137814943,
+              "m": 9.4312091469817e-10,
               "m_err": null
             },
             {
               "dnu_err": null,
-              "dnu_mhz": 681.3079802860557,
-              "m": 15.096379776578004,
+              "dnu_mhz": 727.9422235809717,
+              "m": 16.12845342349301,
               "m_err": null
             }
           ],
+          "constant": -260.0302794527724,
+          "constant_err": null,
           "n": 3,
           "n_params": 7,
           "ndata": 819,
-          "redchi": 1.887317571859372,
+          "redchi": 1.887138474038877,
           "success": false
         }
       ],
@@ -130,6 +138,8 @@
               "quality_flags": []
             }
           ],
+          "constant": -0.4306096614632811,
+          "constant_err": 0.02628473958426961,
           "n": 1,
           "n_params": 3,
           "ndata": 819,
@@ -154,6 +164,8 @@
               "m_err": null
             }
           ],
+          "constant": -201.11839471700011,
+          "constant_err": null,
           "n": 2,
           "n_params": 5,
           "ndata": 819,
@@ -184,6 +196,8 @@
               "m_err": null
             }
           ],
+          "constant": -213.00993489363157,
+          "constant_err": null,
           "n": 3,
           "n_params": 7,
           "ndata": 819,

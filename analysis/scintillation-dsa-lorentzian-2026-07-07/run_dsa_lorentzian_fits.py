@@ -327,6 +327,7 @@ def _reference_power_law(
     *,
     ref_alpha: float = 4.0,
     nu_ref_mhz: float | None = None,
+    min_unique_freqs: int = 2,
 ) -> dict[str, float] | None:
     usable = [
         row
@@ -341,6 +342,10 @@ def _reference_power_law(
         return None
 
     freqs = np.array([float(row["center_freq_mhz"]) for row in usable], dtype=float)
+    unique_freqs = np.unique(np.round(freqs, 9))
+    if unique_freqs.size < min_unique_freqs:
+        return None
+
     dnu = np.array([float(row["dnu_mhz"]) for row in usable], dtype=float)
     err = np.array([float(row.get("dnu_err_mhz", np.nan)) for row in usable], dtype=float)
     nu_ref = float(nu_ref_mhz) if nu_ref_mhz is not None else float(np.mean(freqs))
@@ -430,7 +435,6 @@ def _plot_burst_acfs(
     )
     ax_bw = fig.add_subplot(gs[:, 0])
     fit_color = "black"
-    component_colors = ["#d97706", "#0f766e", "#7c3aed"]
     stack_colors = [plt.get_cmap("plasma")(x) for x in np.linspace(0.15, 0.78, max(n_subbands, 1))]
 
     component_rows = []
@@ -577,26 +581,6 @@ def _plot_burst_acfs(
             lw=1.25,
             zorder=5,
         )
-        constant = float(fit.get("constant", 0.0))
-
-        components = subband["selected_components"]
-        for comp_idx, component in enumerate(components, start=1):
-            if len(components) < 2:
-                continue
-            gamma = float(component.get("dnu_mhz", np.nan))
-            m = float(component.get("m", np.nan))
-            if not (np.isfinite(gamma) and gamma > 0 and np.isfinite(m)):
-                continue
-            y_component = constant + _lorentzian_curve(xfit, gamma, m)
-            ax_acf.plot(
-                xfit,
-                y_component,
-                color=component_colors[(comp_idx - 1) % len(component_colors)],
-                lw=0.85,
-                ls="--",
-                alpha=0.7,
-                zorder=3,
-            )
 
         redchi = subband.get("selected_redchi")
         label = rf"$\nu_c$={center_freq:.0f} MHz"
@@ -1155,9 +1139,10 @@ def _write_markdown(
                 "",
                 "The sample-level summary shows one bandwidth-scaling panel per",
                 "burst. Filled circles are clean selected Lorentzian bandwidth",
-                "measurements; each dashed guide is a fixed $\\gamma\\propto\\nu^4$",
-                "scaling normalized within that burst. Selected components with",
-                "quality flags remain in the tables and per-burst diagnostics.",
+                "measurements; dashed guides are shown only when at least two",
+                "distinct clean sub-band frequencies anchor the fixed",
+                "$\\gamma\\propto\\nu^4$ scaling. Selected components with quality",
+                "flags remain in the tables and per-burst diagnostics.",
                 "",
                 f"![DSA Lorentzian bandwidth summary]({rel})",
             ]
@@ -1186,9 +1171,10 @@ def _write_markdown(
             "",
             "Each burst figure follows the manuscript scintillation-summary",
             "layout: the left panel shows selected Lorentzian bandwidths versus",
-            "DSA sub-band center frequency with a reference",
-            "$\\gamma\\propto\\nu^4$ curve, and the right column shows stacked",
-            "frequency-lag ACF panels with fitted Lorentzian overlays.",
+            "DSA sub-band center frequency with a data-anchored reference",
+            "$\\gamma\\propto\\nu^4$ curve where constrained, and the right column",
+            "shows stacked frequency-lag ACF panels with the fitted total",
+            "Lorentzian model overlaid.",
             "",
         ]
     )

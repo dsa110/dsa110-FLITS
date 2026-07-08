@@ -133,6 +133,59 @@ def _model_curve(x: np.ndarray, fit: dict[str, Any]) -> np.ndarray:
     return y
 
 
+QUALITY_FLAG_LABELS = {
+    "invalid_dnu": "invalid dnu",
+    "dnu_exceeds_fit_window": "broad",
+    "fractional_dnu_err_gt_1": "weak dnu",
+    "modulation_gt_3": "high m",
+    "fractional_mod_err_gt_1": "weak m",
+}
+
+
+def _format_sigfig(value: float, *, digits: int = 3) -> str:
+    if not np.isfinite(value):
+        return "-"
+    return f"{value:.{digits}g}"
+
+
+def _flag_note(components: list[dict[str, Any]]) -> str | None:
+    notes = []
+    for comp_idx, component in enumerate(components, start=1):
+        labels = [
+            QUALITY_FLAG_LABELS.get(flag, flag.replace("_", " "))
+            for flag in component.get("quality_flags", [])
+        ]
+        if labels:
+            shown = "/".join(labels[:2])
+            suffix = "+" if len(labels) > 2 else ""
+            notes.append(f"c{comp_idx} {shown}{suffix}")
+    return "; ".join(notes) if notes else None
+
+
+def _panel_annotation(subband: dict[str, Any]) -> str:
+    components = subband["selected_components"]
+    dnu_values = [
+        _format_sigfig(float(component.get("dnu_mhz", np.nan)))
+        for component in components
+    ]
+    lines = [
+        f"n={subband['n_preferred']}, redchi={_format_sigfig(float(subband.get('selected_redchi', np.nan)))}",
+        "dnu: " + ", ".join(dnu_values) + " MHz",
+    ]
+    flag_note = _flag_note(components)
+    if flag_note:
+        lines.append(f"flagged: {flag_note}")
+    return "\n".join(lines)
+
+
+def _decimated_indices(mask: np.ndarray, *, max_points: int) -> np.ndarray:
+    idx = np.where(mask)[0]
+    if idx.size <= max_points:
+        return idx
+    positions = np.linspace(0, idx.size - 1, max_points).round().astype(int)
+    return np.unique(idx[positions])
+
+
 def _component_quality_flags(component: dict[str, Any], *, fit_range_mhz: float) -> list[str]:
     flags = []
     dnu = float(component.get("dnu_mhz", np.nan))
@@ -166,18 +219,41 @@ def _plot_burst_acfs(
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt  # noqa: PLC0415
 
+    plt.rcParams.update(
+        {
+            "axes.edgecolor": "#111827",
+            "axes.labelcolor": "#111827",
+            "axes.linewidth": 0.8,
+            "font.family": "serif",
+            "font.size": 9,
+            "legend.fontsize": 8,
+            "savefig.dpi": 240,
+            "svg.fonttype": "none",
+            "xtick.color": "#111827",
+            "ytick.color": "#111827",
+        }
+    )
+
     figure_dir.mkdir(parents=True, exist_ok=True)
     n_subbands = len(plot_subbands)
     ncols = 2 if n_subbands > 1 else 1
     nrows = int(np.ceil(n_subbands / ncols))
+    panel_width = 3.85
+    panel_height = 2.55
+    title_clearance = 0.85 if nrows == 1 else 0.55
     fig, axes = plt.subplots(
         nrows,
         ncols,
-        figsize=(6.6 * ncols, 3.8 * nrows),
+        figsize=(panel_width * ncols, panel_height * nrows + title_clearance),
         squeeze=False,
         constrained_layout=True,
     )
     axes_flat = axes.ravel()
+    acf_color = "#2f5f8f"
+    uncertainty_color = "#8ab1d3"
+    fit_color = "#111827"
+    baseline_color = "#8b949e"
+    component_colors = ["#d97706", "#0f766e", "#7c3aed"]
 
     for ax, payload in zip(axes_flat, plot_subbands, strict=False):
         lags = payload["lags"]
@@ -192,89 +268,130 @@ def _plot_burst_acfs(
         err_ok = err is not None and np.any(np.isfinite(err[nonzero]) & (err[nonzero] > 0))
 
         if err_ok:
-            idx = np.where(nonzero)[0]
-            step = max(1, len(idx) // 80)
+            idx = _decimated_indices(nonzero, max_points=26)
             ax.errorbar(
                 lags[idx],
                 acf[idx],
                 yerr=np.asarray(err)[idx],
-                fmt=".",
-                ms=2.5,
-                lw=0.35,
-                elinewidth=0.35,
+                fmt="none",
+                elinewidth=0.45,
                 capsize=0,
-                color="#35618f",
-                alpha=0.45,
-                errorevery=step,
-                label="ACF",
+                ecolor=uncertainty_color,
+                alpha=0.28,
+                zorder=1,
             )
-        else:
-            ax.plot(lags[nonzero], acf[nonzero], ".", ms=2.5, color="#35618f", alpha=0.45)
+
+        ax.scatter(
+            lags[nonzero],
+            acf[nonzero],
+            s=4,
+            color=acf_color,
+            alpha=0.46,
+            linewidths=0,
+            zorder=2,
+        )
 
         zero = display & (lags == 0)
         if np.any(zero):
-            ax.plot(lags[zero], acf[zero], "o", ms=3.0, color="#6b7280", alpha=0.65)
+            ax.scatter(
+                lags[zero],
+                acf[zero],
+                s=13,
+                facecolors="white",
+                edgecolors="#4b5563",
+                linewidths=0.8,
+                zorder=4,
+            )
 
         xfit = np.linspace(-fit_range, fit_range, 900)
         yfit = _model_curve(xfit, fit)
-        ax.plot(xfit, yfit, color="#111827", lw=1.8, label=f"{subband['n_preferred']}L fit")
+        ax.plot(xfit, yfit, color=fit_color, lw=1.6, zorder=5)
         constant = float(fit.get("constant", 0.0))
-        ax.axhline(constant, color="#9ca3af", lw=0.8, ls=":", label="constant")
+        ax.axhline(constant, color=baseline_color, lw=0.8, ls=(0, (1.4, 1.8)), zorder=0)
+        ax.axvline(0.0, color="#cbd5e1", lw=0.65, zorder=0)
 
-        for comp_idx, component in enumerate(subband["selected_components"], start=1):
+        components = subband["selected_components"]
+        for comp_idx, component in enumerate(components, start=1):
+            if len(components) < 2:
+                continue
             gamma = float(component.get("dnu_mhz", np.nan))
             m = float(component.get("m", np.nan))
             if not (np.isfinite(gamma) and gamma > 0 and np.isfinite(m)):
                 continue
             y_component = constant + _lorentzian_curve(xfit, gamma, m)
-            ax.plot(xfit, y_component, lw=1.0, ls="--", alpha=0.75, label=f"c{comp_idx}")
+            ax.plot(
+                xfit,
+                y_component,
+                color=component_colors[(comp_idx - 1) % len(component_colors)],
+                lw=0.95,
+                ls="--",
+                alpha=0.62,
+                zorder=3,
+            )
 
         y_candidates = [acf[nonzero], yfit[np.isfinite(yfit)]]
         finite_y = np.concatenate([v[np.isfinite(v)] for v in y_candidates if v.size])
         if finite_y.size:
-            lo, hi = np.nanpercentile(finite_y, [1, 99])
-            pad = max(0.05, 0.12 * (hi - lo))
+            lo, hi = np.nanpercentile(finite_y, [0.5, 99.5])
+            pad = max(0.04, 0.14 * (hi - lo))
             ax.set_ylim(lo - pad, hi + pad)
 
-        flags = [
-            f"c{i}: " + ",".join(c.get("quality_flags", []))
-            for i, c in enumerate(subband["selected_components"], start=1)
-            if c.get("quality_flags")
-        ]
-        comp_text = "\n".join(
-            f"c{i} dnu={c.get('dnu_mhz', np.nan):.3g} MHz"
-            for i, c in enumerate(subband["selected_components"], start=1)
-        )
-        if flags:
-            comp_text = comp_text + "\n" + "\n".join(flags)
         ax.text(
             0.02,
             0.98,
-            comp_text,
+            _panel_annotation(subband),
             transform=ax.transAxes,
             va="top",
             ha="left",
-            fontsize=8,
-            bbox={"facecolor": "white", "edgecolor": "#d1d5db", "alpha": 0.82, "pad": 3},
+            fontsize=7.5,
+            color="#111827",
+            linespacing=1.25,
+            bbox={"facecolor": "white", "edgecolor": "none", "alpha": 0.72, "pad": 2.4},
         )
         ax.set_title(
-            f"subband {subband['index']} | {subband['center_freq_mhz']:.1f} MHz | "
-            f"redchi {subband.get('selected_redchi', np.nan):.2g}",
-            fontsize=10,
+            f"subband {subband['index']}  |  {subband['center_freq_mhz']:.1f} MHz",
+            fontsize=9,
+            pad=4,
         )
-        ax.set_xlabel("Frequency lag (MHz)")
-        ax.set_ylabel("ACF")
-        ax.grid(True, color="#e5e7eb", lw=0.6)
-        ax.legend(loc="lower right", fontsize=8, frameon=False, ncols=2)
+        ax.grid(axis="y", color="#e5e7eb", lw=0.55)
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        ax.xaxis.set_ticks_position("bottom")
+        ax.yaxis.set_ticks_position("left")
+        ax.tick_params(
+            axis="x",
+            which="both",
+            direction="out",
+            bottom=True,
+            top=False,
+            labelbottom=True,
+            labeltop=False,
+            length=3,
+            width=0.8,
+        )
+        ax.tick_params(
+            axis="y",
+            which="both",
+            direction="out",
+            left=True,
+            right=False,
+            labelleft=True,
+            labelright=False,
+            length=3,
+            width=0.8,
+        )
 
     for ax in axes_flat[n_subbands:]:
         ax.axis("off")
 
-    fig.suptitle(f"{burst} DSA frequency ACF Lorentzian fits", fontsize=14)
+    title_y = 1.08 if nrows == 1 else 1.025
+    fig.suptitle(f"{burst}: DSA frequency ACF fits", fontsize=11, y=title_y)
+    fig.supxlabel("Frequency lag (MHz)", fontsize=10)
+    fig.supylabel("ACF", fontsize=10)
     png = figure_dir / f"{burst}_dsa_acf_lorentzian_fits.png"
     svg = figure_dir / f"{burst}_dsa_acf_lorentzian_fits.svg"
-    fig.savefig(png, dpi=160)
-    fig.savefig(svg)
+    fig.savefig(png, dpi=240, bbox_inches="tight")
+    fig.savefig(svg, bbox_inches="tight")
     svg.write_text("\n".join(line.rstrip() for line in svg.read_text().splitlines()) + "\n")
     plt.close(fig)
     return {"figure_png": str(png), "figure_svg": str(svg)}
@@ -477,7 +594,18 @@ def _write_markdown(results: list[dict[str, Any]], rows: list[dict[str, Any]], p
             "{selected_redchi:.4g} | {quality_flags} |".format(**row)
         )
 
-    lines.extend(["", "## ACF Fit Figures", ""])
+    lines.extend(
+        [
+            "",
+            "## ACF Fit Figures",
+            "",
+            "Blue points are ACF samples, pale blue whiskers show a decimated uncertainty",
+            "sample, the black curve is the selected Lorentzian model, the dotted gray",
+            "line is the fitted constant baseline, and dashed colored curves show",
+            "individual components for multi-component fits.",
+            "",
+        ]
+    )
     for result in results:
         figure_png = result.get("figure_png")
         if not figure_png:

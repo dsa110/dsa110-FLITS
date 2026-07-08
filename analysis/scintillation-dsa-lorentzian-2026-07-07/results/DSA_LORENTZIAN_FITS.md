@@ -71,6 +71,11 @@ strong BIC improvement and the nested-F test threshold in the existing
 
 ## ACF Fit Figures
 
+Blue points are ACF samples, pale blue whiskers show a decimated uncertainty
+sample, the black curve is the selected Lorentzian model, the dotted gray
+line is the fitted constant baseline, and dashed colored curves show
+individual components for multi-component fits.
+
 ### casey
 
 ![casey ACF fits](figures/casey_dsa_acf_lorentzian_fits.png)

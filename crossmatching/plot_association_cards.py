@@ -14,7 +14,12 @@ import numpy as np
 from astropy.coordinates import SkyCoord
 from scipy.interpolate import RegularGridInterpolator
 
-plt.style.use("default")
+from flits.plotting import use_flits_style
+
+# Adopt the shared FLITS style (Computer Modern serif, cmr10) so these cards
+# match every other manuscript figure and the paper body font; then re-pin the
+# card-specific small sizes and TrueType embedding the standard doesn't set.
+use_flits_style()
 mpl.rcParams.update(
     {
         "font.size": 8,

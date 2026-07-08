@@ -1121,5 +1121,18 @@ def main():
     plt.close(fig)
 
 
+def format_budget_table_tex(data_path=None) -> str:
+    """Emit the manuscript ``budget_table.tex`` from the structured data file.
+
+    Thin re-export of :func:`budget_table_emitter.format_budget_table_tex` so the
+    canonical import path is ``galaxies.foreground.sightline_budget`` (adjacent to
+    :func:`format_budget_table`, which renders the markdown budget). Imported
+    lazily to keep this heavy module's import cost off the pure-render path.
+    """
+    from .budget_table_emitter import format_budget_table_tex as _emit
+
+    return _emit(data_path)
+
+
 if __name__ == "__main__":
     main()

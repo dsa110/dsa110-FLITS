@@ -3,6 +3,12 @@
 **Status:** accepted (panel recommendation 2026-06-24; **implemented** 2026-06-25 —
 `gate_joint_committed.py` floor 1.0, sub-Kolmogorov L3 flag, verdict regen)
 
+**Supersession note (2026-07-07):** the policy record below explains why the
+legacy free-α gate allowed sub-K rows, but its JohnDoeII example is no longer a
+current science claim. The jointmodel-pair audit retired the old JohnDoeII C2D1
+free-α/sub-K interpretation; the promoted beta-native C2D2 product is railed-hi
+at β=4 (`alpha=4.07` summary, quoted only as an α=4 geometry-conditioned limit).
+
 ## Context
 
 The operative joint-fit L1 gate hard-FAILs α below **1.5** — hardcoded
@@ -43,15 +49,16 @@ MARGINAL).
 
 ## Consequences
 
-- Sets johndoeII into the citable-α set as a flagged sub-Kolmogorov result, and
-  reclassifies oran (α=1.44) and whitney single-comp (α=1.46) from L1 FAIL to
-  sub-Kolmogorov MARGINAL — see the decision map #4/#6.
+- Historically set johndoeII into the legacy free-α citable set as a flagged
+  sub-Kolmogorov result, and reclassified oran (α=1.44) and whitney single-comp
+  (α=1.46) from L1 FAIL to sub-Kolmogorov MARGINAL. JohnDoeII's old C2D1
+  sub-K row is now superseded by the promoted beta-native C2D2 result.
 - **Implemented 2026-06-25:** `gate_joint_committed.py` floor 1.0, L3 sub-Kolmogorov
   tag, verdict regen (`joint_gate_verdicts.md`: 0 L1 FAIL). Figure pass 2
   (`alpha_pbf_systematic`) remains separate.
 - The manuscript states the floor and its physical justification in one sentence
   ("α ≥ 1 required for a meaningful τ ∝ ν^−α scaling; 1 ≤ α < 2 admitted as
-  sub-Kolmogorov, attributed to multi-screen/anisotropic scattering") so the
-  johndoeII MARGINAL flag is defensible to a referee.
+  sub-Kolmogorov, attributed to multi-screen/anisotropic scattering"). Do not
+  use JohnDoeII as the current example for that point.
 - The CONTEXT.md "scattering index" entry records the new lower bound and the
   sub-Kolmogorov convention.

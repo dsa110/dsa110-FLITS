@@ -1,0 +1,11 @@
+{
+  "burst": "johndoeII",
+  "beta": 3.9357229813477077,
+  "alpha": 4.066411381454531,
+  "tau_1ghz": 2.219292440306282,
+  "chi2_chime": 1.0946761408975996,
+  "chi2_dsa": 1.2335789483802273,
+  "components_C": 2,
+  "components_D": 2,
+  "suffix": "_C2D2"
+}

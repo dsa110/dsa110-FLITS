@@ -21,13 +21,13 @@ OUT = Path(__file__).resolve().parents[2] / "results" / "joint_fit_summary.md"
 
 # Explicit human verdict — see flits-joint-fit-shallow-alpha memory.
 TRUST = {
-    "johndoeII": "trusted",
+    "johndoeII": "superseded",
     "wilhelm": "trusted",
     "phineas": "trusted",
     "oran": "refuted",
 }  # all others: unadjudicated
 REASON = {
-    "johndoeII": "4-lens adversarial verify; sub-Kolmogorov α survives α=4 rejection at Δ(−2lnL)≈2400",
+    "johndoeII": "retired C2D1/free-alpha sub-K claim; beta-native C2D2 now rails high at beta=4",
     "wilhelm": "4-lens adversarial verify; tight, clean",
     "phineas": "4-lens adversarial verify; tight",
     "oran": "REFUTED — CHIME ζ_C unconstrained/railed; α is not a measurement",
@@ -65,7 +65,7 @@ def rows():
 
 def render() -> str:
     """Build the summary markdown from the committed JSONs (no side effects)."""
-    rs = sorted(rows(), key=lambda r: {"trusted": 0, "unadjudicated": 1, "refuted": 2}[r["trust"]])
+    rs = sorted(rows(), key=lambda r: {"trusted": 0, "unadjudicated": 1, "superseded": 2, "refuted": 3}[r["trust"]])
     trusted = [r for r in rs if r["trust"] == "trusted"]
     L = []
     L.append("# CHIME+DSA joint scattering-fit summary")
@@ -76,12 +76,12 @@ def render() -> str:
         "`analysis/scattering-refit-2026-06/joint_json/` (committed)."
     )
     L.append("")
-    L.append("## ⚠️ Trust: only 3 of 11 fits are trustworthy")
+    L.append("## ⚠️ Trust: only 2 of 11 legacy fits remain trustworthy")
     L.append("")
     L.append(
-        f"**Trusted (use): {', '.join(r['burst'] for r in trusted)}** — verified via a 4-lens "
-        "adversarial workflow (wf_417320dd, 2026-06-19). Trusted α span **1.37→3.58** "
-        "(johndoeII is genuinely sub-Kolmogorov)."
+        f"**Trusted (legacy use): {', '.join(r['burst'] for r in trusted)}** — verified via a 4-lens "
+        "adversarial workflow (wf_417320dd, 2026-06-19). JohnDoeII is explicitly "
+        "superseded by the 2026-07-07 beta-native C2D2 promotion."
     )
     L.append("")
     L.append(
@@ -94,7 +94,12 @@ def render() -> str:
     L.append("")
     L.append("| burst | trust | α | τ₁GHz (ms) | lnZ | railed | unconstrained | reason |")
     L.append("|---|---|---|---|---|---|---|---|")
-    badge = {"trusted": "✅ trusted", "refuted": "❌ refuted", "unadjudicated": "⏳ unadjudicated"}
+    badge = {
+        "trusted": "✅ trusted",
+        "refuted": "❌ refuted",
+        "superseded": "↺ superseded",
+        "unadjudicated": "⏳ unadjudicated",
+    }
     for r in rs:
         L.append(
             f"| {r['burst']} | {badge[r['trust']]} | "

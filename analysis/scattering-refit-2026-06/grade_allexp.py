@@ -14,7 +14,8 @@ from pathlib import Path
 from gate_joint_committed import gate_one  # ADR-0004 gate logic (floor 1.0, 3-sigma rail)
 
 # adjudicated canonical model per burst (filename tag). zach=C1D1 (C2D3 3rd comp
-# prior-driven), whitney=C2D2 local, johndoeII=C2D1, hamilton excluded (single-band limit).
+# prior-driven), whitney=C2D2 local, johndoeII=C2D2 after the jointmodel-pair
+# multiplicity audit, hamilton excluded (single-band limit).
 CANON = {
     "casey": "sharedzeta",
     "chromatica": "sharedzeta",
@@ -24,7 +25,7 @@ CANON = {
     "phineas": "C3D3",
     "oran": "C2D1",
     "isha": "C2D1",
-    "johndoeII": "C2D1",
+    "johndoeII": "C2D2",
     "zach": "",  # zach C1D1 -> empty tag
 }
 

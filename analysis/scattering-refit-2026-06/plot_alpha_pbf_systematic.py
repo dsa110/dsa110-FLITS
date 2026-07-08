@@ -36,7 +36,7 @@ CANON = {
     "phineas": "C3D3",
     "oran": "C2D1",
     "isha": "C2D1",
-    "johndoeII": "C2D1",
+    "johndoeII": "C2D2",
     "zach": "",
     "hamilton": "sharedzeta",
 }

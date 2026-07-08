@@ -38,7 +38,8 @@ best-model configuration, α-prior, and gain treatment fixed, so that
   sharedzeta bursts (`--shared-zeta`): freya, casey, chromatica, wilhelm,
   hamilton. Component bursts (`--marginalize-gain --components-C X
   --components-D Y`): mahi (C1D1 `--force-multi`), phineas (C3D3), oran (C2D1),
-  isha (C2D1), zach (C2D3), johndoeII (C2D1). whitney was done separately on the
+  isha (C2D1), zach (C2D3), johndoeII (now C2D2; C2D1 superseded by the
+  jointmodel-pair multiplicity audit). whitney was done separately on the
   local machine (C2D2, re-prepped) and is folded in for completeness.
 - **Output naming:** the PBF-tracking edit (this session) records
   `pbf_C/pbf_D/beta_C/beta_D` in each JSON and auto-suffixes non-default PBF runs,
@@ -65,7 +66,7 @@ either a hard pin or a wide tail that reaches the bound.
 | wilhelm | 2.56 | 2.558 ± ~0.04 | −0.002 | no | done |
 | zach | 2.41 | 4.59 ± 0.04 | **+2.18** | no (un-railed) | done (job 64538745, COMPLETED 01:44) — **PBF-confounded; see note** |
 | casey | 2.40 | 2.396 ± ~0.04 | −0.004 | no | done |
-| johndoeII | 1.58 | 1.573 (≈floor) | −0.007 | railed (floor) | done |
+| johndoeII | 1.58 | 1.573 (≈floor) | −0.007 | railed (floor) | historical C2D1 all-exp row; superseded for beta-native morphology/τ by promoted C2D2 |
 | hamilton | 1.50 | 1.504 (≈floor) | +0.004 | railed (floor) | done |
 
 (lnZ is not tabulated here: the sharedzeta and component likelihoods sit on
@@ -141,7 +142,7 @@ of this doc + `LADDER_SUMMARY.md`.
 
 **Canonical input set.** All-exp single-exp PBF (`--pbf-C exp --pbf-D exp`), each
 burst at its own best-model — the family is **heterogeneous**, not uniform (e.g.
-johndoeII C2D1, oran C2D1, wilhelm sharedzeta, phineas C3D3). The per-burst chosen
+johndoeII C2D2, oran C2D1, wilhelm sharedzeta, phineas C3D3). The per-burst chosen
 model is the `chosen` map in `joint_ladder/_figs.py`. Fits + samples:
 `<burst>_joint_fit_<tag>_pbf-exp-exp.{json,npz}` on
 `hpcc:/central/scratch/jfaber/flits-runs/data/joint/`; locally under

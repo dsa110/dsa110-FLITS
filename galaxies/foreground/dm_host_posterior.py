@@ -53,8 +53,17 @@ import os
 from dataclasses import dataclass
 
 import numpy as np
+import zlib
 
-_trapz = getattr(np, "trapezoid", np.trapz)
+from galaxies.foreground.sightline_sensitivity import (
+    default_prior_families,
+    _truncated_normal,
+)
+
+try:  # NumPy >= 2.0
+    _trapz = np.trapezoid
+except AttributeError:  # NumPy 1.x
+    _trapz = np.trapz
 
 # --- V5-cleared tab:budget inputs (DM in pc/cm^3, observer frame) ----------
 # name, z_host, DM_obs, DM_MW_total (NE2001 disk + 40 halo prior), DM_int
@@ -145,20 +154,6 @@ class DeltaPdf:
         return _delta_pdf_unnorm(delta, c0, sigma) / norm
 
 
-# --- nuisance draws ----------------------------------------------------------
-
-def _trunc_normal(rng, mean, sd, lo, hi, n):
-    out = np.empty(n)
-    filled = 0
-    while filled < n:
-        draw = rng.normal(mean, sd, size=2 * (n - filled))
-        draw = draw[(draw >= lo) & (draw <= hi)]
-        take = min(len(draw), n - filled)
-        out[filled : filled + take] = draw[:take]
-        filled += take
-    return out
-
-
 @dataclass
 class SightlineResult:
     name: str
@@ -182,13 +177,17 @@ def _quantiles(grid: np.ndarray, pdf: np.ndarray, qs=(0.16, 0.5, 0.84)):
 
 def run_sightline(name, z, dm_obs, dm_mw_total, dm_int, mu_c_table,
                   n_draws=600, seed=20260707, pdf: DeltaPdf | None = None):
-    rng = np.random.default_rng(seed + abs(hash(name)) % 10_000)
+    rng = np.random.default_rng(seed + zlib.crc32(name.encode()) % 10_000)
     pdf = pdf or DeltaPdf()
 
+    fam = default_prior_families()["fiducial_literature"]
     disk0 = dm_mw_total - FIDUCIAL_HALO
-    halo = _trunc_normal(rng, 40.0, 15.0, 10.0, 100.0, n_draws)
-    disk = disk0 * _trunc_normal(rng, 1.0, 0.2, 0.5, 1.5, n_draws)
-    f_igm = rng.uniform(0.75, 0.90, n_draws)
+    halo = _truncated_normal(rng, fam.dm_mw_halo_mean, fam.dm_mw_halo_sigma,
+                             fam.dm_mw_halo_min, fam.dm_mw_halo_max, n_draws)
+    # Disk-scale and DM_int-dex knobs are NOT in PriorFamily; local to this
+    # module by design (candidates for promotion into the family at V7).
+    disk = disk0 * _truncated_normal(rng, 1.0, 0.2, 0.5, 1.5, n_draws)
+    f_igm = rng.uniform(fam.f_igm_min, fam.f_igm_max, n_draws)
     F = rng.uniform(0.20, 0.50, n_draws)
     if dm_int > 0:
         dmint = dm_int * 10 ** rng.normal(0.0, 0.3, n_draws)
@@ -196,9 +195,17 @@ def run_sightline(name, z, dm_obs, dm_mw_total, dm_int, mu_c_table,
         dmint = np.zeros(n_draws)
 
     # Extended grid: allow negative host values so the likelihood retains the
-    # tension mass instead of silently truncating it.
+    # tension mass instead of silently truncating it. The lower bound is
+    # adaptive: DM_host = DM_ext - Delta*mu_c, and the deviate PDF is
+    # normalized on Delta in (0, 12], so lo = min(DM_ext) - 12*max(mu_c)
+    # captures the entire negative tail (review fix: a fixed -200 floor
+    # underestimated the reported P(DM_host<0)).
     hi = max(dm_obs, 300.0)
-    grid = np.linspace(-200.0, hi, 2200)
+    dm_ext_all = dm_obs - disk - halo - dmint
+    mu_c_all = mu_c_table * (f_igm / 0.84)
+    lo = float(dm_ext_all.min() - 12.0 * mu_c_all.max())
+    n_grid = int(min(9000, max(2200, (hi - lo) / 0.75)))
+    grid = np.linspace(lo, hi, n_grid)
 
     like = np.zeros_like(grid)
     for i in range(n_draws):

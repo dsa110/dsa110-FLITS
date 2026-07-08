@@ -35,9 +35,10 @@ is retained and the fallback policy is recorded.
 
 The sample-level summary shows one bandwidth-scaling panel per
 burst. Filled circles are clean selected Lorentzian bandwidth
-measurements; each dashed guide is a fixed $\gamma\propto\nu^4$
-scaling normalized within that burst. Selected components with
-quality flags remain in the tables and per-burst diagnostics.
+measurements; dashed guides are shown only when at least two
+distinct clean sub-band frequencies anchor the fixed
+$\gamma\propto\nu^4$ scaling. Selected components with quality
+flags remain in the tables and per-burst diagnostics.
 
 ![DSA Lorentzian bandwidth summary](figures/dsa_lorentzian_summary.png)
 
@@ -100,9 +101,10 @@ quality flags remain in the tables and per-burst diagnostics.
 
 Each burst figure follows the manuscript scintillation-summary
 layout: the left panel shows selected Lorentzian bandwidths versus
-DSA sub-band center frequency with a reference
-$\gamma\propto\nu^4$ curve, and the right column shows stacked
-frequency-lag ACF panels with fitted Lorentzian overlays.
+DSA sub-band center frequency with a data-anchored reference
+$\gamma\propto\nu^4$ curve where constrained, and the right column
+shows stacked frequency-lag ACF panels with the fitted total
+Lorentzian model overlaid.
 
 ### casey
 

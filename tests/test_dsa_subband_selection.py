@@ -223,7 +223,7 @@ def test_write_markdown_places_summary_figure_before_diagnostic_panels(tmp_path)
     assert text.index("## Paper Summary Figure") < text.index("## ACF Fit Figures")
 
 
-def test_reference_power_law_fits_chime_style_gamma_scaling():
+def test_reference_power_law_fits_manuscript_gamma_scaling():
     rows = [
         {
             "center_freq_mhz": 1320.0,
@@ -258,6 +258,44 @@ def test_reference_power_law_fits_chime_style_gamma_scaling():
         "nu_ref_mhz": 1400.0,
         "scale_mhz": 2.0,
     }
+
+
+def test_reference_power_law_requires_two_clean_frequencies():
+    rows = [
+        {
+            "center_freq_mhz": 1400.0,
+            "dnu_mhz": 2.0,
+            "dnu_err_mhz": 0.05,
+            "usable": True,
+        },
+        {
+            "center_freq_mhz": 1440.0,
+            "dnu_mhz": 20.0,
+            "dnu_err_mhz": 0.05,
+            "usable": False,
+        },
+    ]
+
+    assert driver._reference_power_law(rows, ref_alpha=4.0, nu_ref_mhz=1400.0) is None
+
+
+def test_reference_power_law_ignores_duplicate_frequency_components():
+    rows = [
+        {
+            "center_freq_mhz": 1400.0,
+            "dnu_mhz": 2.0,
+            "dnu_err_mhz": 0.05,
+            "usable": True,
+        },
+        {
+            "center_freq_mhz": 1400.0,
+            "dnu_mhz": 3.0,
+            "dnu_err_mhz": 0.05,
+            "usable": True,
+        },
+    ]
+
+    assert driver._reference_power_law(rows, ref_alpha=4.0, nu_ref_mhz=1400.0) is None
 
 
 def test_bandwidth_axis_limits_ignore_flagged_outlier_when_clean_points_exist():

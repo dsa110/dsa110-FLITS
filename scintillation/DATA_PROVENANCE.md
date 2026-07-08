@@ -152,24 +152,21 @@ are symlinked into `~/Data/Faber2026/dsa110/scintillation/data/` for the FLITS
 > time sample is `dt = 2.56e-6 s × 2 × U` (e.g. U=16 → 81.9 µs). Whoever packages a new
 > target must synthesize the time axis from this, as was done for casey.
 
-### 2b. Old pass — `chime_acfs/*_subband_acf_fits.pkl` (legacy fit products)
+### 2b. Retired old pass — `chime_acfs/*_subband_acf_fits.pkl`
 
-`scintillation/chime_acfs/{chromatica_356959136, freya_278720455, hamilton_318353610,
-wilhelm_253635173}_subband_acf_fits.pkl` — CHIME-band (425–775 MHz), an **earlier**
-up-channelization+fit pass. **[verified]** Schema is NOT `acf_results`; keys are
-`f_cents`, `1_lorenz`, `2_lorenz`, `acfs_offset`, `lm_fitting_objects` — i.e. they store
-the already-fit 1- and 2-Lorentzian per-sub-band results (`sub_scint_1`, `sub_scint_2`,
-`sub_scint_uncert_*`, `mods*`). Read by the legacy notebook
-[`chime_acfs/pickle.ipynb`](chime_acfs/pickle.ipynb), whose `read_pkl_data` extracts
-exactly the `subband_measurements` dict contract (`bw`, `bw_err`, `finite_err`, `mod`,
-`mod_err`) that the **current pipeline now emits** — so the new pipeline output is a
-drop-in for that reader. Sub-band counts: chromatica 8, freya 4, hamilton 8, wilhelm 4.
+The repo used to track four CHIME-band legacy fit pickles:
+`chromatica_356959136_subband_acf_fits.pkl`,
+`freya_278720455_subband_acf_fits.pkl`,
+`hamilton_318353610_subband_acf_fits.pkl`, and
+`wilhelm_253635173_subband_acf_fits.pkl`. They were removed from git on
+2026-07-08 because their preprocessing provenance is not strong enough for the
+current uniform scintillation campaign.
 
-These four cover a different set than §2a's five targets; together the CHIME-resolvable
-union is **{casey, whitney, phineas, mahi, isha} ∪ {chromatica, freya, hamilton, wilhelm}**.
-The `1_lorenz`/`2_lorenz` naming is the lineage the dead `2c`/`3c`-in-name heuristic was
-built around; the [multi-component selector](scint_analysis/revalidation.py) (PR #58)
-is its statistically-gated replacement.
+For context only: those files were not raw dynamic spectra and were not current
+`acf_results`. They stored already-fit legacy CHIME results with keys such as
+`f_cents`, `1_lorenz`, `2_lorenz`, `acfs_offset`, and `lm_fitting_objects`.
+Do not regenerate pipeline products from them and do not cite them. Use the
+metadata-aligned CHIME npz products in §2a instead.
 
 ---
 
@@ -230,7 +227,6 @@ at-risk storage, not an authority. Notable subdirs **[verified]**:
 | `scintillation/data/{nick}_chime.npz` | CHIME | DynamicSpectrum npz | ✅ all 12 full-band products staged locally |
 | `scintillation/data/{nick}_chime_hi.npz` | CHIME | DynamicSpectrum npz | ✅ all 12 high-band diagnostic products staged locally |
 | `$COD/results/acf_results/{chromatica,freya,wilhelm}_acf_results.pkl` | DSA | `acf_results` | ✅ `analyze_scintillation_from_acfs` direct |
-| `chime_acfs/*_subband_acf_fits.pkl` | CHIME | legacy `1_lorenz`/`2_lorenz` | ⚠ legacy notebook only — needs conversion to re-fit |
 | `acf_codetections_fftsize*.npz` | CHIME | stacked, unlabeled | ⚠ needs per-burst de-stacking |
 | `$COD/upchan_codetections/{nick}_chime_upchan.npy` | CHIME | raw waterfall (no times) | ⚠ package to npz first with `{nick}_time0_metadata.json` (§2a) |
 
@@ -280,7 +276,7 @@ docker run --rm -v "$HOME/.ssl:/ssl:ro" chimefrb/baseband-analysis:latest bash -
 |------|--------------------------|-------------------|
 | **DSA-band scint npz — ALL 12 bursts** | `FLITS/scintillation/data/{casey,whitney,phineas,mahi,isha,chromatica,freya,hamilton,wilhelm,zach,johndoeII,oran}.npz` | DSA (~1.3–1.5 GHz) |
 | DSA native cubes | `FLITS/scintillation/data/*_dsa_I_*.npy` and `data/DSA_bursts/` | DSA native |
-| **Up-channelized CHIME ACF products** (legacy `1_lorenz`/`2_lorenz` pkls) | `FLITS/scintillation/chime_acfs/*.pkl` | CHIME up-chan |
+| Retired CHIME ACF fit products | `FLITS/scintillation/chime_acfs/*.pkl` | legacy CHIME products; not used locally |
 | Per-burst ACF/processed-spectrum cache | `FLITS/scintillation/data/cache/<burst>/`, `*_acf_results.pkl`, `*_processed_spectrum.pkl` | mixed |
 | **Native CHIME cubes — ALL 12** (coherently dedispersed, **1024 ch** × 32000, *not* up-channelized) | `data/CHIME_bursts/dmphase/<nick>_chime_I_<dm>_..._32000b_cntr_bpc.npy` | CHIME native |
 | Raw CHIME voltages (singlebeam `.h5`) | `arc:projects/chime_frb/data/chime/baseband/processed/<y>/<m>/<d>/astro_<id>/singlebeam_<id>.h5` | voltages |
@@ -291,7 +287,8 @@ dedispersed scattering inputs — **NOT** the up-channelized scintillation spect
 up-channelized CHIME **dynamic spectra** are the July 2026 h17 products under
 `$COD/upchan_codetections/`, packaged locally to `*_chime{,_hi}.npz`.
 What arc adds for CHIME is the **legacy up-channelized ACF *fit products***
-(`chime_acfs/`), not re-fittable spectra.
+(`chime_acfs/`), not re-fittable spectra; the local copies were removed because
+their provenance is not sufficient for the current analysis.
 
 **This resolves the DSA-band gap:** fetch the DSA npz products from
 `$ARC/FLITS/scintillation/data/` rather than regenerating — supersedes the older
@@ -303,13 +300,14 @@ So nobody re-asks "did we only do casey?": **no.** Verified from the notebook ce
 
 | notebook | bursts | band of data loaded |
 |----------|--------|---------------------|
-| `chime_acfs/pickle.ipynb` (legacy CHIME ACF reader) | **chromatica, freya, hamilton, wilhelm** (4) | CHIME up-chan — `*_subband_acf_fits.pkl` (`1_lorenz`/`2_lorenz`) |
+| `chime_acfs/pickle.ipynb` (retired legacy CHIME ACF reader) | **chromatica, freya, hamilton, wilhelm** (4) | CHIME up-chan legacy fit pkls; local copies removed |
 | `notebooks/scintillation_analysis.ipynb` + `analyses/templates/scintillation_template.ipynb` (main; identical) | **all 12** | per-burst `*_acf_results.pkl` — **DSA band** |
 | `analyses/bursts/wilhelm/scintillation_manual.ipynb`, `notebooks/debug/wilhelm_manual.ipynb` | wilhelm | `data/cache/wilhelm/wilhelm_acf_results.pkl` (DSA) |
 
 Takeaways:
 - The old CHIME notebook coverage was only 4 bursts (chromatica, freya, hamilton,
-  wilhelm) via legacy fit pkls; those files remain cross-checks only.
+  wilhelm) via legacy fit pkls; local copies were removed because their
+  provenance is not strong enough for this campaign.
 - The July 2026 voltage→upchannelize→metadata-aligned packaging campaign now supplies
   all 12 CHIME dynamic-spectrum npz products for the current pipeline.
 - The main notebook's historical all-12 loop is **DSA-band**; do not mistake it for
@@ -317,9 +315,8 @@ Takeaways:
 
 ## 7c. Open / pending (data-provenance gaps)
 
-- The legacy `chime_acfs/*_subband_acf_fits.pkl` (§2b) hold fits, not raw ACFs, so they
-  can't be re-fit by the new selector without recovering their underlying ACFs (or
-  re-up-channelizing those four bursts via §6).
+- If historical CHIME pickle products are rediscovered, treat them as retired
+  context only unless their preprocessing provenance is reconstructed.
 - `isha`, `hamilton`, and `johndoeII` retain lower-confidence upper-bound/single-block
   status in the data products and configs; do not silently promote them to clean
   detections during fitting.

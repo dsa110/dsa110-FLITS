@@ -67,17 +67,25 @@ except AttributeError:  # NumPy 1.x
 
 # --- V5-cleared tab:budget inputs (DM in pc/cm^3, observer frame) ----------
 # name, z_host, DM_obs, DM_MW_total (NE2001 disk + 40 halo prior), DM_int
+# Fields: name, z, DM_obs, DM_MW_total, DM_int, mass_conf, dm_int_status.
+# mass_conf mirrors tab:budget's "mass" column and widens the DM_int scatter
+# for assumed-mass halos (0.6 dex vs 0.3 dex measured). dm_int_status records
+# why a zero is a zero: "unconstrained" = outside the deep-imaging footprints
+# (tab:budget note u) -- DM_int = 0 is a floor, so the DM_host posterior is an
+# UPPER BOUND; "model-zero" = confirmed halos whose modeled column vanishes
+# under assumed masses (note m) -- same caveat, model-conditional.
 SIGHTLINES = [
-    ("FRB20220207C", 0.043, 262.0, 116.0, 70.0),
-    ("FRB20220310F", 0.479, 462.0, 86.0, 11.0),
-    ("FRB20220506D", 0.300, 397.0, 125.0, 0.0),
-    ("FRB20221113A", 0.251, 411.0, 132.0, 41.0),
-    ("FRB20221203A", 0.510, 602.0, 123.0, 84.0),
-    ("FRB20230307A", 0.271, 610.0, 78.0, 241.0),
-    ("FRB20230913A", 0.302, 518.0, 115.0, 41.0),
-    ("FRB20240203A", 0.074, 272.0, 116.0, 0.0),
-    ("FRB20240229A", 0.287, 491.0, 78.0, 0.0),
+    ("FRB20220207C", 0.043, 262.0, 116.0, 70.0, "measured", "constrained"),
+    ("FRB20220310F", 0.479, 462.0, 86.0, 11.0, "assumed", "constrained"),
+    ("FRB20220506D", 0.300, 397.0, 125.0, 0.0, None, "unconstrained"),
+    ("FRB20221113A", 0.251, 411.0, 132.0, 41.0, "measured", "constrained"),
+    ("FRB20221203A", 0.510, 602.0, 123.0, 84.0, "assumed", "constrained"),
+    ("FRB20230307A", 0.271, 610.0, 78.0, 241.0, "assumed", "constrained"),
+    ("FRB20230913A", 0.302, 518.0, 115.0, 41.0, "assumed", "constrained"),
+    ("FRB20240203A", 0.074, 272.0, 116.0, 0.0, None, "unconstrained+model-zero"),
+    ("FRB20240229A", 0.287, 491.0, 78.0, 0.0, None, "model-zero"),
 ]
+DMINT_SIGMA_DEX = {"measured": 0.3, "assumed": 0.6}
 # Macquart mean at the host z as tabulated (f_IGM = 0.84 baseline).
 MACQUART_MEAN = {
     "FRB20220207C": 36.0,
@@ -176,7 +184,8 @@ def _quantiles(grid: np.ndarray, pdf: np.ndarray, qs=(0.16, 0.5, 0.84)):
 
 
 def run_sightline(name, z, dm_obs, dm_mw_total, dm_int, mu_c_table,
-                  n_draws=600, seed=20260707, pdf: DeltaPdf | None = None):
+                  mass_conf=None,
+                  n_draws=2000, seed=20260707, pdf: DeltaPdf | None = None):
     rng = np.random.default_rng(seed + zlib.crc32(name.encode()) % 10_000)
     pdf = pdf or DeltaPdf()
 
@@ -190,7 +199,8 @@ def run_sightline(name, z, dm_obs, dm_mw_total, dm_int, mu_c_table,
     f_igm = rng.uniform(fam.f_igm_min, fam.f_igm_max, n_draws)
     F = rng.uniform(0.20, 0.50, n_draws)
     if dm_int > 0:
-        dmint = dm_int * 10 ** rng.normal(0.0, 0.3, n_draws)
+        sigma_dex = DMINT_SIGMA_DEX.get(mass_conf, 0.6)
+        dmint = dm_int * 10 ** rng.normal(0.0, sigma_dex, n_draws)
     else:
         dmint = np.zeros(n_draws)
 
@@ -246,7 +256,7 @@ def run_sightline(name, z, dm_obs, dm_mw_total, dm_int, mu_c_table,
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--n-draws", type=int, default=600)
+    ap.add_argument("--n-draws", type=int, default=2000)
     ap.add_argument("--out-dir", default=None)
     args = ap.parse_args(argv)
 
@@ -257,10 +267,12 @@ def main(argv=None) -> int:
     pdf = DeltaPdf()
     rows = []
     curves = {}
-    for name, z, dm_obs, dm_mw, dm_int in SIGHTLINES:
+    status_by_name = {}
+    for name, z, dm_obs, dm_mw, dm_int, mass_conf, dm_int_status in SIGHTLINES:
+        status_by_name[name] = dm_int_status
         res, grid, like, flat_post, ln_post = run_sightline(
             name, z, dm_obs, dm_mw, dm_int, MACQUART_MEAN[name],
-            n_draws=args.n_draws, pdf=pdf)
+            mass_conf=mass_conf, n_draws=args.n_draws, pdf=pdf)
         rows.append(res)
         curves[name] = (grid, like, flat_post, ln_post)
         print(f"{name}: point={res.point_residual:+7.1f}  "
@@ -274,25 +286,27 @@ def main(argv=None) -> int:
         w = csv.writer(f)
         w.writerow(["name", "z", "point_residual", "flat_median", "flat_lo68",
                     "flat_hi68", "lognorm_median", "lognorm_lo68",
-                    "lognorm_hi68", "tension_mass"])
+                    "lognorm_hi68", "tension_mass", "dm_int_status"])
         for r in rows:
             w.writerow([r.name, r.z, f"{r.point_residual:.1f}",
                         f"{r.flat_median:.1f}", f"{r.flat_lo68:.1f}",
                         f"{r.flat_hi68:.1f}", f"{r.lognorm_median:.1f}",
                         f"{r.lognorm_lo68:.1f}", f"{r.lognorm_hi68:.1f}",
-                        f"{r.tension_mass:.3f}"])
+                        f"{r.tension_mass:.3f}", status_by_name[r.name]])
 
     with open(os.path.join(out_dir, "summary.md"), "w") as f:
         f.write("# DM_host posterior summary (EXPLORATORY - not V-validated)\n\n")
-        f.write("Observer-frame DM_host in pc/cm^3; multiply by (1+z) for rest frame.\n\n")
+        f.write("Observer-frame DM_host in pc/cm^3; multiply by (1+z) for rest frame.\n"
+                "Rows with DM_int status unconstrained/model-zero treat DM_int=0 as a\n"
+                "floor, so their DM_host posteriors are UPPER BOUNDS.\n\n")
         f.write("| sightline | z | point residual | flat-prior median [68%] | "
-                "lognormal-prior median [68%] | P(DM_host<0) |\n")
-        f.write("|---|---|---|---|---|---|\n")
+                "lognormal-prior median [68%] | P(DM_host<0) | DM_int status |\n")
+        f.write("|---|---|---|---|---|---|---|\n")
         for r in rows:
             f.write(f"| {r.name} | {r.z:.3f} | {r.point_residual:+.1f} | "
                     f"{r.flat_median:.1f} [{r.flat_lo68:.1f}, {r.flat_hi68:.1f}] | "
                     f"{r.lognorm_median:.1f} [{r.lognorm_lo68:.1f}, {r.lognorm_hi68:.1f}] | "
-                    f"{r.tension_mass:.3f} |\n")
+                    f"{r.tension_mass:.3f} | {status_by_name[r.name]} |\n")
 
     # per-sightline curve CSVs + figure
     import matplotlib

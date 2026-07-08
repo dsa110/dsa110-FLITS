@@ -280,3 +280,9 @@ def test_bandwidth_axis_limits_ignore_flagged_outlier_when_clean_points_exist():
 
     assert 5.0 < lo < 11.9
     assert 11.9 < hi < 30.0
+
+
+def test_acf_profile_half_width_scales_with_subband_spacing():
+    assert driver._acf_profile_half_width_mhz([1330.0]) == 6.0
+    assert driver._acf_profile_half_width_mhz([1330.0, 1360.0, 1420.0]) == 6.6
+    assert driver._acf_profile_half_width_mhz([1300.0, 1500.0]) == 12.0

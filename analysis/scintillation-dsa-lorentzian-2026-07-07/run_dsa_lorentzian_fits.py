@@ -377,6 +377,14 @@ def _bandwidth_axis_limits(rows: list[dict[str, Any]]) -> tuple[float, float]:
     return float(lo / 1.45), float(hi * 1.45)
 
 
+def _acf_profile_half_width_mhz(center_freqs: list[float]) -> float:
+    freqs = sorted({float(freq) for freq in center_freqs if np.isfinite(float(freq))})
+    if len(freqs) < 2:
+        return 6.0
+    spacing = min(np.diff(freqs))
+    return float(np.clip(0.22 * spacing, 2.0, 12.0))
+
+
 def _plot_burst_acfs(
     burst: str,
     plot_subbands: list[dict[str, Any]],
@@ -389,36 +397,38 @@ def _plot_burst_acfs(
     import matplotlib.pyplot as plt  # noqa: PLC0415
     from matplotlib.ticker import FuncFormatter, NullFormatter  # noqa: PLC0415
 
+    from flits.plotting import use_flits_style  # noqa: PLC0415
+
+    use_flits_style()
     plt.rcParams.update(
         {
-            "axes.edgecolor": "#111827",
-            "axes.labelcolor": "#111827",
-            "axes.linewidth": 0.8,
-            "font.family": "DejaVu Sans",
-            "font.size": 8,
-            "legend.fontsize": 8,
-            "savefig.dpi": 240,
+            "axes.linewidth": 1.0,
+            "axes.labelsize": 8.5,
+            "axes.titlesize": 9.0,
+            "font.size": 8.0,
+            "legend.fontsize": 6.8,
+            "savefig.dpi": 300,
             "svg.fonttype": "none",
-            "xtick.color": "#111827",
-            "ytick.color": "#111827",
+            "xtick.labelsize": 7.5,
+            "ytick.labelsize": 7.5,
         }
     )
 
     figure_dir.mkdir(parents=True, exist_ok=True)
     n_subbands = len(plot_subbands)
     fig = plt.figure(
-        figsize=(9.6, 4.8),
+        figsize=(7.1, 3.35),
         constrained_layout=True,
     )
     gs = fig.add_gridspec(
         1,
         2,
-        width_ratios=[1.38, 1.0],
-        wspace=0.28,
+        width_ratios=[1.45, 1.0],
+        wspace=0.24,
     )
     ax_acf = fig.add_subplot(gs[0, 0])
     ax_bw = fig.add_subplot(gs[0, 1])
-    fit_color = "#111827"
+    fit_color = "black"
     component_colors = ["#d97706", "#0f766e", "#7c3aed"]
     stack_colors = [plt.get_cmap("plasma")(x) for x in np.linspace(0.15, 0.78, max(n_subbands, 1))]
 
@@ -459,24 +469,24 @@ def _plot_burst_acfs(
                 y,
                 yerr=yerr,
                 fmt="none",
-                ecolor="#94a3b8",
+                ecolor="#f28e2b" if clean_rows else "0.55",
                 elinewidth=0.8,
-                alpha=0.55,
+                alpha=0.75,
                 zorder=1,
             )
         marker = "o" if clean_rows else "^"
-        color = "#3b82f6" if clean_rows else "#d97706"
-        edge = "#111827" if clean_rows else "#b45309"
-        label = "usable" if clean_rows else "flagged only"
+        color = "#f28e2b" if clean_rows else "0.55"
+        edge = "black"
+        label = "DSA sub-bands" if clean_rows else "flagged only"
         ax_bw.scatter(
             x,
             y,
             marker=marker,
-            s=36,
+            s=18,
             color=color,
             edgecolors=edge,
-            linewidths=0.55,
-            alpha=0.92 if clean_rows else 0.55,
+            linewidths=0.45,
+            alpha=0.95 if clean_rows else 0.6,
             label=label,
             zorder=3,
         )
@@ -492,31 +502,10 @@ def _plot_burst_acfs(
             nu,
             dnu,
             "--",
-            color="#6b7280",
-            lw=1.25,
-            label=rf"$\Delta\nu \propto \nu^{{{reference['alpha']:g}}}$",
+            color="0.25",
+            lw=1.0,
+            label=rf"$\gamma \propto \nu^{{{reference['alpha']:g}}}$",
             zorder=2,
-        )
-
-    for row in bandwidth_rows:
-        ax_bw.annotate(
-            str(row["subband"]),
-            (row["center_freq_mhz"], row["dnu_mhz"]),
-            xytext=(4, 3),
-            textcoords="offset points",
-            fontsize=6.5,
-            color="#374151",
-        )
-    if flagged_rows and clean_rows:
-        ax_bw.text(
-            0.02,
-            0.03,
-            f"{len(flagged_rows)} flagged selected component(s) omitted",
-            transform=ax_bw.transAxes,
-            fontsize=6.8,
-            color="#92400e",
-            ha="left",
-            va="bottom",
         )
 
     if component_rows:
@@ -524,19 +513,20 @@ def _plot_burst_acfs(
         ax_bw.set_ylim(*bandwidth_limits)
         ax_bw.yaxis.set_major_formatter(FuncFormatter(lambda value, _: f"{value:g}"))
         ax_bw.yaxis.set_minor_formatter(NullFormatter())
-    ax_bw.set_title("Bandwidth vs frequency", fontsize=9.5, pad=5)
-    ax_bw.set_xlabel("Center frequency (MHz)", fontsize=8.5)
-    ax_bw.set_ylabel(r"$\Delta\nu_d$ (MHz)", fontsize=8.5)
-    ax_bw.grid(True, alpha=0.22, which="major")
-    ax_bw.spines["top"].set_visible(False)
-    ax_bw.spines["right"].set_visible(False)
-    ax_bw.tick_params(labelsize=8, top=False, right=False, which="both")
-    ax_bw.legend(loc="upper right", frameon=False, fontsize=7.2)
+    ax_bw.set_xlabel("Frequency (MHz)")
+    ax_bw.set_ylabel(r"$\gamma$ (MHz)")
+    ax_bw.tick_params(top=False, right=False, which="both", direction="out")
+    ax_bw.legend(
+        loc="upper left",
+        frameon=True,
+        framealpha=0.9,
+        borderpad=0.3,
+        handlelength=1.35,
+    )
 
-    acf_offsets = []
-    acf_labels = []
+    subband_freqs = [float(payload["summary"]["center_freq_mhz"]) for payload in plot_subbands]
+    profile_half_width = _acf_profile_half_width_mhz(subband_freqs)
     acf_lag_zoom = 1.0
-    offset_step = 1.28
     for row_idx, payload in enumerate(plot_subbands):
         lags = np.asarray(payload["lags"], dtype=float)
         acf = np.asarray(payload["acf"], dtype=float)
@@ -545,6 +535,7 @@ def _plot_burst_acfs(
         fit_range = float(subband["fit_range_mhz"])
         lag_zoom = min(fit_range, 12.0)
         acf_lag_zoom = max(acf_lag_zoom, lag_zoom)
+        center_freq = float(subband["center_freq_mhz"])
 
         display = np.isfinite(lags) & np.isfinite(acf) & (np.abs(lags) <= lag_zoom)
         nonzero = display & (lags != 0)
@@ -563,31 +554,23 @@ def _plot_burst_acfs(
         if not np.isfinite(scale) or scale <= 0:
             scale = 1.0
 
-        offset = row_idx * offset_step
-        acf_offsets.append(offset)
-        acf_labels.append(f"{float(subband['center_freq_mhz']):.0f}")
+        ax_acf.axvline(center_freq, color="black", lw=0.75, alpha=0.85, zorder=1)
         ax_acf.plot(
+            center_freq + profile_half_width * acf[nonzero] / scale,
             lags[nonzero],
-            acf[nonzero] / scale + offset,
             color=stack_colors[row_idx],
-            lw=0.9,
-            alpha=0.82,
+            lw=0.85,
+            alpha=0.9,
             zorder=2,
         )
 
-        zero = display & (lags == 0)
-        if np.any(zero):
-            ax_acf.scatter(
-                lags[zero],
-                acf[zero] / scale + offset,
-                s=14,
-                facecolors="white",
-                edgecolors="#4b5563",
-                linewidths=0.8,
-                zorder=4,
-            )
-
-        ax_acf.plot(xfit, yfit / scale + offset, color=fit_color, lw=1.55, zorder=5)
+        ax_acf.plot(
+            center_freq + profile_half_width * yfit / scale,
+            xfit,
+            color=fit_color,
+            lw=1.25,
+            zorder=5,
+        )
         constant = float(fit.get("constant", 0.0))
 
         components = subband["selected_components"]
@@ -600,29 +583,28 @@ def _plot_burst_acfs(
                 continue
             y_component = constant + _lorentzian_curve(xfit, gamma, m)
             ax_acf.plot(
+                center_freq + profile_half_width * y_component / scale,
                 xfit,
-                y_component / scale + offset,
                 color=component_colors[(comp_idx - 1) % len(component_colors)],
-                lw=0.9,
+                lw=0.85,
                 ls="--",
-                alpha=0.6,
+                alpha=0.7,
                 zorder=3,
             )
 
-    ax_acf.set_title("Frequency ACFs, offset by sub-band", fontsize=9.5, pad=5)
-    ax_acf.set_xlabel("Frequency lag (MHz)", fontsize=8.5)
-    ax_acf.set_ylabel("Sub-band center frequency (MHz)", fontsize=8.5)
-    ax_acf.set_xlim(-acf_lag_zoom, acf_lag_zoom)
-    if acf_offsets:
-        ax_acf.set_yticks(acf_offsets)
-        ax_acf.set_yticklabels(acf_labels)
-        ax_acf.set_ylim(-0.55, acf_offsets[-1] + 1.45)
-    ax_acf.grid(True, color="#e5e7eb", lw=0.5, alpha=0.65)
-    ax_acf.spines["top"].set_visible(False)
-    ax_acf.spines["right"].set_visible(False)
-    ax_acf.tick_params(labelsize=8, top=False, right=False, which="both")
+    if subband_freqs:
+        ax_acf.set_xlim(
+            min(subband_freqs) - 1.45 * profile_half_width,
+            max(subband_freqs) + 1.45 * profile_half_width,
+        )
+        ax_acf.set_xticks(subband_freqs)
+        ax_acf.set_xticklabels([f"{freq:.0f}" for freq in subband_freqs])
+    ax_acf.axhline(0.0, color="0.75", lw=0.7, zorder=0)
+    ax_acf.set_ylim(-acf_lag_zoom, acf_lag_zoom)
+    ax_acf.set_xlabel("Frequency (MHz)")
+    ax_acf.set_ylabel("Frequency lag (MHz)")
+    ax_acf.tick_params(top=False, right=False, which="both", direction="out")
 
-    fig.suptitle(f"{burst}: DSA scintillation bandwidth analysis", fontsize=10.5)
     png = figure_dir / f"{burst}_dsa_acf_lorentzian_fits.png"
     svg = figure_dir / f"{burst}_dsa_acf_lorentzian_fits.svg"
     fig.savefig(png, dpi=240, bbox_inches="tight")
@@ -681,172 +663,208 @@ def _plot_sample_summary(results: list[dict[str, Any]], *, figure_dir: Path) -> 
 
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt  # noqa: PLC0415
-    from matplotlib.colors import BoundaryNorm, ListedColormap, Normalize  # noqa: PLC0415
     from matplotlib.lines import Line2D  # noqa: PLC0415
-    from matplotlib.patches import Patch  # noqa: PLC0415
+    from matplotlib.ticker import FuncFormatter, NullFormatter  # noqa: PLC0415
+
+    from flits.plotting import use_flits_style  # noqa: PLC0415
 
     rows = _summary_component_rows(results)
-    bursts = [result["burst"] for result in results]
-    x_by_burst = {burst: i for i, burst in enumerate(bursts)}
-    max_subbands = max((len(result.get("subbands", [])) for result in results), default=0)
+    clean_rows = [row for row in rows if row["usable"]]
+    plot_rows = clean_rows or rows
 
+    use_flits_style()
     plt.rcParams.update(
         {
-            "axes.edgecolor": "#111827",
-            "axes.labelcolor": "#111827",
-            "axes.linewidth": 0.8,
-            "font.family": "serif",
-            "font.size": 8.5,
-            "savefig.dpi": 240,
+            "axes.linewidth": 1.0,
+            "axes.labelsize": 8.0,
+            "axes.titlesize": 7.2,
+            "font.size": 7.2,
+            "legend.fontsize": 7.0,
+            "savefig.dpi": 300,
             "svg.fonttype": "none",
-            "xtick.color": "#111827",
-            "ytick.color": "#111827",
+            "xtick.labelsize": 6.4,
+            "ytick.labelsize": 6.4,
         }
     )
 
     figure_dir.mkdir(parents=True, exist_ok=True)
-    fig, (ax_scatter, ax_grid) = plt.subplots(
-        1,
-        2,
-        figsize=(11.4, 5.4),
-        gridspec_kw={"width_ratios": [2.55, 1.0], "wspace": 0.24},
+    ncols = 4
+    nrows = max(1, (len(results) + ncols - 1) // ncols)
+    fig, axes = plt.subplots(
+        nrows,
+        ncols,
+        figsize=(7.1, 5.35),
+        sharex=True,
+        sharey=True,
         constrained_layout=True,
     )
+    axes_flat = np.atleast_1d(axes).ravel()
 
-    freqs = np.array([row["center_freq_mhz"] for row in rows], dtype=float)
-    if freqs.size:
-        norm = Normalize(vmin=float(np.nanmin(freqs)), vmax=float(np.nanmax(freqs)))
+    if plot_rows:
+        freqs_all = np.array([row["center_freq_mhz"] for row in rows], dtype=float)
+        finite_freqs = freqs_all[np.isfinite(freqs_all)]
+        x_span = float(np.nanmax(finite_freqs)) - float(np.nanmin(finite_freqs))
+        x_pad = 0.07 * (x_span or 1.0)
+        xlim = (float(np.nanmin(finite_freqs)) - x_pad, float(np.nanmax(finite_freqs)) + x_pad)
+        ylim = _bandwidth_axis_limits(plot_rows)
+        xguide = np.linspace(xlim[0], xlim[1], 160)
     else:
-        norm = Normalize(vmin=1300.0, vmax=1500.0)
-    cmap = plt.get_cmap("viridis")
+        xlim = (1300.0, 1500.0)
+        ylim = (0.1, 10.0)
+        xguide = np.linspace(*xlim, 160)
 
-    for usable, marker, size, alpha, label in [
-        (True, "o", 34, 0.88, "unflagged component"),
-        (False, "^", 46, 0.45, "flagged component"),
-    ]:
-        subset = [row for row in rows if row["usable"] is usable]
-        if not subset:
+    rows_by_burst: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for row in rows:
+        rows_by_burst[str(row["burst"])].append(row)
+
+    for panel_idx, ax in enumerate(axes_flat):
+        if panel_idx >= len(results):
+            ax.set_visible(False)
             continue
-        xs = [
-            x_by_burst[row["burst"]]
-            + (row["subband"] - max(row["selected_num_subbands"] - 1, 0) / 2.0) * 0.13
-            for row in subset
-        ]
-        ys = [row["dnu_mhz"] for row in subset]
-        colors = [cmap(norm(row["center_freq_mhz"])) for row in subset]
-        yerr = [
-            row["dnu_err_mhz"]
-            if row["usable"] and np.isfinite(row["dnu_err_mhz"]) and row["dnu_err_mhz"] > 0
-            else 0.0
-            for row in subset
-        ]
-        if usable and any(err > 0 for err in yerr):
-            ax_scatter.errorbar(
-                xs,
-                ys,
-                yerr=yerr,
-                fmt="none",
-                ecolor="#94a3b8",
-                elinewidth=0.7,
-                alpha=0.45,
-                zorder=1,
-            )
-        ax_scatter.scatter(
-            xs,
-            ys,
-            s=size,
-            marker=marker,
-            c=colors,
-            edgecolors="#111827" if usable else "#b45309",
-            linewidths=0.45,
-            alpha=alpha,
-            label=label,
-            zorder=3 if usable else 2,
+
+        result = results[panel_idx]
+        burst = str(result["burst"])
+        burst_rows = rows_by_burst.get(burst, [])
+        burst_clean = [row for row in burst_rows if row["usable"]]
+        burst_flagged = [row for row in burst_rows if not row["usable"]]
+
+        ax.set_yscale("log")
+        ax.set_xlim(*xlim)
+        ax.set_ylim(*ylim)
+        ax.yaxis.set_major_formatter(FuncFormatter(lambda value, _: f"{value:g}"))
+        ax.yaxis.set_minor_formatter(NullFormatter())
+        ax.tick_params(top=False, right=False, which="both", direction="out", pad=1.5)
+        ax.text(
+            0.04,
+            0.92,
+            burst,
+            transform=ax.transAxes,
+            ha="left",
+            va="top",
+            fontsize=7.0,
+            color="black",
+            bbox={"facecolor": "white", "edgecolor": "none", "alpha": 0.82, "pad": 0.4},
         )
 
-    ax_scatter.set_yscale("log")
-    ax_scatter.set_ylabel(r"Fitted $\Delta\nu$ (MHz)", fontsize=9)
-    ax_scatter.set_xticks(range(len(bursts)))
-    ax_scatter.set_xticklabels(
-        [
-            f"{result['burst']}\nn={int(result.get('requested_num_subbands', result.get('num_subbands', 0)))}"
-            for result in results
-        ],
-        rotation=38,
-        ha="right",
-        fontsize=7.8,
-    )
-    ax_scatter.grid(axis="y", color="#e5e7eb", lw=0.6, which="both")
-    ax_scatter.spines["top"].set_visible(False)
-    ax_scatter.spines["right"].set_visible(False)
-    ax_scatter.set_title("Selected Lorentzian components", fontsize=10, pad=7)
+        if burst_clean:
+            freqs = np.array([row["center_freq_mhz"] for row in burst_clean], dtype=float)
+            dnu = np.array([row["dnu_mhz"] for row in burst_clean], dtype=float)
+            yerr = np.array(
+                [
+                    row["dnu_err_mhz"]
+                    if np.isfinite(row["dnu_err_mhz"]) and row["dnu_err_mhz"] > 0
+                    else np.nan
+                    for row in burst_clean
+                ],
+                dtype=float,
+            )
+            finite_err = np.isfinite(yerr) & (yerr > 0)
+            if np.any(finite_err):
+                ax.errorbar(
+                    freqs[finite_err],
+                    dnu[finite_err],
+                    yerr=yerr[finite_err],
+                    fmt="none",
+                    ecolor="#f28e2b",
+                    elinewidth=0.55,
+                    alpha=0.55,
+                    zorder=1,
+                )
+            ax.scatter(
+                freqs,
+                dnu,
+                s=12,
+                marker="o",
+                color="#f28e2b",
+                edgecolors="black",
+                linewidths=0.35,
+                alpha=0.95,
+                zorder=3,
+            )
+            reference = _reference_power_law(burst_clean, ref_alpha=4.0)
+            if reference is not None:
+                guide = reference["scale_mhz"] * (xguide / reference["nu_ref_mhz"]) ** reference[
+                    "alpha"
+                ]
+                ax.plot(xguide, guide, "--", color="0.25", lw=0.75, zorder=2)
+        elif burst_flagged:
+            shown = [
+                row
+                for row in burst_flagged
+                if ylim[0] <= float(row["dnu_mhz"]) <= ylim[1]
+            ]
+            if shown:
+                ax.scatter(
+                    [row["center_freq_mhz"] for row in shown],
+                    [row["dnu_mhz"] for row in shown],
+                    s=13,
+                    marker="^",
+                    color="0.6",
+                    edgecolors="black",
+                    linewidths=0.3,
+                    alpha=0.65,
+                    zorder=3,
+                )
+            ax.text(
+                0.04,
+                0.08,
+                "flagged",
+                transform=ax.transAxes,
+                ha="left",
+                va="bottom",
+                fontsize=6.2,
+                color="0.35",
+            )
+        else:
+            ax.text(
+                0.5,
+                0.5,
+                "no fit",
+                transform=ax.transAxes,
+                ha="center",
+                va="center",
+                fontsize=6.2,
+                color="0.35",
+            )
 
-    status_code = {"absent": 0, "clean": 1, "mixed": 2, "flagged_only": 3}
-    grid = np.zeros((len(bursts), max_subbands), dtype=int)
-    for row, result in enumerate(results):
-        for subband in result.get("subbands", []):
-            grid[row, int(subband["index"])] = status_code[_summary_subband_status(subband)]
+        if panel_idx % ncols != 0:
+            ax.tick_params(labelleft=False)
+        if panel_idx < (nrows - 1) * ncols:
+            ax.tick_params(labelbottom=False)
 
-    status_cmap = ListedColormap(["#f1f5f9", "#2563eb", "#7c3aed", "#d97706"])
-    status_norm = BoundaryNorm(np.arange(-0.5, 4.5, 1), status_cmap.N)
-    ax_grid.imshow(grid, cmap=status_cmap, norm=status_norm, aspect="auto")
-    ax_grid.set_title("Subband fit status", fontsize=10, pad=7)
-    ax_grid.set_xticks(range(max_subbands))
-    ax_grid.set_xticklabels([str(i) for i in range(max_subbands)])
-    ax_grid.set_xlabel("Subband index", fontsize=9)
-    ax_grid.set_yticks(range(len(bursts)))
-    ax_grid.set_yticklabels(bursts, fontsize=8)
-    ax_grid.tick_params(length=0)
-    for spine in ax_grid.spines.values():
-        spine.set_visible(False)
-    ax_grid.set_xticks(np.arange(-0.5, max_subbands, 1), minor=True)
-    ax_grid.set_yticks(np.arange(-0.5, len(bursts), 1), minor=True)
-    ax_grid.grid(which="minor", color="white", linewidth=1.4)
-
-    scatter_legend = [
+    fig.supxlabel("Frequency (MHz)", fontsize=8.5)
+    fig.supylabel(r"$\gamma$ (MHz)", fontsize=8.5)
+    handles = [
         Line2D(
             [0],
             [0],
             marker="o",
             color="none",
-            markerfacecolor="#3b82f6",
-            markeredgecolor="#111827",
-            markersize=6,
-            label="unflagged",
+            markerfacecolor="#f28e2b",
+            markeredgecolor="black",
+            markersize=4.2,
+            label="clean DSA sub-band",
         ),
         Line2D(
             [0],
             [0],
-            marker="^",
-            color="none",
-            markerfacecolor="#d97706",
-            markeredgecolor="#b45309",
-            markersize=6,
-            alpha=0.55,
-            label="flagged",
+            color="0.25",
+            lw=0.85,
+            ls="--",
+            label=r"$\gamma \propto \nu^4$ per burst",
         ),
     ]
-    ax_scatter.legend(handles=scatter_legend, loc="upper left", frameon=False, fontsize=7.8)
-    status_legend = [
-        Patch(facecolor="#2563eb", label="clean"),
-        Patch(facecolor="#7c3aed", label="mixed"),
-        Patch(facecolor="#d97706", label="flagged only"),
-        Patch(facecolor="#f1f5f9", edgecolor="#cbd5e1", label="absent"),
-    ]
-    ax_grid.legend(
-        handles=status_legend,
-        loc="upper left",
-        bbox_to_anchor=(1.02, 1.0),
-        frameon=False,
-        fontsize=7.6,
+    fig.legend(
+        handles=handles,
+        loc="upper center",
+        bbox_to_anchor=(0.5, 1.075),
+        ncol=2,
+        frameon=True,
+        framealpha=0.9,
+        borderpad=0.3,
+        columnspacing=1.2,
+        handlelength=1.5,
     )
-
-    sm = plt.cm.ScalarMappable(norm=norm, cmap=cmap)
-    sm.set_array([])
-    cbar = fig.colorbar(sm, ax=ax_scatter, pad=0.015, fraction=0.045)
-    cbar.set_label("Subband center frequency (MHz)", fontsize=8.5)
-    cbar.ax.tick_params(labelsize=8)
-    fig.suptitle("DSA scintillation bandwidth summary", fontsize=11)
 
     png = figure_dir / "dsa_lorentzian_summary.png"
     svg = figure_dir / "dsa_lorentzian_summary.svg"
@@ -1112,11 +1130,11 @@ def _write_markdown(
                 "",
                 "## Paper Summary Figure",
                 "",
-                "The sample-level summary shows all selected Lorentzian bandwidth",
-                "components. Filled circles are unflagged components used as clean",
-                "bandwidth measurements; triangles are selected components with",
-                "quality flags. The status grid marks whether each produced DSA",
-                "sub-band is clean, mixed, or flagged-only.",
+                "The sample-level summary shows one bandwidth-scaling panel per",
+                "burst. Filled circles are clean selected Lorentzian bandwidth",
+                "measurements; each dashed guide is a fixed $\\gamma\\propto\\nu^4$",
+                "scaling normalized within that burst. Selected components with",
+                "quality flags remain in the tables and per-burst diagnostics.",
                 "",
                 f"![DSA Lorentzian bandwidth summary]({rel})",
             ]
@@ -1144,10 +1162,10 @@ def _write_markdown(
             "## ACF Fit Figures",
             "",
             "Each burst figure follows the CHIME scintillation-bandwidth analysis",
-            "layout: the left panel shows normalized frequency ACFs offset by",
-            "DSA sub-band center frequency, and the right panel shows selected",
-            "decorrelation bandwidths versus frequency with a reference",
-            "$\\Delta\\nu\\propto\\nu^4$ curve.",
+            "layout: the left panel shows frequency-lag ACF profiles centered at",
+            "each DSA sub-band frequency, and the right panel shows selected",
+            "Lorentzian bandwidths versus frequency with a reference",
+            "$\\gamma\\propto\\nu^4$ curve.",
             "",
         ]
     )
@@ -1262,7 +1280,7 @@ def main() -> int:
                 "Fresh DSA ACFs from npz; YAML stored_fits and pkl ACF products are not read. "
                 "Pipeline caches, diagnostic plots, MC noise templates, and 2D fits are disabled. "
                 "When enabled, figures show a sample-level summary plus CHIME-style per-burst "
-                "offset-ACF and bandwidth-scaling diagnostics."
+                "frequency-lag ACF profile and bandwidth-scaling diagnostics."
             ),
         },
         "results": results,

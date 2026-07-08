@@ -33,11 +33,11 @@ is retained and the fallback policy is recorded.
 
 ## Paper Summary Figure
 
-The sample-level summary shows all selected Lorentzian bandwidth
-components. Filled circles are unflagged components used as clean
-bandwidth measurements; triangles are selected components with
-quality flags. The status grid marks whether each produced DSA
-sub-band is clean, mixed, or flagged-only.
+The sample-level summary shows one bandwidth-scaling panel per
+burst. Filled circles are clean selected Lorentzian bandwidth
+measurements; each dashed guide is a fixed $\gamma\propto\nu^4$
+scaling normalized within that burst. Selected components with
+quality flags remain in the tables and per-burst diagnostics.
 
 ![DSA Lorentzian bandwidth summary](figures/dsa_lorentzian_summary.png)
 
@@ -99,10 +99,10 @@ sub-band is clean, mixed, or flagged-only.
 ## ACF Fit Figures
 
 Each burst figure follows the CHIME scintillation-bandwidth analysis
-layout: the left panel shows normalized frequency ACFs offset by
-DSA sub-band center frequency, and the right panel shows selected
-decorrelation bandwidths versus frequency with a reference
-$\Delta\nu\propto\nu^4$ curve.
+layout: the left panel shows frequency-lag ACF profiles centered at
+each DSA sub-band frequency, and the right panel shows selected
+Lorentzian bandwidths versus frequency with a reference
+$\gamma\propto\nu^4$ curve.
 
 ### casey
 

@@ -1,0 +1,138 @@
+[
+  {
+    "burst": "casey",
+    "telescope": "chime",
+    "dm_ref": 491.207,
+    "dmphase_residual": -0.0011621047073006483,
+    "sigma": 0.050000000000000044,
+    "snr": 31.223036470833193,
+    "slope_before": 2.251367635152363,
+    "slope_plus": 2.813982179384417,
+    "slope_minus": 1.692132193658806,
+    "plus_ratio": 1.2498990104714633,
+    "minus_ratio": 0.7516019006572819,
+    "factors": {
+      "freq": 2,
+      "time": 5
+    }
+  },
+  {
+    "burst": "hamilton",
+    "telescope": "chime",
+    "dm_ref": 518.799,
+    "dmphase_residual": 2.0000000000000036,
+    "sigma": 0.050000000000000044,
+    "snr": 63.216451065877955,
+    "slope_before": 1.3865310659552084,
+    "slope_plus": 588.6262885212662,
+    "slope_minus": 588.7934628092771,
+    "plus_ratio": 424.53162642681224,
+    "minus_ratio": 424.65219659802267,
+    "factors": {
+      "freq": 2,
+      "time": 5
+    }
+  },
+  {
+    "burst": "wilhelm",
+    "telescope": "chime",
+    "dm_ref": 602.346,
+    "dmphase_residual": -0.9732401695578992,
+    "sigma": 0.05082732635926614,
+    "snr": 2.019840462005229,
+    "slope_before": 44.42827112502894,
+    "slope_plus": 125.99254900038609,
+    "slope_minus": 142.58242658678208,
+    "plus_ratio": 2.835864322647644,
+    "minus_ratio": 3.2092724514426894,
+    "factors": {
+      "freq": 1,
+      "time": 5
+    }
+  },
+  {
+    "burst": "zach",
+    "telescope": "chime",
+    "dm_ref": 262.368,
+    "dmphase_residual": 0.02722192897936575,
+    "sigma": 0.4597218756722021,
+    "snr": 3.196693239837697,
+    "slope_before": 14.410252112357814,
+    "slope_plus": 8.634633557182346,
+    "slope_minus": 20.565805281204934,
+    "plus_ratio": 0.5992007280551,
+    "minus_ratio": 1.4271648490846525,
+    "factors": {
+      "freq": 2,
+      "time": 5
+    }
+  },
+  {
+    "burst": "casey",
+    "telescope": "dsa",
+    "dm_ref": 491.207,
+    "dmphase_residual": 0.013256377326609677,
+    "sigma": 0.5970562494242355,
+    "snr": 3.0197867875827313,
+    "slope_before": 0.3185667779236812,
+    "slope_plus": 0.3185667779236812,
+    "slope_minus": 0.3185667779236812,
+    "plus_ratio": 1.0,
+    "minus_ratio": 1.0,
+    "factors": {
+      "freq": 48,
+      "time": 1
+    }
+  },
+  {
+    "burst": "hamilton",
+    "telescope": "dsa",
+    "dm_ref": 518.799,
+    "dmphase_residual": -0.1443298575353412,
+    "sigma": 0.34748369104718246,
+    "snr": 2.6322287075703064,
+    "slope_before": 18.98364646702975,
+    "slope_plus": 20.289273202252097,
+    "slope_minus": 17.76191772125774,
+    "plus_ratio": 1.0687763932756502,
+    "minus_ratio": 0.9356430942867654,
+    "factors": {
+      "freq": 48,
+      "time": 1
+    }
+  },
+  {
+    "burst": "wilhelm",
+    "telescope": "dsa",
+    "dm_ref": 602.346,
+    "dmphase_residual": -0.5,
+    "sigma": 0.050000000000000044,
+    "snr": 17.697510786704843,
+    "slope_before": 0.13683444081859258,
+    "slope_plus": 4.7834717172065915,
+    "slope_minus": 4.501934982319819,
+    "plus_ratio": 34.9580974540485,
+    "minus_ratio": 32.90059838288981,
+    "factors": {
+      "freq": 48,
+      "time": 1
+    }
+  },
+  {
+    "burst": "zach",
+    "telescope": "dsa",
+    "dm_ref": 262.368,
+    "dmphase_residual": 0.04954079749970123,
+    "sigma": 1.644621106163217,
+    "snr": 7.455491375093385,
+    "slope_before": 0.17775595246339163,
+    "slope_plus": 1.0528671614635938,
+    "slope_minus": 0.6960480782454129,
+    "plus_ratio": 5.9231049473880715,
+    "minus_ratio": 3.915751166694472,
+    "factors": {
+      "freq": 48,
+      "time": 1
+    }
+  }
+]

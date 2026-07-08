@@ -4,9 +4,12 @@ import numpy as np
 from numpy.fft import fft, fftfreq
 from scipy.optimize import curve_fit
 
-from flits.common.constants import K_DM
+try:
+    from flits.common.constants import K_DM
+except ModuleNotFoundError:
+    from dispersion.chime_dm import K_DM
 
-__all__ = ["DMPhaseEstimator", "quadratic"]
+__all__ = ["DMPhaseEstimator", "dmphase_trial_to_physical_residual_dm", "quadratic"]
 
 # ------------------------------------------------------------------
 # Constants & helpers
@@ -17,6 +20,19 @@ EPS = 1e-30
 def quadratic(x, a, b, c):
     """Quadratic a x² + b x + c."""
     return a * x**2 + b * x + c
+
+
+def dmphase_trial_to_physical_residual_dm(dmphase_trial_dm: float) -> float:
+    """Convert the local DM-phase trial sign to the intensity-shift residual sign.
+
+    ``DMPhaseEstimator`` follows the legacy DM_phase convention in which a
+    positive trial removes a waterfall whose low-frequency channels arrive
+    earlier than high-frequency channels. The manifest-cube residual convention
+    used by ``shift_waterfall_residual_dm`` is the opposite physical sign:
+    positive residual means low-frequency channels arrive later and must be
+    shifted earlier.
+    """
+    return -float(dmphase_trial_dm)
 
 
 # ------------------------------------------------------------------

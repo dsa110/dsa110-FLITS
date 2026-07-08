@@ -1,0 +1,239 @@
+{
+  "_comment": "Single source of truth for budget_table.tex. Edit VALUES here; regenerate the .tex with the emitter (do NOT hand-edit the .tex). DM in pc/cm^3, tau in ms. DM_host is the forward-modeled posterior [median, +p84-p50, -(p50-p16)] from scripts/dm_budget_uncertainty.py (cross-checked in tests). Placeholder-z sightlines (note 'p') have no cosmic/host term.",
+  "columns": [
+    "burst",
+    "z",
+    "dm_obs",
+    "dm_mw",
+    "dm_cos",
+    "dm_int",
+    "regime",
+    "mass",
+    "dm_host",
+    "tau_int"
+  ],
+  "footnotes": {
+    "p": "Host redshift unknown (placeholder); the cosmological and host terms cannot be computed, so this sightline is excluded from any distance-dependent quantity.",
+    "c": "Sightline in the galaxy-interior regime ($b<0.1\\,R_{\\mathrm{vir}}$, $b\\approx4.6$\\,kpc); $\\mathrm{DM_{int}}$ is capped at the $b=0.1\\,R_{\\mathrm{vir}}$ value (raw core-extrapolated column $71\\,\\mathrm{pc\\,cm^{-3}}$).",
+    "u": "Position lies outside the deep-imaging survey footprints (DESI Legacy DR8-North; SDSS DR12 returns no redshifts here), so only the shallow all-sky catalogs (NED, GLADE+) constrain the sightline: the intervening term is \\emph{unconstrained by the searched surveys}, not excluded---absence of coverage is not absence of foreground (Section~\\ref{sec:obs-fg}).",
+    "m": "Confirmed foreground halos are present but lie beyond the virial radii implied by their assumed halo masses ($b/R_{\\mathrm{vir}}\\approx1.3$--$1.8$ at the fallback mass), so the modeled two-phase column vanishes. The fallback mass is a fiducial stellar mass ($\\log M_\\star/M_\\odot\\approx10$, the midpoint of the $9$--$11$ range spanned by the sensitivity prior families) converted to halo mass through the \\citet{Moster2013} stellar-to-halo-mass relation. This is a median guess, not a conservative lower bound, so its sign is not one-directional: $\\mathrm{DM_{int}}=0$ here is conditional on the assumed mass, and a more massive (or a measured) halo would bring the sightline inside $R_{\\mathrm{vir}}$ and make the column nonzero."
+  },
+  "rows": [
+    {
+      "burst": "FRB 20220207C",
+      "burst_note": "",
+      "z": 0.043,
+      "z_note": "",
+      "dm_obs": 262,
+      "dm_mw": 111,
+      "dm_cos": 36,
+      "dm_int": 70,
+      "dm_int_note": "",
+      "regime": "CGM",
+      "mass": "measured",
+      "dm_host": [
+        51,
+        37,
+        49
+      ],
+      "tau_int": "0.0012"
+    },
+    {
+      "burst": "FRB 20220310F",
+      "burst_note": "",
+      "z": 0.479,
+      "z_note": "",
+      "dm_obs": 462,
+      "dm_mw": 81,
+      "dm_cos": 427,
+      "dm_int": 11,
+      "dm_int_note": "",
+      "regime": "CGM",
+      "mass": "assumed",
+      "dm_host": [
+        12,
+        69,
+        167
+      ],
+      "tau_int": "0.0011"
+    },
+    {
+      "burst": "FRB 20220506D",
+      "burst_note": "u",
+      "z": 0.3,
+      "z_note": "",
+      "dm_obs": 397,
+      "dm_mw": 118,
+      "dm_cos": 262,
+      "dm_int": 0,
+      "dm_int_note": "",
+      "regime": "none",
+      "mass": "",
+      "dm_host": [
+        61,
+        54,
+        117
+      ],
+      "tau_int": "0"
+    },
+    {
+      "burst": "FRB 20221113A",
+      "burst_note": "",
+      "z": 0.251,
+      "z_note": "",
+      "dm_obs": 411,
+      "dm_mw": 123,
+      "dm_cos": 217,
+      "dm_int": 41,
+      "dm_int_note": "",
+      "regime": "CGM",
+      "mass": "measured",
+      "dm_host": [
+        65,
+        54,
+        102
+      ],
+      "tau_int": "0.020"
+    },
+    {
+      "burst": "FRB 20221203A",
+      "burst_note": "",
+      "z": 0.51,
+      "z_note": "",
+      "dm_obs": 602,
+      "dm_mw": 117,
+      "dm_cos": 456,
+      "dm_int": 84,
+      "dm_int_note": "",
+      "regime": "CGM",
+      "mass": "assumed",
+      "dm_host": [
+        14,
+        97,
+        196
+      ],
+      "tau_int": "0.011"
+    },
+    {
+      "burst": "FRB 20230307A",
+      "burst_note": "",
+      "z": 0.271,
+      "z_note": "",
+      "dm_obs": 610,
+      "dm_mw": 74,
+      "dm_cos": 235,
+      "dm_int": 241,
+      "dm_int_note": "",
+      "regime": "CGM",
+      "mass": "assumed",
+      "dm_host": [
+        95,
+        87,
+        138
+      ],
+      "tau_int": "0.0079"
+    },
+    {
+      "burst": "FRB 20230325A",
+      "burst_note": "",
+      "z": null,
+      "z_note": "p",
+      "dm_obs": 912,
+      "dm_mw": 100,
+      "dm_cos": null,
+      "dm_int": 10,
+      "dm_int_note": "",
+      "regime": "CGM",
+      "mass": "assumed",
+      "dm_host": null,
+      "tau_int": "0.00052"
+    },
+    {
+      "burst": "FRB 20230814B",
+      "burst_note": "",
+      "z": null,
+      "z_note": "p",
+      "dm_obs": 696,
+      "dm_mw": 137,
+      "dm_cos": null,
+      "dm_int": 70,
+      "dm_int_note": "c",
+      "regime": "interior",
+      "mass": "assumed",
+      "dm_host": null,
+      "tau_int": "0.024"
+    },
+    {
+      "burst": "FRB 20230913A",
+      "burst_note": "",
+      "z": 0.302,
+      "z_note": "",
+      "dm_obs": 518,
+      "dm_mw": 110,
+      "dm_cos": 264,
+      "dm_int": 41,
+      "dm_int_note": "",
+      "regime": "CGM",
+      "mass": "assumed",
+      "dm_host": [
+        146,
+        61,
+        123
+      ],
+      "tau_int": "0.017"
+    },
+    {
+      "burst": "FRB 20240122A",
+      "burst_note": "u",
+      "z": null,
+      "z_note": "p",
+      "dm_obs": 960,
+      "dm_mw": 133,
+      "dm_cos": null,
+      "dm_int": 0,
+      "dm_int_note": "",
+      "regime": "none",
+      "mass": "",
+      "dm_host": null,
+      "tau_int": "0"
+    },
+    {
+      "burst": "FRB 20240203A",
+      "burst_note": "u",
+      "z": 0.074,
+      "z_note": "",
+      "dm_obs": 272,
+      "dm_mw": 111,
+      "dm_cos": 62,
+      "dm_int": 0,
+      "dm_int_note": "m",
+      "regime": "CGM",
+      "mass": "assumed",
+      "dm_host": [
+        109,
+        29,
+        45
+      ],
+      "tau_int": "0"
+    },
+    {
+      "burst": "FRB 20240229A",
+      "burst_note": "",
+      "z": 0.287,
+      "z_note": "",
+      "dm_obs": 491,
+      "dm_mw": 74,
+      "dm_cos": 250,
+      "dm_int": 0,
+      "dm_int_note": "m",
+      "regime": "CGM",
+      "mass": "assumed",
+      "dm_host": [
+        211,
+        46,
+        112
+      ],
+      "tau_int": "0"
+    }
+  ]
+}

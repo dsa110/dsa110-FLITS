@@ -52,6 +52,11 @@ BURSTS = [
     "zach",
 ]
 
+SUBBAND_CANDIDATES = (2, 3, 4)
+MIN_SUBBAND_CHANNELS = 512
+MIN_FIT_RANGE_MHZ = 8.0
+MIN_POSITIVE_FIT_POINTS = 30
+
 
 def _lorentzian_curve(x: np.ndarray, gamma: float, m: float) -> np.ndarray:
     return (m**2) / (1.0 + (x / gamma) ** 2)
@@ -95,6 +100,131 @@ def _config_for_fresh_acf(config: dict[str, Any], *, output_dir: Path) -> dict[s
 
     analysis_cfg.setdefault("fit_2d", {})["enable"] = False
     return cfg
+
+
+def _format_threshold(value: float | int) -> str:
+    return f"{value:g}" if isinstance(value, float) else str(value)
+
+
+def _config_with_subband_count(config: dict[str, Any], num_subbands: int) -> dict[str, Any]:
+    cfg = copy.deepcopy(config)
+    acf_cfg = cfg.setdefault("analysis", {}).setdefault("acf", {})
+    acf_cfg["num_subbands"] = int(num_subbands)
+    acf_cfg["use_snr_subbanding"] = True
+    return cfg
+
+
+def _candidate_rejection_reasons(candidate: dict[str, Any]) -> list[str]:
+    requested = int(candidate.get("requested_num_subbands", candidate.get("num_subbands", 0)))
+    actual = int(candidate.get("num_subbands", 0))
+    if actual != requested:
+        return [f"requested {requested} subbands but produced {actual}"]
+
+    subbands = candidate.get("subbands", [])
+    for subband in subbands:
+        idx = int(subband.get("index", 0))
+        n_chan = int(subband.get("num_channels", 0))
+        if n_chan < MIN_SUBBAND_CHANNELS:
+            return [
+                f"subband {idx} num_channels {n_chan} < "
+                f"{_format_threshold(MIN_SUBBAND_CHANNELS)}"
+            ]
+
+        fit_range = float(subband.get("fit_range_mhz", np.nan))
+        if not np.isfinite(fit_range) or fit_range < MIN_FIT_RANGE_MHZ:
+            shown = _format_threshold(fit_range) if np.isfinite(fit_range) else "nonfinite"
+            return [
+                f"subband {idx} fit_range_mhz {shown} < "
+                f"{_format_threshold(MIN_FIT_RANGE_MHZ)}"
+            ]
+
+        n_fit_points = int(subband.get("n_fit_points", 0))
+        if n_fit_points < MIN_POSITIVE_FIT_POINTS:
+            return [
+                f"subband {idx} n_fit_points {n_fit_points} < "
+                f"{_format_threshold(MIN_POSITIVE_FIT_POINTS)}"
+            ]
+
+        components = subband.get("selected_components", [])
+        if not components:
+            return [f"subband {idx} has no selected component"]
+        if all(comp.get("quality_flags") for comp in components):
+            return [f"subband {idx} has no unflagged selected component"]
+    return []
+
+
+def _candidate_warning_summary(candidate: dict[str, Any]) -> dict[str, int]:
+    flagged_components = 0
+    subbands_without_unflagged_components = 0
+    for subband in candidate.get("subbands", []):
+        components = subband.get("selected_components", [])
+        flagged_components += sum(1 for comp in components if comp.get("quality_flags"))
+        if components and all(comp.get("quality_flags") for comp in components):
+            subbands_without_unflagged_components += 1
+    return {
+        "flagged_components": flagged_components,
+        "subbands_without_unflagged_components": subbands_without_unflagged_components,
+    }
+
+
+def _select_subband_candidate(
+    candidates: list[dict[str, Any]],
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    evaluations = []
+    metrics = []
+    viable = []
+    for candidate in candidates:
+        n_subbands = int(candidate.get("requested_num_subbands", candidate.get("num_subbands", 0)))
+        reasons = _candidate_rejection_reasons(candidate)
+        evaluation = {
+            "num_subbands": n_subbands,
+            "viable": not reasons,
+            "reasons": reasons,
+        }
+        evaluations.append(evaluation)
+        metrics.append(
+            {
+                "num_subbands": n_subbands,
+                **_candidate_warning_summary(candidate),
+            }
+        )
+        if not reasons:
+            viable.append(candidate)
+
+    if viable:
+        selected = max(
+            viable,
+            key=lambda c: int(c.get("requested_num_subbands", c.get("num_subbands", 0))),
+        )
+        selected_policy = "largest_viable_equal_snr_subband_count"
+    elif candidates:
+        selected = min(
+            candidates,
+            key=lambda c: (
+                _candidate_warning_summary(c)["subbands_without_unflagged_components"],
+                _candidate_warning_summary(c)["flagged_components"],
+                int(c.get("requested_num_subbands", c.get("num_subbands", 0))),
+            ),
+        )
+        selected_policy = "least_pathological_equal_snr_subband_count"
+    else:
+        raise RuntimeError("no subband candidates were evaluated")
+
+    selected_n = int(selected.get("requested_num_subbands", selected.get("num_subbands", 0)))
+    report = {
+        "policy": "explicit_equal_snr_subband_candidate_selection",
+        "selected_policy": selected_policy,
+        "candidate_counts": list(SUBBAND_CANDIDATES),
+        "gates": {
+            "min_subband_channels": MIN_SUBBAND_CHANNELS,
+            "min_fit_range_mhz": MIN_FIT_RANGE_MHZ,
+            "min_positive_fit_points": MIN_POSITIVE_FIT_POINTS,
+        },
+        "selected_num_subbands": selected_n,
+        "candidates": evaluations,
+        "candidate_metrics": metrics,
+    }
+    return selected, report
 
 
 def _slice_fit_window(
@@ -397,15 +527,13 @@ def _plot_burst_acfs(
     return {"figure_png": str(png), "figure_svg": str(svg)}
 
 
-def _fit_one_burst(
+def _fit_prepared_config(
+    cfg: dict[str, Any],
     config_path: Path,
     *,
     output_dir: Path,
     max_components: int,
-    make_figures: bool,
-) -> dict[str, Any]:
-    loaded = config_mod.load_config(config_path)
-    cfg = _config_for_fresh_acf(loaded, output_dir=output_dir)
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     burst = str(cfg.get("burst_id", config_path.stem.removesuffix("_dsa")))
 
     analysis.clear_noise_acf_cache()
@@ -524,8 +652,41 @@ def _fit_one_burst(
         },
         "subbands": subbands,
     }
+    return result, plot_subbands
+
+
+def _fit_one_burst(
+    config_path: Path,
+    *,
+    output_dir: Path,
+    max_components: int,
+    make_figures: bool,
+) -> dict[str, Any]:
+    loaded = config_mod.load_config(config_path)
+    base_cfg = _config_for_fresh_acf(loaded, output_dir=output_dir)
+    burst = str(base_cfg.get("burst_id", config_path.stem.removesuffix("_dsa")))
+
+    candidates = []
+    plot_payloads = {}
+    for num_subbands in SUBBAND_CANDIDATES:
+        cfg = _config_with_subband_count(base_cfg, num_subbands)
+        result, plot_subbands = _fit_prepared_config(
+            cfg,
+            config_path,
+            output_dir=output_dir,
+            max_components=max_components,
+        )
+        result["requested_num_subbands"] = num_subbands
+        candidates.append(result)
+        plot_payloads[num_subbands] = plot_subbands
+
+    result, selection = _select_subband_candidate(candidates)
+    result["subband_selection"] = selection
     if make_figures:
-        result.update(_plot_burst_acfs(burst, plot_subbands, figure_dir=output_dir / "figures"))
+        selected_n = int(result["requested_num_subbands"])
+        result.update(
+            _plot_burst_acfs(burst, plot_payloads[selected_n], figure_dir=output_dir / "figures")
+        )
     return result
 
 
@@ -551,6 +712,18 @@ def _write_csv(rows: list[dict[str, Any]], path: Path) -> None:
         writer.writerows(rows)
 
 
+def _selection_summary(result: dict[str, Any]) -> str:
+    selection = result.get("subband_selection", {})
+    rejected = [
+        f"n={candidate['num_subbands']}: {'; '.join(candidate['reasons'])}"
+        for candidate in selection.get("candidates", [])
+        if not candidate.get("viable", False)
+    ]
+    if not rejected:
+        return "largest viable candidate"
+    return "rejected " + "<br>".join(rejected)
+
+
 def _write_markdown(results: list[dict[str, Any]], rows: list[dict[str, Any]], path: Path) -> None:
     lines = [
         "# DSA Lorentzian ACF Fit Summary",
@@ -560,10 +733,19 @@ def _write_markdown(results: list[dict[str, Any]], rows: list[dict[str, Any]], p
         "strong BIC improvement and the nested-F test threshold in the existing",
         "`compare_lorentzian_components` selector.",
         "",
+        "The number of DSA sub-bands is selected within this run, not inherited from",
+        "the checked-in burst YAML. For each burst the driver evaluates 2, 3, and 4",
+        "equal-S/N frequency splits, then chooses the largest candidate for which",
+        "every produced sub-band passes fixed viability gates: at least 512 unmasked",
+        "channels, at least an 8 MHz fitted lag window, and at least 30 positive-lag",
+        "fit samples, with at least one selected component not carrying a quality",
+        "flag. If no candidate satisfies all gates, the least pathological candidate",
+        "is retained and the fallback policy is recorded.",
+        "",
         "## Burst Overview",
         "",
-        "| burst | subbands | preferred n by subband | plurality n | median dnu by component (MHz) |",
-        "|---|---:|---|---:|---|",
+        "| burst | selected subbands | preferred n by subband | plurality n | median dnu by component (MHz) | selection note |",
+        "|---|---:|---|---:|---|---|",
     ]
     for result in results:
         usable = result.get("component_usable_median_dnu_mhz", {})
@@ -572,8 +754,9 @@ def _write_markdown(results: list[dict[str, Any]], rows: list[dict[str, Any]], p
         else:
             med = "no unflagged components"
         lines.append(
-            "| {burst} | {num_subbands} | {n_per_subband} | {burst_preferred_n} | {med} |".format(
+            "| {burst} | {num_subbands} | {n_per_subband} | {burst_preferred_n} | {med} | {note} |".format(
                 med=med or "-",
+                note=_selection_summary(result),
                 **result,
             )
         )
@@ -610,7 +793,11 @@ def _write_markdown(results: list[dict[str, Any]], rows: list[dict[str, Any]], p
         figure_png = result.get("figure_png")
         if not figure_png:
             continue
-        rel = Path(figure_png).relative_to(path.parent)
+        figure_path = Path(figure_png)
+        try:
+            rel = figure_path.resolve().relative_to(path.parent.resolve())
+        except ValueError:
+            rel = figure_path
         lines.extend([f"### {result['burst']}", "", f"![{result['burst']} ACF fits]({rel})", ""])
 
     path.write_text("\n".join(lines).rstrip() + "\n")

@@ -16,12 +16,23 @@ The run path is:
 
 1. load each checked-in DSA burst config,
 2. force fresh data preparation and ACF extraction,
-3. stop after ACF extraction,
-4. fit 1, 2, and 3 Lorentzian components to each sub-band ACF within the
+3. evaluate 2, 3, and 4 equal-S/N sub-band splits using fixed viability gates
+   rather than inheriting `analysis.acf.num_subbands` from the YAML,
+4. stop after ACF extraction for the selected split,
+5. fit 1, 2, and 3 Lorentzian components to each sub-band ACF within the
    config's `analysis.fitting.fit_lagrange_mhz` window,
-5. select the sub-band component count with the existing BIC plus nested-F
+6. select the sub-band component count with the existing BIC plus nested-F
    criterion in `scintillation.scint_analysis.revalidation`,
-6. write one multi-panel ACF+fit figure per burst under `results/figures/`.
+7. write one multi-panel ACF+fit figure per burst under `results/figures/`.
+
+The sub-band selection policy chooses the largest candidate split for which
+every produced sub-band has at least 512 unmasked channels, an 8 MHz fitted lag
+window, 30 positive-lag fit samples, and at least one selected component not
+carrying a quality flag. If no candidate satisfies all gates, the driver records
+and uses the least pathological candidate. The selected count, evaluated
+candidates, fixed gates, selected policy, and rejection reasons are written into
+each burst JSON under `subband_selection` and summarized in
+`DSA_LORENTZIAN_FITS.md`.
 
 The generated tables include `quality_flags` for components that should not be
 used as clean bandwidth measurements without manual inspection. In particular,

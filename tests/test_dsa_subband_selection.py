@@ -258,3 +258,25 @@ def test_reference_power_law_fits_chime_style_gamma_scaling():
         "nu_ref_mhz": 1400.0,
         "scale_mhz": 2.0,
     }
+
+
+def test_bandwidth_axis_limits_ignore_flagged_outlier_when_clean_points_exist():
+    rows = [
+        {
+            "center_freq_mhz": 1350.0,
+            "dnu_mhz": 11.9,
+            "dnu_err_mhz": 2.0,
+            "usable": True,
+        },
+        {
+            "center_freq_mhz": 1445.0,
+            "dnu_mhz": 393.0,
+            "dnu_err_mhz": 20.0,
+            "usable": False,
+        },
+    ]
+
+    lo, hi = driver._bandwidth_axis_limits(rows)
+
+    assert 5.0 < lo < 11.9
+    assert 11.9 < hi < 30.0

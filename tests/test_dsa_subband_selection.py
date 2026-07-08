@@ -139,3 +139,85 @@ def test_write_markdown_accepts_absolute_figure_paths(tmp_path):
 
     text = target.read_text()
     assert "figures/casey_dsa_acf_lorentzian_fits.png" in text
+
+
+def test_summary_component_rows_preserve_flag_status():
+    result = {
+        "burst": "casey",
+        "requested_num_subbands": 3,
+        "subbands": [
+            {
+                "index": 0,
+                "center_freq_mhz": 1320.0,
+                "selected_components": [
+                    {"dnu_mhz": 1.0, "dnu_err": 0.1, "quality_flags": []},
+                ],
+            },
+            {
+                "index": 1,
+                "center_freq_mhz": 1360.0,
+                "selected_components": [
+                    {"dnu_mhz": 2.0, "dnu_err": 0.2, "quality_flags": []},
+                    {"dnu_mhz": 20.0, "dnu_err": 3.0, "quality_flags": ["dnu_exceeds_fit_window"]},
+                ],
+            },
+            {
+                "index": 2,
+                "center_freq_mhz": 1400.0,
+                "selected_components": [
+                    {
+                        "dnu_mhz": 30.0,
+                        "dnu_err": 5.0,
+                        "quality_flags": ["fractional_dnu_err_gt_1"],
+                    },
+                ],
+            },
+        ],
+    }
+
+    rows = driver._summary_component_rows([result])
+
+    assert [
+        (row["subband"], row["component"], row["usable"], row["subband_status"])
+        for row in rows
+    ] == [
+        (0, 1, True, "clean"),
+        (1, 1, True, "mixed"),
+        (1, 2, False, "mixed"),
+        (2, 1, False, "flagged_only"),
+    ]
+
+
+def test_write_markdown_places_summary_figure_before_diagnostic_panels(tmp_path):
+    figure = tmp_path / "figures" / "casey_dsa_acf_lorentzian_fits.png"
+    summary = tmp_path / "figures" / "dsa_lorentzian_summary.png"
+    figure.parent.mkdir()
+    figure.write_bytes(b"not a real png; path handling only")
+    summary.write_bytes(b"not a real png; path handling only")
+    target = tmp_path / "summary-output.md"
+
+    driver._write_markdown(
+        [
+            {
+                "burst": "casey",
+                "num_subbands": 2,
+                "n_per_subband": [1, 1],
+                "burst_preferred_n": 1,
+                "component_usable_median_dnu_mhz": {"1": 1.0},
+                "subband_selection": {
+                    "candidates": [
+                        {"num_subbands": 2, "viable": True, "reasons": []},
+                    ]
+                },
+                "figure_png": str(figure.resolve()),
+            }
+        ],
+        [],
+        target,
+        summary_figure_png=str(summary.resolve()),
+    )
+
+    text = target.read_text()
+    assert "## Paper Summary Figure" in text
+    assert "figures/dsa_lorentzian_summary.png" in text
+    assert text.index("## Paper Summary Figure") < text.index("## ACF Fit Figures")

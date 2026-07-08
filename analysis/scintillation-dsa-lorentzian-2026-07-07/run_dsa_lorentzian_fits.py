@@ -527,6 +527,231 @@ def _plot_burst_acfs(
     return {"figure_png": str(png), "figure_svg": str(svg)}
 
 
+def _summary_subband_status(subband: dict[str, Any]) -> str:
+    components = subband.get("selected_components", [])
+    if not components:
+        return "flagged_only"
+    usable = [not component.get("quality_flags") for component in components]
+    if all(usable):
+        return "clean"
+    if any(usable):
+        return "mixed"
+    return "flagged_only"
+
+
+def _summary_component_rows(results: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    rows = []
+    for result in results:
+        burst = result["burst"]
+        selected_num_subbands = int(
+            result.get("requested_num_subbands", result.get("num_subbands", 0))
+        )
+        for subband in result.get("subbands", []):
+            status = _summary_subband_status(subband)
+            for comp_idx, component in enumerate(subband.get("selected_components", []), start=1):
+                dnu = float(component.get("dnu_mhz", np.nan))
+                if not (np.isfinite(dnu) and dnu > 0):
+                    continue
+                dnu_err = float(component.get("dnu_err", np.nan))
+                flags = component.get("quality_flags", [])
+                rows.append(
+                    {
+                        "burst": burst,
+                        "selected_num_subbands": selected_num_subbands,
+                        "subband": int(subband["index"]),
+                        "subband_status": status,
+                        "center_freq_mhz": float(subband["center_freq_mhz"]),
+                        "component": comp_idx,
+                        "dnu_mhz": dnu,
+                        "dnu_err_mhz": dnu_err,
+                        "usable": not flags,
+                        "quality_flags": list(flags),
+                    }
+                )
+    return rows
+
+
+def _plot_sample_summary(results: list[dict[str, Any]], *, figure_dir: Path) -> dict[str, str]:
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt  # noqa: PLC0415
+    from matplotlib.colors import BoundaryNorm, ListedColormap, Normalize  # noqa: PLC0415
+    from matplotlib.lines import Line2D  # noqa: PLC0415
+    from matplotlib.patches import Patch  # noqa: PLC0415
+
+    rows = _summary_component_rows(results)
+    bursts = [result["burst"] for result in results]
+    x_by_burst = {burst: i for i, burst in enumerate(bursts)}
+    max_subbands = max((len(result.get("subbands", [])) for result in results), default=0)
+
+    plt.rcParams.update(
+        {
+            "axes.edgecolor": "#111827",
+            "axes.labelcolor": "#111827",
+            "axes.linewidth": 0.8,
+            "font.family": "serif",
+            "font.size": 8.5,
+            "savefig.dpi": 240,
+            "svg.fonttype": "none",
+            "xtick.color": "#111827",
+            "ytick.color": "#111827",
+        }
+    )
+
+    figure_dir.mkdir(parents=True, exist_ok=True)
+    fig, (ax_scatter, ax_grid) = plt.subplots(
+        1,
+        2,
+        figsize=(11.4, 5.4),
+        gridspec_kw={"width_ratios": [2.55, 1.0], "wspace": 0.24},
+        constrained_layout=True,
+    )
+
+    freqs = np.array([row["center_freq_mhz"] for row in rows], dtype=float)
+    if freqs.size:
+        norm = Normalize(vmin=float(np.nanmin(freqs)), vmax=float(np.nanmax(freqs)))
+    else:
+        norm = Normalize(vmin=1300.0, vmax=1500.0)
+    cmap = plt.get_cmap("viridis")
+
+    for usable, marker, size, alpha, label in [
+        (True, "o", 34, 0.88, "unflagged component"),
+        (False, "^", 46, 0.45, "flagged component"),
+    ]:
+        subset = [row for row in rows if row["usable"] is usable]
+        if not subset:
+            continue
+        xs = [
+            x_by_burst[row["burst"]]
+            + (row["subband"] - max(row["selected_num_subbands"] - 1, 0) / 2.0) * 0.13
+            for row in subset
+        ]
+        ys = [row["dnu_mhz"] for row in subset]
+        colors = [cmap(norm(row["center_freq_mhz"])) for row in subset]
+        yerr = [
+            row["dnu_err_mhz"]
+            if row["usable"] and np.isfinite(row["dnu_err_mhz"]) and row["dnu_err_mhz"] > 0
+            else 0.0
+            for row in subset
+        ]
+        if usable and any(err > 0 for err in yerr):
+            ax_scatter.errorbar(
+                xs,
+                ys,
+                yerr=yerr,
+                fmt="none",
+                ecolor="#94a3b8",
+                elinewidth=0.7,
+                alpha=0.45,
+                zorder=1,
+            )
+        ax_scatter.scatter(
+            xs,
+            ys,
+            s=size,
+            marker=marker,
+            c=colors,
+            edgecolors="#111827" if usable else "#b45309",
+            linewidths=0.45,
+            alpha=alpha,
+            label=label,
+            zorder=3 if usable else 2,
+        )
+
+    ax_scatter.set_yscale("log")
+    ax_scatter.set_ylabel(r"Fitted $\Delta\nu$ (MHz)", fontsize=9)
+    ax_scatter.set_xticks(range(len(bursts)))
+    ax_scatter.set_xticklabels(
+        [
+            f"{result['burst']}\nn={int(result.get('requested_num_subbands', result.get('num_subbands', 0)))}"
+            for result in results
+        ],
+        rotation=38,
+        ha="right",
+        fontsize=7.8,
+    )
+    ax_scatter.grid(axis="y", color="#e5e7eb", lw=0.6, which="both")
+    ax_scatter.spines["top"].set_visible(False)
+    ax_scatter.spines["right"].set_visible(False)
+    ax_scatter.set_title("Selected Lorentzian components", fontsize=10, pad=7)
+
+    status_code = {"absent": 0, "clean": 1, "mixed": 2, "flagged_only": 3}
+    grid = np.zeros((len(bursts), max_subbands), dtype=int)
+    for row, result in enumerate(results):
+        for subband in result.get("subbands", []):
+            grid[row, int(subband["index"])] = status_code[_summary_subband_status(subband)]
+
+    status_cmap = ListedColormap(["#f1f5f9", "#2563eb", "#7c3aed", "#d97706"])
+    status_norm = BoundaryNorm(np.arange(-0.5, 4.5, 1), status_cmap.N)
+    ax_grid.imshow(grid, cmap=status_cmap, norm=status_norm, aspect="auto")
+    ax_grid.set_title("Subband fit status", fontsize=10, pad=7)
+    ax_grid.set_xticks(range(max_subbands))
+    ax_grid.set_xticklabels([str(i) for i in range(max_subbands)])
+    ax_grid.set_xlabel("Subband index", fontsize=9)
+    ax_grid.set_yticks(range(len(bursts)))
+    ax_grid.set_yticklabels(bursts, fontsize=8)
+    ax_grid.tick_params(length=0)
+    for spine in ax_grid.spines.values():
+        spine.set_visible(False)
+    ax_grid.set_xticks(np.arange(-0.5, max_subbands, 1), minor=True)
+    ax_grid.set_yticks(np.arange(-0.5, len(bursts), 1), minor=True)
+    ax_grid.grid(which="minor", color="white", linewidth=1.4)
+
+    scatter_legend = [
+        Line2D(
+            [0],
+            [0],
+            marker="o",
+            color="none",
+            markerfacecolor="#3b82f6",
+            markeredgecolor="#111827",
+            markersize=6,
+            label="unflagged",
+        ),
+        Line2D(
+            [0],
+            [0],
+            marker="^",
+            color="none",
+            markerfacecolor="#d97706",
+            markeredgecolor="#b45309",
+            markersize=6,
+            alpha=0.55,
+            label="flagged",
+        ),
+    ]
+    ax_scatter.legend(handles=scatter_legend, loc="upper left", frameon=False, fontsize=7.8)
+    status_legend = [
+        Patch(facecolor="#2563eb", label="clean"),
+        Patch(facecolor="#7c3aed", label="mixed"),
+        Patch(facecolor="#d97706", label="flagged only"),
+        Patch(facecolor="#f1f5f9", edgecolor="#cbd5e1", label="absent"),
+    ]
+    ax_grid.legend(
+        handles=status_legend,
+        loc="upper left",
+        bbox_to_anchor=(1.02, 1.0),
+        frameon=False,
+        fontsize=7.6,
+    )
+
+    sm = plt.cm.ScalarMappable(norm=norm, cmap=cmap)
+    sm.set_array([])
+    cbar = fig.colorbar(sm, ax=ax_scatter, pad=0.015, fraction=0.045)
+    cbar.set_label("Subband center frequency (MHz)", fontsize=8.5)
+    cbar.ax.tick_params(labelsize=8)
+    fig.suptitle("DSA scintillation bandwidth summary", fontsize=11)
+
+    png = figure_dir / "dsa_lorentzian_summary.png"
+    svg = figure_dir / "dsa_lorentzian_summary.svg"
+    fig.savefig(png, dpi=240, bbox_inches="tight")
+    fig.savefig(svg, bbox_inches="tight")
+    svg.write_text("\n".join(line.rstrip() for line in svg.read_text().splitlines()) + "\n")
+    plt.close(fig)
+    return {"summary_figure_png": str(png), "summary_figure_svg": str(svg)}
+
+
 def _fit_prepared_config(
     cfg: dict[str, Any],
     config_path: Path,
@@ -724,7 +949,21 @@ def _selection_summary(result: dict[str, Any]) -> str:
     return "rejected " + "<br>".join(rejected)
 
 
-def _write_markdown(results: list[dict[str, Any]], rows: list[dict[str, Any]], path: Path) -> None:
+def _markdown_figure_path(figure_path: str, report_path: Path) -> Path:
+    path = Path(figure_path)
+    try:
+        return path.resolve().relative_to(report_path.parent.resolve())
+    except ValueError:
+        return path
+
+
+def _write_markdown(
+    results: list[dict[str, Any]],
+    rows: list[dict[str, Any]],
+    path: Path,
+    *,
+    summary_figure_png: str | None = None,
+) -> None:
     lines = [
         "# DSA Lorentzian ACF Fit Summary",
         "",
@@ -761,6 +1000,23 @@ def _write_markdown(results: list[dict[str, Any]], rows: list[dict[str, Any]], p
             )
         )
 
+    if summary_figure_png:
+        rel = _markdown_figure_path(summary_figure_png, path)
+        lines.extend(
+            [
+                "",
+                "## Paper Summary Figure",
+                "",
+                "The sample-level summary shows all selected Lorentzian bandwidth",
+                "components. Filled circles are unflagged components used as clean",
+                "bandwidth measurements; triangles are selected components with",
+                "quality flags. The status grid marks whether each produced DSA",
+                "sub-band is clean, mixed, or flagged-only.",
+                "",
+                f"![DSA Lorentzian bandwidth summary]({rel})",
+            ]
+        )
+
     lines.extend(
         [
             "",
@@ -793,11 +1049,7 @@ def _write_markdown(results: list[dict[str, Any]], rows: list[dict[str, Any]], p
         figure_png = result.get("figure_png")
         if not figure_png:
             continue
-        figure_path = Path(figure_png)
-        try:
-            rel = figure_path.resolve().relative_to(path.parent.resolve())
-        except ValueError:
-            rel = figure_path
+        rel = _markdown_figure_path(figure_png, path)
         lines.extend([f"### {result['burst']}", "", f"![{result['burst']} ACF fits]({rel})", ""])
 
     path.write_text("\n".join(lines).rstrip() + "\n")
@@ -886,6 +1138,9 @@ def main() -> int:
             burst_path.write_text(json.dumps(_jsonable(result), indent=2, sort_keys=True))
 
     rows = _flatten_rows(results)
+    summary_figures = {}
+    if results and not args.no_figures:
+        summary_figures = _plot_sample_summary(results, figure_dir=args.output_dir / "figures")
     all_results = {
         "run": {
             "flits_root": os.environ["FLITS_ROOT"],
@@ -896,10 +1151,12 @@ def main() -> int:
             "failures": failures,
             "figures_enabled": not args.no_figures,
             "figure_directory": str(args.output_dir / "figures") if not args.no_figures else None,
+            **summary_figures,
             "notes": (
                 "Fresh DSA ACFs from npz; YAML stored_fits and pkl ACF products are not read. "
                 "Pipeline caches, diagnostic plots, MC noise templates, and 2D fits are disabled. "
-                "When enabled, figures show each sub-band ACF with the selected Lorentzian model."
+                "When enabled, figures show a sample-level summary and each sub-band ACF with "
+                "the selected Lorentzian model."
             ),
         },
         "results": results,
@@ -908,7 +1165,12 @@ def main() -> int:
         json.dumps(_jsonable(all_results), indent=2, sort_keys=True)
     )
     _write_csv(rows, args.output_dir / "dsa_lorentzian_components.csv")
-    _write_markdown(results, rows, args.output_dir / "DSA_LORENTZIAN_FITS.md")
+    _write_markdown(
+        results,
+        rows,
+        args.output_dir / "DSA_LORENTZIAN_FITS.md",
+        summary_figure_png=summary_figures.get("summary_figure_png"),
+    )
 
     if failures:
         logging.error("Completed with %d failures", len(failures))

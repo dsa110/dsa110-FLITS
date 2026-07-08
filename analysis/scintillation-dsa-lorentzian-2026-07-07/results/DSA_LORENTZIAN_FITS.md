@@ -98,10 +98,11 @@ sub-band is clean, mixed, or flagged-only.
 
 ## ACF Fit Figures
 
-Blue points are ACF samples, pale blue whiskers show a decimated uncertainty
-sample, the black curve is the selected Lorentzian model, the dotted gray
-line is the fitted constant baseline, and dashed colored curves show
-individual components for multi-component fits.
+Each burst figure follows the CHIME scintillation-bandwidth analysis
+layout: a left panel shows selected decorrelation bandwidths versus
+sub-band center frequency with a reference $\Delta\nu\propto\nu^4$
+curve, and the right column stacks the zoomed sub-band ACFs with
+selected Lorentzian overlays.
 
 ### casey
 

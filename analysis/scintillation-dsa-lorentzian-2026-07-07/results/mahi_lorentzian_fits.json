@@ -8,6 +8,8 @@
     "1": 1.8345250637773227
   },
   "config_path": "scintillation/configs/bursts/mahi_dsa.yaml",
+  "figure_png": "analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/mahi_dsa_acf_lorentzian_fits.png",
+  "figure_svg": "analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/mahi_dsa_acf_lorentzian_fits.svg",
   "fit_lagrange_mhz": 25.0,
   "input_data_path": "/Users/jakobfaber/Data/Faber2026/dsa110/scintillation/data/mahi.npz",
   "max_components": 3,
@@ -33,6 +35,8 @@
               "quality_flags": []
             }
           ],
+          "constant": -0.22598107218533367,
+          "constant_err": 0.0336780638091792,
           "n": 1,
           "n_params": 3,
           "ndata": 819,
@@ -57,6 +61,8 @@
               "m_err": 0.27527616196490134
             }
           ],
+          "constant": -0.38587350592471714,
+          "constant_err": 0.3780483479359421,
           "n": 2,
           "n_params": 5,
           "ndata": 819,
@@ -87,6 +93,8 @@
               "m_err": 3297018974.5274167
             }
           ],
+          "constant": -0.23056964482713116,
+          "constant_err": 0.040321825147242266,
           "n": 3,
           "n_params": 7,
           "ndata": 819,
@@ -135,6 +143,8 @@
               "quality_flags": []
             }
           ],
+          "constant": -0.035965709751437244,
+          "constant_err": 0.022932359779195586,
           "n": 1,
           "n_params": 3,
           "ndata": 819,
@@ -159,6 +169,8 @@
               "m_err": 0.2102061959670191
             }
           ],
+          "constant": -0.03626479994933147,
+          "constant_err": 0.023683406953419524,
           "n": 2,
           "n_params": 5,
           "ndata": 819,
@@ -189,6 +201,8 @@
               "m_err": 59314.36026597899
             }
           ],
+          "constant": -0.03625159658080986,
+          "constant_err": 0.04904073393383577,
           "n": 3,
           "n_params": 7,
           "ndata": 819,
@@ -237,6 +251,8 @@
               "quality_flags": []
             }
           ],
+          "constant": -0.609595251857027,
+          "constant_err": 0.17466064643389703,
           "n": 1,
           "n_params": 3,
           "ndata": 819,
@@ -261,6 +277,8 @@
               "m_err": 0.10836634543537042
             }
           ],
+          "constant": -0.7003850121191728,
+          "constant_err": 0.23795275441967137,
           "n": 2,
           "n_params": 5,
           "ndata": 819,
@@ -291,6 +309,8 @@
               "m_err": 7.756105747092463
             }
           ],
+          "constant": -4.182564873999217,
+          "constant_err": 32.05584763541692,
           "n": 3,
           "n_params": 7,
           "ndata": 819,

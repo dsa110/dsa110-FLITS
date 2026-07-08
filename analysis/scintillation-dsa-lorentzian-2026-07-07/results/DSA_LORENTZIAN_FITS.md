@@ -68,3 +68,53 @@ strong BIC improvement and the nested-F test threshold in the existing
 | zach | 0 | 1345.451 | 1 | 1 | 0.796693 | 0.0651 | 0.8091 | 4.24 |  |
 | zach | 1 | 1439.216 | 2 | 1 | 0.673332 | 0.0605 | 0.6606 | 1.509 |  |
 | zach | 1 | 1439.216 | 2 | 2 | 11.6424 | 2.16 | 0.335 | 1.509 |  |
+
+## ACF Fit Figures
+
+### casey
+
+![casey ACF fits](figures/casey_dsa_acf_lorentzian_fits.png)
+
+### chromatica
+
+![chromatica ACF fits](figures/chromatica_dsa_acf_lorentzian_fits.png)
+
+### freya
+
+![freya ACF fits](figures/freya_dsa_acf_lorentzian_fits.png)
+
+### hamilton
+
+![hamilton ACF fits](figures/hamilton_dsa_acf_lorentzian_fits.png)
+
+### isha
+
+![isha ACF fits](figures/isha_dsa_acf_lorentzian_fits.png)
+
+### johndoeII
+
+![johndoeII ACF fits](figures/johndoeII_dsa_acf_lorentzian_fits.png)
+
+### mahi
+
+![mahi ACF fits](figures/mahi_dsa_acf_lorentzian_fits.png)
+
+### oran
+
+![oran ACF fits](figures/oran_dsa_acf_lorentzian_fits.png)
+
+### phineas
+
+![phineas ACF fits](figures/phineas_dsa_acf_lorentzian_fits.png)
+
+### whitney
+
+![whitney ACF fits](figures/whitney_dsa_acf_lorentzian_fits.png)
+
+### wilhelm
+
+![wilhelm ACF fits](figures/wilhelm_dsa_acf_lorentzian_fits.png)
+
+### zach
+
+![zach ACF fits](figures/zach_dsa_acf_lorentzian_fits.png)

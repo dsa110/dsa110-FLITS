@@ -10,6 +10,8 @@
         "1": 16.68187175911345
       },
       "config_path": "scintillation/configs/bursts/casey_dsa.yaml",
+      "figure_png": "analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/casey_dsa_acf_lorentzian_fits.png",
+      "figure_svg": "analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/casey_dsa_acf_lorentzian_fits.svg",
       "fit_lagrange_mhz": 25.0,
       "input_data_path": "/Users/jakobfaber/Data/Faber2026/dsa110/scintillation/data/casey.npz",
       "max_components": 3,
@@ -34,6 +36,8 @@
                   "quality_flags": []
                 }
               ],
+              "constant": -0.1850281922660058,
+              "constant_err": 0.006042347862317009,
               "n": 1,
               "n_params": 3,
               "ndata": 819,
@@ -58,6 +62,8 @@
                   "m_err": null
                 }
               ],
+              "constant": -221.54547912350486,
+              "constant_err": null,
               "n": 2,
               "n_params": 5,
               "ndata": 819,
@@ -65,33 +71,35 @@
               "success": false
             },
             {
-              "aic": 527.163125745569,
-              "bic": 560.1197143325405,
-              "chi2": 1532.5018683498101,
+              "aic": 527.0854026971022,
+              "bic": 560.0419912840737,
+              "chi2": 1532.356440919568,
               "components": [
                 {
                   "dnu_err": null,
-                  "dnu_mhz": 4.217451098861444,
-                  "m": 1.3383415264911491e-08,
+                  "dnu_mhz": 4.3683193377463105,
+                  "m": 0.6374845648797727,
                   "m_err": null
                 },
                 {
                   "dnu_err": null,
-                  "dnu_mhz": 4.3682836089330905,
-                  "m": 0.6374775441826908,
+                  "dnu_mhz": 4.496377137814943,
+                  "m": 9.4312091469817e-10,
                   "m_err": null
                 },
                 {
                   "dnu_err": null,
-                  "dnu_mhz": 681.3079802860557,
-                  "m": 15.096379776578004,
+                  "dnu_mhz": 727.9422235809717,
+                  "m": 16.12845342349301,
                   "m_err": null
                 }
               ],
+              "constant": -260.0302794527724,
+              "constant_err": null,
               "n": 3,
               "n_params": 7,
               "ndata": 819,
-              "redchi": 1.887317571859372,
+              "redchi": 1.887138474038877,
               "success": false
             }
           ],
@@ -132,6 +140,8 @@
                   "quality_flags": []
                 }
               ],
+              "constant": -0.4306096614632811,
+              "constant_err": 0.02628473958426961,
               "n": 1,
               "n_params": 3,
               "ndata": 819,
@@ -156,6 +166,8 @@
                   "m_err": null
                 }
               ],
+              "constant": -201.11839471700011,
+              "constant_err": null,
               "n": 2,
               "n_params": 5,
               "ndata": 819,
@@ -186,6 +198,8 @@
                   "m_err": null
                 }
               ],
+              "constant": -213.00993489363157,
+              "constant_err": null,
               "n": 3,
               "n_params": 7,
               "ndata": 819,
@@ -228,6 +242,8 @@
         "1": 1.0588192500506122
       },
       "config_path": "scintillation/configs/bursts/chromatica_dsa.yaml",
+      "figure_png": "analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/chromatica_dsa_acf_lorentzian_fits.png",
+      "figure_svg": "analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/chromatica_dsa_acf_lorentzian_fits.svg",
       "fit_lagrange_mhz": 25.0,
       "input_data_path": "/Users/jakobfaber/Data/Faber2026/dsa110/scintillation/data/chromatica.npz",
       "max_components": 3,
@@ -254,6 +270,8 @@
                   "quality_flags": []
                 }
               ],
+              "constant": -0.07122429930987009,
+              "constant_err": 0.009861050652050458,
               "n": 1,
               "n_params": 3,
               "ndata": 321,
@@ -278,6 +296,8 @@
                   "m_err": 0.09342408340006995
                 }
               ],
+              "constant": -0.14788589780373312,
+              "constant_err": 0.09206712544330166,
               "n": 2,
               "n_params": 5,
               "ndata": 321,
@@ -308,6 +328,8 @@
                   "m_err": 15945.747793568908
                 }
               ],
+              "constant": -0.14792067215595475,
+              "constant_err": 84.2654952678884,
               "n": 3,
               "n_params": 7,
               "ndata": 321,
@@ -355,6 +377,8 @@
                   "m_err": 0.016244951070194132
                 }
               ],
+              "constant": -0.29335530474446314,
+              "constant_err": 0.02453426146171093,
               "n": 1,
               "n_params": 3,
               "ndata": 658,
@@ -383,6 +407,8 @@
                   ]
                 }
               ],
+              "constant": -0.9676110842433391,
+              "constant_err": 0.423382366405679,
               "n": 2,
               "n_params": 5,
               "ndata": 658,
@@ -413,6 +439,8 @@
                   "m_err": 0.46316997366765056
                 }
               ],
+              "constant": -0.9675520840576193,
+              "constant_err": 2.0212930344099176,
               "n": 3,
               "n_params": 7,
               "ndata": 658,
@@ -472,6 +500,8 @@
                   "quality_flags": []
                 }
               ],
+              "constant": -0.17782577056126292,
+              "constant_err": 0.012236979477335621,
               "n": 1,
               "n_params": 3,
               "ndata": 799,
@@ -496,6 +526,8 @@
                   "m_err": 0.1234461517514494
                 }
               ],
+              "constant": -0.18581678558168774,
+              "constant_err": 0.014354078484099362,
               "n": 2,
               "n_params": 5,
               "ndata": 799,
@@ -526,6 +558,8 @@
                   "m_err": 2473551823.1504674
                 }
               ],
+              "constant": -0.1858249329234654,
+              "constant_err": 0.018039378783966855,
               "n": 3,
               "n_params": 7,
               "ndata": 799,
@@ -573,6 +607,8 @@
                   "m_err": 0.027233332269371635
                 }
               ],
+              "constant": -0.29299567981747443,
+              "constant_err": 0.015951422126719357,
               "n": 1,
               "n_params": 3,
               "ndata": 819,
@@ -604,6 +640,8 @@
                   ]
                 }
               ],
+              "constant": -411.97629704022165,
+              "constant_err": 356570.9507198924,
               "n": 2,
               "n_params": 5,
               "ndata": 819,
@@ -634,6 +672,8 @@
                   "m_err": null
                 }
               ],
+              "constant": -12.6770922385997,
+              "constant_err": null,
               "n": 3,
               "n_params": 7,
               "ndata": 819,
@@ -691,6 +731,8 @@
         "1": 3.845899497319463
       },
       "config_path": "scintillation/configs/bursts/freya_dsa.yaml",
+      "figure_png": "analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/freya_dsa_acf_lorentzian_fits.png",
+      "figure_svg": "analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/freya_dsa_acf_lorentzian_fits.svg",
       "fit_lagrange_mhz": 25.0,
       "input_data_path": "/Users/jakobfaber/Data/Faber2026/dsa110/scintillation/data/freya.npz",
       "max_components": 3,
@@ -719,6 +761,8 @@
                   ]
                 }
               ],
+              "constant": 0.0008670290334322047,
+              "constant_err": 0.002684771117530583,
               "n": 1,
               "n_params": 3,
               "ndata": 543,
@@ -743,6 +787,8 @@
                   "m_err": 0.11604837930100276
                 }
               ],
+              "constant": 0.0010161802516008833,
+              "constant_err": 0.0029536825081431274,
               "n": 2,
               "n_params": 5,
               "ndata": 543,
@@ -773,6 +819,8 @@
                   "m_err": 0.1456632723507833
                 }
               ],
+              "constant": 0.0010157315702255731,
+              "constant_err": 0.00298104002128031,
               "n": 3,
               "n_params": 7,
               "ndata": 543,
@@ -823,6 +871,8 @@
                   "quality_flags": []
                 }
               ],
+              "constant": -0.02847994939350852,
+              "constant_err": 0.009647363578646756,
               "n": 1,
               "n_params": 3,
               "ndata": 772,
@@ -847,6 +897,8 @@
                   "m_err": 0.023644852894638906
                 }
               ],
+              "constant": -0.029250879046467237,
+              "constant_err": 0.010714243533456624,
               "n": 2,
               "n_params": 5,
               "ndata": 772,
@@ -877,6 +929,8 @@
                   "m_err": 0.026224340959882853
                 }
               ],
+              "constant": -0.029477902273194696,
+              "constant_err": 0.011601222663442663,
               "n": 3,
               "n_params": 7,
               "ndata": 772,
@@ -925,6 +979,8 @@
                   "quality_flags": []
                 }
               ],
+              "constant": -0.004037137716206266,
+              "constant_err": 0.0029058266463602416,
               "n": 1,
               "n_params": 3,
               "ndata": 681,
@@ -949,6 +1005,8 @@
                   "m_err": 75.45166155143511
                 }
               ],
+              "constant": -0.025042691877468062,
+              "constant_err": 21.85453093691062,
               "n": 2,
               "n_params": 5,
               "ndata": 681,
@@ -956,33 +1014,35 @@
               "success": true
             },
             {
-              "aic": -69.08526588250442,
-              "bic": -37.420329739457834,
-              "chi2": 602.7831481666502,
+              "aic": -69.08526588476197,
+              "bic": -37.420329741715385,
+              "chi2": 602.783148164652,
               "components": [
                 {
-                  "dnu_err": 1020967.4706608474,
-                  "dnu_mhz": 0.5962050013098921,
-                  "m": 0.21600408250534797,
-                  "m_err": 342069216.6614352
+                  "dnu_err": 1082652.392413879,
+                  "dnu_mhz": 0.5962049962981031,
+                  "m": 0.2160040836485928,
+                  "m_err": 362724622.43017966
                 },
                 {
-                  "dnu_err": 3999794.5752954925,
-                  "dnu_mhz": 0.5967601742993687,
-                  "m": 0.11075558821986964,
-                  "m_err": 667264768.5859905
+                  "dnu_err": 4241418.420734738,
+                  "dnu_mhz": 0.5967601902256026,
+                  "m": 0.11075558721701939,
+                  "m_err": 707556698.7184978
                 },
                 {
-                  "dnu_err": 3632.2029754455284,
-                  "dnu_mhz": 36.707602419599986,
-                  "m": 0.06103697747614123,
-                  "m_err": 4.649459895559028
+                  "dnu_err": 3686.4357808836453,
+                  "dnu_mhz": 36.70760463977198,
+                  "m": 0.06103696701097783,
+                  "m_err": 4.712946651474078
                 }
               ],
+              "constant": -0.00742617078001117,
+              "constant_err": 0.5823955354110631,
               "n": 3,
               "n_params": 7,
               "ndata": 681,
-              "redchi": 0.8943370150840507,
+              "redchi": 0.894337015081086,
               "success": true
             }
           ],
@@ -1031,6 +1091,8 @@
                   ]
                 }
               ],
+              "constant": -3.5891658689315156,
+              "constant_err": 2111.658381289416,
               "n": 1,
               "n_params": 3,
               "ndata": 819,
@@ -1055,6 +1117,8 @@
                   "m_err": 67.29207250849089
                 }
               ],
+              "constant": -0.7778250851169665,
+              "constant_err": 119.6227588536281,
               "n": 2,
               "n_params": 5,
               "ndata": 819,
@@ -1085,6 +1149,8 @@
                   "m_err": null
                 }
               ],
+              "constant": -2.696797595272363,
+              "constant_err": null,
               "n": 3,
               "n_params": 7,
               "ndata": 819,
@@ -1136,6 +1202,8 @@
         "2": 17.39590492189918
       },
       "config_path": "scintillation/configs/bursts/hamilton_dsa.yaml",
+      "figure_png": "analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/hamilton_dsa_acf_lorentzian_fits.png",
+      "figure_svg": "analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/hamilton_dsa_acf_lorentzian_fits.svg",
       "fit_lagrange_mhz": 25.0,
       "input_data_path": "/Users/jakobfaber/Data/Faber2026/dsa110/scintillation/data/hamilton.npz",
       "max_components": 3,
@@ -1162,6 +1230,8 @@
                   "quality_flags": []
                 }
               ],
+              "constant": -0.02138116166371719,
+              "constant_err": 0.011385712045763777,
               "n": 1,
               "n_params": 3,
               "ndata": 345,
@@ -1186,6 +1256,8 @@
                   "m_err": 33175.71153224367
                 }
               ],
+              "constant": -0.02138115831328928,
+              "constant_err": 35.5239224135508,
               "n": 2,
               "n_params": 5,
               "ndata": 345,
@@ -1216,6 +1288,8 @@
                   "m_err": 19504.700310962744
                 }
               ],
+              "constant": -0.021389972624756864,
+              "constant_err": 124.26593590110862,
               "n": 3,
               "n_params": 7,
               "ndata": 345,
@@ -1264,6 +1338,8 @@
                   "quality_flags": []
                 }
               ],
+              "constant": 0.0031913948438048578,
+              "constant_err": 0.01945760710288679,
               "n": 1,
               "n_params": 3,
               "ndata": 628,
@@ -1288,6 +1364,8 @@
                   "m_err": 0.3441238940070611
                 }
               ],
+              "constant": -0.007435301991318334,
+              "constant_err": 0.028575356446443496,
               "n": 2,
               "n_params": 5,
               "ndata": 628,
@@ -1318,6 +1396,8 @@
                   "m_err": 123.61990983997413
                 }
               ],
+              "constant": -0.007467803791705014,
+              "constant_err": 1.6638285470850394,
               "n": 3,
               "n_params": 7,
               "ndata": 628,
@@ -1365,6 +1445,8 @@
                   "m_err": 777.9805607265002
                 }
               ],
+              "constant": -200.60686074514751,
+              "constant_err": 22042.846203367753,
               "n": 1,
               "n_params": 3,
               "ndata": 795,
@@ -1396,6 +1478,8 @@
                   ]
                 }
               ],
+              "constant": -380.4931730362938,
+              "constant_err": 104364.97033944212,
               "n": 2,
               "n_params": 5,
               "ndata": 795,
@@ -1426,6 +1510,8 @@
                   "m_err": 3201.758977266581
                 }
               ],
+              "constant": -370.3641897344441,
+              "constant_err": 123232.6763687298,
               "n": 3,
               "n_params": 7,
               "ndata": 795,
@@ -1487,6 +1573,8 @@
                   "m_err": 0.08999614404491048
                 }
               ],
+              "constant": -0.9744824355854375,
+              "constant_err": 0.2542808460614461,
               "n": 1,
               "n_params": 3,
               "ndata": 819,
@@ -1513,6 +1601,8 @@
                   "quality_flags": []
                 }
               ],
+              "constant": -1.1800186834394337,
+              "constant_err": 0.43127351226024524,
               "n": 2,
               "n_params": 5,
               "ndata": 819,
@@ -1543,6 +1633,8 @@
                   "m_err": 0.15264388080999994
                 }
               ],
+              "constant": -1.1856231438437501,
+              "constant_err": 0.44231236086758124,
               "n": 3,
               "n_params": 7,
               "ndata": 819,
@@ -1597,6 +1689,8 @@
         "1": 0.6716347742019537
       },
       "config_path": "scintillation/configs/bursts/isha_dsa.yaml",
+      "figure_png": "analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/isha_dsa_acf_lorentzian_fits.png",
+      "figure_svg": "analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/isha_dsa_acf_lorentzian_fits.svg",
       "fit_lagrange_mhz": 25.0,
       "input_data_path": "/Users/jakobfaber/Data/Faber2026/dsa110/scintillation/data/isha.npz",
       "max_components": 3,
@@ -1625,6 +1719,8 @@
                   ]
                 }
               ],
+              "constant": -0.6583891516695349,
+              "constant_err": 47.86506639530309,
               "n": 1,
               "n_params": 3,
               "ndata": 819,
@@ -1649,6 +1745,8 @@
                   "m_err": 19.617475873543274
                 }
               ],
+              "constant": -0.3341184778382188,
+              "constant_err": 22.45053577712298,
               "n": 2,
               "n_params": 5,
               "ndata": 819,
@@ -1679,6 +1777,8 @@
                   "m_err": 23.717418991801022
                 }
               ],
+              "constant": -0.37559168054373004,
+              "constant_err": 28.808397705603376,
               "n": 3,
               "n_params": 7,
               "ndata": 819,
@@ -1731,6 +1831,8 @@
                   "quality_flags": []
                 }
               ],
+              "constant": -0.049578753809139654,
+              "constant_err": 0.025068477483426412,
               "n": 1,
               "n_params": 3,
               "ndata": 819,
@@ -1755,6 +1857,8 @@
                   "m_err": 0.5728171477873985
                 }
               ],
+              "constant": -0.05369065448722861,
+              "constant_err": 0.06978053906006917,
               "n": 2,
               "n_params": 5,
               "ndata": 819,
@@ -1785,6 +1889,8 @@
                   "m_err": 2398.85936624408
                 }
               ],
+              "constant": -0.3729066714107388,
+              "constant_err": 2753.7932456441276,
               "n": 3,
               "n_params": 7,
               "ndata": 819,
@@ -1832,6 +1938,8 @@
         "2": 13.012858105541824
       },
       "config_path": "scintillation/configs/bursts/johndoeII_dsa.yaml",
+      "figure_png": "analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/johndoeII_dsa_acf_lorentzian_fits.png",
+      "figure_svg": "analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/johndoeII_dsa_acf_lorentzian_fits.svg",
       "fit_lagrange_mhz": 25.0,
       "input_data_path": "/Users/jakobfaber/Data/Faber2026/dsa110/scintillation/data/johndoeII.npz",
       "max_components": 3,
@@ -1855,6 +1963,8 @@
                   "m_err": 0.00999358685938451
                 }
               ],
+              "constant": -0.03211075751388686,
+              "constant_err": 0.0066264088052034485,
               "n": 1,
               "n_params": 3,
               "ndata": 409,
@@ -1881,6 +1991,8 @@
                   "quality_flags": []
                 }
               ],
+              "constant": -0.04635138336660638,
+              "constant_err": 0.012310845213713884,
               "n": 2,
               "n_params": 5,
               "ndata": 409,
@@ -1911,6 +2023,8 @@
                   "m_err": 0.015940290903956905
                 }
               ],
+              "constant": -0.04637026338192622,
+              "constant_err": 0.013200879038590902,
               "n": 3,
               "n_params": 7,
               "ndata": 409,
@@ -1968,6 +2082,8 @@
                   "quality_flags": []
                 }
               ],
+              "constant": 0.018298539916827627,
+              "constant_err": 0.0028436605746506496,
               "n": 1,
               "n_params": 3,
               "ndata": 409,
@@ -1992,6 +2108,8 @@
                   "m_err": 2847.7610710497484
                 }
               ],
+              "constant": -4.131395824342424,
+              "constant_err": 11593.645907142134,
               "n": 2,
               "n_params": 5,
               "ndata": 409,
@@ -2022,6 +2140,8 @@
                   "m_err": 79.44817942885692
                 }
               ],
+              "constant": -0.13542718290143327,
+              "constant_err": 62.42391830855047,
               "n": 3,
               "n_params": 7,
               "ndata": 409,
@@ -2067,6 +2187,8 @@
         "1": 1.8345250637773227
       },
       "config_path": "scintillation/configs/bursts/mahi_dsa.yaml",
+      "figure_png": "analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/mahi_dsa_acf_lorentzian_fits.png",
+      "figure_svg": "analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/mahi_dsa_acf_lorentzian_fits.svg",
       "fit_lagrange_mhz": 25.0,
       "input_data_path": "/Users/jakobfaber/Data/Faber2026/dsa110/scintillation/data/mahi.npz",
       "max_components": 3,
@@ -2092,6 +2214,8 @@
                   "quality_flags": []
                 }
               ],
+              "constant": -0.22598107218533367,
+              "constant_err": 0.0336780638091792,
               "n": 1,
               "n_params": 3,
               "ndata": 819,
@@ -2116,6 +2240,8 @@
                   "m_err": 0.27527616196490134
                 }
               ],
+              "constant": -0.38587350592471714,
+              "constant_err": 0.3780483479359421,
               "n": 2,
               "n_params": 5,
               "ndata": 819,
@@ -2146,6 +2272,8 @@
                   "m_err": 3297018974.5274167
                 }
               ],
+              "constant": -0.23056964482713116,
+              "constant_err": 0.040321825147242266,
               "n": 3,
               "n_params": 7,
               "ndata": 819,
@@ -2194,6 +2322,8 @@
                   "quality_flags": []
                 }
               ],
+              "constant": -0.035965709751437244,
+              "constant_err": 0.022932359779195586,
               "n": 1,
               "n_params": 3,
               "ndata": 819,
@@ -2218,6 +2348,8 @@
                   "m_err": 0.2102061959670191
                 }
               ],
+              "constant": -0.03626479994933147,
+              "constant_err": 0.023683406953419524,
               "n": 2,
               "n_params": 5,
               "ndata": 819,
@@ -2248,6 +2380,8 @@
                   "m_err": 59314.36026597899
                 }
               ],
+              "constant": -0.03625159658080986,
+              "constant_err": 0.04904073393383577,
               "n": 3,
               "n_params": 7,
               "ndata": 819,
@@ -2296,6 +2430,8 @@
                   "quality_flags": []
                 }
               ],
+              "constant": -0.609595251857027,
+              "constant_err": 0.17466064643389703,
               "n": 1,
               "n_params": 3,
               "ndata": 819,
@@ -2320,6 +2456,8 @@
                   "m_err": 0.10836634543537042
                 }
               ],
+              "constant": -0.7003850121191728,
+              "constant_err": 0.23795275441967137,
               "n": 2,
               "n_params": 5,
               "ndata": 819,
@@ -2350,6 +2488,8 @@
                   "m_err": 7.756105747092463
                 }
               ],
+              "constant": -4.182564873999217,
+              "constant_err": 32.05584763541692,
               "n": 3,
               "n_params": 7,
               "ndata": 819,
@@ -2397,6 +2537,8 @@
         "2": 12.4345277799876
       },
       "config_path": "scintillation/configs/bursts/oran_dsa.yaml",
+      "figure_png": "analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/oran_dsa_acf_lorentzian_fits.png",
+      "figure_svg": "analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/oran_dsa_acf_lorentzian_fits.svg",
       "fit_lagrange_mhz": 25.0,
       "input_data_path": "/Users/jakobfaber/Data/Faber2026/dsa110/scintillation/data/oran.npz",
       "max_components": 3,
@@ -2420,6 +2562,8 @@
                   "m_err": 0.010370560397140913
                 }
               ],
+              "constant": -0.2916901148979851,
+              "constant_err": 0.01037194568121588,
               "n": 1,
               "n_params": 3,
               "ndata": 819,
@@ -2446,6 +2590,8 @@
                   "quality_flags": []
                 }
               ],
+              "constant": -0.3029050100755773,
+              "constant_err": 0.011376504990101793,
               "n": 2,
               "n_params": 5,
               "ndata": 819,
@@ -2476,6 +2622,8 @@
                   "m_err": 1825833807.9949167
                 }
               ],
+              "constant": -0.30290285586012433,
+              "constant_err": 0.016104278442218074,
               "n": 3,
               "n_params": 7,
               "ndata": 819,
@@ -2532,6 +2680,8 @@
                   "m_err": 0.030528568998840874
                 }
               ],
+              "constant": -0.11438612192682661,
+              "constant_err": 0.016958990528835188,
               "n": 1,
               "n_params": 3,
               "ndata": 819,
@@ -2558,6 +2708,8 @@
                   "quality_flags": []
                 }
               ],
+              "constant": -0.46114466071392113,
+              "constant_err": 0.2505842114101292,
               "n": 2,
               "n_params": 5,
               "ndata": 819,
@@ -2588,6 +2740,8 @@
                   "m_err": 0.18221446574801292
                 }
               ],
+              "constant": -0.46694266390545514,
+              "constant_err": 0.3349180370229998,
               "n": 3,
               "n_params": 7,
               "ndata": 819,
@@ -2642,6 +2796,8 @@
         "1": 4.369318519468594
       },
       "config_path": "scintillation/configs/bursts/phineas_dsa.yaml",
+      "figure_png": "analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/phineas_dsa_acf_lorentzian_fits.png",
+      "figure_svg": "analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/phineas_dsa_acf_lorentzian_fits.svg",
       "fit_lagrange_mhz": 25.0,
       "input_data_path": "/Users/jakobfaber/Data/Faber2026/dsa110/scintillation/data/phineas.npz",
       "max_components": 3,
@@ -2666,6 +2822,8 @@
                   "quality_flags": []
                 }
               ],
+              "constant": -0.10912172546700101,
+              "constant_err": 0.013242534729254051,
               "n": 1,
               "n_params": 3,
               "ndata": 819,
@@ -2690,6 +2848,8 @@
                   "m_err": 0.0203137955655981
                 }
               ],
+              "constant": -0.10946835609745252,
+              "constant_err": 0.013542020836894913,
               "n": 2,
               "n_params": 5,
               "ndata": 819,
@@ -2720,6 +2880,8 @@
                   "m_err": 20.639254275864438
                 }
               ],
+              "constant": -0.1094533086963034,
+              "constant_err": 0.02472960854432108,
               "n": 3,
               "n_params": 7,
               "ndata": 819,
@@ -2768,6 +2930,8 @@
                   "quality_flags": []
                 }
               ],
+              "constant": -0.04617171458182261,
+              "constant_err": 0.024779908459205628,
               "n": 1,
               "n_params": 3,
               "ndata": 819,
@@ -2792,6 +2956,8 @@
                   "m_err": 60.40532528944766
                 }
               ],
+              "constant": -0.04620573314565795,
+              "constant_err": 0.03520387331916546,
               "n": 2,
               "n_params": 5,
               "ndata": 819,
@@ -2799,33 +2965,35 @@
               "success": true
             },
             {
-              "aic": 28.634262672121793,
-              "bic": 61.590851259093284,
-              "chi2": 833.7657907194952,
+              "aic": 28.632910138683023,
+              "bic": 61.589498725654515,
+              "chi2": 833.7644138023023,
               "components": [
                 {
-                  "dnu_err": 0.3889351093700883,
-                  "dnu_mhz": 0.005207291896883959,
-                  "m": 4.22760335982072,
-                  "m_err": 307.09932892011176
+                  "dnu_err": 0.3993884824039231,
+                  "dnu_mhz": 0.00506265089205904,
+                  "m": 4.347247491483055,
+                  "m_err": 334.0514223008267
                 },
                 {
-                  "dnu_err": 11262392.580743585,
-                  "dnu_mhz": 3.403238453839516,
-                  "m": 0.14040060799167753,
-                  "m_err": 1035712296.9218936
+                  "dnu_err": 14349878.374511033,
+                  "dnu_mhz": 3.403145537136921,
+                  "m": 0.14036679495898885,
+                  "m_err": 1103494204.0927727
                 },
                 {
-                  "dnu_err": 1579116.5959670711,
-                  "dnu_mhz": 3.403977018452549,
-                  "m": 0.38496428499889834,
-                  "m_err": 377734317.11912656
+                  "dnu_err": 1994245.4011548175,
+                  "dnu_mhz": 3.4041069090792018,
+                  "m": 0.384966746696519,
+                  "m_err": 402356887.98960805
                 }
               ],
+              "constant": -0.046316642311504314,
+              "constant_err": 0.03300735224897702,
               "n": 3,
               "n_params": 7,
               "ndata": 819,
-              "redchi": 1.0268051609845998,
+              "redchi": 1.0268034652737714,
               "success": true
             }
           ],
@@ -2867,6 +3035,8 @@
         "1": 23.365065914828833
       },
       "config_path": "scintillation/configs/bursts/whitney_dsa.yaml",
+      "figure_png": "analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/whitney_dsa_acf_lorentzian_fits.png",
+      "figure_svg": "analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/whitney_dsa_acf_lorentzian_fits.svg",
       "fit_lagrange_mhz": 25.0,
       "input_data_path": "/Users/jakobfaber/Data/Faber2026/dsa110/scintillation/data/whitney.npz",
       "max_components": 3,
@@ -2893,6 +3063,8 @@
                   ]
                 }
               ],
+              "constant": -0.30277277036776734,
+              "constant_err": 0.11208409918360489,
               "n": 1,
               "n_params": 3,
               "ndata": 819,
@@ -2917,6 +3089,8 @@
                   "m_err": 0.07677063831738465
                 }
               ],
+              "constant": -0.3090448410803122,
+              "constant_err": 0.11637370642296446,
               "n": 2,
               "n_params": 5,
               "ndata": 819,
@@ -2947,6 +3121,8 @@
                   "m_err": 0.14696716056182935
                 }
               ],
+              "constant": -0.3027772711004299,
+              "constant_err": 0.28193788451260293,
               "n": 3,
               "n_params": 7,
               "ndata": 819,
@@ -2997,6 +3173,8 @@
                   "quality_flags": []
                 }
               ],
+              "constant": -0.5041310075899235,
+              "constant_err": 0.03364207996885816,
               "n": 1,
               "n_params": 3,
               "ndata": 819,
@@ -3021,6 +3199,8 @@
                   "m_err": 0.019756379291178773
                 }
               ],
+              "constant": -0.5054327899243628,
+              "constant_err": 0.034053786423745624,
               "n": 2,
               "n_params": 5,
               "ndata": 819,
@@ -3051,6 +3231,8 @@
                   "m_err": 413791759.06715345
                 }
               ],
+              "constant": -0.5054356268543254,
+              "constant_err": 0.31764223303023753,
               "n": 3,
               "n_params": 7,
               "ndata": 819,
@@ -3098,6 +3280,8 @@
         "2": 14.714516442903053
       },
       "config_path": "scintillation/configs/bursts/wilhelm_dsa.yaml",
+      "figure_png": "analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/wilhelm_dsa_acf_lorentzian_fits.png",
+      "figure_svg": "analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/wilhelm_dsa_acf_lorentzian_fits.svg",
       "fit_lagrange_mhz": 25.0,
       "input_data_path": "/Users/jakobfaber/Data/Faber2026/dsa110/scintillation/data/wilhelm.npz",
       "max_components": 3,
@@ -3124,6 +3308,8 @@
                   "quality_flags": []
                 }
               ],
+              "constant": -0.0005507754987665994,
+              "constant_err": 0.0004134263632268692,
               "n": 1,
               "n_params": 3,
               "ndata": 671,
@@ -3148,6 +3334,8 @@
                   "m_err": 0.014565571207943646
                 }
               ],
+              "constant": -0.001553520023416038,
+              "constant_err": 0.000566455475413848,
               "n": 2,
               "n_params": 5,
               "ndata": 671,
@@ -3178,6 +3366,8 @@
                   "m_err": 462643262.8314556
                 }
               ],
+              "constant": -0.0015533640458547872,
+              "constant_err": 0.0006797506771610414,
               "n": 3,
               "n_params": 7,
               "ndata": 671,
@@ -3226,6 +3416,8 @@
                   "quality_flags": []
                 }
               ],
+              "constant": -0.0007206226689883764,
+              "constant_err": 0.0004312940978248037,
               "n": 1,
               "n_params": 3,
               "ndata": 805,
@@ -3250,6 +3442,8 @@
                   "m_err": 302912197.980836
                 }
               ],
+              "constant": -0.0007207479858778105,
+              "constant_err": 0.0004897670883958154,
               "n": 2,
               "n_params": 5,
               "ndata": 805,
@@ -3280,6 +3474,8 @@
                   "m_err": null
                 }
               ],
+              "constant": -0.0007219194810588587,
+              "constant_err": null,
               "n": 3,
               "n_params": 7,
               "ndata": 805,
@@ -3328,6 +3524,8 @@
                   "quality_flags": []
                 }
               ],
+              "constant": -0.00746305491654402,
+              "constant_err": 0.0007313283485835681,
               "n": 1,
               "n_params": 3,
               "ndata": 708,
@@ -3352,6 +3550,8 @@
                   "m_err": 0.005365676157011702
                 }
               ],
+              "constant": -0.007620228733107378,
+              "constant_err": 0.0007859533318313544,
               "n": 2,
               "n_params": 5,
               "ndata": 708,
@@ -3382,6 +3582,8 @@
                   "m_err": 671405338.9745172
                 }
               ],
+              "constant": -0.00761999971532904,
+              "constant_err": 0.0011267762985152478,
               "n": 3,
               "n_params": 7,
               "ndata": 708,
@@ -3429,6 +3631,8 @@
                   "m_err": 0.004358044535395514
                 }
               ],
+              "constant": -0.04831400917808781,
+              "constant_err": 0.0027267495649383184,
               "n": 1,
               "n_params": 3,
               "ndata": 819,
@@ -3455,6 +3659,8 @@
                   "quality_flags": []
                 }
               ],
+              "constant": -0.05315103433744399,
+              "constant_err": 0.003573108469951743,
               "n": 2,
               "n_params": 5,
               "ndata": 819,
@@ -3485,6 +3691,8 @@
                   "m_err": 377905407.1997418
                 }
               ],
+              "constant": -0.05315221930447045,
+              "constant_err": 0.010690421505837244,
               "n": 3,
               "n_params": 7,
               "ndata": 819,
@@ -3541,6 +3749,8 @@
         "2": 11.642407911957516
       },
       "config_path": "scintillation/configs/bursts/zach_dsa.yaml",
+      "figure_png": "analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/zach_dsa_acf_lorentzian_fits.png",
+      "figure_svg": "analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/zach_dsa_acf_lorentzian_fits.svg",
       "fit_lagrange_mhz": 25.0,
       "input_data_path": "/Users/jakobfaber/Data/Faber2026/dsa110/scintillation/data/zach.npz",
       "max_components": 3,
@@ -3565,6 +3775,8 @@
                   "quality_flags": []
                 }
               ],
+              "constant": -0.01804293984490778,
+              "constant_err": 0.0029564477009421403,
               "n": 1,
               "n_params": 3,
               "ndata": 819,
@@ -3589,6 +3801,8 @@
                   "m_err": 655140804.9153385
                 }
               ],
+              "constant": -0.018043910012903806,
+              "constant_err": 0.0031497549018496417,
               "n": 2,
               "n_params": 5,
               "ndata": 819,
@@ -3619,6 +3833,8 @@
                   "m_err": 2463438227.371105
                 }
               ],
+              "constant": -0.018042897628205785,
+              "constant_err": 0.003354431008662739,
               "n": 3,
               "n_params": 7,
               "ndata": 819,
@@ -3666,6 +3882,8 @@
                   "m_err": 0.014627917730288672
                 }
               ],
+              "constant": 0.008809172012405685,
+              "constant_err": 0.002302298329666182,
               "n": 1,
               "n_params": 3,
               "ndata": 819,
@@ -3692,6 +3910,8 @@
                   "quality_flags": []
                 }
               ],
+              "constant": -0.040069996521044045,
+              "constant_err": 0.010599879675335546,
               "n": 2,
               "n_params": 5,
               "ndata": 819,
@@ -3722,6 +3942,8 @@
                   "m_err": 0.01476656719474423
                 }
               ],
+              "constant": -0.04006233969849822,
+              "constant_err": 0.011173862039851481,
               "n": 3,
               "n_params": 7,
               "ndata": 819,
@@ -3783,10 +4005,12 @@
       "zach"
     ],
     "failures": [],
+    "figure_directory": "analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures",
+    "figures_enabled": true,
     "flits_root": "/Users/jakobfaber/Data/Faber2026/dsa110",
     "max_components": 3,
     "n_failure": 0,
     "n_success": 12,
-    "notes": "Fresh DSA ACFs from npz; YAML stored_fits and pkl ACF products are not read. Pipeline caches, diagnostic plots, MC noise templates, and 2D fits are disabled."
+    "notes": "Fresh DSA ACFs from npz; YAML stored_fits and pkl ACF products are not read. Pipeline caches, diagnostic plots, MC noise templates, and 2D fits are disabled. When enabled, figures show each sub-band ACF with the selected Lorentzian model."
   }
 }

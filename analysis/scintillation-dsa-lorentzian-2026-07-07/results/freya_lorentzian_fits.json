@@ -8,6 +8,8 @@
     "1": 3.845899497319463
   },
   "config_path": "scintillation/configs/bursts/freya_dsa.yaml",
+  "figure_png": "analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/freya_dsa_acf_lorentzian_fits.png",
+  "figure_svg": "analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/freya_dsa_acf_lorentzian_fits.svg",
   "fit_lagrange_mhz": 25.0,
   "input_data_path": "/Users/jakobfaber/Data/Faber2026/dsa110/scintillation/data/freya.npz",
   "max_components": 3,
@@ -36,6 +38,8 @@
               ]
             }
           ],
+          "constant": 0.0008670290334322047,
+          "constant_err": 0.002684771117530583,
           "n": 1,
           "n_params": 3,
           "ndata": 543,
@@ -60,6 +64,8 @@
               "m_err": 0.11604837930100276
             }
           ],
+          "constant": 0.0010161802516008833,
+          "constant_err": 0.0029536825081431274,
           "n": 2,
           "n_params": 5,
           "ndata": 543,
@@ -90,6 +96,8 @@
               "m_err": 0.1456632723507833
             }
           ],
+          "constant": 0.0010157315702255731,
+          "constant_err": 0.00298104002128031,
           "n": 3,
           "n_params": 7,
           "ndata": 543,
@@ -140,6 +148,8 @@
               "quality_flags": []
             }
           ],
+          "constant": -0.02847994939350852,
+          "constant_err": 0.009647363578646756,
           "n": 1,
           "n_params": 3,
           "ndata": 772,
@@ -164,6 +174,8 @@
               "m_err": 0.023644852894638906
             }
           ],
+          "constant": -0.029250879046467237,
+          "constant_err": 0.010714243533456624,
           "n": 2,
           "n_params": 5,
           "ndata": 772,
@@ -194,6 +206,8 @@
               "m_err": 0.026224340959882853
             }
           ],
+          "constant": -0.029477902273194696,
+          "constant_err": 0.011601222663442663,
           "n": 3,
           "n_params": 7,
           "ndata": 772,
@@ -242,6 +256,8 @@
               "quality_flags": []
             }
           ],
+          "constant": -0.004037137716206266,
+          "constant_err": 0.0029058266463602416,
           "n": 1,
           "n_params": 3,
           "ndata": 681,
@@ -266,6 +282,8 @@
               "m_err": 75.45166155143511
             }
           ],
+          "constant": -0.025042691877468062,
+          "constant_err": 21.85453093691062,
           "n": 2,
           "n_params": 5,
           "ndata": 681,
@@ -273,33 +291,35 @@
           "success": true
         },
         {
-          "aic": -69.08526588250442,
-          "bic": -37.420329739457834,
-          "chi2": 602.7831481666502,
+          "aic": -69.08526588476197,
+          "bic": -37.420329741715385,
+          "chi2": 602.783148164652,
           "components": [
             {
-              "dnu_err": 1020967.4706608474,
-              "dnu_mhz": 0.5962050013098921,
-              "m": 0.21600408250534797,
-              "m_err": 342069216.6614352
+              "dnu_err": 1082652.392413879,
+              "dnu_mhz": 0.5962049962981031,
+              "m": 0.2160040836485928,
+              "m_err": 362724622.43017966
             },
             {
-              "dnu_err": 3999794.5752954925,
-              "dnu_mhz": 0.5967601742993687,
-              "m": 0.11075558821986964,
-              "m_err": 667264768.5859905
+              "dnu_err": 4241418.420734738,
+              "dnu_mhz": 0.5967601902256026,
+              "m": 0.11075558721701939,
+              "m_err": 707556698.7184978
             },
             {
-              "dnu_err": 3632.2029754455284,
-              "dnu_mhz": 36.707602419599986,
-              "m": 0.06103697747614123,
-              "m_err": 4.649459895559028
+              "dnu_err": 3686.4357808836453,
+              "dnu_mhz": 36.70760463977198,
+              "m": 0.06103696701097783,
+              "m_err": 4.712946651474078
             }
           ],
+          "constant": -0.00742617078001117,
+          "constant_err": 0.5823955354110631,
           "n": 3,
           "n_params": 7,
           "ndata": 681,
-          "redchi": 0.8943370150840507,
+          "redchi": 0.894337015081086,
           "success": true
         }
       ],
@@ -348,6 +368,8 @@
               ]
             }
           ],
+          "constant": -3.5891658689315156,
+          "constant_err": 2111.658381289416,
           "n": 1,
           "n_params": 3,
           "ndata": 819,
@@ -372,6 +394,8 @@
               "m_err": 67.29207250849089
             }
           ],
+          "constant": -0.7778250851169665,
+          "constant_err": 119.6227588536281,
           "n": 2,
           "n_params": 5,
           "ndata": 819,
@@ -402,6 +426,8 @@
               "m_err": null
             }
           ],
+          "constant": -2.696797595272363,
+          "constant_err": null,
           "n": 3,
           "n_params": 7,
           "ndata": 819,

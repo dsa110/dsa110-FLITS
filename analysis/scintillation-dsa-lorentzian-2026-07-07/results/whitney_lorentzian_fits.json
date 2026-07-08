@@ -8,6 +8,8 @@
     "1": 23.365065914828833
   },
   "config_path": "scintillation/configs/bursts/whitney_dsa.yaml",
+  "figure_png": "analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/whitney_dsa_acf_lorentzian_fits.png",
+  "figure_svg": "analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/whitney_dsa_acf_lorentzian_fits.svg",
   "fit_lagrange_mhz": 25.0,
   "input_data_path": "/Users/jakobfaber/Data/Faber2026/dsa110/scintillation/data/whitney.npz",
   "max_components": 3,
@@ -34,6 +36,8 @@
               ]
             }
           ],
+          "constant": -0.30277277036776734,
+          "constant_err": 0.11208409918360489,
           "n": 1,
           "n_params": 3,
           "ndata": 819,
@@ -58,6 +62,8 @@
               "m_err": 0.07677063831738465
             }
           ],
+          "constant": -0.3090448410803122,
+          "constant_err": 0.11637370642296446,
           "n": 2,
           "n_params": 5,
           "ndata": 819,
@@ -88,6 +94,8 @@
               "m_err": 0.14696716056182935
             }
           ],
+          "constant": -0.3027772711004299,
+          "constant_err": 0.28193788451260293,
           "n": 3,
           "n_params": 7,
           "ndata": 819,
@@ -138,6 +146,8 @@
               "quality_flags": []
             }
           ],
+          "constant": -0.5041310075899235,
+          "constant_err": 0.03364207996885816,
           "n": 1,
           "n_params": 3,
           "ndata": 819,
@@ -162,6 +172,8 @@
               "m_err": 0.019756379291178773
             }
           ],
+          "constant": -0.5054327899243628,
+          "constant_err": 0.034053786423745624,
           "n": 2,
           "n_params": 5,
           "ndata": 819,
@@ -192,6 +204,8 @@
               "m_err": 413791759.06715345
             }
           ],
+          "constant": -0.5054356268543254,
+          "constant_err": 0.31764223303023753,
           "n": 3,
           "n_params": 7,
           "ndata": 819,

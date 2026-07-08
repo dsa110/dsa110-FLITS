@@ -20,12 +20,16 @@ The run path is:
 4. fit 1, 2, and 3 Lorentzian components to each sub-band ACF within the
    config's `analysis.fitting.fit_lagrange_mhz` window,
 5. select the sub-band component count with the existing BIC plus nested-F
-   criterion in `scintillation.scint_analysis.revalidation`.
+   criterion in `scintillation.scint_analysis.revalidation`,
+6. write one multi-panel ACF+fit figure per burst under `results/figures/`.
 
 The generated tables include `quality_flags` for components that should not be
 used as clean bandwidth measurements without manual inspection. In particular,
 `dnu_exceeds_fit_window` marks a Lorentzian width larger than the lag span fitted
 for that sub-band, and `fractional_dnu_err_gt_1` marks a formally weak width.
+The ACF figures show the fitted lag window, ACF points/errors, the selected
+total Lorentzian model, the fitted constant term, and individual component
+curves. Component annotations include any quality flags.
 
 Diagnostic plots and intermediate caches are disabled for this run, so no
 `${FLITS_ROOT}` literal-path plot artifacts or stale ACF caches can affect the

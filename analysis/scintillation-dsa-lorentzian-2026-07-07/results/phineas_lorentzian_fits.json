@@ -8,6 +8,8 @@
     "1": 4.369318519468594
   },
   "config_path": "scintillation/configs/bursts/phineas_dsa.yaml",
+  "figure_png": "analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/phineas_dsa_acf_lorentzian_fits.png",
+  "figure_svg": "analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/phineas_dsa_acf_lorentzian_fits.svg",
   "fit_lagrange_mhz": 25.0,
   "input_data_path": "/Users/jakobfaber/Data/Faber2026/dsa110/scintillation/data/phineas.npz",
   "max_components": 3,
@@ -32,6 +34,8 @@
               "quality_flags": []
             }
           ],
+          "constant": -0.10912172546700101,
+          "constant_err": 0.013242534729254051,
           "n": 1,
           "n_params": 3,
           "ndata": 819,
@@ -56,6 +60,8 @@
               "m_err": 0.0203137955655981
             }
           ],
+          "constant": -0.10946835609745252,
+          "constant_err": 0.013542020836894913,
           "n": 2,
           "n_params": 5,
           "ndata": 819,
@@ -86,6 +92,8 @@
               "m_err": 20.639254275864438
             }
           ],
+          "constant": -0.1094533086963034,
+          "constant_err": 0.02472960854432108,
           "n": 3,
           "n_params": 7,
           "ndata": 819,
@@ -134,6 +142,8 @@
               "quality_flags": []
             }
           ],
+          "constant": -0.04617171458182261,
+          "constant_err": 0.024779908459205628,
           "n": 1,
           "n_params": 3,
           "ndata": 819,
@@ -158,6 +168,8 @@
               "m_err": 60.40532528944766
             }
           ],
+          "constant": -0.04620573314565795,
+          "constant_err": 0.03520387331916546,
           "n": 2,
           "n_params": 5,
           "ndata": 819,
@@ -165,33 +177,35 @@
           "success": true
         },
         {
-          "aic": 28.634262672121793,
-          "bic": 61.590851259093284,
-          "chi2": 833.7657907194952,
+          "aic": 28.632910138683023,
+          "bic": 61.589498725654515,
+          "chi2": 833.7644138023023,
           "components": [
             {
-              "dnu_err": 0.3889351093700883,
-              "dnu_mhz": 0.005207291896883959,
-              "m": 4.22760335982072,
-              "m_err": 307.09932892011176
+              "dnu_err": 0.3993884824039231,
+              "dnu_mhz": 0.00506265089205904,
+              "m": 4.347247491483055,
+              "m_err": 334.0514223008267
             },
             {
-              "dnu_err": 11262392.580743585,
-              "dnu_mhz": 3.403238453839516,
-              "m": 0.14040060799167753,
-              "m_err": 1035712296.9218936
+              "dnu_err": 14349878.374511033,
+              "dnu_mhz": 3.403145537136921,
+              "m": 0.14036679495898885,
+              "m_err": 1103494204.0927727
             },
             {
-              "dnu_err": 1579116.5959670711,
-              "dnu_mhz": 3.403977018452549,
-              "m": 0.38496428499889834,
-              "m_err": 377734317.11912656
+              "dnu_err": 1994245.4011548175,
+              "dnu_mhz": 3.4041069090792018,
+              "m": 0.384966746696519,
+              "m_err": 402356887.98960805
             }
           ],
+          "constant": -0.046316642311504314,
+          "constant_err": 0.03300735224897702,
           "n": 3,
           "n_params": 7,
           "ndata": 819,
-          "redchi": 1.0268051609845998,
+          "redchi": 1.0268034652737714,
           "success": true
         }
       ],

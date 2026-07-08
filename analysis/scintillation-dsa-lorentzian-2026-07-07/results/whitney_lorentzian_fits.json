@@ -1,0 +1,229 @@
+{
+  "burst": "whitney",
+  "burst_preferred_n": 1,
+  "component_median_dnu_mhz": {
+    "1": 26.413996130670256
+  },
+  "component_usable_median_dnu_mhz": {
+    "1": 23.365065914828833
+  },
+  "config_path": "scintillation/configs/bursts/whitney_dsa.yaml",
+  "fit_lagrange_mhz": 25.0,
+  "input_data_path": "/Users/jakobfaber/Data/Faber2026/dsa110/scintillation/data/whitney.npz",
+  "max_components": 3,
+  "n_per_subband": [
+    1,
+    1
+  ],
+  "num_subbands": 2,
+  "subbands": [
+    {
+      "all_fit_summaries": [
+        {
+          "aic": -55.899162645093675,
+          "bic": -41.77491039353447,
+          "chi2": 759.3821413141949,
+          "components": [
+            {
+              "dnu_err": 4.704041909292519,
+              "dnu_mhz": 29.46292634651168,
+              "m": 0.7367462126612849,
+              "m_err": 0.07431601779464299,
+              "quality_flags": [
+                "dnu_exceeds_fit_window"
+              ]
+            }
+          ],
+          "n": 1,
+          "n_params": 3,
+          "ndata": 819,
+          "redchi": 0.9306153692575918,
+          "success": true
+        },
+        {
+          "aic": -52.75730932173024,
+          "bic": -29.216888902464895,
+          "chi2": 758.5868788290334,
+          "components": [
+            {
+              "dnu_err": 0.8635658176529764,
+              "dnu_mhz": 0.003052255881721866,
+              "m": 2.504323140147576,
+              "m_err": 582.4456421568511
+            },
+            {
+              "dnu_err": 4.86007450393379,
+              "dnu_mhz": 29.766683954694862,
+              "m": 0.7406307306297262,
+              "m_err": 0.07677063831738465
+            }
+          ],
+          "n": 2,
+          "n_params": 5,
+          "ndata": 819,
+          "redchi": 0.9319249125663801,
+          "success": true
+        },
+        {
+          "aic": -47.899162512178016,
+          "bic": -14.942573925206524,
+          "chi2": 759.3821414374352,
+          "components": [
+            {
+              "dnu_err": 420561654.30553997,
+              "dnu_mhz": 0.5155193043269701,
+              "m": 5.0450547552927105e-06,
+              "m_err": 1428.1657450254638
+            },
+            {
+              "dnu_err": 36986032.17065941,
+              "dnu_mhz": 5.381659031035323,
+              "m": 3.7881878558909676e-05,
+              "m_err": 178.7380705612749
+            },
+            {
+              "dnu_err": 16.057863178434975,
+              "dnu_mhz": 29.46311663777597,
+              "m": 0.736749182555329,
+              "m_err": 0.14696716056182935
+            }
+          ],
+          "n": 3,
+          "n_params": 7,
+          "ndata": 819,
+          "redchi": 0.935199681573196,
+          "success": true
+        }
+      ],
+      "center_freq_mhz": 1371.5320283249225,
+      "channel_width_mhz": 0.0305225459873026,
+      "criterion": "BIC \u0394BIC>6.0 (Kass-Raftery 'strong') AND nested F-test p<0.05; both required to add a component",
+      "delta_bic": {
+        "2": -12.558021491069574
+      },
+      "f_test_p": {
+        "2": 0.6528199971133005
+      },
+      "fit_range_mhz": 25.0,
+      "index": 0,
+      "n_fit_points": 819,
+      "n_preferred": 1,
+      "num_channels": 3928,
+      "selected_bic": -41.77491039353447,
+      "selected_components": [
+        {
+          "dnu_err": 4.704041909292519,
+          "dnu_mhz": 29.46292634651168,
+          "m": 0.7367462126612849,
+          "m_err": 0.07431601779464299,
+          "quality_flags": [
+            "dnu_exceeds_fit_window"
+          ]
+        }
+      ],
+      "selected_redchi": 0.9306153692575918
+    },
+    {
+      "all_fit_summaries": [
+        {
+          "aic": -127.80788217178073,
+          "bic": -113.68362992022152,
+          "chi2": 695.5511106802766,
+          "components": [
+            {
+              "dnu_err": 1.0316010660207435,
+              "dnu_mhz": 23.365065914828833,
+              "m": 0.8266115801953504,
+              "m_err": 0.0195551238752633,
+              "quality_flags": []
+            }
+          ],
+          "n": 1,
+          "n_params": 3,
+          "ndata": 819,
+          "redchi": 0.8523910670101429,
+          "success": true
+        },
+        {
+          "aic": -124.23667512999529,
+          "bic": -100.69625471072995,
+          "chi2": 695.1870455310203,
+          "components": [
+            {
+              "dnu_err": 1.0749893374788348,
+              "dnu_mhz": 0.0030534704096558674,
+              "m": 1.524414151119136,
+              "m_err": 531.6952409890584
+            },
+            {
+              "dnu_err": 1.0458765516051824,
+              "dnu_mhz": 23.414144660108725,
+              "m": 0.8272636075660997,
+              "m_err": 0.019756379291178773
+            }
+          ],
+          "n": 2,
+          "n_params": 5,
+          "ndata": 819,
+          "redchi": 0.8540381394729979,
+          "success": true
+        },
+        {
+          "aic": -120.23667766372014,
+          "bic": -87.28008907674865,
+          "chi2": 695.1870433803332,
+          "components": [
+            {
+              "dnu_err": 2.077933010638624,
+              "dnu_mhz": 0.0030524260994886365,
+              "m": 1.5235151887719978,
+              "m_err": 536.2671772557186
+            },
+            {
+              "dnu_err": 12779060.269811098,
+              "dnu_mhz": 23.412718635593457,
+              "m": 0.5960007542721375,
+              "m_err": 398320051.0076618
+            },
+            {
+              "dnu_err": 13471561.014181452,
+              "dnu_mhz": 23.415919227875797,
+              "m": 0.5737163157622784,
+              "m_err": 413791759.06715345
+            }
+          ],
+          "n": 3,
+          "n_params": 7,
+          "ndata": 819,
+          "redchi": 0.8561416790398192,
+          "success": true
+        }
+      ],
+      "center_freq_mhz": 1465.2972895979162,
+      "channel_width_mhz": 0.030522545987302602,
+      "criterion": "BIC \u0394BIC>6.0 (Kass-Raftery 'strong') AND nested F-test p<0.05; both required to add a component",
+      "delta_bic": {
+        "2": -12.987375209491574
+      },
+      "f_test_p": {
+        "2": 0.8080853561074864
+      },
+      "fit_range_mhz": 25.0,
+      "index": 1,
+      "n_fit_points": 819,
+      "n_preferred": 1,
+      "num_channels": 2184,
+      "selected_bic": -113.68362992022152,
+      "selected_components": [
+        {
+          "dnu_err": 1.0316010660207435,
+          "dnu_mhz": 23.365065914828833,
+          "m": 0.8266115801953504,
+          "m_err": 0.0195551238752633,
+          "quality_flags": []
+        }
+      ],
+      "selected_redchi": 0.8523910670101429
+    }
+  ]
+}

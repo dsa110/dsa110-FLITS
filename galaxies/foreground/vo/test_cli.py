@@ -232,10 +232,18 @@ def test_run_catalog_unknown_catalog_raises(tmp_path):
 def test_run_catalog_preserves_zero_row_targets(tmp_path, monkeypatch, fake_glade2_rows):
     """A target whose TAP query returns zero rows must still appear in the summary.
 
-    Regression for the FRB 20240119A case: the previous run dropped that
+    Regression for the FRB 20240122A (mahi) case: the previous run dropped that
     sightline from the summary, silently shrinking the denominator from 12 to
     11. Now every target_records entry gets a row, with status='no_candidates_in_cone'
     flagging the zero-row case for downstream readers.
+
+    This docstring said "FRB 20240119A" until 2026-07-09. That name belongs to a
+    different DSA burst (nickname `nikhil`, candname 240119aacg, MJD 60328.6,
+    DM 483) which is not a CHIME co-detection and was never in the 12. The
+    mislabel came from the derived sheets `chimedsa_burst_specs.csv` /
+    `DSA_CHIME_BurstProps.csv`, whose row for mahi carries mahi's own RA/Dec
+    (39.7665, +71.0179) under nikhil's TNS name. `configs/bursts.yaml` is the
+    registry: mahi = chime_id 354049284, MJD 60331.104, 2024-01-22T02:30:33.
     """
     targets_yaml = tmp_path / "targets.yaml"
     targets_yaml.write_text(

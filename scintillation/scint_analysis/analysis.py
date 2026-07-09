@@ -555,6 +555,11 @@ def calculate_acfs_for_subbands(masked_spectrum, config, burst_lims, noise_desc=
         "subband_center_freqs_mhz": [],
         "subband_channel_widths_mhz": [],
         "subband_num_channels": [],
+        # (start, end) channel-index slice for each stored sub-band, so a
+        # downstream off-pulse ACF null (chime_artifact_guards) can re-slice the
+        # off-pulse spectrum on the IDENTICAL channel boundaries the on-pulse
+        # ACF used. Additive key; existing consumers ignore it.
+        "subband_channel_slices": [],
         "noise_template": [],
         "sigma_self_mhz": sigma_self_mhz,
     }
@@ -635,6 +640,7 @@ def calculate_acfs_for_subbands(masked_spectrum, config, burst_lims, noise_desc=
         results["subband_center_freqs_mhz"].append(float(np.mean(sub_freqs)))
         results["subband_channel_widths_mhz"].append(chan_width)
         results["subband_num_channels"].append(sub_spec.count())
+        results["subband_channel_slices"].append((int(start_idx), int(end_idx)))
 
         start_idx = end_idx  # next sub‑band
         log.debug(f"Cache now holds {len(_noise_acf_cache)} noise ACF template(s)")

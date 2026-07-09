@@ -31,6 +31,7 @@ sys.path.insert(0, str(REPO_ROOT))
 os.environ.setdefault("NUMBA_DISABLE_JIT", "1")
 
 from scintillation.scint_analysis import analysis  # noqa: E402
+from scintillation.scint_analysis import chime_artifact_guards as guards  # noqa: E402
 from scintillation.scint_analysis import config as config_mod  # noqa: E402
 from scintillation.scint_analysis.pipeline import ScintillationAnalysis  # noqa: E402
 from scintillation.scint_analysis.revalidation import (  # noqa: E402
@@ -905,6 +906,128 @@ def _plot_sample_summary(results: list[dict[str, Any]], *, figure_dir: Path) -> 
     }
 
 
+def _representative_width_mhz(verdict: dict[str, Any]) -> float | None:
+    """Narrowest selected-component Delta_nu (MHz) from a compare verdict.
+
+    The scintillation scale is the narrowest coherent component; the guards
+    (off-pulse null, low-lag stability, harmonic systematic) compare a single
+    representative width, so collapse the multi-component verdict to it.
+    """
+    fit = _selected_fit(verdict)
+    if not fit.get("success", False):
+        return None
+    dnus = [
+        float(c["dnu_mhz"])
+        for c in fit.get("components", [])
+        if c.get("dnu_mhz") is not None and np.isfinite(float(c.get("dnu_mhz", np.nan)))
+    ]
+    return min(dnus) if dnus else None
+
+
+def _fit_width(
+    lags: np.ndarray,
+    acf: np.ndarray,
+    err: np.ndarray | None,
+    *,
+    max_components: int,
+) -> float | None:
+    """Run the standard selector on a prepared ACF slice, return the width."""
+    if lags.size < 4:
+        return None
+    try:
+        verdict = compare_lorentzian_components(
+            lags, acf, max_components=max_components, acf_err=err
+        )
+    except Exception as exc:  # a degenerate/failed fit is a null-ish outcome, not a crash
+        logging.debug("guard fit failed: %s", exc)
+        return None
+    return _representative_width_mhz(verdict)
+
+
+def _low_lag_excision_widths(
+    lags: np.ndarray,
+    acf: np.ndarray,
+    err: np.ndarray | None,
+    chan_width_mhz: float,
+    *,
+    max_components: int,
+    ks: tuple[int, ...] = (1, 2, 3),
+) -> dict[int, float | None]:
+    """Refit after excising the first k positive-lag channel bins (arm B1).
+
+    Drops bins with 0 < |lag| <= k * channel_width and refits; a real wing
+    keeps its width, a low-lag artifact collapses.
+    """
+    out: dict[int, float | None] = {}
+    for k in ks:
+        keep = ~((np.abs(lags) > 0) & (np.abs(lags) <= (k + 0.5) * chan_width_mhz))
+        e = None if err is None else err[keep]
+        out[k] = _fit_width(lags[keep], acf[keep], e, max_components=max_components)
+    return out
+
+
+def _off_pulse_null_widths(
+    pipe: ScintillationAnalysis,
+    channel_slice: tuple[int, int],
+    chan_width_mhz: float,
+    fit_range_mhz: float,
+    *,
+    max_components: int,
+    max_slices: int = 12,
+) -> list[float]:
+    """Fit off-pulse (noise) ACFs on the SAME channels as the sub-band (arm A).
+
+    Slices the burst-free off-pulse window into non-overlapping segments the
+    width of the burst, forms a channel-sliced time-averaged spectrum for each,
+    computes its ACF with the identical estimator, and fits it. Widths that
+    bracket the on-pulse scale mean the correlation is instrumental.
+    """
+    spec = pipe.masked_spectrum
+    off_lims = pipe.off_pulse_lims
+    burst_lims = pipe.burst_lims
+    if spec is None or off_lims is None or burst_lims is None:
+        return []
+    c0, c1 = channel_slice
+    w = max(int(burst_lims[1] - burst_lims[0]), 4)
+    lo = int(off_lims[0]) + 2
+    hi = int(off_lims[1]) - w
+    if hi <= lo:
+        return []
+    starts = list(range(lo, hi, w + 4))[:max_slices]
+    max_lag_bins = int(fit_range_mhz / chan_width_mhz) if chan_width_mhz > 0 else None
+
+    widths: list[float] = []
+    for s in starts:
+        try:
+            full_spec = spec.get_spectrum((s, s + w))  # time-avg, all channels
+            sub = full_spec[c0:c1]
+            # Self-normalize (off_burst_spectrum_mean=None): the off-burst mean
+            # only scales the ACF denominator (amplitude), not the lag at which
+            # it decorrelates, so it does not affect the fitted width we compare.
+            acf_obj = analysis.calculate_acf(
+                sub,
+                chan_width_mhz,
+                off_burst_spectrum_mean=None,
+                max_lag_bins=max_lag_bins,
+            )
+        except Exception as exc:
+            logging.debug("off-pulse slice %d ACF failed: %s", s, exc)
+            acf_obj = None
+        if acf_obj is None:
+            continue
+        lags = np.asarray(acf_obj.lags, dtype=float)
+        acf = np.asarray(acf_obj.acf, dtype=float)
+        err = None if acf_obj.err is None else np.asarray(acf_obj.err, dtype=float)
+        keep = np.isfinite(lags) & np.isfinite(acf) & (np.abs(lags) <= fit_range_mhz)
+        if err is not None:
+            keep &= np.isfinite(err) & (err > 0)
+        e = None if err is None else err[keep]
+        width = _fit_width(lags[keep], acf[keep], e, max_components=max_components)
+        if width is not None and np.isfinite(width) and width > 0:
+            widths.append(float(width))
+    return widths
+
+
 def _fit_prepared_config(
     cfg: dict[str, Any],
     config_path: Path,
@@ -923,6 +1046,11 @@ def _fit_prepared_config(
 
     fit_cfg = cfg.get("analysis", {}).get("fitting", {})
     configured_fit_range = float(fit_cfg.get("fit_lagrange_mhz", 45.0))
+    harmonic_cfg = fit_cfg.get("harmonic_mask", {})
+
+    # Fail-closed provenance gate (evaluated once per burst; CHIME only).
+    provenance = guards.chime_provenance_status(cfg)
+    channel_slices = acf_results.get("subband_channel_slices") or []
 
     subbands = []
     plot_subbands = []
@@ -938,12 +1066,57 @@ def _fit_prepared_config(
         subband_bw = n_chan * chan_width
         fit_range = min(configured_fit_range, subband_bw / 2.0)
         fit_lags, fit_acf, fit_err = _slice_fit_window(lags, acf_arr, err, fit_range)
+
+        # --- Harmonic (coarse-channel comb) mask as a first-class fit mask ---
+        # Previously the driver ignored analysis.fitting.harmonic_mask entirely
+        # (the confirmed --band chime trap). Apply it to the fit-window slice
+        # BEFORE the selector, and keep the unmasked slice for the systematic.
+        unmasked_fit_lags, unmasked_fit_acf, unmasked_fit_err = fit_lags, fit_acf, fit_err
+        fit_lags, fit_acf, fit_err, harmonic_record = guards.apply_harmonic_mask_to_fit(
+            fit_lags, fit_acf, fit_err, harmonic_cfg
+        )
+
         verdict = compare_lorentzian_components(
             fit_lags,
             fit_acf,
             max_components=max_components,
             acf_err=fit_err,
         )
+
+        # --- Artifact-control guards (masked fit is the primary measurement) ---
+        dnu_masked = _representative_width_mhz(verdict)
+        # Harmonic-mask systematic: refit the unmasked slice and compare widths.
+        if harmonic_record["enabled"]:
+            dnu_unmasked = _fit_width(
+                unmasked_fit_lags,
+                unmasked_fit_acf,
+                unmasked_fit_err,
+                max_components=max_components,
+            )
+        else:
+            dnu_unmasked = dnu_masked
+        harmonic_systematic = guards.harmonic_mask_systematic(dnu_unmasked, dnu_masked)
+
+        # Off-pulse ACF null (arm A) on identical channels for this sub-band.
+        channel_slice = tuple(channel_slices[i]) if i < len(channel_slices) else None
+        if channel_slice is not None:
+            off_widths = _off_pulse_null_widths(
+                pipe,
+                channel_slice,
+                chan_width,
+                fit_range,
+                max_components=max_components,
+            )
+        else:
+            off_widths = []
+        off_pulse_null = guards.off_pulse_null_verdict(dnu_masked, off_widths)
+
+        # Low-lag excision stability (arm B1): refit dropping first k ch bins.
+        excision_widths = _low_lag_excision_widths(
+            fit_lags, fit_acf, fit_err, chan_width, max_components=max_components
+        )
+        low_lag_stability = guards.low_lag_stability_verdict(dnu_masked, excision_widths)
+
         fit = _selected_fit(verdict)
         components = sorted(
             fit.get("components", []),
@@ -963,6 +1136,10 @@ def _fit_prepared_config(
                 "num_channels": n_chan,
                 "fit_range_mhz": fit_range,
                 "n_fit_points": int(np.sum(fit_lags > 0)),
+                "harmonic_mask": harmonic_record,
+                "harmonic_mask_systematic": harmonic_systematic,
+                "off_pulse_null": off_pulse_null,
+                "low_lag_stability": low_lag_stability,
                 "n_preferred": int(verdict.get("n_preferred", 1)),
                 "criterion": verdict.get("criterion"),
                 "delta_bic": verdict.get("delta_bic", {}),
@@ -1030,6 +1207,45 @@ def _fit_prepared_config(
         },
         "subbands": subbands,
     }
+
+    # --- Burst-level artifact-control verdict ------------------------------
+    # A CHIME burst fails the off-pulse null (or the low-lag stability) if ANY
+    # sub-band that produced a usable width fails it. Aggregate the per-sub-band
+    # verdicts to burst level, then combine with the fail-closed provenance gate.
+    null_pass_flags = [
+        s["off_pulse_null"]["null_pass"]
+        for s in subbands
+        if s.get("off_pulse_null", {}).get("null_pass") is not None
+    ]
+    stable_flags = [
+        s["low_lag_stability"]["stable"]
+        for s in subbands
+        if s.get("low_lag_stability", {}).get("stable") is not None
+    ]
+    burst_null = {
+        "null_pass": (all(null_pass_flags) if null_pass_flags else None),
+        "n_subbands_judged": len(null_pass_flags),
+        "n_subbands_failed": sum(1 for f in null_pass_flags if f is False),
+    }
+    burst_stability = {
+        "stable": (all(stable_flags) if stable_flags else None),
+        "n_subbands_judged": len(stable_flags),
+        "n_subbands_failed": sum(1 for f in stable_flags if f is False),
+    }
+    finalized = guards.finalize_measurement_status(
+        provenance,
+        off_pulse_null=burst_null if burst_null["null_pass"] is not None else None,
+        low_lag_stability=burst_stability if burst_stability["stable"] is not None else None,
+    )
+    result["artifact_control"] = {
+        "provenance": provenance,
+        "off_pulse_null": burst_null,
+        "low_lag_stability": burst_stability,
+        "measurement_status": finalized["status"],
+        "downgraded": finalized["downgraded"],
+        "failed_checks": finalized["failed_checks"],
+    }
+    result["measurement_status"] = finalized["status"]
     return result, plot_subbands
 
 
@@ -1105,6 +1321,20 @@ def _selection_summary(result: dict[str, Any]) -> str:
     return "rejected " + "<br>".join(rejected)
 
 
+def _artifact_control_summary(result: dict[str, Any]) -> str:
+    """One-cell CHIME artifact-control verdict for the overview table."""
+    ac = result.get("artifact_control")
+    if not ac:
+        return "measurement"
+    status = ac.get("measurement_status", "measurement")
+    if not ac.get("provenance", {}).get("is_chime"):
+        return status  # DSA etc. — never demoted by the CHIME gate
+    if status == guards.MEASUREMENT:
+        return "measurement (CHIME, passed guards)"
+    failed = ac.get("failed_checks", [])
+    return "**diagnostic_only**<br>" + "; ".join(failed)
+
+
 def _markdown_figure_path(figure_path: str, report_path: Path) -> Path:
     path = Path(figure_path)
     try:
@@ -1137,10 +1367,31 @@ def _write_markdown(
         "flag. If no candidate satisfies all gates, the least pathological candidate",
         "is retained and the fallback policy is recorded.",
         "",
+        "### CHIME artifact-control guards",
+        "",
+        "CHIME upchannelized (gen-3) products carry instrumental structure that an",
+        "ACF fit can mistake for scintillation (see",
+        "`docs/rse/specs/experiment-freya-chime-instrumental-origin.md`). For",
+        "`telescope: chime` this driver applies fail-closed guards and records them",
+        "per sub-band in the JSON: (1) the coarse-channel **harmonic mask**",
+        "(`analysis.fitting.harmonic_mask`) is applied to the fit-window ACF before",
+        "the selector and the number of removed comb lag bins is recorded; (2) a",
+        "**provenance gate** requires grid regularization, bandpass normalization,",
+        "and the harmonic mask all be enabled; (3) an **off-pulse ACF null** refits",
+        "burst-free noise slices on the identical sub-band channels and fails when",
+        "they reproduce the on-pulse decorrelation scale; (4) a **low-lag excision**",
+        "check refits after dropping the first few channel lags and fails when the",
+        "width collapses (no resolved wing). The **harmonic-mask systematic** (fit",
+        "with vs without the mask) is reported as a systematic band, not a",
+        "correction. A CHIME burst is a `measurement` only if the provenance gate,",
+        "the off-pulse null, and the low-lag stability all pass; otherwise it is",
+        "`diagnostic_only`. DSA-band results are never demoted by these guards (no",
+        "DSA config enables the harmonic mask, so the DSA fit is unchanged).",
+        "",
         "## Burst Overview",
         "",
-        "| burst | selected subbands | preferred n by subband | plurality n | median dnu by component (MHz) | selection note |",
-        "|---|---:|---|---:|---|---|",
+        "| burst | selected subbands | preferred n by subband | plurality n | median dnu by component (MHz) | status | selection note |",
+        "|---|---:|---|---:|---|---|---|",
     ]
     for result in results:
         usable = result.get("component_usable_median_dnu_mhz", {})
@@ -1149,8 +1400,9 @@ def _write_markdown(
         else:
             med = "no unflagged components"
         lines.append(
-            "| {burst} | {num_subbands} | {n_per_subband} | {burst_preferred_n} | {med} | {note} |".format(
+            "| {burst} | {num_subbands} | {n_per_subband} | {burst_preferred_n} | {med} | {status} | {note} |".format(
                 med=med or "-",
+                status=_artifact_control_summary(result),
                 note=_selection_summary(result),
                 **result,
             )

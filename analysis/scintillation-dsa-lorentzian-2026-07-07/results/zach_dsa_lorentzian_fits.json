@@ -10,6 +10,7 @@
     "2": 18.676829485608298
   },
   "config_path": "scintillation/configs/bursts/zach_dsa.yaml",
+  "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/zach_dsa_acf_lorentzian_fits.pdf",
   "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/zach_dsa_acf_lorentzian_fits.png",
   "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/zach_dsa_acf_lorentzian_fits.svg",
   "fit_lagrange_mhz": 25.0,

@@ -8,6 +8,7 @@
     "1": 1.8345250637657164
   },
   "config_path": "scintillation/configs/bursts/mahi_dsa.yaml",
+  "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/mahi_dsa_acf_lorentzian_fits.pdf",
   "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/mahi_dsa_acf_lorentzian_fits.png",
   "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/mahi_dsa_acf_lorentzian_fits.svg",
   "fit_lagrange_mhz": 25.0,
@@ -122,35 +123,35 @@
           "success": true
         },
         {
-          "aic": 14.385628009276973,
-          "bic": 47.34221659624846,
-          "chi2": 819.3857188104396,
+          "aic": 14.385481069700912,
+          "bic": 47.34206965667241,
+          "chi2": 819.3855718016734,
           "components": [
             {
-              "dnu_err": 0.333846733551603,
-              "dnu_mhz": 0.003389464156185573,
-              "m": 11.320962722399367,
-              "m_err": 1102.441157373522
+              "dnu_err": 0.3383606357133952,
+              "dnu_mhz": 0.0033765595578605367,
+              "m": 11.363915021712177,
+              "m_err": 1126.2008864038671
             },
             {
-              "dnu_err": 2316271.669752929,
-              "dnu_mhz": 2.010030695023782,
-              "m": 0.6770755607571528,
-              "m_err": 588987149.6132362
+              "dnu_err": 3202108.0424249186,
+              "dnu_mhz": 2.0107331505852395,
+              "m": 0.8534050379429168,
+              "m_err": 1604629802.2436228
             },
             {
-              "dnu_err": 1486220.1926937222,
-              "dnu_mhz": 2.0119683486019366,
-              "m": 0.8534557536748213,
-              "m_err": 467261996.9354958
+              "dnu_err": 5243815.9705062155,
+              "dnu_mhz": 2.012037235311993,
+              "m": 0.6771367906980146,
+              "m_err": 2022292397.6788836
             }
           ],
-          "constant": -0.23056922709112285,
-          "constant_err": 0.04644596898216683,
+          "constant": -0.2305700230585735,
+          "constant_err": 0.045865748101708056,
           "n": 3,
           "n_params": 7,
           "ndata": 819,
-          "redchi": 1.0090957128207385,
+          "redchi": 1.00909553177546,
           "success": true
         }
       ],

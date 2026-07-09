@@ -9,6 +9,7 @@
     "1": 1.0246885177316212
   },
   "config_path": "scintillation/configs/bursts/oran_dsa.yaml",
+  "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/oran_dsa_acf_lorentzian_fits.pdf",
   "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/oran_dsa_acf_lorentzian_fits.png",
   "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/oran_dsa_acf_lorentzian_fits.svg",
   "fit_lagrange_mhz": 25.0,

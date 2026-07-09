@@ -10,6 +10,7 @@
     "2": 14.714516442916421
   },
   "config_path": "scintillation/configs/bursts/wilhelm_dsa.yaml",
+  "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/wilhelm_dsa_acf_lorentzian_fits.pdf",
   "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/wilhelm_dsa_acf_lorentzian_fits.png",
   "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/wilhelm_dsa_acf_lorentzian_fits.svg",
   "fit_lagrange_mhz": 25.0,
@@ -231,35 +232,35 @@
           "success": true
         },
         {
-          "aic": 94.18410511893889,
-          "bic": 127.02000106086884,
-          "chi2": 889.3135397059319,
+          "aic": 94.18572037723678,
+          "bic": 127.02161631916672,
+          "chi2": 889.3153241438395,
           "components": [
             {
               "dnu_err": null,
-              "dnu_mhz": 0.06211695764406433,
-              "m": 0.03989233788643709,
+              "dnu_mhz": 0.06199539931047293,
+              "m": 0.03978444579293505,
               "m_err": null
             },
             {
               "dnu_err": null,
-              "dnu_mhz": 1.0275976995591343,
-              "m": 0.0802570831251106,
+              "dnu_mhz": 1.0275194575809867,
+              "m": 0.08026320985282465,
               "m_err": null
             },
             {
               "dnu_err": null,
-              "dnu_mhz": 1.0276418375518128,
-              "m": 0.0823212734514216,
+              "dnu_mhz": 1.0275611568394019,
+              "m": 0.08232307105805714,
               "m_err": null
             }
           ],
-          "constant": -0.0007219508435569529,
+          "constant": -0.0007219421118949063,
           "constant_err": null,
           "n": 3,
           "n_params": 7,
           "ndata": 805,
-          "redchi": 1.1144279946189624,
+          "redchi": 1.1144302307566911,
           "success": false
         }
       ],

@@ -10,6 +10,7 @@
     "2": 18.387156820715035
   },
   "config_path": "scintillation/configs/bursts/casey_dsa.yaml",
+  "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/casey_dsa_acf_lorentzian_fits.pdf",
   "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/casey_dsa_acf_lorentzian_fits.png",
   "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/casey_dsa_acf_lorentzian_fits.svg",
   "fit_lagrange_mhz": 25.0,
@@ -239,26 +240,26 @@
           "chi2": 98.77585091840959,
           "components": [
             {
-              "dnu_err": 24.055805665080584,
+              "dnu_err": 24.055805665079642,
               "dnu_mhz": 8.589852988916398,
               "m": 0.7807691195309836,
-              "m_err": 5.90820466364686
+              "m_err": 5.908204663646616
             },
             {
-              "dnu_err": 4356080.220703274,
+              "dnu_err": 4356080.220703205,
               "dnu_mhz": 18.38453058030141,
               "m": 0.7493469509447042,
-              "m_err": 44009359.827610224
+              "m_err": 44009359.827609524
             },
             {
-              "dnu_err": 11583780.60494264,
+              "dnu_err": 11583780.60494246,
               "dnu_mhz": 18.39091626729347,
               "m": 0.45856436458119454,
-              "m_err": 71916298.3390916
+              "m_err": 71916298.33909048
             }
           ],
           "constant": -0.6420367078783884,
-          "constant_err": 0.9189884558775386,
+          "constant_err": 0.918988455877531,
           "n": 3,
           "n_params": 7,
           "ndata": 819,
@@ -351,35 +352,35 @@
           "success": true
         },
         {
-          "aic": 292.5690238023105,
-          "bic": 323.1222791002739,
-          "chi2": 938.4368014733484,
+          "aic": 292.5690238023102,
+          "bic": 323.12227910027354,
+          "chi2": 938.4368014733478,
           "components": [
             {
-              "dnu_err": 11781649.578545071,
-              "dnu_mhz": 1.453691946419303,
-              "m": 0.06828089474833954,
-              "m_err": 547674724.4966751
+              "dnu_err": 12045704.515814153,
+              "dnu_mhz": 1.4536919464788003,
+              "m": 0.06828089474136445,
+              "m_err": 560341247.2392107
             },
             {
-              "dnu_err": 31846786.235817593,
-              "dnu_mhz": 1.4550371553625983,
-              "m": 0.1401093423947426,
-              "m_err": 1090446633.090788
+              "dnu_err": 32446243.019889988,
+              "dnu_mhz": 1.4550371553872514,
+              "m": 0.14010934239632888,
+              "m_err": 1203166494.6951957
             },
             {
-              "dnu_err": 18146155.28877141,
-              "dnu_mhz": 1.4552446637243088,
-              "m": 0.20067159084868913,
-              "m_err": 754477232.6321718
+              "dnu_err": 18629586.839196704,
+              "dnu_mhz": 1.4552446636940286,
+              "m": 0.20067159084990083,
+              "m_err": 809496275.6548843
             }
           ],
-          "constant": -0.009954969648846177,
-          "constant_err": 0.0018709409660808212,
+          "constant": -0.009954969648771793,
+          "constant_err": 0.001873557069904296,
           "n": 3,
           "n_params": 7,
           "ndata": 581,
-          "redchi": 1.6349073196399797,
+          "redchi": 1.6349073196399788,
           "success": true
         }
       ],

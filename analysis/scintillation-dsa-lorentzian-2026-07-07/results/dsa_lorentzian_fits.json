@@ -12,6 +12,7 @@
         "2": 18.387156820715035
       },
       "config_path": "scintillation/configs/bursts/casey_dsa.yaml",
+      "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/casey_dsa_acf_lorentzian_fits.pdf",
       "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/casey_dsa_acf_lorentzian_fits.png",
       "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/casey_dsa_acf_lorentzian_fits.svg",
       "fit_lagrange_mhz": 25.0,
@@ -241,26 +242,26 @@
               "chi2": 98.77585091840959,
               "components": [
                 {
-                  "dnu_err": 24.055805665080584,
+                  "dnu_err": 24.055805665079642,
                   "dnu_mhz": 8.589852988916398,
                   "m": 0.7807691195309836,
-                  "m_err": 5.90820466364686
+                  "m_err": 5.908204663646616
                 },
                 {
-                  "dnu_err": 4356080.220703274,
+                  "dnu_err": 4356080.220703205,
                   "dnu_mhz": 18.38453058030141,
                   "m": 0.7493469509447042,
-                  "m_err": 44009359.827610224
+                  "m_err": 44009359.827609524
                 },
                 {
-                  "dnu_err": 11583780.60494264,
+                  "dnu_err": 11583780.60494246,
                   "dnu_mhz": 18.39091626729347,
                   "m": 0.45856436458119454,
-                  "m_err": 71916298.3390916
+                  "m_err": 71916298.33909048
                 }
               ],
               "constant": -0.6420367078783884,
-              "constant_err": 0.9189884558775386,
+              "constant_err": 0.918988455877531,
               "n": 3,
               "n_params": 7,
               "ndata": 819,
@@ -353,35 +354,35 @@
               "success": true
             },
             {
-              "aic": 292.5690238023105,
-              "bic": 323.1222791002739,
-              "chi2": 938.4368014733484,
+              "aic": 292.5690238023102,
+              "bic": 323.12227910027354,
+              "chi2": 938.4368014733478,
               "components": [
                 {
-                  "dnu_err": 11781649.578545071,
-                  "dnu_mhz": 1.453691946419303,
-                  "m": 0.06828089474833954,
-                  "m_err": 547674724.4966751
+                  "dnu_err": 12045704.515814153,
+                  "dnu_mhz": 1.4536919464788003,
+                  "m": 0.06828089474136445,
+                  "m_err": 560341247.2392107
                 },
                 {
-                  "dnu_err": 31846786.235817593,
-                  "dnu_mhz": 1.4550371553625983,
-                  "m": 0.1401093423947426,
-                  "m_err": 1090446633.090788
+                  "dnu_err": 32446243.019889988,
+                  "dnu_mhz": 1.4550371553872514,
+                  "m": 0.14010934239632888,
+                  "m_err": 1203166494.6951957
                 },
                 {
-                  "dnu_err": 18146155.28877141,
-                  "dnu_mhz": 1.4552446637243088,
-                  "m": 0.20067159084868913,
-                  "m_err": 754477232.6321718
+                  "dnu_err": 18629586.839196704,
+                  "dnu_mhz": 1.4552446636940286,
+                  "m": 0.20067159084990083,
+                  "m_err": 809496275.6548843
                 }
               ],
-              "constant": -0.009954969648846177,
-              "constant_err": 0.0018709409660808212,
+              "constant": -0.009954969648771793,
+              "constant_err": 0.001873557069904296,
               "n": 3,
               "n_params": 7,
               "ndata": 581,
-              "redchi": 1.6349073196399797,
+              "redchi": 1.6349073196399788,
               "success": true
             }
           ],
@@ -546,6 +547,7 @@
         "1": 1.0588192575583122
       },
       "config_path": "scintillation/configs/bursts/chromatica_dsa.yaml",
+      "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/chromatica_dsa_acf_lorentzian_fits.pdf",
       "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/chromatica_dsa_acf_lorentzian_fits.png",
       "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/chromatica_dsa_acf_lorentzian_fits.svg",
       "fit_lagrange_mhz": 25.0,
@@ -1085,6 +1087,7 @@
         "1": 11.914664957701838
       },
       "config_path": "scintillation/configs/bursts/freya_dsa.yaml",
+      "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/freya_dsa_acf_lorentzian_fits.pdf",
       "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/freya_dsa_acf_lorentzian_fits.png",
       "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/freya_dsa_acf_lorentzian_fits.svg",
       "fit_lagrange_mhz": 25.0,
@@ -1392,6 +1395,7 @@
         "2": 17.395904923741575
       },
       "config_path": "scintillation/configs/bursts/hamilton_dsa.yaml",
+      "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/hamilton_dsa_acf_lorentzian_fits.pdf",
       "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/hamilton_dsa_acf_lorentzian_fits.png",
       "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/hamilton_dsa_acf_lorentzian_fits.svg",
       "fit_lagrange_mhz": 25.0,
@@ -1510,26 +1514,26 @@
               "chi2": 349.6764721854478,
               "components": [
                 {
-                  "dnu_err": 2355045.759315484,
+                  "dnu_err": 2355045.7593154833,
                   "dnu_mhz": 0.12639011766626718,
                   "m": 0.034774967502522625,
-                  "m_err": 95978176.08486079
+                  "m_err": 95978176.08486077
                 },
                 {
-                  "dnu_err": 7316.746841739001,
+                  "dnu_err": 7316.746841739,
                   "dnu_mhz": 0.12859879730075585,
                   "m": 0.626370494782664,
-                  "m_err": 5330827.38334989
+                  "m_err": 5330827.383349889
                 },
                 {
-                  "dnu_err": 358985271.0751182,
+                  "dnu_err": 358985271.07511824,
                   "dnu_mhz": 54.39125335727197,
                   "m": 0.0029770398655182273,
-                  "m_err": 19468.054593026
+                  "m_err": 19468.054593026005
                 }
               ],
               "constant": -0.02138997537264062,
-              "constant_err": 124.02537672787741,
+              "constant_err": 124.02537672787743,
               "n": 3,
               "n_params": 7,
               "ndata": 345,
@@ -1929,6 +1933,7 @@
         "1": 0.6716347741480599
       },
       "config_path": "scintillation/configs/bursts/isha_dsa.yaml",
+      "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/isha_dsa_acf_lorentzian_fits.pdf",
       "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/isha_dsa_acf_lorentzian_fits.png",
       "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/isha_dsa_acf_lorentzian_fits.svg",
       "fit_lagrange_mhz": 25.0,
@@ -2232,6 +2237,7 @@
         "1": 1.8770112402283923
       },
       "config_path": "scintillation/configs/bursts/johndoeII_dsa.yaml",
+      "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/johndoeII_dsa_acf_lorentzian_fits.pdf",
       "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/johndoeII_dsa_acf_lorentzian_fits.png",
       "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/johndoeII_dsa_acf_lorentzian_fits.svg",
       "fit_lagrange_mhz": 25.0,
@@ -2628,6 +2634,7 @@
         "1": 1.8345250637657164
       },
       "config_path": "scintillation/configs/bursts/mahi_dsa.yaml",
+      "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/mahi_dsa_acf_lorentzian_fits.pdf",
       "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/mahi_dsa_acf_lorentzian_fits.png",
       "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/mahi_dsa_acf_lorentzian_fits.svg",
       "fit_lagrange_mhz": 25.0,
@@ -2742,35 +2749,35 @@
               "success": true
             },
             {
-              "aic": 14.385628009276973,
-              "bic": 47.34221659624846,
-              "chi2": 819.3857188104396,
+              "aic": 14.385481069700912,
+              "bic": 47.34206965667241,
+              "chi2": 819.3855718016734,
               "components": [
                 {
-                  "dnu_err": 0.333846733551603,
-                  "dnu_mhz": 0.003389464156185573,
-                  "m": 11.320962722399367,
-                  "m_err": 1102.441157373522
+                  "dnu_err": 0.3383606357133952,
+                  "dnu_mhz": 0.0033765595578605367,
+                  "m": 11.363915021712177,
+                  "m_err": 1126.2008864038671
                 },
                 {
-                  "dnu_err": 2316271.669752929,
-                  "dnu_mhz": 2.010030695023782,
-                  "m": 0.6770755607571528,
-                  "m_err": 588987149.6132362
+                  "dnu_err": 3202108.0424249186,
+                  "dnu_mhz": 2.0107331505852395,
+                  "m": 0.8534050379429168,
+                  "m_err": 1604629802.2436228
                 },
                 {
-                  "dnu_err": 1486220.1926937222,
-                  "dnu_mhz": 2.0119683486019366,
-                  "m": 0.8534557536748213,
-                  "m_err": 467261996.9354958
+                  "dnu_err": 5243815.9705062155,
+                  "dnu_mhz": 2.012037235311993,
+                  "m": 0.6771367906980146,
+                  "m_err": 2022292397.6788836
                 }
               ],
-              "constant": -0.23056922709112285,
-              "constant_err": 0.04644596898216683,
+              "constant": -0.2305700230585735,
+              "constant_err": 0.045865748101708056,
               "n": 3,
               "n_params": 7,
               "ndata": 819,
-              "redchi": 1.0090957128207385,
+              "redchi": 1.00909553177546,
               "success": true
             }
           ],
@@ -3029,6 +3036,7 @@
         "1": 1.0246885177316212
       },
       "config_path": "scintillation/configs/bursts/oran_dsa.yaml",
+      "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/oran_dsa_acf_lorentzian_fits.pdf",
       "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/oran_dsa_acf_lorentzian_fits.png",
       "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/oran_dsa_acf_lorentzian_fits.svg",
       "fit_lagrange_mhz": 25.0,
@@ -3556,6 +3564,7 @@
         "1": 7.044478935425509
       },
       "config_path": "scintillation/configs/bursts/phineas_dsa.yaml",
+      "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/phineas_dsa_acf_lorentzian_fits.pdf",
       "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/phineas_dsa_acf_lorentzian_fits.png",
       "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/phineas_dsa_acf_lorentzian_fits.svg",
       "fit_lagrange_mhz": 25.0,
@@ -3956,6 +3965,7 @@
         "1": 23.365065914836734
       },
       "config_path": "scintillation/configs/bursts/whitney_dsa.yaml",
+      "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/whitney_dsa_acf_lorentzian_fits.pdf",
       "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/whitney_dsa_acf_lorentzian_fits.png",
       "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/whitney_dsa_acf_lorentzian_fits.svg",
       "fit_lagrange_mhz": 25.0,
@@ -4185,35 +4195,35 @@
               "success": true
             },
             {
-              "aic": -120.23667665219241,
-              "bic": -87.28008806522092,
-              "chi2": 695.1870442389425,
+              "aic": -120.23667665316037,
+              "bic": -87.28008806618888,
+              "chi2": 695.1870442381208,
               "components": [
                 {
-                  "dnu_err": 0.06288259213436095,
-                  "dnu_mhz": 0.003052256713347079,
-                  "m": 1.522782316180173,
-                  "m_err": 536.3276465277609
+                  "dnu_err": 0.06309464296606164,
+                  "dnu_mhz": 0.0030522567251669575,
+                  "m": 1.5227827531904161,
+                  "m_err": 536.5468746700028
                 },
                 {
-                  "dnu_err": 9091659.401387878,
-                  "dnu_mhz": 23.41149592209353,
-                  "m": 0.596000274649727,
-                  "m_err": 421946084.1570222
+                  "dnu_err": 9037114.737768805,
+                  "dnu_mhz": 23.41149643594204,
+                  "m": 0.5960002750245068,
+                  "m_err": 419243192.41207284
                 },
                 {
-                  "dnu_err": 9455027.416895797,
-                  "dnu_mhz": 23.417104852436502,
-                  "m": 0.5737155656931627,
-                  "m_err": 438335654.7979776
+                  "dnu_err": 9397494.624591373,
+                  "dnu_mhz": 23.417104381110875,
+                  "m": 0.573715566152406,
+                  "m_err": 435527775.110024
                 }
               ],
-              "constant": -0.5054338918517841,
-              "constant_err": 0.2007602658492274,
+              "constant": -0.5054338929810334,
+              "constant_err": 0.19437298542297185,
               "n": 3,
               "n_params": 7,
               "ndata": 819,
-              "redchi": 0.8561416800972198,
+              "redchi": 0.856141680096208,
               "success": true
             }
           ],
@@ -4257,6 +4267,7 @@
         "2": 14.714516442916421
       },
       "config_path": "scintillation/configs/bursts/wilhelm_dsa.yaml",
+      "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/wilhelm_dsa_acf_lorentzian_fits.pdf",
       "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/wilhelm_dsa_acf_lorentzian_fits.png",
       "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/wilhelm_dsa_acf_lorentzian_fits.svg",
       "fit_lagrange_mhz": 25.0,
@@ -4478,35 +4489,35 @@
               "success": true
             },
             {
-              "aic": 94.18410511893889,
-              "bic": 127.02000106086884,
-              "chi2": 889.3135397059319,
+              "aic": 94.18572037723678,
+              "bic": 127.02161631916672,
+              "chi2": 889.3153241438395,
               "components": [
                 {
                   "dnu_err": null,
-                  "dnu_mhz": 0.06211695764406433,
-                  "m": 0.03989233788643709,
+                  "dnu_mhz": 0.06199539931047293,
+                  "m": 0.03978444579293505,
                   "m_err": null
                 },
                 {
                   "dnu_err": null,
-                  "dnu_mhz": 1.0275976995591343,
-                  "m": 0.0802570831251106,
+                  "dnu_mhz": 1.0275194575809867,
+                  "m": 0.08026320985282465,
                   "m_err": null
                 },
                 {
                   "dnu_err": null,
-                  "dnu_mhz": 1.0276418375518128,
-                  "m": 0.0823212734514216,
+                  "dnu_mhz": 1.0275611568394019,
+                  "m": 0.08232307105805714,
                   "m_err": null
                 }
               ],
-              "constant": -0.0007219508435569529,
+              "constant": -0.0007219421118949063,
               "constant_err": null,
               "n": 3,
               "n_params": 7,
               "ndata": 805,
-              "redchi": 1.1144279946189624,
+              "redchi": 1.1144302307566911,
               "success": false
             }
           ],
@@ -4776,6 +4787,7 @@
         "2": 18.676829485608298
       },
       "config_path": "scintillation/configs/bursts/zach_dsa.yaml",
+      "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/zach_dsa_acf_lorentzian_fits.pdf",
       "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/zach_dsa_acf_lorentzian_fits.png",
       "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/zach_dsa_acf_lorentzian_fits.svg",
       "fit_lagrange_mhz": 25.0,
@@ -5334,7 +5346,8 @@
     "max_components": 3,
     "n_failure": 0,
     "n_success": 12,
-    "notes": "Fresh DSA ACFs from npz; YAML stored_fits and pkl ACF products are not read. Pipeline caches, diagnostic plots, MC noise templates, and 2D fits are disabled. When enabled, figures show a sample-level summary plus CHIME-style per-burst bandwidth scaling and stacked ACF diagnostics.",
+    "notes": "Fresh DSA ACFs from npz; YAML stored_fits and pkl ACF products are not read. Pipeline caches, diagnostic plots, MC noise templates, and 2D fits are disabled. When enabled, figures show a sample-level summary plus manuscript-style per-burst bandwidth-scaling and stacked ACF diagnostics.",
+    "summary_figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/dsa_lorentzian_summary.pdf",
     "summary_figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/dsa_lorentzian_summary.png",
     "summary_figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/dsa_lorentzian_summary.svg"
   }

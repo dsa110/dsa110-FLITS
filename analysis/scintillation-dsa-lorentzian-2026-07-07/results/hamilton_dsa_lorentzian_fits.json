@@ -10,6 +10,7 @@
     "2": 17.395904923741575
   },
   "config_path": "scintillation/configs/bursts/hamilton_dsa.yaml",
+  "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/hamilton_dsa_acf_lorentzian_fits.pdf",
   "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/hamilton_dsa_acf_lorentzian_fits.png",
   "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/hamilton_dsa_acf_lorentzian_fits.svg",
   "fit_lagrange_mhz": 25.0,
@@ -128,26 +129,26 @@
           "chi2": 349.6764721854478,
           "components": [
             {
-              "dnu_err": 2355045.759315484,
+              "dnu_err": 2355045.7593154833,
               "dnu_mhz": 0.12639011766626718,
               "m": 0.034774967502522625,
-              "m_err": 95978176.08486079
+              "m_err": 95978176.08486077
             },
             {
-              "dnu_err": 7316.746841739001,
+              "dnu_err": 7316.746841739,
               "dnu_mhz": 0.12859879730075585,
               "m": 0.626370494782664,
-              "m_err": 5330827.38334989
+              "m_err": 5330827.383349889
             },
             {
-              "dnu_err": 358985271.0751182,
+              "dnu_err": 358985271.07511824,
               "dnu_mhz": 54.39125335727197,
               "m": 0.0029770398655182273,
-              "m_err": 19468.054593026
+              "m_err": 19468.054593026005
             }
           ],
           "constant": -0.02138997537264062,
-          "constant_err": 124.02537672787741,
+          "constant_err": 124.02537672787743,
           "n": 3,
           "n_params": 7,
           "ndata": 345,

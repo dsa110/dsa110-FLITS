@@ -23,6 +23,11 @@ class ScintillationAnalysis:
         self.masked_spectrum = None
         self.noise_descriptor = None
         self.acf_results = None
+        # On/off-pulse time windows resolved in run(); exposed so a downstream
+        # off-pulse ACF null (chime_artifact_guards) can reuse the identical
+        # windows the ACF normalization used. None until run() sets them.
+        self.burst_lims = None
+        self.off_pulse_lims = None
         self.all_subband_fits = None
         self.final_results = None
         self.all_powerlaw_fits = None
@@ -223,6 +228,9 @@ class ScintillationAnalysis:
             off_pulse_lims = (max(0, noise_end_bin - 500), noise_end_bin)  # Default off-pulse
             log.info(f"RUN: Using automated off-pulse window: {off_pulse_lims}")
         # --- END CENTRALIZED WINDOW DETERMINATION ---
+        # Expose the resolved windows for downstream off-pulse diagnostics.
+        self.burst_lims = tuple(int(v) for v in burst_lims)
+        self.off_pulse_lims = tuple(int(v) for v in off_pulse_lims)
 
         # --- BANDPASS FLAT-FIELDING (before any additive baseline step) ---
         self._apply_bandpass_normalization(off_pulse_lims)

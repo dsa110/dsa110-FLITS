@@ -142,9 +142,19 @@ Single-context: one `CONTEXT.md` + `docs/adr/` at the repo root (created lazily 
 
 ### Entire tracing ledger
 
-`docs/entire-tracing-checkpoints.md` is **tracked and must stay pushed**. The post-commit hook
-(`.githooks/post-commit.pre-entire` → `scripts/entire_checkpoint.py --auto`) appends after every
-commit, so the file is often dirty even when the working tree is otherwise clean.
+`docs/entire-tracing-checkpoints.md` is **tracked and must stay pushed**. The append is done by
+`.githooks/post-commit.pre-entire` → `scripts/entire_checkpoint.py --auto`, but that hook only fires
+when git actually reads this repo's `.githooks/`. Check first:
+
+```bash
+git config --get core.hooksPath   # if this prints a path, .githooks/ is NOT used
+```
+
+A global `core.hooksPath` **replaces** `.git/hooks` wholesale — git looks for hooks only there and
+never falls back to this repo's `.githooks/`. Where one is set, the repo hook never runs and the
+ledger does **not** auto-append: run `python scripts/entire_checkpoint.py --auto` by hand after
+substantive commits. Only where the hook does run is the file often dirty on an otherwise-clean
+tree.
 
 **Closeout:** after substantive commits, stage and commit the ledger (alone or with the work).
 Use `--no-verify` on checkpoint-only commits to avoid a hook loop. If the hook dirties the file

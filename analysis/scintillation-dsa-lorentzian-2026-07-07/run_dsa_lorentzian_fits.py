@@ -392,6 +392,7 @@ def _plot_burst_acfs(
     plot_subbands: list[dict[str, Any]],
     *,
     figure_dir: Path,
+    band: str = "dsa",
 ) -> dict[str, str]:
     import matplotlib
 
@@ -411,6 +412,12 @@ def _plot_burst_acfs(
             "legend.fontsize": 7.0,
             "savefig.dpi": 300,
             "svg.fonttype": "none",
+            # STIX math keeps a serif look consistent with the AASTeX manuscript
+            # while emitting a correct (ToUnicode) PDF text layer; Computer-Modern
+            # mathtext maps glyphs like gamma to codepoint 0xb0 and corrupts the
+            # embedded text under PDF search/copy/accessibility tools.
+            "mathtext.fontset": "stix",
+            "pdf.fonttype": 42,
             "xtick.direction": "in",
             "xtick.labelsize": 6.8,
             "xtick.top": True,
@@ -607,13 +614,16 @@ def _plot_burst_acfs(
             ax_acf.set_ylabel(r"ACF Power  ($m^2$)")
         ax_acf.tick_params(top=True, right=True, which="both", direction="in")
 
-    png = figure_dir / f"{burst}_dsa_acf_lorentzian_fits.png"
-    svg = figure_dir / f"{burst}_dsa_acf_lorentzian_fits.svg"
+    png = figure_dir / f"{burst}_{band}_acf_lorentzian_fits.png"
+    svg = figure_dir / f"{burst}_{band}_acf_lorentzian_fits.svg"
+    pdf = figure_dir / f"{burst}_{band}_acf_lorentzian_fits.pdf"
     fig.savefig(png, dpi=240, bbox_inches="tight")
     fig.savefig(svg, bbox_inches="tight")
+    # Vector PDF for direct manuscript/Overleaf inclusion (graphicspath consumes PDF).
+    fig.savefig(pdf, bbox_inches="tight")
     svg.write_text("\n".join(line.rstrip() for line in svg.read_text().splitlines()) + "\n")
     plt.close(fig)
-    return {"figure_png": str(png), "figure_svg": str(svg)}
+    return {"figure_png": str(png), "figure_svg": str(svg), "figure_pdf": str(pdf)}
 
 
 def _summary_subband_status(subband: dict[str, Any]) -> str:
@@ -684,6 +694,12 @@ def _plot_sample_summary(results: list[dict[str, Any]], *, figure_dir: Path) -> 
             "legend.fontsize": 7.0,
             "savefig.dpi": 300,
             "svg.fonttype": "none",
+            # STIX math keeps a serif look consistent with the AASTeX manuscript
+            # while emitting a correct (ToUnicode) PDF text layer; Computer-Modern
+            # mathtext maps glyphs like gamma to codepoint 0xb0 and corrupts the
+            # embedded text under PDF search/copy/accessibility tools.
+            "mathtext.fontset": "stix",
+            "pdf.fonttype": 42,
             "xtick.direction": "in",
             "xtick.labelsize": 6.4,
             "xtick.top": True,
@@ -875,11 +891,18 @@ def _plot_sample_summary(results: list[dict[str, Any]], *, figure_dir: Path) -> 
 
     png = figure_dir / "dsa_lorentzian_summary.png"
     svg = figure_dir / "dsa_lorentzian_summary.svg"
+    pdf = figure_dir / "dsa_lorentzian_summary.pdf"
     fig.savefig(png, dpi=240, bbox_inches="tight")
     fig.savefig(svg, bbox_inches="tight")
+    # Vector PDF for direct manuscript/Overleaf inclusion (graphicspath consumes PDF).
+    fig.savefig(pdf, bbox_inches="tight")
     svg.write_text("\n".join(line.rstrip() for line in svg.read_text().splitlines()) + "\n")
     plt.close(fig)
-    return {"summary_figure_png": str(png), "summary_figure_svg": str(svg)}
+    return {
+        "summary_figure_png": str(png),
+        "summary_figure_svg": str(svg),
+        "summary_figure_pdf": str(pdf),
+    }
 
 
 def _fit_prepared_config(
@@ -889,7 +912,7 @@ def _fit_prepared_config(
     output_dir: Path,
     max_components: int,
 ) -> tuple[dict[str, Any], list[dict[str, Any]]]:
-    burst = str(cfg.get("burst_id", config_path.stem.removesuffix("_dsa")))
+    burst = str(cfg.get("burst_id", config_path.stem.split("_")[0]))
 
     analysis.clear_noise_acf_cache()
     pipe = ScintillationAnalysis(cfg)
@@ -1016,10 +1039,11 @@ def _fit_one_burst(
     output_dir: Path,
     max_components: int,
     make_figures: bool,
+    band: str = "dsa",
 ) -> dict[str, Any]:
     loaded = config_mod.load_config(config_path)
     base_cfg = _config_for_fresh_acf(loaded, output_dir=output_dir)
-    burst = str(base_cfg.get("burst_id", config_path.stem.removesuffix("_dsa")))
+    burst = str(base_cfg.get("burst_id", config_path.stem.split("_")[0]))
 
     candidates = []
     plot_payloads = {}
@@ -1040,7 +1064,9 @@ def _fit_one_burst(
     if make_figures:
         selected_n = int(result["requested_num_subbands"])
         result.update(
-            _plot_burst_acfs(burst, plot_payloads[selected_n], figure_dir=output_dir / "figures")
+            _plot_burst_acfs(
+                burst, plot_payloads[selected_n], figure_dir=output_dir / "figures", band=band
+            )
         )
     return result
 
@@ -1228,6 +1254,12 @@ def parse_args() -> argparse.Namespace:
         help="Root containing scintillation/data/{burst}.npz.",
     )
     parser.add_argument("--max-components", type=int, default=3, choices=(1, 2, 3))
+    parser.add_argument(
+        "--band",
+        default="dsa",
+        choices=("dsa", "chime"),
+        help="Which band's configs/outputs to use ({burst}_{band}.yaml).",
+    )
     parser.add_argument("--bursts", nargs="*", default=BURSTS, help="Burst nicknames to run.")
     parser.add_argument("--no-figures", action="store_true", help="Skip ACF/fitted-curve plots.")
     parser.add_argument(
@@ -1251,7 +1283,7 @@ def main() -> int:
     results = []
     failures = []
     for burst in args.bursts:
-        config_path = Path("scintillation/configs/bursts") / f"{burst}_dsa.yaml"
+        config_path = Path("scintillation/configs/bursts") / f"{burst}_{args.band}.yaml"
         logging.info("Running %s from %s", burst, config_path)
         try:
             result = _fit_one_burst(
@@ -1259,6 +1291,7 @@ def main() -> int:
                 output_dir=args.output_dir,
                 max_components=args.max_components,
                 make_figures=not args.no_figures,
+                band=args.band,
             )
         except Exception as exc:
             logging.exception("%s failed", burst)
@@ -1267,7 +1300,7 @@ def main() -> int:
                 raise
         else:
             results.append(result)
-            burst_path = args.output_dir / f"{burst}_lorentzian_fits.json"
+            burst_path = args.output_dir / f"{burst}_{args.band}_lorentzian_fits.json"
             burst_path.write_text(json.dumps(_jsonable(result), indent=2, sort_keys=True))
 
     rows = _flatten_rows(results)
@@ -1294,14 +1327,14 @@ def main() -> int:
         },
         "results": results,
     }
-    (args.output_dir / "dsa_lorentzian_fits.json").write_text(
+    (args.output_dir / f"{args.band}_lorentzian_fits.json").write_text(
         json.dumps(_jsonable(all_results), indent=2, sort_keys=True)
     )
-    _write_csv(rows, args.output_dir / "dsa_lorentzian_components.csv")
+    _write_csv(rows, args.output_dir / f"{args.band}_lorentzian_components.csv")
     _write_markdown(
         results,
         rows,
-        args.output_dir / "DSA_LORENTZIAN_FITS.md",
+        args.output_dir / f"{args.band.upper()}_LORENTZIAN_FITS.md",
         summary_figure_png=summary_figures.get("summary_figure_png"),
     )
 

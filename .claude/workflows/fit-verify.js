@@ -1,18 +1,20 @@
 export const meta = {
   name: "fit-verify",
   description:
-    "Adversarial pre-publication verification of FLITS scattering fit results. Fans out one verifier agent per *_fit_results.json, each told to TRY TO REFUTE the fit's PASS claim against the runtime 3-level fit-quality gate (burstfit.py classify_fit_quality), then aggregates to confirmed-PASS / MARGINAL / FAIL with reasons. A separate agent does the judging so the fitter's own self-preferential bias cannot pass its own work.",
+    "Adversarial pre-publication verification of FLITS scattering fit results. Fans out one verifier agent per fit artifact (*_fit_results.json or *_joint_gate.json), each told to TRY TO REFUTE the fit's PASS claim against the runtime 3-level fit-quality gate (burstfit.py classify_fit_quality), then aggregates to confirmed-PASS / MARGINAL / FAIL with reasons. A separate agent does the judging so the fitter's own self-preferential bias cannot pass its own work.",
   phases: [
-    "discover: glob the results tree for *_fit_results.json fit artifacts",
+    "discover: glob the results tree for *_fit_results.json and *_joint_gate.json fit artifacts",
     "verify (parallel, adversarial): one verifier per fit, each attempts to REFUTE the PASS claim against the exact 3-level gate cut points",
     "aggregate: synthesize verdicts into confirmed-PASS / MARGINAL / FAIL with per-fit reasons and a publication-readiness summary",
   ],
 };
 
 // Results path or glob to verify. Edit this constant to retarget the run.
-// Default matches the canonical per-burst fit artifact produced by the
-// scattering pipeline anywhere under the repo.
-const TARGET = "**/*_fit_results.json";
+// Covers both fit artifact shapes: the per-burst *_fit_results.json (single
+// telescope) and the joint *_joint_gate.json (CHIME+DSA joint fits written by
+// gate_joint_committed.py — ADR-0008 requires these be adversarially verified
+// too; previously the glob missed them).
+const TARGET = "**/*_fit_results.json\n**/*_joint_gate.json";
 
 // The FLITS fit-quality contract, verbatim from the runtime classifier
 // (scattering/scat_analysis/burstfit.py classify_fit_quality, ~L1342-1386;
@@ -215,12 +217,13 @@ const aggregateSchema = {
 export default async function ({ agent, parallel }) {
   // PHASE 1 — discover the fit artifacts.
   const discovery = await agent(
-    `List every FLITS fit-result file under the repo matching the glob:
+    `List every FLITS fit-result file under the repo matching either glob:
 
   ${TARGET}
 
-These are JSON artifacts written by the scattering pipeline (typically named
-*_fit_results.json). Search the repository working tree (read-only). Return the
+These are JSON artifacts written by the scattering pipeline: per-burst
+*_fit_results.json (single telescope) or joint *_joint_gate.json (CHIME+DSA
+joint fits). Search the repository working tree (read-only). Return the
 absolute path of each matching file. If none match, return an empty array.`,
     {
       model: "haiku",

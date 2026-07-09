@@ -40,7 +40,7 @@ ORDER = [
     "casey",
 ]
 NOTES = {
-    "johndoeII": "Headline: sub-Kolmogorov alpha, clean both bands. Strongest measurement.",
+    "johndoeII": "Retired C2D1/free-alpha sub-K claim; beta-native C2D2 now rails high at beta=4.",
     "wilhelm": "Good fit; resolved scint band-width implies a DIFFERENT screen than the broadening tau.",
     "phineas": "Steep slope, but DSA band is the poorest fit - treat cautiously.",
     "oran": "alpha rails to the 1.0 floor; CHIME nuisance unconstrained -> NOT a measurement, drop.",

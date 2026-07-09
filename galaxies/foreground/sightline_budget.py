@@ -312,9 +312,10 @@ def _lookup_dm_obs(name: str, configs_dir: str | None) -> float | None:
 
 
 def _lookup_tau_fit(name: str, bursts_dir: str | None) -> dict | None:
-    """Find the best scattering τ for a target (all-exp joint, then CHIME single-band).
+    """Find the best scattering τ for a target (citable joint, then CHIME single-band).
 
-    Prefers canonical all-exp joint fits from the citable-α roster (ADR-0005).
+    Prefers the citable joint roster (legacy all-exp rows or beta re-lock
+    overrides such as JohnDoeII C2D2).
     Falls back to CHIME fit_results.json, preferring quality-PASS when several exist.
     """
     from galaxies.foreground.tau_consistency import load_allexp_joint_tau_for_budget
@@ -1118,6 +1119,19 @@ def main():
         fig.savefig(path, bbox_inches="tight", **kwargs)
         print(f"Wrote {path}")
     plt.close(fig)
+
+
+def format_budget_table_tex(data_path=None) -> str:
+    """Emit the manuscript ``budget_table.tex`` from the structured data file.
+
+    Thin re-export of :func:`budget_table_emitter.format_budget_table_tex` so the
+    canonical import path is ``galaxies.foreground.sightline_budget`` (adjacent to
+    :func:`format_budget_table`, which renders the markdown budget). Imported
+    lazily to keep this heavy module's import cost off the pure-render path.
+    """
+    from .budget_table_emitter import format_budget_table_tex as _emit
+
+    return _emit(data_path)
 
 
 if __name__ == "__main__":

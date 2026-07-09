@@ -52,7 +52,7 @@ FLEET = [
     ("zach", 600, ["--components-C", "1", "--components-D", "1", "--force-multi"], "_C1D1"),
     ("oran", 600, ["--components-C", "2", "--components-D", "1"], "_C2D1"),
     ("isha", 600, ["--components-C", "2", "--components-D", "1"], "_C2D1"),
-    ("johndoeII", 600, ["--components-C", "2", "--components-D", "1"], "_C2D1"),
+    ("johndoeII", 600, ["--components-C", "2", "--components-D", "2"], "_C2D2"),
     ("whitney_fine", 800, ["--components-C", "2", "--components-D", "2"], "_C2D2"),
     ("phineas", 1000, ["--components-C", "3", "--components-D", "3"], "_C3D3"),
 ]

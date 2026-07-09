@@ -57,7 +57,7 @@ SUFFIX = {
     "zach": "_C2D4_cwin",
     "oran": "_C2D1",
     "isha": "_C2D1",
-    "johndoeII": "_C2D1",
+    "johndoeII": "_C2D2",
     "whitney_fine": "_C2D2",
     "phineas": "_C3D3",
 }

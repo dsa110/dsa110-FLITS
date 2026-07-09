@@ -73,7 +73,11 @@ CLUSTER_TARGETS = [
 
 _REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DEFAULT_RESULTS_DIR = os.path.join(_REPO, "results")
-DEFAULT_OUT_DIR = "/Users/jakobfaber/Developer/overleaf/Faber2026/figures"
+# Derived from this file's location, not a machine path: when FLITS is checked
+# out as the `pipeline` submodule of Faber2026, _REPO's parent is the manuscript
+# root and this resolves to Faber2026/figures. Override with --out-dir for a
+# standalone FLITS checkout. (Same treatment ae67f4f gave plot_association_cards.py.)
+DEFAULT_OUT_DIR = os.path.join(os.path.dirname(_REPO), "figures")
 
 
 def dominant_foreground_halo(name: str, ra: str, dec: str, z_frb: float, results_dir: str) -> dict:

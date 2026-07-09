@@ -1,5 +1,10 @@
 # Scintillation-bandwidth ↔ scattering integration — plan (2026-06-19)
 
+**Supersession note (2026-07-07):** this is a historical integration plan. Its
+JohnDoeII sub-K statements refer to the retired C2D1/free-α interpretation. The
+current promoted product is beta-native C2D2, railed-hi at β=4 with
+`tau_1GHz=2.219 ms`; do not use this plan as current JohnDoeII science text.
+
 ## TL;DR
 Do NOT build a scint-bandwidth estimator — a complete, tested one already exists. The
 "integration" is **wiring the existing consistency layer to consume the joint-fit

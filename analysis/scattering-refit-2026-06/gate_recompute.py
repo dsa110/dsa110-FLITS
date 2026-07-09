@@ -6,8 +6,8 @@ the fitted (tau,alpha,t0,zeta,delta_dm), form the whitened residual, and measure
 the two gate metrics that decide MEASUREMENT/MARGINAL/EXCLUDE:
   - 2D chi^2/dof per band (good 0.8-1.5, fail >3 or <0.3)
   - band-integrated residual lag-1 autocorrelation (temporal whiteness;
-    >0.4 = multi-component shape misfit -> the scattering model itself is wrong,
-    so a scintillation test on top is meaningless)
+    >0.4 = coherent residual structure requiring multiplicity/profile-model
+    review before treating the fit as a scattering/PBF measurement)
 plus alpha-rail (<1.3 or >5.7 = pinned to the [1,6] prior bound).
 """
 import glob, json, os, sys

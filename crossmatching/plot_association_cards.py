@@ -42,7 +42,12 @@ from analysis.flux_cal import dsa_pointing_dec
 ROOT = Path(__file__).resolve().parents[1]
 HERE = Path(__file__).resolve().parent
 OUTDIR = HERE / "association_cards"
-MANUSCRIPT_OUTDIR = Path("/Users/jakobfaber/Developer/overleaf/Faber2026/figures/association_cards")
+# Manuscript figures live one level above the pipeline submodule
+# (…/Faber2026/figures/association_cards). Derive it from the file location so a
+# fresh clone works with no edits; override with --manuscript-dir. When the
+# submodule is checked out standalone this default simply won't exist, and
+# --no-manuscript-copy (or a --manuscript-dir override) is the escape hatch.
+DEFAULT_MANUSCRIPT_OUTDIR = ROOT.parent / "figures" / "association_cards"
 
 
 def _load_json(name: str):
@@ -274,6 +279,24 @@ def plot_card(
 
 
 def main() -> None:
+    import argparse
+
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument(
+        "--manuscript-dir",
+        type=Path,
+        default=DEFAULT_MANUSCRIPT_OUTDIR,
+        help="directory to copy the card PDFs into (default: the manuscript's "
+        f"figures/association_cards, resolved to {DEFAULT_MANUSCRIPT_OUTDIR})",
+    )
+    p.add_argument(
+        "--no-manuscript-copy",
+        action="store_true",
+        help="only write to the local association_cards/ dir; skip the "
+        "manuscript copy (use when the submodule is checked out standalone)",
+    )
+    args = p.parse_args()
+
     toa = _load_json("toa_crossmatch_results.json")
     assoc = {row["name"]: row for row in _load_json("association_report.json")["bursts"]}
     chime = {row["name"]: row for row in _load_json("chime_side_inputs.json")}
@@ -283,7 +306,9 @@ def main() -> None:
     dsa_interp = _dsa_beam_interpolator()
 
     OUTDIR.mkdir(exist_ok=True)
-    MANUSCRIPT_OUTDIR.mkdir(parents=True, exist_ok=True)
+    copy_to_manuscript = not args.no_manuscript_copy
+    if copy_to_manuscript:
+        args.manuscript_dir.mkdir(parents=True, exist_ok=True)
     names = list(fixture)
     for name in names:
         fig = plot_card(name, toa[name], chime[name], fixture[name], assoc[name], dsa_interp)
@@ -291,10 +316,13 @@ def main() -> None:
         for ext in ("pdf", "png"):
             out = OUTDIR / f"{stem}.{ext}"
             fig.savefig(out, dpi=300)
-            if ext == "pdf":
-                shutil.copy2(out, MANUSCRIPT_OUTDIR / out.name)
+            if ext == "pdf" and copy_to_manuscript:
+                shutil.copy2(out, args.manuscript_dir / out.name)
         plt.close(fig)
-    print(f"wrote {len(names)} cards to {OUTDIR} and copied PDFs to {MANUSCRIPT_OUTDIR}")
+    if copy_to_manuscript:
+        print(f"wrote {len(names)} cards to {OUTDIR} and copied PDFs to {args.manuscript_dir}")
+    else:
+        print(f"wrote {len(names)} cards to {OUTDIR} (manuscript copy skipped)")
 
 
 if __name__ == "__main__":

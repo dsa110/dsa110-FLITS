@@ -34,7 +34,6 @@ DEFAULT_RUNS = Path(os.environ.get("FLITS_RUNS", "/Users/jakobfaber/Developer/sc
 
 KNOWN_MULTIPLICITY_FLAGS = {
     "hamilton": "CHIME data show two components; current sharedzeta fit is C1D1 and misses the leading CHIME component.",
-    "johndoeII": "DSA data show multi-component structure; current C2D1 fit uses only one DSA component.",
     "whitney_fine": "DSA data show two narrow components; current C2D2 fit is degenerate and misses the second visible DSA component.",
 }
 

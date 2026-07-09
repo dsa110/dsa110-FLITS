@@ -8,10 +8,13 @@ can be run uniformly across the full sample. Same algorithm both bands: frequenc
 Lorentzian / gen-Lorentzian / composite fits, BIC + nested-F component selection,
 sub-band Δν_d(ν) power law → α, NE2025 Galactic floor.
 
-> ⚠ `DATA_PROVENANCE.md` is **stale on paths** (verified 2026-07-07): `h17:/data/jfaber/`
-> was emptied ~2026-06-27 by the arc_cleanup/migrate scripts. Everything now lives under
-> `h17:/data/research/astrophysics/frbs/chime-dsa-codetections/` (call it `$COD` below).
-> Trust the paths in THIS document; update DATA_PROVENANCE.md as part of this task.
+> ✓ **Path update applied (2026-07-08).** `DATA_PROVENANCE.md` previously pointed at
+> the stale `h17:/data/jfaber/` staging tree, which was emptied ~2026-06-27 by the
+> arc_cleanup/migrate scripts. It has since been updated: everything now lives under
+> `h17:/data/research/astrophysics/frbs/chime-dsa-codetections/` (call it `$COD` below),
+> and `DATA_PROVENANCE.md` carries a "2026-07-07/08 staging update" section, the
+> recovered oran/johndoeII event IDs, the local Mac inventory, and the CANFAR-pull
+> provenance. Both documents now agree on `$COD`; either can be trusted on paths.
 
 ---
 
@@ -158,8 +161,9 @@ already worked for 6 bursts on Jul 6 — repeat for the rest:
 - [ ] 3 DSA `acf_results.pkl` rescued out of `arc_trash_2026-06`.
 - [ ] 24 configs resolve and `flits-scint --config <yaml> --dry-run` (or equivalent
       loader smoke test) passes for every burst × band.
-- [ ] `DATA_PROVENANCE.md` updated: new h17 root `$COD`, recovered oran/johndoeII IDs,
-      local Mac inventory (§2 above), CANFAR-pull provenance for the 11 DSA npz.
+- [x] `DATA_PROVENANCE.md` updated (2026-07-08): new h17 root `$COD`, recovered
+      oran/johndoeII IDs, local Mac inventory (§2 above), CANFAR-pull provenance for
+      the 11 DSA npz.
 - [ ] Nothing fitted yet — fitting/re-validation is the NEXT campaign step
       (per `sections/results.tex` validation contract). This handoff is data-staging only.
 

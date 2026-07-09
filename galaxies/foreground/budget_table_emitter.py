@@ -100,15 +100,16 @@ conservative lower bound, so its sign is not one-directional:
 $\mathrm{DM_{int}}=0$ here is conditional on the assumed mass, and a more
 massive (or a measured) halo would bring the sightline inside $R_{\mathrm{vir}}$
 and make the column nonzero.}
-\tablecomments{Because the cosmological term is drawn from a highly skewed
-distribution, the host posteriors are broad and asymmetric and their medians
-exceed the naive mean-subtracted residuals. The two highest-redshift sightlines
-(FRB 20220310F, FRB 20221203A; $z=0.48$, $0.51$), where the Macquart term
+\tablecomments{Because the diffuse cosmic term is drawn from a skewed log-normal,
+the host posteriors are asymmetric and their medians exceed the naive
+mean-subtracted residuals. The two highest-redshift sightlines
+(FRB 20220310F, FRB 20221203A; $z=0.48$, $0.51$), where the diffuse cosmic term
 dominates the budget, have host posteriors consistent with zero
-($P(\mathrm{DM_{host}}<0)\approx0.45$): their formerly negative point residuals
-reflect sightline-to-sightline scatter about the cosmological mean rather than an
-unphysical host. Per-sightline $P(\mathrm{DM_{host}}<0)$ and the forward-model
-priors are tabulated in Appendix~\ref{app:host-forward-model}.}
+($P(\mathrm{DM_{host}}<0)\approx0.5$): their marginally negative medians reflect
+sightline-to-sightline scatter about the cosmological normalization rather than an
+unphysical host, and an IGM baryon fraction within $0.25\sigma$ of the adopted
+prior places either median at zero. Per-sightline $P(\mathrm{DM_{host}}<0)$ and
+the forward-model priors are tabulated in Appendix~\ref{app:host-forward-model}.}
 \end{deluxetable*}
 """
 

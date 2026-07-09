@@ -5,7 +5,7 @@
     "dt_s": 1.0,
     "ddm": 5.0,
     "dm_model": "lognormal(500,0.7) [assumption]",
-    "chime_dm_method": "SUSPENDED pending audit \u2014 prior DM-phase extraction had a 1e-3*K_DM inter-channel unit bug and non-peaking curves; CHIME DMs nulled until rebuilt on library coherent_dedisp (see .agents/audit-chime-side-dm.md). Pillar 4 (positions) unaffected.",
+    "chime_dm_method": "arrival-time regression (scatter-deconvolved EMG sub-band t0 vs nu^-2; coherent_dedisp at DSA DM; uniform TDS=32/N_SB=6) on library coherent_dedisp; 8/12 bursts constrained, 4 unconstrained (<3 sub-bands above S/N 4). Supersedes the retracted DM-phase extraction (1e-3*K_DM inter-channel unit bug). Per-burst DMs and CHIME-DSA agreement in dm_provenance.csv; see .agents/audit-chime-side-dm.md.",
     "chime_localization_radius_deg": 0.1,
     "chime_localization_note": "tiedbeam pointing; no multi-beam error ellipse (Michilli+2021 sub-arcmin assumed)"
   },
@@ -25,7 +25,7 @@
       },
       "dm_confidence": "constrained",
       "position": {
-        "separation_deg": 0.016227784668577917,
+        "separation_deg": 0.01622778466857792,
         "radius_deg": 0.1,
         "consistent": true,
         "reason": null
@@ -45,7 +45,7 @@
       },
       "dm_confidence": "unconstrained",
       "position": {
-        "separation_deg": 0.011692487824505162,
+        "separation_deg": 0.01169248782450516,
         "radius_deg": 0.1,
         "consistent": true,
         "reason": null
@@ -85,7 +85,7 @@
       },
       "dm_confidence": "constrained",
       "position": {
-        "separation_deg": 0.014981182817416788,
+        "separation_deg": 0.014981182817416784,
         "radius_deg": 0.1,
         "consistent": true,
         "reason": null
@@ -105,7 +105,7 @@
       },
       "dm_confidence": "constrained",
       "position": {
-        "separation_deg": 0.007464782164573648,
+        "separation_deg": 0.007464782164573644,
         "radius_deg": 0.1,
         "consistent": true,
         "reason": null
@@ -125,7 +125,7 @@
       },
       "dm_confidence": "constrained",
       "position": {
-        "separation_deg": 0.005936123970720243,
+        "separation_deg": 0.0059361239707202435,
         "radius_deg": 0.1,
         "consistent": true,
         "reason": null
@@ -245,7 +245,7 @@
       },
       "dm_confidence": "constrained",
       "position": {
-        "separation_deg": 0.010302202214218582,
+        "separation_deg": 0.010302202214218584,
         "radius_deg": 0.1,
         "consistent": true,
         "reason": null

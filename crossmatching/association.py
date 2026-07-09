@@ -220,9 +220,11 @@ def build_association_report(
             "dt_s": dt_s,
             "ddm": ddm,
             "dm_model": "lognormal(500,0.7) [assumption]",
-            "chime_dm_method": "SUSPENDED pending audit — prior DM-phase extraction had a 1e-3*K_DM "
-            "inter-channel unit bug and non-peaking curves; CHIME DMs nulled until rebuilt on library "
-            "coherent_dedisp (see .agents/audit-chime-side-dm.md). Pillar 4 (positions) unaffected.",
+            "chime_dm_method": "arrival-time regression (scatter-deconvolved EMG sub-band t0 vs "
+            "nu^-2; coherent_dedisp at DSA DM; uniform TDS=32/N_SB=6) on library coherent_dedisp; "
+            "8/12 bursts constrained, 4 unconstrained (<3 sub-bands above S/N 4). Supersedes the "
+            "retracted DM-phase extraction (1e-3*K_DM inter-channel unit bug). Per-burst DMs and "
+            "CHIME-DSA agreement in dm_provenance.csv; see .agents/audit-chime-side-dm.md.",
             "chime_localization_radius_deg": chime_radius_deg,
             "chime_localization_note": "tiedbeam pointing; no multi-beam error ellipse "
             "(Michilli+2021 sub-arcmin assumed)",

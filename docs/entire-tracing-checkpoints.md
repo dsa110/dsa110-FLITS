@@ -5123,6 +5123,77 @@ preserving for future agents.
   - entire/checkpoints/v1 -> f36a8fd
 - note: `.entire/` remains host-local runtime state; only this ledger is tracked.
 
+## 2026-07-06T14:50:46-07:00 — jakob
+- repo: `/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS`
+- branch: `feat/joint-triptych-plots`
+- head: `8eb2032e`
+- origin/main: `7e77437d`
+- worktree: clean
+- note: watched path changed: analysis/beta_campaign/plot_joint_triptychs.py
+- tracked status: clean
+- local `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd4
+- `origin` `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd
+- note: `.entire/` remains host-local runtime state; only this ledger is tracked.
+
+## 2026-07-06T14:51:02-07:00 — jakob
+- repo: `/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS`
+- branch: `main`
+- head: `4f5f7f0d`
+- origin/main: `4f5f7f0d`
+- worktree: dirty
+- note: watched path changed: analysis/beta_campaign/plot_joint_triptychs.py
+- tracked status:
+  - M docs/entire-tracing-checkpoints.md
+- local `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd4
+- `origin` `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd
+- note: `.entire/` remains host-local runtime state; only this ledger is tracked.
+
+## 2026-07-06T15:01:43-07:00 — jakob
+- repo: `/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS`
+- branch: `feat/triptychs-in-repo`
+- head: `667a6780`
+- origin/main: `56b7d423`
+- worktree: clean
+- note: watched path changed: analysis/beta_campaign/plot_joint_triptychs.py
+- tracked status: clean
+- local `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd4
+- `origin` `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd
+- note: `.entire/` remains host-local runtime state; only this ledger is tracked.
+
+## 2026-07-06T15:02:03-07:00 — jakob
+- repo: `/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS`
+- branch: `main`
+- head: `6546b7bb`
+- origin/main: `6546b7bb`
+- worktree: clean
+- note: watched path changed: analysis/beta_campaign/plot_joint_triptychs.py
+- tracked status: clean
+- local `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd4
+- `origin` `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd
+- note: `.entire/` remains host-local runtime state; only this ledger is tracked.
+
+## 2026-07-07T07:55:24-07:00 — jakob
+- repo: `/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS`
+- branch: `main`
+- head: `a78d64dc`
+- origin/main: `9b6cf8b4`
+- worktree: clean
+- note: watched path changed: docs/rse/specs/reproducibility-foreground-galaxies.md
+- tracked status: clean
+- local `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd4
+- `origin` `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd
+- note: `.entire/` remains host-local runtime state; only this ledger is tracked.
+
 ## 2026-07-09T07:36:36-07:00 — jakob
 - repo: `/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS`
 - branch: `reval/p1-contract`

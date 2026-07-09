@@ -17,6 +17,7 @@ FOOTPRINT_RULES: dict[str, str] = {
     "NED": "all_sky",
     "GLADE+": "all_sky",
     "DESI_DR8_NORTH": "desi_north",
+    "LEGACY_DR9_PHOTOZ": "desi_north",
     "SDSS_DR12": "sdss_ngc",
     "CLUSTERS": "all_sky",
     "DESI_DR1": "desi_dr1",
@@ -76,7 +77,12 @@ def survey_in_footprint(survey_key: str, coord: SkyCoord) -> bool:
 def engine_survey_key(engine: Any) -> str:
     """Stable survey label for coverage tables (matches search log names)."""
     from .engines import VizierEngine
-    from .engines_extra import ClusterEngine, DesiDr1Engine, NedTapEngine
+    from .engines_extra import (
+        ClusterEngine,
+        DesiDr1Engine,
+        LegacySurveyDr9PhotozSweepEngine,
+        NedTapEngine,
+    )
 
     if isinstance(engine, NedTapEngine):
         return "NED"
@@ -84,6 +90,8 @@ def engine_survey_key(engine: Any) -> str:
         return "CLUSTERS"
     if isinstance(engine, DesiDr1Engine):
         return "DESI_DR1"
+    if isinstance(engine, LegacySurveyDr9PhotozSweepEngine):
+        return "LEGACY_DR9_PHOTOZ"
     if isinstance(engine, VizierEngine):
         from .config import VIZIER_CATALOGS
 

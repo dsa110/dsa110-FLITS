@@ -20,9 +20,10 @@ suffix map (`grade_beta_campaign.SUFFIX`):
 | suffix | bursts |
 |---|---|
 | `_sharedzeta` | freya, casey, chromatica, wilhelm, hamilton |
-| `_C1D1` | mahi, zach |
-| `_C2D1` | oran, isha; johndoeII in historical pass 1 only |
+| `_C1D1` | mahi |
+| `_C2D1` | oran, isha |
 | `_C2D2` | whitney_fine; johndoeII promoted |
+| `_C2D4_cwin` | zach promoted (bespoke morphology-audit refit) |
 | `_C3D3` | phineas |
 
 Every fit was verified against its own posterior-predictive check before
@@ -48,7 +49,7 @@ within 0.05 of the bound, from the sampled posterior (not the summary).
 | whitney_fine | 3.968 | (4.0 limit) | 1.182 | 1.09/1.42 | railed-hi | MARGINAL |
 | wilhelm | 3.979 | (4.0 limit) | 0.269 | 1.57/6.73 | railed-hi | MARGINAL |
 | hamilton | 3.978 | (4.0 limit) | 0.0245 | 3.96/1.00 | railed-hi | MARGINAL |
-| zach | 3.990 | (4.0 limit) | 0.294 | 2.51/1.31 | railed-hi | MARGINAL |
+| zach | 3.990 | (4.0 limit) | 0.186 | 1.35/1.02 | railed-hi | MARGINAL |
 | chromatica | 3.990 | — | — | 11.59/9.25 | railed-hi | **FAIL** |
 
 Headline: **2 interior members (freya, phineas) are genuine power-law-tail
@@ -66,8 +67,10 @@ strongly structured data) and is excluded from all citable products.
 
 - **Tier A (7, fully adjudicated):** freya, phineas (interior β + derived α);
   casey, mahi, oran, isha, johndoeII (railed-hi, α = 4 limits).
-- **Tier B (3, provisional):** wilhelm, hamilton, zach — railed-hi with L2
-  χ² caveats (6.73 DSA / 3.96 CHIME / 2.51 CHIME respectively).
+- **Tier B (3, provisional):** wilhelm, hamilton, zach — railed-hi; wilhelm/hamilton
+  retain L2 χ² caveats (6.73 DSA / 3.96 CHIME respectively). zach's C2D4 promotion
+  clears its earlier CHIME χ² caveat (now 1.35/1.02); tier-B pending_s2 designation
+  retained on the second-screen multiplicity robustness question.
 - **Multiplicity exemplar:** whitney (C2D2 after local re-prep) — quoted as
   exemplar, not a roster row.
 - **Excluded:** chromatica (gate FAIL).
@@ -91,7 +94,7 @@ non-detection that would otherwise dominate the inverse-variance mean).
 | mahi | 87.2 | different_screens |
 | chromatica | 93.9 | different_screens (τ not citable — gate FAIL) |
 | isha | 39.0 | different_screens |
-| zach | 37.6 | different_screens |
+| zach | 23.9 | different_screens |
 | johndoeII | 281 | different_screens |
 | phineas | 624 | different_screens |
 | whitney_fine | 6259 | different_screens |

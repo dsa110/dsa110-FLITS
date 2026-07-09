@@ -97,6 +97,13 @@ Catalog/query engines:
 - VizieR GLADE+ (`VII/291/gladep`), DESI Legacy DR8 North photo-z
   (`VII/292/north`), and SDSS DR12 (`V/147/sdss12`).
 - All-sky cluster catalogs through `ClusterEngine`: PSZ2, MCXC, MCXC-II.
+- Optional Legacy Surveys DR9 9.1 photo-z sweep lookup exists through
+  `LegacySurveyDr9PhotozSweepEngine`, disabled by default
+  (`ENABLE_LEGACY_DR9_PHOTOZ = False`). It requires paired local DR9 sweep files:
+  `north/sweep/9.0/sweep-...fits` for positions/morphology/fluxes and
+  `north/sweep/9.1-photo-z/sweep-...-pz.fits` for `Z_PHOT_*`. Point
+  `FLITS_LEGACY_DR9_SWEEP_CACHE` at a cache containing those files before
+  enabling it.
 - Optional DESI DR1 TAP search exists but is disabled by default
   (`ENABLE_EXTRA_ENGINES = False`).
 
@@ -233,6 +240,22 @@ PY
 
 Any candidate-list change must be adjudicated through the validation chain below
 before it is allowed into `foreground_final.csv`.
+
+For resume-safe per-sightline replay outputs, aggregate the individual
+`*/search_summary.csv`, `*/survey_coverage.csv`, and `*/*_galaxies.csv` files
+without promoting them:
+
+```bash
+flits_py scripts/foreground/aggregate_revalidation_replay.py \
+  --input-dir scratch/revalidation-foreground-20260707/live_search \
+  --output-dir scratch/revalidation-foreground-20260707/combined \
+  --registry-csv galaxies/foreground/data/intervening_census_registry.csv
+```
+
+This writes combined replay candidates, combined coverage, combined summaries,
+and a nearest-neighbor registry diff. A low match count is not itself a verdict;
+it means the fresh replay must be row-adjudicated against the frozen census and
+catalog provenance before any V4 foreground claim is made.
 
 ## Rebuild The Frozen 49-Object Census
 

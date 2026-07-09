@@ -6,7 +6,11 @@ from galaxies.foreground.survey_coverage import (
     classify_coverage,
     survey_in_footprint,
 )
-from galaxies.foreground.survey_footprint_mocs import _full_sky_moc, moc_sky_area_deg2, rasterize_moc
+from galaxies.foreground.survey_footprint_mocs import (
+    _full_sky_moc,
+    moc_sky_area_deg2,
+    rasterize_moc,
+)
 
 
 def test_high_latitude_in_northern_surveys():

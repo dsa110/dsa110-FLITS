@@ -191,18 +191,18 @@
     {
       "burst": "zach",
       "alpha": 4.0,
-      "beta": 3.9898946227484458,
-      "tau": 0.2940239093266775,
+      "beta": 3.9897163768762995,
+      "tau": 0.1864021408460393,
       "rail": true,
-      "chi2_chime": 2.5131695088139154,
-      "chi2_dsa": 1.3084150038112266,
+      "chi2_chime": 1.3468341800327501,
+      "chi2_dsa": 1.0223746479745357,
       "l1": "PASS",
-      "l2": "MARGINAL",
+      "l2": "PASS",
       "l3": "PASS",
       "tau_dnu": "N/A (no dnu_d)",
       "final": "MARGINAL",
-      "reason": "alpha prior-railed (within 0.1 of bound) -> unconstrained; L2 chi2_C=2.51(MARGINAL) chi2_D=1.31(PASS)",
-      "suffix": "_C1D1",
+      "reason": "alpha prior-railed (within 0.1 of bound) -> unconstrained",
+      "suffix": "_C2D4_cwin",
       "rail_class": "railed-hi",
       "rail_detail": {
         "class": "railed-hi",
@@ -213,11 +213,11 @@
         "edge_mass_hi": 1.0
       },
       "beta_err": [
-        0.0066341230999129586,
-        0.007049663796868
+        0.006158414817557301,
+        0.006970146160249158
       ],
-      "log_evidence": 31751.479644258132,
-      "ncall": 1061556
+      "log_evidence": 67983.26603602848,
+      "ncall": 337976
     },
     {
       "burst": "oran",

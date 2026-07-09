@@ -8,7 +8,7 @@
 | wilhelm | sharedzeta | 3.979 (+0.001/-0.001) | 4.02 | 0.2693 | 1.57/6.73 | railed-hi | MARGINAL | alpha prior-railed (within 0.1 of bound) -> unconstrained; L2 chi2_C=1.57(MARGINAL) chi2_D=6.73(MARGINAL) |
 | hamilton | sharedzeta | 3.978 (+0.002/-0.003) | 4.02 | 0.02447 | 3.96/1.00 | railed-hi | MARGINAL | alpha prior-railed (within 0.1 of bound) -> unconstrained; L2 chi2_C=3.96(MARGINAL) chi2_D=1.00(PASS) |
 | mahi | C1D1 | 3.785 (+0.138/-0.155) | 4.24 | 0.2193 | 1.04/0.90 | railed-hi | MARGINAL | L3 tau x dnu not evaluable (no dnu_d) -> capped at MARGINAL |
-| zach | C1D1 | 3.990 (+0.007/-0.007) | 4.00 | 0.294 | 2.51/1.31 | railed-hi | MARGINAL | alpha prior-railed (within 0.1 of bound) -> unconstrained; L2 chi2_C=2.51(MARGINAL) chi2_D=1.31(PASS) |
+| zach | C2D4_cwin | 3.990 (+0.007/-0.006) | 4.00 | 0.1864 | 1.35/1.02 | railed-hi | MARGINAL | alpha prior-railed (within 0.1 of bound) -> unconstrained |
 | oran | C2D1 | 3.987 (+0.009/-0.021) | 4.00 | 0.8428 | 1.02/1.22 | railed-hi | MARGINAL | alpha prior-railed (within 0.1 of bound) -> unconstrained |
 | isha | C2D1 | 3.841 (+0.085/-0.105) | 4.17 | 0.3138 | 1.05/0.91 | railed-hi | MARGINAL | L3 tau x dnu not evaluable (no dnu_d) -> capped at MARGINAL |
 | johndoeII | C2D2 | 3.936 (+0.032/-0.068) | 4.07 | 2.219 | 1.09/1.23 | railed-hi | MARGINAL | alpha prior-railed (within 0.1 of bound) -> unconstrained |

@@ -115,20 +115,20 @@
     {
       "burst_name": "zach",
       "telescope": "dsa",
-      "tau_1ghz": 0.2940239093266775,
-      "tau_1ghz_err": 0.0007098609207548956,
+      "tau_1ghz": 0.1864021408460393,
+      "tau_1ghz_err": 0.0009667723989452426,
       "delta_nu_dc": 0.4915504894803766,
       "delta_nu_dc_err": 0.05379054869961435,
       "alpha": 4.0,
-      "beta": 3.9898946227484458,
-      "tau_at_1p4ghz_ms": 0.07653683603880611,
-      "tau_delta_nu_product": 37.621719218154475,
-      "tau_delta_nu_product_err": 4.117960248186974,
+      "beta": 3.9897163768762995,
+      "tau_at_1p4ghz_ms": 0.04852200667587446,
+      "tau_delta_nu_product": 23.85101613209619,
+      "tau_delta_nu_product_err": 2.6129551906442665,
       "implied_tau_from_dnu_ms": 0.00037558651234741343,
       "is_consistent": false,
       "quality_flag": "different_screens",
       "screen_verdict": "different_screens",
-      "interpretation": "Resolved \u0394\u03bd_d implies a near-screen \u03c4\u22483.76e-04 ms \u226a fitted pulse-broadening \u03c4=0.077 ms \u2192 different screens (resolved near vs far scattering screen)"
+      "interpretation": "Resolved \u0394\u03bd_d implies a near-screen \u03c4\u22483.76e-04 ms \u226a fitted pulse-broadening \u03c4=0.049 ms \u2192 different screens (resolved near vs far scattering screen)"
     },
     {
       "burst_name": "oran",

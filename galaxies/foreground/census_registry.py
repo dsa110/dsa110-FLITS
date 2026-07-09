@@ -85,16 +85,6 @@ def budget_eligible(final_verdict: str, obj_type: str, b_over_r500: float) -> bo
 def build_intervening_census_registry(scratch_dir: Path | str | None = None) -> pd.DataFrame:
     """Assemble the 49-object registry from validated scratch/codetection CSVs."""
     here = scratch_codetection_dir(scratch_dir)
-    required = [
-        here / "foreground_final.csv",
-        here / "foreground.csv",
-        here / "foreground_validated.csv",
-        here / "bursts.csv",
-    ]
-    if any(not path.exists() for path in required):
-        checked_in = DATA_DIR / "intervening_census_registry.csv"
-        if scratch_dir is None and checked_in.exists():
-            return pd.read_csv(checked_in)
     fin = pd.read_csv(here / "foreground_final.csv")
     fgr = pd.read_csv(here / "foreground.csv")
     val = pd.read_csv(here / "foreground_validated.csv")

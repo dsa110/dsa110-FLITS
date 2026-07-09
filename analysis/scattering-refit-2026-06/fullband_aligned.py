@@ -19,8 +19,7 @@ Three panels share the axis:
   UNIFIED MODEL  - ONE zeta(nu)/tau(nu) law, dm_init=0, continuous across the gap
   RESIDUAL       - (data - g_f*K_f)/noise, gain-marginal: the profiled per-channel
                    gain g_f absorbs the burst spectrum + scintillation, so the
-                   residual shows temporal structure left after amplitude
-                   whitening (white = good)
+                   residual shows pure temporal SHAPE misfit (white = good)
 
 Writes <burst>_fullband_unified.png AND figures.manifest.json into the gated dir
 (data/joint/gated_figures/<burst>/) so the repo figure-review Stop gate enforces
@@ -91,8 +90,8 @@ def gain_resid(m, p):
 
     K_f is the unit-amplitude scattering kernel; g_f = gain_spectrum is the
     profiled per-channel amplitude (burst spectrum * scintillation). Subtracting
-    g_f*K_f whitens amplitude, so what remains is temporal residual structure
-    for the chosen component/PBF family.
+    g_f*K_f whitens amplitude, so what remains is the temporal shape misfit only --
+    the honest goodness-of-fit for a gain-marginal fit.
     """
     K = m(p, "M3")
     g = m.gain_spectrum(p, "M3")[:, None]
@@ -118,9 +117,8 @@ def write_manifest(gated_dir, png_name, b, al, tau, z1, xz, dm, moff, geo, clock
         f"either band/gap edge (the gap is the seamless bridge), spanning the full "
         f"time axis in every channel. RESIDUAL: gain-marginal so amplitude/scint is "
         f"absorbed -- expect ~white (|resid|<~3) if the scattering+width law fits; a "
-        f"coherent red/blue block = remaining temporal residual structure (e.g. "
-        f"unmodelled sub-structure or component-model limitation), not by itself a "
-        f"PBF/EMG-family rejection. Paper-styled: serif/stix fonts, panels labelled (a) data / "
+        f"coherent red/blue block = remaining temporal shape misfit (e.g. unmodelled "
+        f"sub-structure). Paper-styled: serif/stix fonts, panels labelled (a) data / "
         f"(b) unified model / (c) residual, each with its own colorbar (norm. flux for "
         f"a+b, residual sigma for c); 'DSA'/'CHIME' band labels at the top/bottom-right "
         f"of panel (a); cyan dashed = band edges, green dotted = aligned arrival. "

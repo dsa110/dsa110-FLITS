@@ -1,5 +1,5 @@
 {
-  "locked_utc": "2026-07-07",
+  "locked_utc": "2026-07-06",
   "adr": "docs/adr/0005-citable-alpha-roster.md (beta re-lock under ADR-0006; docs/rse/specs/plan-beta-coherent-thin-screen-campaign.md)",
   "membership_rule": [
     "beta co-model joint fit (ADR-0006), thin-screen pass 1",
@@ -100,18 +100,18 @@
     {
       "nickname": "johndoeII",
       "tns": "FRB 20230814B",
-      "model": "C2D2",
-      "beta": 3.9357,
+      "model": "C2D1",
+      "beta": 3.9893,
       "beta_err": [
-        0.0679,
-        0.0324
+        0.0078,
+        0.0074
       ],
       "rail_class": "railed-hi",
-      "tau_1ghz": 2.219292440306282,
-      "chi2_chime": 1.0946761408975996,
-      "chi2_dsa": 1.2335789483802273,
+      "tau_1ghz": 2.1874487967572502,
+      "chi2_chime": 1.0942408359204094,
+      "chi2_dsa": 1.2662610554563856,
       "gate_final": "MARGINAL",
-      "fit_json": "analysis/beta_campaign/fits/johndoeII_joint_fit_C2D2.json",
+      "fit_json": "analysis/beta_campaign/fits/johndoeII_joint_fit_C2D1.json",
       "alpha_limit": 4.0,
       "alpha_note": "posterior railed at beta=4 (square-law/exponential member): alpha = 4 quotable only as a geometry-conditioned limit; ADR-0007 re-open candidate"
     },

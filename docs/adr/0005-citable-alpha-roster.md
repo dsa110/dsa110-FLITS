@@ -1,10 +1,6 @@
 # Canonical citable-α roster (decision-map #4)
 
-**Status:** accepted for the legacy all-exp/free-α roster (locked 2026-06-26).
-The 2026-07-07 beta re-lock supersedes the JohnDoeII C2D1 numeric row with a
-C2D2 beta-native product (`beta=3.936`, `alpha=4.07` as a railed-hi limit,
-`tau_1GHz=2.219 ms`, `chi2_C/D=1.09/1.23`); do not quote the retired JohnDoeII
-sub-K value as current.
+**Status:** accepted (locked 2026-06-26; **3 members provisional** pending all-exp fixed-s² grids)
 
 **Depends on:** [ADR-0002](0002-canonical-burst-naming.md),
 [ADR-0003](0003-single-exponential-pbf.md),
@@ -43,7 +39,7 @@ Shared-ζ or single-component with all-exp fixed-s² where needed. Safe to cite 
 | Nickname | TNS | Model | α (all-exp) | χ² C/D | Notes |
 |----------|-----|-------|-------------|--------|-------|
 | casey | FRB 20240229A | sharedζ | 2.40 ± 0.01 | 1.41 / 0.99 | |
-| wilhelm | FRB 20221203A | sharedζ | 2.56 ± 0.04 | 1.14 / 4.55 | **Caveat:** DSA peak residual within the exponential/EMG-tail model; not an EMG rejection |
+| wilhelm | FRB 20221203A | sharedζ | 2.56 ± 0.04 | 1.14 / 4.55 | **Caveat:** DSA peak-shape misfit |
 | chromatica | FRB 20240203A | sharedζ | 3.28 ± 0.04 | 1.14 / 1.16 | |
 | zach | FRB 20220207C | C1D1 | 3.32 ± 0.01 | 2.30 / 1.30 | C2D3 rejected (s² sign-unstable); **no** profile-bias claim |
 | freya | FRB 20230325A | sharedζ | 4.36 ± 0.04 | 1.30 / 1.03 | Near-Kolmogorov |
@@ -55,7 +51,7 @@ quoted multi-component model. Cite only after `_s2verdict.py` adjudication (HPCC
 
 | Nickname | TNS | Model | α (all-exp) | χ² C/D | Blocker |
 |----------|-----|-------|-------------|--------|---------|
-| johndoeII | FRB 20230814B | C2D2 beta promoted; all-exp free-α pending | β=3.936, α=4 limit under beta model | C2D2 beta PPC: 1.09 / 1.23 | previous C2D1/free-α numeric row superseded; all-exp fixed-s² C2D2 citation remains a separate gate |
+| johndoeII | FRB 20230814B | C2D1 | 1.53 ± 0.09 | 1.04 / 1.27 | no `*_s2-*_pbf-exp-exp.json` |
 | oran | FRB 20220506D | C2D1 | 2.66 ± 0.17 | 1.04 / 1.16 | no all-exp s² grid |
 | phineas | FRB 20230307A | C3D3 | 3.32 ± 0.06 | 1.02 / 1.34 | no all-exp s² grid |
 
@@ -81,9 +77,7 @@ Fit JSON: `local_runs/data/joint/whitney_fine_joint_fit_C2D2_pbf-exp-exp.json`.
 
 ## Consequences
 
-- Faber2026 `tab:alpha`: **5 fully locked** in this legacy free-α roster. The
-  beta-native roster treats JohnDoeII C2D2 as a β=4-limit row, not as a restored
-  sub-K free-α measurement.
+- Faber2026 `tab:alpha`: **5 fully locked** now; **8 target** once Tier B s² grids adjudicate.
 - Energies sample (#6) and campaign-count reconciliation (#4 deferred items) may
   proceed against this quality-passing set.
 - Mixed-PBF `joint_json/` + `joint_gate_verdicts.md` are **superseded** for

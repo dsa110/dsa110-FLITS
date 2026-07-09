@@ -29,9 +29,9 @@ BURSTS = [
     ("freya", "CONTROL — clean PASS", "g",
      "Single sharp peak + scattering tail in BOTH bands (find_peaks 83σ / 92σ, α=4.48). Calibrates the count: a clean burst is one peak.",
      "1", "1"),
-    ("johndoeII", "C2D2 PROMOTED", "b",
-     "Old single-control / sub-K read superseded. The promoted beta-native morphology model is C2D2; it rails high at β=4 and is quoted only as an α=4 geometry-conditioned limit.",
-     "2", "2"),
+    ("johndoeII", "CONTROL — rail ≠ pulse", "g",
+     "Single in both bands (find_peaks 7σ / 6.5σ). α-railed LOW but ONE peak each → its rail is NOT a hidden pulse (α↔ΔDM degeneracy or genuine sub-Kolmogorov).",
+     "1", "1"),
     ("hamilton", "MULTI-COMPONENT", "b",
      "CHIME: close DOUBLET 11.61 + 11.92 ms (find_peaks 22σ + 82σ) — rails α LOW; a 3rd peak sits right at the 4σ floor (marginal). DSA: clean single (15σ).",
      "2", "1"),
@@ -67,12 +67,12 @@ slides.append(("Multi-component structure in the co-detected FRB sample",
       <li><b>4 show a discrete 2nd pulse</b> — hamilton, whitney, phineas, zach&nbsp;DSA → multi-component fit is the right fix.</li>
       <li><b>1 is a frequency-dependent scattering tail, not a pulse</b> — zach&nbsp;CHIME → a 2nd component is the <i>wrong</i> fix.</li>
       <li><b>4 under-resolved</b> — oran, chromatica, mahi, isha: DSA windows of 9–24 samples can't separate pulse vs drift vs tail.</li>
-      <li><b>1 clean control</b> — freya (single). JohnDoeII is no longer a control; it is promoted as C2D2.</li>
+      <li><b>2 clean controls</b> — freya, johndoeII (single) → the read is calibrated.</li>
     </ul>
     Hypothesis <b>partly confirmed, partly complicated</b>: "add a 2nd component" is not a universal fix.</div>"""))
 
 slides.append(("The problem &amp; the hypothesis",
-    """<p>9 of 12 co-detected bursts were <b>excluded</b> from the historical joint scintillation analysis by a fit-quality gate: 3 α-railed (hamilton, johndoeII, oran), 6 temporal-fail (non-white residual: chromatica, isha, mahi, phineas, whitney, zach). The JohnDoeII row is now superseded by the beta-native C2D2 promotion.</p>
+    """<p>9 of 12 co-detected bursts were <b>excluded</b> from the joint scintillation analysis by a fit-quality gate: 3 α-railed (hamilton, johndoeII, oran), 6 temporal-fail (non-white residual: chromatica, isha, mahi, phineas, whitney, zach).</p>
     <div class=box><b>Hypothesis.</b> An <i>unmodeled</i> 2nd pulse forces the one-component fit to absorb it by distorting the tail and railing α. A 2-component fit should whiten the residual <i>and</i> un-rail α — making the gate a model limitation, not a data property. "Hidden" = hidden from the <i>model</i>, not the eye.</div>
     <p class=note>This deck tests the premise by eye: do the flagged bursts actually show a 2nd pulse?</p>"""))
 
@@ -122,13 +122,13 @@ slides.append(("OUTCOME — sub-burst counts (deterministic, find_peaks ≥4σ)"
     <tr><th>burst</th><th>CHIME N</th><th>DSA N</th><th>confidence</th></tr>
     {rows}
     </table>
-    <div class=box><b>Assessment.</b> Confident for {n_known}/10 under this historical peak-count pass. JohnDoeII is no longer governed by the old single-control call; use the promoted beta-native C2D2 product for current morphology. <b>CHIME multi in hamilton; DSA multi in whitney, phineas, zach</b> under the historical pass. The coarse-DSA trio oran/mahi/isha returns <b>no ≥4σ peak</b> (12–9–21t; even the algorithm's noise estimate breaks) → genuinely indeterminate, the actionable gap (re-extract at finer DSA time resolution).</div>"""))
+    <div class=box><b>Assessment.</b> Confident for {n_known}/10. <b>CHIME multi only in hamilton (2, +1 marginal); single elsewhere.</b> <b>DSA multi in whitney, phineas, zach (2 each)</b> — strong (2nd-peak prominence 9–22σ). The coarse-DSA trio oran/mahi/isha returns <b>no ≥4σ peak</b> (12–9–21t; even the algorithm's noise estimate breaks) → genuinely indeterminate, the actionable gap (re-extract at finer DSA time resolution). <b>Correction:</b> my earlier visual calls were wrong on 3 bursts (whitney both bands, phineas DSA, johndoeII DSA) — deterministic peak-finding supersedes the eyeball.</div>"""))
 
 slides.append(("Per-burst summary", """
     <table>
     <tr><th>burst</th><th>CHIME</th><th>DSA</th><th>flagged</th><th>verdict</th></tr>
     <tr><td>freya</td><td>single</td><td>single</td><td>— (PASS)</td><td class=g>clean control</td></tr>
-    <tr><td>johndoeII</td><td><b>C2D2</b></td><td><b>C2D2</b></td><td>old α-rail superseded</td><td class=b>promoted beta-native C2D2</td></tr>
+    <tr><td>johndoeII</td><td>single</td><td>single</td><td>α-rail</td><td class=g>rail ≠ pulse</td></tr>
     <tr><td>hamilton</td><td><b>double</b> 0.3ms</td><td>single</td><td>CHIME</td><td class=b>multi-component</td></tr>
     <tr><td>whitney</td><td>single</td><td><b>double</b></td><td>CHIME</td><td class=b>multi (DSA); note: flagged band is CHIME but its double is in DSA</td></tr>
     <tr><td>phineas</td><td>broad</td><td><b>double</b> 3.8ms</td><td>DSA</td><td class=b>multi-component</td></tr>

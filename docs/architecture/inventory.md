@@ -278,7 +278,7 @@ Each burst has a dedicated notebook/script following the pattern:
 **Common Pattern:**
 
 ```python
-# 1. Load dynamic spectra / current ACF cache products
+# 1. Load ACF data (from CHIME pickle files)
 # 2. Configure ScintillationAnalysis
 # 3. Fit ACF models
 # 4. Extract ν_s, t_s, DM
@@ -301,8 +301,7 @@ Each burst has a dedicated notebook/script following the pattern:
 
 **Data Sources:**
 
-- `chime_acfs/pickle.ipynb` - retired legacy ACF-fit pickle reader; do not use
-  for current scintillation products without reconstructing provenance
+- `chime_acfs/pickle.ipynb` - ACF data preprocessing
 
 ---
 

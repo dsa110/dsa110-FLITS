@@ -384,8 +384,6 @@ def compare_lorentzian_components(
                 "redchi": float(res_n.redchi),
                 "n_params": int(res_n.nvarys),
                 "ndata": int(res_n.ndata),
-                "constant": float(res_n.params["c_c"].value),
-                "constant_err": _param_stderr(res_n.params["c_c"]),
                 "components": comps,
             }
         )

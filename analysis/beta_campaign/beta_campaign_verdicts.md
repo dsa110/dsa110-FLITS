@@ -11,6 +11,6 @@
 | zach | C1D1 | 3.990 (+0.007/-0.007) | 4.00 | 0.294 | 2.51/1.31 | railed-hi | MARGINAL | alpha prior-railed (within 0.1 of bound) -> unconstrained; L2 chi2_C=2.51(MARGINAL) chi2_D=1.31(PASS) |
 | oran | C2D1 | 3.987 (+0.009/-0.021) | 4.00 | 0.8428 | 1.02/1.22 | railed-hi | MARGINAL | alpha prior-railed (within 0.1 of bound) -> unconstrained |
 | isha | C2D1 | 3.841 (+0.085/-0.105) | 4.17 | 0.3138 | 1.05/0.91 | railed-hi | MARGINAL | L3 tau x dnu not evaluable (no dnu_d) -> capped at MARGINAL |
-| johndoeII | C2D2 | 3.936 (+0.032/-0.068) | 4.07 | 2.219 | 1.09/1.23 | railed-hi | MARGINAL | alpha prior-railed (within 0.1 of bound) -> unconstrained |
+| johndoeII | C2D1 | 3.989 (+0.007/-0.008) | 4.00 | 2.187 | 1.09/1.27 | railed-hi | MARGINAL | alpha prior-railed (within 0.1 of bound) -> unconstrained |
 | whitney_fine | C2D2 | 3.968 (+0.009/-0.017) | 4.03 | 1.182 | 1.09/1.42 | railed-hi | MARGINAL | alpha prior-railed (within 0.1 of bound) -> unconstrained |
 | phineas | C3D3 | 3.228 (+0.020/-0.018) | 5.26 | 0.4694 | 1.06/1.24 | interior | MARGINAL | L3 alpha=5.26 off Kolmogorov |

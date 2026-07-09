@@ -6,9 +6,8 @@ within this on-pulse window (structure outside it is not fit). So this view is
 the fair test of "is there a visible 2nd component, or is the residual a
 tail-shape / DM / drift effect within one pulse?"
 
-Control: freya should look single-peaked if the chi2/lag-1 gate truly tracks
-pulse count. The old johndoeII clean-control read is superseded by the promoted
-beta-native C2D2 product.
+Controls: freya (clean PASS) and johndoeII (alpha-railed but residuals CLEAN)
+should look single-peaked if the chi2/lag-1 gate truly tracks pulse count.
 """
 import os
 import sys
@@ -37,7 +36,7 @@ GATE = {  # (band that fails, the lag1/chi2 note) for the suptitle
     "whitney": "CHIME chi2=2.9 lag1=+0.89",
     "zach": "CHIME chi2=2.3 lag1=+0.82",
     "freya": "CONTROL clean PASS (alpha=4.48)",
-    "johndoeII": "C2D2 promoted; retired alpha-rail LOW control",
+    "johndoeII": "CONTROL clean residual, alpha-rail LOW",
 }
 
 

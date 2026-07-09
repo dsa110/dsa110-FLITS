@@ -7,10 +7,6 @@ deliberately deferred behind this pass.
 
 ## What was run
 
-**Supersession note (2026-07-07):** this pass-1 report originally recorded the
-historical JohnDoeII C2D1 run. The jointmodel-pair multiplicity audit superseded
-that choice, and the promoted beta-coherent product now uses JohnDoeII C2D2.
-
 All 12 CHIME–DSA co-detections were re-fit with the β-native joint model
 (thin-screen PBF family: power-law-tail members for β < 4, exponential member
 at the β = 4 square-law limit). β sampled with bounds (3.0, 4.0); α = 2β/(β−2)
@@ -21,8 +17,8 @@ suffix map (`grade_beta_campaign.SUFFIX`):
 |---|---|
 | `_sharedzeta` | freya, casey, chromatica, wilhelm, hamilton |
 | `_C1D1` | mahi, zach |
-| `_C2D1` | oran, isha; johndoeII in historical pass 1 only |
-| `_C2D2` | whitney_fine; johndoeII promoted |
+| `_C2D1` | oran, isha, johndoeII |
+| `_C2D2` | whitney_fine |
 | `_C3D3` | phineas |
 
 Every fit was verified against its own posterior-predictive check before
@@ -44,7 +40,7 @@ within 0.05 of the bound, from the sampled posterior (not the summary).
 | mahi | 3.785 (−0.155/+0.138) | (4.0 limit) | 0.219 | 1.04/0.90 | railed-hi | MARGINAL |
 | oran | 3.987 | (4.0 limit) | 0.843 | 1.02/1.22 | railed-hi | MARGINAL |
 | isha | 3.841 (−0.105/+0.085) | (4.0 limit) | 0.314 | 1.05/0.91 | railed-hi | MARGINAL |
-| johndoeII | 3.936 | (4.0 limit) | 2.219 | 1.09/1.23 | railed-hi | MARGINAL |
+| johndoeII | 3.989 | (4.0 limit) | 2.187 | 1.09/1.27 | railed-hi | MARGINAL |
 | whitney_fine | 3.968 | (4.0 limit) | 1.182 | 1.09/1.42 | railed-hi | MARGINAL |
 | wilhelm | 3.979 | (4.0 limit) | 0.269 | 1.57/6.73 | railed-hi | MARGINAL |
 | hamilton | 3.978 | (4.0 limit) | 0.0245 | 3.96/1.00 | railed-hi | MARGINAL |
@@ -92,7 +88,7 @@ non-detection that would otherwise dominate the inverse-variance mean).
 | chromatica | 93.9 | different_screens (τ not citable — gate FAIL) |
 | isha | 39.0 | different_screens |
 | zach | 37.6 | different_screens |
-| johndoeII | 281 | different_screens |
+| johndoeII | 284 | different_screens |
 | phineas | 624 | different_screens |
 | whitney_fine | 6259 | different_screens |
 

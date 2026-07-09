@@ -39,7 +39,7 @@ CANON: dict[str, str] = {
     "phineas": "C3D3",
     "oran": "C2D1",
     "isha": "C2D1",
-    "johndoeII": "C2D2",
+    "johndoeII": "C2D1",
     "zach": "",
     "hamilton": None,
     "whitney": None,

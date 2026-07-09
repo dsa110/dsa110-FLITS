@@ -25,7 +25,7 @@ GATE = {
     "chromatica": "DSA chi2=9.1 lag1=+0.88", "isha": "C lag1=+0.77 & D chi2=3.4, tau tiny",
     "mahi": "DSA chi2=3.9 lag1=+0.67", "phineas": "DSA lag1=+0.81 chi2=2.1",
     "whitney": "CHIME chi2=2.9 lag1=+0.89", "zach": "CHIME chi2=2.3 lag1=+0.82",
-    "freya": "CONTROL clean PASS", "johndoeII": "C2D2 promoted; retired rail LOW control",
+    "freya": "CONTROL clean PASS", "johndoeII": "CONTROL clean residual, rail LOW",
 }
 
 

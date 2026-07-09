@@ -283,34 +283,34 @@
     },
     {
       "burst": "johndoeII",
-      "alpha": 4.066411381454531,
-      "beta": 3.9357229813477077,
-      "tau": 2.219292440306282,
+      "alpha": 4.0,
+      "beta": 3.9892720851784795,
+      "tau": 2.1874487967572502,
       "rail": true,
-      "chi2_chime": 1.0946761408975996,
-      "chi2_dsa": 1.2335789483802273,
+      "chi2_chime": 1.0942408359204094,
+      "chi2_dsa": 1.2662610554563856,
       "l1": "PASS",
       "l2": "PASS",
       "l3": "PASS",
       "tau_dnu": "N/A (no dnu_d)",
       "final": "MARGINAL",
       "reason": "alpha prior-railed (within 0.1 of bound) -> unconstrained",
-      "suffix": "_C2D2",
+      "suffix": "_C2D1",
       "rail_class": "railed-hi",
       "rail_detail": {
         "class": "railed-hi",
         "detail": "railed-hi (exponential-consistent; alpha=4 as limit; ADR-0007 candidate)",
         "three_sigma_lo": false,
         "three_sigma_hi": true,
-        "edge_mass_lo": 2.0130977228269353e-25,
-        "edge_mass_hi": 0.3490294202880055
+        "edge_mass_lo": 1.0729718491425848e-12,
+        "edge_mass_hi": 0.9432661003716822
       },
       "beta_err": [
-        0.06794548848128956,
-        0.032369919139358494
+        0.007809406908335426,
+        0.007396486198182561
       ],
-      "log_evidence": 6076.7220122034,
-      "ncall": 251220
+      "log_evidence": 6078.557002579236,
+      "ncall": 1158066
     },
     {
       "burst": "whitney_fine",

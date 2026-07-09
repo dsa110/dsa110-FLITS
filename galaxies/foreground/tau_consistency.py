@@ -94,12 +94,9 @@ def find_allexp_joint_json(burst: str, search_dir: Path | None = None) -> Path |
     if not matches:
         matches = [
             p
-        for p in sorted(root.glob("*joint*pbf-exp-exp.json"))
-        if burst in p.name.lower() and "ppc" not in p.name.lower()
+            for p in sorted(root.glob("*joint*pbf-exp-exp.json"))
+            if burst in p.name.lower() and "ppc" not in p.name.lower()
         ]
-    if burst == "johndoeii":
-        c2d2 = [p for p in matches if "c2d2" in p.name.lower()]
-        return c2d2[0] if c2d2 else None
     return matches[0] if matches else None
 
 
@@ -139,13 +136,9 @@ def find_citable_joint_json(burst: str) -> Path | None:
                 continue
             override = entry.get("fit_json")
             if override:
-                if burst == "johndoeii" and "c2d2" not in str(override).lower():
-                    return None
                 path = REPO_ROOT / str(override)
                 if path.exists():
                     return path
-            elif burst == "johndoeii":
-                return None
     return find_allexp_joint_json(burst)
 
 
@@ -186,11 +179,7 @@ def _import_gate_one():
 
 
 def load_allexp_joint_tau_for_budget(burst: str) -> dict | None:
-    """Citable joint τ + ADR-0004 gate for fig:budget overlay.
-
-    Historical name retained for callers: the roster may now override legacy
-    all-exp paths with beta-campaign fits, e.g. promoted JohnDoeII C2D2.
-    """
+    """All-exp joint τ + ADR-0004 gate for fig:budget overlay (citable roster only)."""
     burst = _normalize_burst(burst)
     if burst not in load_citable_budget_nicknames():
         return None
@@ -222,7 +211,7 @@ def load_allexp_joint_tau_for_budget(burst: str) -> dict | None:
 
 
 def load_joint_free_alpha(burst: str) -> dict:
-    """Free-α all-exp joint fit posteriors, with explicit retired-row overrides."""
+    """Free-α all-exp joint fit posteriors (provisional-citable α roster track)."""
     burst = _normalize_burst(burst)
     gate = load_joint_gate_table()
     row = gate[gate.burst == burst]
@@ -235,18 +224,6 @@ def load_joint_free_alpha(burst: str) -> dict:
             "joint_gate_source": str(JOINT_GATE_CSV),
         }
     path = find_allexp_joint_json(burst)
-    if path is None and burst == "johndoeii":
-        path = find_citable_joint_json(burst)
-        joint = load_allexp_joint_tau_for_budget(burst) if path is not None else None
-        if path is not None and joint is not None:
-            with open(path) as fh:
-                payload = json.load(fh)
-            return {
-                "tau_joint_1ghz_ms": joint["tau"],
-                "alpha_joint_free": _joint_fit_scalar(payload, "alpha"),
-                "joint_gate_final": joint["quality_flag"],
-                "joint_gate_source": str(path),
-            }
     if path is None:
         return {
             "tau_joint_1ghz_ms": np.nan,

@@ -40,29 +40,19 @@ def test_load_allexp_joint_tau_for_budget_casey():
     row = load_allexp_joint_tau_for_budget("casey")
     assert row is not None
     assert row["source"] == "allexp_joint"
-    assert row["tau"] == pytest.approx(0.018589939827674748, rel=1e-4)
+    assert row["tau"] == pytest.approx(0.06086799947757, rel=1e-4)
     assert row["quality_flag"] in ("PASS", "MARGINAL")
     assert row["err_minus"] > 0
 
 
 def test_load_allexp_joint_tau_excluded_burst():
-    assert load_allexp_joint_tau_for_budget("chromatica") is None
-
-
-def test_load_allexp_joint_tau_johndoeii_promoted_c2d2():
-    row = load_allexp_joint_tau_for_budget("johndoeII")
-    assert row is not None
-    assert row["source"] == "allexp_joint"
-    assert row["quality_flag"] in ("PASS", "MARGINAL")
-    assert row["tau"] == pytest.approx(2.219292440306282, rel=1e-4)
-    assert row["chi2_reduced"] == pytest.approx(1.2335789483802273, rel=1e-4)
+    assert load_allexp_joint_tau_for_budget("mahi") is None
 
 
 def test_citable_budget_nicknames_includes_whitney():
     names = load_citable_budget_nicknames()
     assert "whitney" in names
-    assert "johndoeii" in names
-    assert "chromatica" not in names
+    assert "mahi" not in names
 
 
 def test_load_joint_free_alpha_scalar_json(tmp_path, monkeypatch):
@@ -95,14 +85,6 @@ def test_load_joint_free_alpha_scalar_json(tmp_path, monkeypatch):
     loaded = load_joint_free_alpha("fake")
     assert loaded["tau_joint_1ghz_ms"] == 0.99
     assert loaded["alpha_joint_free"] == 4.0
-
-
-def test_load_joint_free_alpha_johndoeii_uses_promoted_c2d2():
-    loaded = load_joint_free_alpha("johndoeII")
-    assert loaded["joint_gate_final"] == "MARGINAL"
-    assert loaded["joint_gate_source"].endswith("johndoeII_joint_fit_C2D2.json")
-    assert loaded["tau_joint_1ghz_ms"] == pytest.approx(2.219292440306282, rel=1e-4)
-    assert loaded["alpha_joint_free"] == pytest.approx(4.066411381454531, rel=1e-4)
 
 
 def test_run_burst_raises_when_joint_output_missing(tmp_path, monkeypatch):

@@ -1,0 +1,49 @@
+% !! GENERATED FILE -- do not edit by hand. Values live in
+%    galaxies/foreground/foreground_table_data.json; markup in foreground_table_emitter.py.
+%    Regenerate: python -m galaxies.foreground.foreground_table_emitter --out <this file>
+%    Object IDs + verdicts are cross-checked against data/intervening_census_registry.csv.
+% Foreground census table. Values from the dsa110-FLITS foreground validation
+% (LS DR9 / DESI DR1 / NED /
+% PS1-STRM); see sec:obs-fg. Clusters are the WenHan2024 DESI Legacy/WISE
+% catalog, restricted to sightlines passing within R500 (only FRB 20230307A
+% J115120.4+714435 qualifies); 14 further foreground clusters at b>R500 are omitted.
+% Only confirmed and inconclusive systems are tabulated; the 7 candidates
+% refuted as background (and stellar classifications) are described in the text
+% (sec:obs-fg), matching the treatment of the other categorical cuts.
+\startlongtable
+\begin{deluxetable*}{lllrrlllll}
+\tabletypesize{\tiny}
+\tablecaption{Intervening foreground halos and clusters along the sightlines to the 12 CHIME/DSA co-detected FRBs, validated against DESI Legacy DR9 (Zhou+2021 photo-z), DESI DR1 spec-z, NED, and PS1-STRM. Verdicts: \emph{confirmed} (catalog $z<z_{\rm host}$) and \emph{inconclusive} ($z$ within $1\sigma$ of host, host $z$ unknown, or no trustworthy $z$). Candidates refuted as background are omitted (Section~\ref{sec:obs-fg}). \label{tab:foreground}}
+\tablehead{\colhead{Burst} & \colhead{Type} & \colhead{Obj ID} & \colhead{$b$} & \colhead{$b/R_{500}$} & \colhead{$z$} & \colhead{$z$ src} & \colhead{Class} & \colhead{Verdict} & \colhead{Note}}
+\startdata
+FRB 20220207C & halo & 195373100910393540 & 76 & \nodata & $0.469\pm0.047$ & PS1-STRM phot & GALAXY & inconclusive & phot.\ extrap. \\
+FRB 20220310F & halo & 1473 & 105 & \nodata & $0.358\pm0.113$ & LS/Zhou phot & REX & confirmed & LS/Zhou phot < host \\
+ & halo & 1582 & 184 & \nodata & $0.471\pm0.190$ & LS/Zhou phot & EXP & inconclusive & within 1$\sigma$ \\
+FRB 20220506D & halo & 195393180643665627 & 74 & \nodata & \nodata & PS1-STRM & UNSURE & inconclusive & STRM unsure \\
+FRB 20221203A & halo & 194453151328186646 & 232 & \nodata & \nodata & PS1-STRM & UNSURE & inconclusive & STRM unsure \\
+FRB 20230307A & cluster & J115120.4+714435, 1254337 & 604 & 0.83 & 0.200 & DESI spec & cluster & confirmed & DESI spec < host \\
+ & halo & 194051777813062524 & 102 & \nodata & 0.110 & DESI spec & DEV & confirmed & DESI spec < host \\
+ & halo & 1072 & 105 & \nodata & $0.300\pm0.079$ & LS/Zhou phot & EXP & inconclusive & within 1$\sigma$ \\
+ & halo & 194041777780157594 & 112 & \nodata & 0.215 & DESI spec & REX & confirmed & DESI spec < host \\
+ & halo & 1190 & 121 & \nodata & 0.110 & DESI spec & DEV & confirmed & DESI spec < host \\
+ & halo & 983 & 122 & \nodata & $0.165\pm0.059$ & LS/Zhou phot & EXP & confirmed & LS/Zhou phot < host \\
+ & halo & 194021777634832653 & 131 & \nodata & $0.193\pm0.028$ & LS/Zhou phot & DEV & confirmed & LS/Zhou phot < host \\
+ & halo & 1153 & 136 & \nodata & 0.215 & DESI spec & REX & confirmed & DESI spec < host \\
+ & halo & 832 & 159 & \nodata & $0.193\pm0.028$ & LS/Zhou phot & DEV & confirmed & LS/Zhou phot < host \\
+ & halo & 986 & 203 & \nodata & $0.208\pm0.067$ & LS/Zhou phot & REX & inconclusive & within 1$\sigma$ \\
+ & halo & 953 & 243 & \nodata & 0.199 & DESI spec & REX & confirmed & DESI spec < host \\
+FRB 20230325A & halo & 197030881733398302 & 60 & \nodata & $0.305\pm0.068$ & PS1-STRM phot & GALAXY & inconclusive & host z unknown \\
+ & halo & 197040882212782495 & 234 & \nodata & $0.618\pm0.126$ & PS1-STRM phot & GALAXY & inconclusive & host z unknown \\
+FRB 20230913A & halo & 192963050359413614 & 136 & \nodata & $0.308\pm0.073$ & PS1-STRM phot & GALAXY & inconclusive & within 1$\sigma$ \\
+ & halo & 192943050854547067 & 209 & \nodata & \nodata & PS1-STRM & UNSURE & inconclusive & STRM unsure \\
+FRB 20240203A & halo & 196723126173351736 & 104 & \nodata & $0.475\pm0.044$ & PS1-STRM phot & GALAXY & inconclusive & phot.\ extrap. \\
+ & halo & 196673126794497004 & 111 & \nodata & \nodata & PS1-STRM & UNSURE & inconclusive & STRM unsure \\
+ & halo & 196733128040225775 & 228 & \nodata & 0.054 & NED & galaxy & confirmed & NED < host \\
+FRB 20240229A & halo & 192821700026167542 & 171 & \nodata & 0.203 & DESI spec & SER & confirmed & DESI spec < host \\
+ & halo & 824 & 178 & \nodata & 0.203 & DESI spec & SER & confirmed & DESI spec < host \\
+ & halo & 192831699797402822 & 221 & \nodata & $0.240\pm0.012$ & LS/Zhou phot & SER & confirmed & LS/Zhou phot < host \\
+ & halo & 827 & 237 & \nodata & $0.240\pm0.012$ & LS/Zhou phot & SER & confirmed & LS/Zhou phot < host \\
+ & halo & 825 & 281 & \nodata & $0.348\pm0.203$ & LS/Zhou phot & REX & inconclusive & within 1$\sigma$ \\
+\enddata
+\tablecomments{All 28 tabulated systems exist in $\geq$1 public catalog; every redshift is DESI/Legacy spectroscopic or LS~DR9/PS1-STRM photometric. $b$ is the proper impact parameter (kpc) at the object redshift. The 7 candidates refuted as background by the validation stage are omitted, as are candidates spectroscopically classified as stars (Section~\ref{sec:obs-fg}). Clusters are drawn from the \citet{WenHan2024} DESI Legacy/WISE catalog and restricted to the one sightline (FRB~20230307A) passing within $R_{500}$; 14 further spectroscopically confirmed foreground clusters lie at $b>R_{500}$ and are omitted as they contribute negligibly to $\mathrm{DM_{int}}$.}
+\end{deluxetable*}

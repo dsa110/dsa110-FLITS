@@ -56,7 +56,11 @@ DEFAULT_RESULTS_DIR = os.path.join(_REPO, "results")
 DEFAULT_HALO_CSV = os.path.expanduser(
     "~/Data/frb-foreground-halos/results/chime_dsa_gladep_candidates_ranked.csv"
 )
-DEFAULT_OUT_DIR = "/Users/jakobfaber/Developer/overleaf/Faber2026/figures"
+# Derived from this file's location, not a machine path: when FLITS is checked
+# out as the `pipeline` submodule of Faber2026, _REPO's parent is the manuscript
+# root and this resolves to Faber2026/figures. Override with --out-dir for a
+# standalone FLITS checkout. (Same treatment ae67f4f gave plot_association_cards.py.)
+DEFAULT_OUT_DIR = os.path.join(os.path.dirname(_REPO), "figures")
 
 # Colorbar range for log10(M_halo/Msun). Tuned to the recovered halo population
 # (bulk 11-13.2, tail to 14.4) so magma's full sweep is used instead of pinning

@@ -13,7 +13,7 @@ product = tau(1.4 GHz)[s] x dnu_d(1.4 GHz)[Hz] = C1/(2*pi): one screen gives 0.1
 | zach | 3.990 | 0.294 | 0.07654 | 0.492 +/- 0.054 | 37.6 | different_screens |
 | oran | 3.987 | 0.8428 | 0.2194 | 0.34 +/- 0.065 | 74.6 | different_screens |
 | isha | 3.841 | 0.3138 | 0.07707 | 0.506 +/- 0.25 | 39 | different_screens |
-| johndoeII | 3.989 | 2.187 | 0.5694 | 0.498 +/- 0.074 | 284 | different_screens |
+| johndoeII | 3.936 | 2.219 | 0.5649 | 0.497 +/- 0.074 | 281 | different_screens |
 | whitney_fine | 3.968 | 1.182 | 0.3044 | 20.6 +/- 2.9 | 6.26e+03 | different_screens |
 | phineas | 3.228 | 0.4694 | 0.08004 | 7.79 +/- 1.1 | 624 | different_screens |
 

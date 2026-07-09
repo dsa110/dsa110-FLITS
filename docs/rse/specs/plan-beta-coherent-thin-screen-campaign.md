@@ -84,8 +84,8 @@ the previously adjudicated multiplicity (ADR-0005 / grade_allexp CANON):
 |---|---|
 | shared-ζ C1D1 | casey, chromatica, freya (regression vs committed verdict β=3.684±0.013), wilhelm, hamilton (excluded-class, flagged) |
 | C1D1 (multi path) | mahi, zach |
-| C2D1 | oran, isha, johndoeII |
-| C2D2 | whitney (whitney_fine data) |
+| C2D1 | oran, isha |
+| C2D2 | johndoeII, whitney (whitney_fine data) |
 | C3D3 | phineas |
 
 β prior: default `(3.0, 4.0)` (α ∈ [4, 6] — matches the L1 gate ceiling; the
@@ -133,8 +133,8 @@ adversarial re-check of verdicts (fit-verify pattern); Phase 9 → `make`
 clean + figure review. Failures reported, not rationalized.
 
 ## Risks / known constraints
-- **Most of the old roster sits at α < 4** (casey 2.40, oran 2.66, johndoeII
-  1.53 under free-α+exp): expect several β = 4 rails. That outcome is the
+- **At plan time, much of the old roster sat at α < 4** (casey 2.40, oran 2.66,
+  the now-superseded johndoeII 1.53 under free-α+exp): expect several β = 4 rails. That outcome is the
   *deliverable* (the ADR-0007 target list), not a campaign failure.
 - Local wall-time: HPCC history suggests ~30 min × 8 cores per C1D1 burst,
   phineas C3D3 ~1 h × 16 — expect several hours total locally; run

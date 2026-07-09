@@ -43,17 +43,13 @@ import numpy as np
 from matplotlib import cm
 from matplotlib.colors import Normalize
 from matplotlib.lines import Line2D
-from matplotlib.transforms import blended_transform_factory
 from matplotlib.patches import Rectangle
+from matplotlib.transforms import blended_transform_factory
 
 __all__ = ["BandSpectrum", "plot_codetection", "plot_codetection_observations"]
 
 # Match the hatch-gap fill (unobserved band / flagged channel).
 _GAP_FILL = "0.93"
-_LABEL_STRIP_FRAC = 0.088
-_YTICK_RESERVE_FRAC = 0.045  # left margin for y-axis tick numerals
-_XTICK_RESERVE_FRAC = 0.028  # bottom inset on lowest band for x-axis ticks
-_BAND_LABEL_V_INSET = 0.04   # keep labels off band edges / axis ticks
 _BAND_LINE_COLORS = ("#262626", "#b2182b", "#2166ac", "#1b7837")
 _HATCH_ZORDER = 0.5
 _DATA_ZORDER = 2.0
@@ -61,7 +57,40 @@ _TICK_ZORDER = 10.0
 _OUTBOARD_GRID_LEFT = 0.18
 _OUTBOARD_BRACKET_X = -0.010
 _OUTBOARD_TEXT_X = -0.034
+_DEFAULT_GRID_LEFT = 0.08
+_DEFAULT_GRID_RIGHT = 0.985
+_SPECTRUM_LABEL_GRID_RIGHT = 0.90
 _INTEXT_LABEL_X = 0.025  # axes-fraction inset from left spine for in-band tags
+_SPECTRUM_LABEL_X = 1.04  # axes-fraction, right edge of spectrum marginal
+_BAND_LABEL_STYLES = frozenset({"strip", "outboard", "tag", "gap", "keyed"})
+
+
+@dataclass(frozen=True)
+class _LabelPlan:
+    style: str | None
+
+    @property
+    def is_keyed(self) -> bool:
+        return self.style == "keyed"
+
+    @property
+    def draw_on_waterfall(self) -> bool:
+        return self.style in {"outboard", "tag", "gap"}
+
+    @property
+    def draw_on_spectrum(self) -> bool:
+        return self.style == "strip"
+
+
+@dataclass(frozen=True)
+class _LayoutPlan:
+    data_xlim: tuple[float, float]
+    xlim: tuple[float, float]
+    ylim: tuple[float, float]
+    gaps: tuple[tuple[float, float], ...]
+    grid_left: float
+    grid_right: float
+    labels: _LabelPlan
 
 
 @dataclass
@@ -150,6 +179,59 @@ def _regrid_band(b: BandSpectrum, t_common: np.ndarray) -> BandSpectrum:
 def _regrid_bands(bands: Sequence[BandSpectrum]) -> tuple[list[BandSpectrum], np.ndarray]:
     t_common = _common_time_ms(bands)
     return [_regrid_band(b, t_common) for b in bands], t_common
+
+
+def _plan_band_labels(enabled: bool, style: str) -> _LabelPlan:
+    if not enabled:
+        return _LabelPlan(None)
+    if style not in _BAND_LABEL_STYLES:
+        allowed = ", ".join(sorted(_BAND_LABEL_STYLES))
+        raise ValueError(f"band_label_style must be one of {allowed}; got {style!r}")
+    return _LabelPlan(style)
+
+
+def _data_xlim(
+    bands: Sequence[BandSpectrum], tref: np.ndarray, *, symmetric_time_axis: bool
+) -> tuple[float, float]:
+    if symmetric_time_axis:
+        half = max(abs(float(tref[0])), abs(float(tref[-1])))
+        return -half, half
+    return (
+        min(float(b.time_ms[0]) for b in bands),
+        max(float(b.time_ms[-1]) for b in bands),
+    )
+
+
+def _band_gaps(bands: Sequence[BandSpectrum]) -> tuple[tuple[float, float], ...]:
+    return tuple(
+        (lo.frange[1], hi.frange[0])
+        for lo, hi in zip(bands[:-1], bands[1:], strict=False)
+        if hi.frange[0] > lo.frange[1] + 1e-6
+    )
+
+
+def _plan_layout(
+    bands: Sequence[BandSpectrum],
+    tref: np.ndarray,
+    *,
+    symmetric_time_axis: bool,
+    band_labels: bool,
+    band_label_style: str,
+) -> _LayoutPlan:
+    labels = _plan_band_labels(band_labels, band_label_style)
+    xlim = _data_xlim(bands, tref, symmetric_time_axis=symmetric_time_axis)
+    ylim = (bands[0].frange[0], bands[-1].frange[1])
+    return _LayoutPlan(
+        data_xlim=xlim,
+        xlim=xlim,
+        ylim=ylim,
+        gaps=_band_gaps(bands),
+        grid_left=_OUTBOARD_GRID_LEFT if labels.style == "outboard" else _DEFAULT_GRID_LEFT,
+        grid_right=_SPECTRUM_LABEL_GRID_RIGHT
+        if labels.draw_on_spectrum
+        else _DEFAULT_GRID_RIGHT,
+        labels=labels,
+    )
 
 
 def _finite_percentile(arr: np.ndarray, pct: float, default: float = 1.0) -> float:
@@ -283,14 +365,6 @@ def _resolve_rc_fontsize(key: str) -> float:
     return base * scales.get(str(val), 1.0)
 
 
-def _band_label_fontsize(label: str, band_height_mhz: float, axis_fs: float) -> float:
-    """Pick a band-label size that fits the grey strip and band height."""
-    n = max(len(label), 1)
-    # Empirical: bold +90° text spans ≈ fs * n * 2.35 MHz on these axes.
-    fs_cap = (0.75 * band_height_mhz) / (n * 2.35)
-    return max(6.0, min(axis_fs * 0.62, fs_cap))
-
-
 def _raise_axis_ticks(ax) -> None:
     """Draw spines and inward ticks above hatched / data patches."""
     ax.set_axisbelow(False)
@@ -304,56 +378,29 @@ def _raise_axis_ticks(ax) -> None:
             label.set_zorder(_TICK_ZORDER)
 
 
-def _band_waterfall_labels(
-    ax,
-    bands: Sequence[BandSpectrum],
-    strip_t0: float,
-    strip_w: float,
-    fmin: float,
-    fmax: float,
-):
-    """Vertical telescope names left of the data window (no strip fill)."""
-    f_span = max(fmax - fmin, 1e-6)
-    xtick_reserve = _XTICK_RESERVE_FRAC * f_span
-    axis_fs = _resolve_rc_fontsize("axes.labelsize")
-    n = len(bands)
-
-    entries: list[tuple[BandSpectrum, float, float, float]] = []
-    for i, b in enumerate(bands):
+def _band_spectrum_labels(ax, bands: Sequence[BandSpectrum], fmin: float, fmax: float) -> None:
+    """Horizontal telescope names on the right edge of the spectrum marginal."""
+    trans = blended_transform_factory(ax.transAxes, ax.transData)
+    label_fs = max(6.0, _resolve_rc_fontsize("axes.labelsize") - 2.0)
+    fspan = max(fmax - fmin, 1e-6)
+    for b in bands:
         if not b.label:
             continue
         f_lo, f_hi = b.frange
-        band_h = max(f_hi - f_lo, 1e-6)
-        v_inset = _BAND_LABEL_V_INSET * band_h
-        strip_lo = f_lo + v_inset
-        if i == 0:
-            strip_lo = max(strip_lo, f_lo + xtick_reserve)
-        strip_hi = f_hi - v_inset
-        if i == n - 1:
-            strip_hi = min(strip_hi, f_hi - 0.5 * v_inset)
-        strip_hi = max(strip_hi, strip_lo + 0.05 * band_h)
-        entries.append((b, strip_lo, strip_hi, strip_hi - strip_lo))
-
-    if not entries:
-        return
-
-    label_fs = min(
-        _band_label_fontsize(b.label, strip_h, axis_fs) for b, _, _, strip_h in entries
-    )
-
-    for b, strip_lo, strip_hi, _strip_h in entries:
+        edge_pad = min(0.30 * (f_hi - f_lo), 0.045 * fspan)
+        f_mid = float(np.clip(0.5 * (f_lo + f_hi), f_lo + edge_pad, f_hi - edge_pad))
         ax.text(
-            strip_t0 + 0.5 * strip_w,
-            0.5 * (strip_lo + strip_hi),
+            _SPECTRUM_LABEL_X,
+            f_mid,
             b.label,
-            rotation=90,
-            ha="center",
+            transform=trans,
+            ha="left",
             va="center",
             fontsize=label_fs,
             fontweight="bold",
             color="black",
-            zorder=6,
-            clip_on=True,
+            clip_on=False,
+            zorder=8,
         )
 
 
@@ -484,6 +531,29 @@ def _band_gap_labels(
             )
 
 
+def _draw_waterfall_band_labels(
+    ax,
+    labels: _LabelPlan,
+    bands: Sequence[BandSpectrum],
+    gaps: Sequence[tuple[float, float]],
+    data_xlim: tuple[float, float],
+    ylim: tuple[float, float],
+) -> None:
+    if labels.style == "outboard":
+        _band_outboard_labels(ax, bands)
+    elif labels.style == "tag":
+        _band_intext_labels(ax, bands, *ylim)
+    elif labels.style == "gap":
+        _band_gap_labels(ax, bands, gaps, *data_xlim)
+
+
+def _draw_spectrum_band_labels(
+    ax, labels: _LabelPlan, bands: Sequence[BandSpectrum], ylim: tuple[float, float]
+) -> None:
+    if labels.draw_on_spectrum:
+        _band_spectrum_labels(ax, bands, *ylim)
+
+
 def _band_line_color(index: int) -> str:
     return _BAND_LINE_COLORS[index % len(_BAND_LINE_COLORS)]
 
@@ -572,39 +642,18 @@ def plot_codetection(
         raise ValueError("`bands` must contain at least one BandSpectrum")
     bands = sorted(bands, key=lambda b: b.frange[0])
     bands, tref = _regrid_bands(bands)
-    if symmetric_time_axis:
-        half = max(abs(float(tref[0])), abs(float(tref[-1])))
-        data_t0, data_t1 = -half, half
-    else:
-        data_t0 = min(float(b.time_ms[0]) for b in bands)
-        data_t1 = max(float(b.time_ms[-1]) for b in bands)
-    data_span = max(data_t1 - data_t0, 1e-6)
-    outboard_labels = band_labels and band_label_style == "outboard"
-    tag_labels = band_labels and band_label_style == "tag"
-    gap_labels = band_labels and band_label_style == "gap"
-    keyed_labels = band_labels and band_label_style == "keyed"
-    if outboard_labels or tag_labels or gap_labels or keyed_labels:
-        # Both keep the full data-width time axis (no strip gutter, no xlim
-        # expansion). Outboard writes into a widened left margin; tag writes
-        # inside the data, so it needs only the normal ylabel/tick margin.
-        strip_w = 0.0
-        tick_reserve = 0.0
-        label_margin = 0.0
-        axis_t0 = data_t0
-        strip_t0 = data_t0
-        t0, t1 = data_t0, data_t1
-        grid_left = _OUTBOARD_GRID_LEFT if outboard_labels else 0.08
-    else:
-        strip_w = _LABEL_STRIP_FRAC * data_span if band_labels else 0.0
-        tick_reserve = _YTICK_RESERVE_FRAC * data_span if band_labels else 0.0
-        label_margin = strip_w + tick_reserve
-        axis_t0 = data_t0 - label_margin
-        strip_t0 = data_t0 - strip_w
-        t0, t1 = axis_t0, data_t1
-        grid_left = 0.08
-    fmin, fmax = bands[0].frange[0], bands[-1].frange[1]
-    gaps = [(lo.frange[1], hi.frange[0]) for lo, hi in zip(bands[:-1], bands[1:], strict=False)
-            if hi.frange[0] > lo.frange[1] + 1e-6]
+    layout = _plan_layout(
+        bands,
+        tref,
+        symmetric_time_axis=symmetric_time_axis,
+        band_labels=band_labels,
+        band_label_style=band_label_style,
+    )
+    data_t0, data_t1 = layout.data_xlim
+    t0, t1 = layout.xlim
+    fmin, fmax = layout.ylim
+    gaps = layout.gaps
+    keyed_labels = layout.labels.is_keyed
 
     # intensity scales (ignore NaN padding from unequal snippet lengths)
     norm = Normalize(0, _finite_percentile(np.concatenate([b.model for b in bands]), 99.5))
@@ -640,8 +689,15 @@ def plot_codetection(
         figsize = (w, 4.7)
 
     fig = plt.figure(figsize=figsize)
-    outer = fig.add_gridspec(1, len(cols), wspace=col_wspace, left=grid_left, right=0.985,
-                             top=0.94 if title else 0.96, bottom=0.12)
+    outer = fig.add_gridspec(
+        1,
+        len(cols),
+        wspace=col_wspace,
+        left=layout.grid_left,
+        right=layout.grid_right,
+        top=0.94 if title else 0.96,
+        bottom=0.12,
+    )
 
     for j, (key, ctitle, cmap, nrm) in enumerate(cols):
         inner = outer[0, j].subgridspec(2, 2, width_ratios=[4, 1.05],
@@ -673,21 +729,16 @@ def plot_codetection(
             _rfi_channel_markers(ax_wf, b, data_t0, data_t1)
         for g0, g1 in gaps:
             _hatch_rect(ax_wf, data_t0, data_t1, g0, g1)
-            if gap_label and j == 0 and not gap_labels and not keyed_labels:
+            if gap_label and j == 0 and layout.labels.style != "gap" and not keyed_labels:
                 ax_wf.text((t0 + t1) / 2, (g0 + g1) / 2, "no coverage",
                            ha="center", va="center", fontsize=6.5,
                            style="italic", color="0.4", zorder=4)
         ax_wf.set_ylim(fmin, fmax)
         ax_wf.set_xlim(t0, t1)
-        if band_labels and j == 0 and not keyed_labels:
-            if outboard_labels:
-                _band_outboard_labels(ax_wf, bands)
-            elif tag_labels:
-                _band_intext_labels(ax_wf, bands, fmin, fmax)
-            elif gap_labels:
-                _band_gap_labels(ax_wf, bands, gaps, data_t0, data_t1)
-            else:
-                _band_waterfall_labels(ax_wf, bands, strip_t0, strip_w, fmin, fmax)
+        if j == 0 and layout.labels.draw_on_waterfall:
+            _draw_waterfall_band_labels(
+                ax_wf, layout.labels, bands, gaps, layout.data_xlim, layout.ylim
+            )
         _raise_axis_ticks(ax_wf)
         ax_wf.set_xlabel("Time (ms)")
         if j == 0:
@@ -766,6 +817,8 @@ def plot_codetection(
         ax_sp.set_ylim(fmin, fmax)
         ax_sp.tick_params(labelleft=False, labelbottom=False)
         _raise_axis_ticks(ax_sp)
+        if j == 0:
+            _draw_spectrum_band_labels(ax_sp, layout.labels, bands, layout.ylim)
 
     if title:
         fig.suptitle(title, fontsize=10, y=0.985)

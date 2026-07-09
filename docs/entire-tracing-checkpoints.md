@@ -5221,3 +5221,63 @@ preserving for future agents.
 - `origin` `entire/*` refs:
   - entire/checkpoints/v1 -> f36a8fd
 - note: `.entire/` remains host-local runtime state; only this ledger is tracked.
+
+## 2026-07-09T12:53:25-07:00 — jakob
+- repo: `/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS`
+- branch: ``
+- head: `f04eaa2a`
+- origin/main: `b378dddf`
+- worktree: clean
+- note: watched path changed: scripts/fill_data_manifest.py
+- tracked status: clean
+- local `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd4
+- `origin` `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd
+- note: `.entire/` remains host-local runtime state; only this ledger is tracked.
+
+## 2026-07-09T12:53:35-07:00 — jakob
+- repo: `/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS`
+- branch: ``
+- head: `c702fc04`
+- origin/main: `b378dddf`
+- worktree: dirty
+- note: watched path changed: analysis/cube_integrity/cube_crosscheck_lags.csv
+- tracked status:
+  - M docs/entire-tracing-checkpoints.md
+- local `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd4
+- `origin` `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd
+- note: `.entire/` remains host-local runtime state; only this ledger is tracked.
+
+## 2026-07-09T12:53:38-07:00 — jakob
+- repo: `/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS`
+- branch: `reval/phase0-data-manifest`
+- head: `c702fc04`
+- origin/main: `b378dddf`
+- worktree: dirty
+- note: watched path changed: analysis/cube_integrity/cube_crosscheck_lags.csv
+- tracked status:
+  - M docs/entire-tracing-checkpoints.md
+- local `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd4
+- `origin` `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd
+- note: `.entire/` remains host-local runtime state; only this ledger is tracked.
+
+## 2026-07-09T12:58:07-07:00 — jakob
+- repo: `/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS`
+- branch: `reval/phase0-data-manifest`
+- head: `b405bed9`
+- origin/main: `b378dddf`
+- worktree: dirty
+- note: watched path changed: analysis/cube_integrity/cube_crosscheck_lags.csv
+- tracked status:
+  - M analysis/cube_integrity/cube_crosscheck_thumbnails.png
+  -  M docs/entire-tracing-checkpoints.md
+- local `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd4
+- `origin` `entire/*` refs:
+  - entire/checkpoints/v1 -> f36a8fd
+- note: `.entire/` remains host-local runtime state; only this ledger is tracked.

@@ -1,0 +1,13 @@
+burst,cube_filename,cube_path,reference_path,direct_verdict,max_snr,edge_ok,centroid_bin,cross_lag_bins,cross_verdict
+casey,casey_chime_I_491_2085_32000b_cntr_bpc.npy,dsa110/DSA_bursts/casey_chime_I_491_2085_32000b_cntr_bpc.npy,dsa110/scintillation-data/casey_chime.npz,pass,118.684,true,16088.298,-208,fail
+chromatica,chromatica_chime_I_272_6382_32000b_cntr_bpc.npy,dsa110/DSA_bursts/chromatica_chime_I_272_6382_32000b_cntr_bpc.npy,,pass,19.1177,true,16235.519,,no-independent-reference
+freya,freya_chime_I_912_4067_32000b_cntr_bpc.npy,dsa110/DSA_bursts/freya_chime_I_912_4067_32000b_cntr_bpc.npy,dsa110/scintillation-data/freya_chime.npz,pass,30.331,true,16175.261,-217,fail
+hamilton,hamilton_chime_I_518_8007_32000b_cntr_bpc.npy,dsa110/DSA_bursts/hamilton_chime_I_518_8007_32000b_cntr_bpc.npy,,pass,45.6456,true,16009.346,,no-independent-reference
+isha,isha_chime_I_411_4359_32000b_cntr_bpc.npy,dsa110/DSA_bursts/isha_chime_I_411_4359_32000b_cntr_bpc.npy,dsa110/scintillation-data/isha_chime.npz,no-burst-above-5sigma,4.8765,NA,,98,fail
+johndoeII,johndoeII_chime_I_696_5184_32000b_cntr_bpc.npy,dsa110/DSA_bursts/johndoeII_chime_I_696_5184_32000b_cntr_bpc.npy,,pass,6.73509,true,16063.347,,no-independent-reference
+mahi,mahi_chime_I_960_1316_32000b_cntr_bpc.npy,dsa110/DSA_bursts/mahi_chime_I_960_1316_32000b_cntr_bpc.npy,dsa110/scintillation-data/mahi_chime.npz,no-burst-above-5sigma,4.3754,NA,,22,fail
+oran,oran_chime_I_397_0153_32000b_cntr_bpc.npy,dsa110/DSA_bursts/oran_chime_I_397_0153_32000b_cntr_bpc.npy,,no-burst-above-5sigma,4.26527,NA,,,no-independent-reference
+phineas,phineas_chime_I_610_2894_32000b_cntr_bpc.npy,dsa110/DSA_bursts/phineas_chime_I_610_2894_32000b_cntr_bpc.npy,dsa110/scintillation-data/phineas_chime.npz,no-burst-above-5sigma,4.81653,NA,,-64,fail
+whitney,whitney_chime_I_462_1891_32000b_cntr_bpc.npy,dsa110/DSA_bursts/whitney_chime_I_462_1891_32000b_cntr_bpc.npy,dsa110/scintillation-data/whitney_chime.npz,pass,5.57072,true,15996.119,15,fail
+wilhelm,wilhelm_chime_I_602_3809_32000b_cntr_bpc.npy,dsa110/DSA_bursts/wilhelm_chime_I_602_3809_32000b_cntr_bpc.npy,,pass,9.40309,true,16056.921,,no-independent-reference
+zach,zach_chime_I_262_3621_32000b_cntr_bpc.npy,dsa110/DSA_bursts/zach_chime_I_262_3621_32000b_cntr_bpc.npy,,pass,33.2992,true,16655.567,,no-independent-reference

@@ -61,13 +61,14 @@
   },
   {
     "burst": "zach",
-    "suffix": "_C1D1",
+    "suffix": "_C2D4_cwin",
     "rc": 0,
     "minutes": 11.962728929519653,
     "ppc_rc": 0,
-    "beta": 3.9898946227484458,
+    "beta": 3.9897163768762995,
     "alpha": 4.0,
-    "tau_1ghz": 0.2940239093266775
+    "tau_1ghz": 0.1864021408460393,
+    "note": "scalars promoted to C2D4 (figures/jointmodel_pair fit_artifacts); minutes/rc are from the historical C1D1 fleet run"
   },
   {
     "burst": "oran",

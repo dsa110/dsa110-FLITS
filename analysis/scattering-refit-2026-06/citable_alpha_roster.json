@@ -175,22 +175,22 @@
     {
       "nickname": "zach",
       "tns": "FRB 20220207C",
-      "model": "C1D1",
-      "beta": 3.9899,
+      "model": "C2D4_cwin",
+      "beta": 3.9897,
       "beta_err": [
-        0.0066,
+        0.0062,
         0.007
       ],
       "rail_class": "railed-hi",
-      "tau_1ghz": 0.2940239093266775,
-      "chi2_chime": 2.5131695088139154,
-      "chi2_dsa": 1.3084150038112266,
+      "tau_1ghz": 0.1864021408460393,
+      "chi2_chime": 1.3468341800327501,
+      "chi2_dsa": 1.0223746479745357,
       "gate_final": "MARGINAL",
-      "fit_json": "analysis/beta_campaign/fits/zach_joint_fit_C1D1.json",
+      "fit_json": "analysis/beta_campaign/fits/zach_joint_fit_C2D4_cwin.json",
       "alpha_limit": 4.0,
       "alpha_note": "posterior railed at beta=4 (square-law/exponential member): alpha = 4 quotable only as a geometry-conditioned limit; ADR-0007 re-open candidate",
-      "excluded_from_tab_beta": "Pass-2 fixed-s2 multiplicity (C2D3 vs C2D2) not robust (CONTEXT.md 2026-06-27); budget-tau member only",
-      "caveat": "alpha prior-railed (within 0.1 of bound) -> unconstrained; L2 chi2_C=2.51(MARGINAL) chi2_D=1.31(PASS)"
+      "caveat": "alpha prior-railed (within 0.1 of bound) -> unconstrained; L2 chi2_C=1.35(PASS) chi2_D=1.02(PASS)",
+      "tab_beta_status": "IN tab:beta as C2D4_cwin railed-hi limit row (2026-07-09 promotion). Supersedes the earlier pass-2 fixed-s2 'budget-tau member only' exclusion (CONTEXT.md 2026-06-27): the promoted 2x4 morphology fit is now the citable product; tier-B pending_s2 designation retained (second-screen multiplicity robustness is a separate question from table inclusion)."
     }
   ],
   "multiplicity_exemplar": {

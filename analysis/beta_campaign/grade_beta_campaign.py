@@ -51,7 +51,10 @@ SUFFIX = {
     "wilhelm": "_sharedzeta",
     "hamilton": "_sharedzeta",
     "mahi": "_C1D1",
-    "zach": "_C1D1",
+    # zach: bespoke morphology-audit refit (refit_runner.py, per-component
+    # windows) promoted 2026-07-09, NOT a run_fleet product; stage
+    # fits/zach_joint_fit_C2D4_cwin.json into RUNS/data/joint to re-grade.
+    "zach": "_C2D4_cwin",
     "oran": "_C2D1",
     "isha": "_C2D1",
     "johndoeII": "_C2D1",

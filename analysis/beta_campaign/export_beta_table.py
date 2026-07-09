@@ -37,6 +37,7 @@ CXD = {
     "_C1D1": r"$1\times1$",
     "_C2D1": r"$2\times1$",
     "_C2D2": r"$2\times2$",
+    "_C2D4_cwin": r"$2\times4$",
     "_C3D3": r"$3\times3$",
 }
 

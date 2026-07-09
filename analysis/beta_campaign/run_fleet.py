@@ -43,6 +43,12 @@ FLEET = [
     ("wilhelm", 600, ["--shared-zeta"], "_sharedzeta"),
     ("hamilton", 600, ["--shared-zeta"], "_sharedzeta"),
     ("mahi", 600, ["--components-C", "1", "--components-D", "1", "--force-multi"], "_C1D1"),
+    # zach's CITABLE product is the bespoke C2D4_cwin refit (refit_runner.py,
+    # per-component windows) promoted 2026-07-09 -- NOT reproducible by this
+    # fleet recipe. This C1D1 entry is retained only as the historical fleet
+    # baseline; do NOT let a fleet re-run overwrite the promoted verdict row
+    # (grade SUFFIX["zach"] = "_C2D4_cwin"). Use --only to exclude zach, or
+    # restage fits/zach_joint_fit_C2D4_cwin.json after any fleet run.
     ("zach", 600, ["--components-C", "1", "--components-D", "1", "--force-multi"], "_C1D1"),
     ("oran", 600, ["--components-C", "2", "--components-D", "1"], "_C2D1"),
     ("isha", 600, ["--components-C", "2", "--components-D", "1"], "_C2D1"),

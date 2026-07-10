@@ -1,0 +1,30 @@
+{
+  "generated_by": "dispersion/dm_campaign/run_injections.py (Phase 0, plan-dm-measurement-methods)",
+  "regen": "conda run -n flits python -m dispersion.dm_campaign.run_injections --quick --workers 3",
+  "figures": [
+    {
+      "path": "arrival_regression_recovery.png",
+      "expectation": "2x3 grid (DSA/CHIME rows x tau600 {0,5,20} ms cols): recovered-truth vs true dDM with error bars, colored by S/N (grey 8, blue 25, red 80), squares=2 components, open=2 ms width, x=unconstrained. EXPECT: points hug zero at S/N>=25 on both geometries with error bars covering the residuals; S/N 8 shows larger bars and some unconstrained; no trend of error vs truth (a diagonal would mean a sign/scale bug in the estimator or injector)."
+    },
+    {
+      "path": "dmphase_variant_intree_recovery.png",
+      "expectation": "Same layout. EXPECT from smoke evidence: narrow single-component cells near zero; WATCH whether wide (2 ms, open) and 2-component (square) cells scatter -- structure-metric methods should degrade on smooth/wide profiles, and gross outliers at high S/N adjudicate the in-tree implementation question."
+    },
+    {
+      "path": "dmpower_variant_intree_recovery.png",
+      "expectation": "Same layout. EXPECT from smoke evidence: CHIME row tight around zero; DSA row suspected biased/scattered (smoke showed +4.2 at S/N 80). The DSA full-band sweep is only ~0.57 ms per DM unit (~3.5 samples at 163.84 us product resolution), so intensity-structure metrics are expected to be intrinsically weak there; distinguish weak-but-honest (large sigma, unconstrained flags) from confidently-wrong (small sigma, large miss)."
+    },
+    {
+      "path": "contact_sheet.png",
+      "expectation": "The three recovery grids stacked vertically for side-by-side owner review."
+    }
+  ],
+  "result": {
+    "mode": "quick (2 seeds/cell, n_boot=20; full 5-seed n_boot=100 matrix runs on h17)",
+    "gate": {
+      "arrival_regression": {"dsa": "PASS (bias 0.06 < sigma 0.29, p68|z| 0.93)", "chime": "accurate but overconfident (bias 0.006, p68|z| 2.55)"},
+      "dmphase_variant_intree": {"dsa": "accurate median, overconfident sigma (p68|z| 2.10)", "chime": "accurate median, overconfident sigma (p68|z| 4.47)"},
+      "dmpower_variant_intree": {"dsa": "FAIL (bias +0.81, 19/72 unconstrained)", "chime": "PASS (bias 0.07 < sigma 0.33, p68|z| 1.29)"}
+    }
+  }
+}

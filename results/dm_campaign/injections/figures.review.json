@@ -1,0 +1,26 @@
+{
+  "reviewed": "2026-07-09",
+  "campaign": "dm_campaign Phase-0 injection matrix, quick mode (144 cells x 3 estimators)",
+  "figures": [
+    {
+      "file": "arrival_regression_recovery.png",
+      "verdict": "match",
+      "notes": "Both rows hug zero with no trend vs truth (no sign/scale bug). S/N 8 cells show honestly large error bars (one +-20 bar at tau600=5) and x markers; S/N>=25 residuals sub-0.5 on DSA and visually flat on CHIME. Matches gate: DSA PASS; CHIME accurate but sigma too tight to see at this y-scale (overconfidence is a numeric finding, p68|z|=2.55, not visible here). Cosmetic: legend overlaps suptitle."
+    },
+    {
+      "file": "dmphase_variant_intree_recovery.png",
+      "verdict": "match",
+      "notes": "Clear morphology split, exactly the watch-item: narrow single-component cells (solid circles) sit on zero at S/N>=25 on both geometries, while wide 2 ms (open) and 2-component (square) cells throw +-3..5 gross outliers EVEN at S/N 80 (red open circles at -4 DSA tau0; +3..4 CHIME tau20). Structure-metric degrades on smooth/wide profiles; sigma bars do not cover the outliers (overconfidence confirmed visually). Algorithm works on favorable morphology -- supports implementation/morphology explanation over method failure, but calibration is broken."
+    },
+    {
+      "file": "dmpower_variant_intree_recovery.png",
+      "verdict": "match",
+      "notes": "CHIME row tight around zero at all tau (PASS, matches gate). DSA row scattered +-3..5 across ALL S/N and morphologies with no correlation to truth, error bars often not covering -- confidently wrong rather than weak-but-honest, though many low-S/N cells are correctly flagged unconstrained (x row at zero). Consistent with the geometry argument (~3.5-sample full-band sweep per DM unit at product resolution) PLUS miscalibration; full h17 matrix (n_boot=100) will separate bootstrap noise from bias."
+    },
+    {
+      "file": "contact_sheet.png",
+      "verdict": "match",
+      "notes": "Three grids stacked, readable side-by-side; suitable for owner review. Same legend/suptitle overlap carried through."
+    }
+  ]
+}

@@ -25,6 +25,10 @@
     {
       "path": "run_panels/*.png",
       "expectation": "120 per-run 4-panel diagnostics (search curve on residual axis + red candidate line / waterfall at candidate / waterfall at reference / band profile overlay grey-vs-red). Family spot-check policy: review at least one panel per adapter family and one known non-detection; EXPECT waterfall burst alignment consistent with the curve peak and the profile overlay sharpest at the candidate for constrained runs."
+    },
+    {
+      "path": "run_panels/*_arrival_regression_fit.png",
+      "expectation": "24 regression fit-quality panels: subband EMG arrival t0 (+-err, freq + subband S/N annotated) vs dispersion delay-per-unit-DM K(nu^-2 - nu_ref^-2), red fitted line whose slope IS the fine residual DM, normalized-residual strip with +-1 band, dropped subbands as grey dashed verticals, chi2_red + coarse dDM + peak S/N in the title. EXPECT: constrained runs show points near the line; bright CHIME products (zach/casey/freya) show SYSTEMATIC frequency-dependent deviations at tiny formal errors (chi2_red 29-173 -- profile evolution, the sigma under-quote source); the 7 gated runs show <3 points with all/most subbands as grey verticals despite large coarse peak S/N in the title (the Phase-2 gate paradox)."
     }
   ],
   "result": {

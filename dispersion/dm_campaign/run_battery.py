@@ -64,6 +64,10 @@ def run_product(job):
     wf, freq, dt_s, factors = loaded
     dm_ref = _dm_ref(row)
     window = cfg["windows"][tel]
+    # regression-stage fit-quality payload (arrival_regression only): enough to
+    # reconstruct the subband-arrival fit line and show gated subbands.
+    fit_keys = ("subbands", "subbands_dropped", "coarse_dm", "nu_ref_mhz",
+                "peak_snr", "chi2_red", "intercept_s", "railed", "n_good_subbands")
     out = []
     for name in cfg["adapters"]:
         t0 = time.perf_counter()
@@ -73,10 +77,14 @@ def run_product(job):
             rec = dict(dm=res.dm, sigma=res.sigma,
                        residual=None if res.dm is None else res.dm - dm_ref,
                        reason=res.meta.get("reason", "ok") if res.dm is None else "ok",
-                       curve={k: np.asarray(v).tolist() for k, v in res.curve.items()})
+                       curve={k: np.asarray(v).tolist() for k, v in res.curve.items()},
+                       # "subbands" marks the arrival-regression meta; other
+                       # adapters share some fit_keys and must not get a fit blob
+                       fit={k: res.meta[k] for k in fit_keys if k in res.meta}
+                       if "subbands" in res.meta else None)
         except Exception as e:  # a crash on real data is a finding
             rec = dict(dm=None, sigma=None, residual=None,
-                       reason=f"{type(e).__name__}: {e}", curve={})
+                       reason=f"{type(e).__name__}: {e}", curve={}, fit=None)
         out.append(dict(burst=burst, telescope=tel, adapter=name, dm_ref=dm_ref,
                         dm_ref_provenance=_dm_ref_source(row),
                         downsample=factors, runtime_s=round(time.perf_counter() - t0, 2),
@@ -146,6 +154,66 @@ def plot_run_panels(row, cfg, results, out_dir):
         fig.savefig(out_dir / f"{row['burst']}_{row['telescope']}_{r['adapter']}.png",
                     dpi=110)
         plt.close(fig)
+
+
+def plot_regression_panel(r, path):
+    """Fit-quality view of the arrival-regression stage for one product:
+    subband arrivals vs dispersion delay-per-DM with the fitted line (whose
+    slope IS the fine residual DM), normalized residuals, and gated subbands."""
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    from dispersion.chime_dm import K_DM
+
+    fit = r["fit"]
+    nu_ref = fit["nu_ref_mhz"]
+    x_of = lambda f_mhz: K_DM * (1.0 / np.asarray(f_mhz) ** 2 - 1.0 / nu_ref**2) * 1e3
+    fig, (ax, axr) = plt.subplots(2, 1, figsize=(7, 5.2), sharex=True,
+                                  height_ratios=[2.4, 1.0])
+    sub = fit["subbands"]
+    if sub:
+        xs = x_of([s["freq_mhz"] for s in sub])
+        ys = np.array([s["t0_s"] for s in sub]) * 1e3
+        es = np.array([s["t0_err_s"] for s in sub]) * 1e3
+        ax.errorbar(xs, ys, yerr=es, fmt="o", ms=4, lw=1, capsize=2, color="k")
+        for s, xi, yi in zip(sub, xs, ys, strict=True):
+            ax.annotate(f"{s['freq_mhz']:.0f} MHz (S/N {s['snr']:.0f})",
+                        (xi, yi), textcoords="offset points", xytext=(4, 4),
+                        fontsize=6, color="0.4")
+    for d in fit["subbands_dropped"]:
+        for a in (ax, axr):
+            a.axvline(x_of(d["freq_mhz"]), color="0.8", ls="--", lw=0.8, zorder=0)
+    constrained = fit.get("chi2_red") is not None
+    if constrained and sub:
+        # slope has DM units, x is ms per unit DM -> the product is ms
+        slope = r["dm"] - fit["coarse_dm"]
+        grid = np.linspace(min(0, xs.min()) * 1.05, max(xs.max(), 0) * 1.05, 50)
+        ax.plot(grid, slope * grid + fit["intercept_s"] * 1e3, color="r", lw=1,
+                label=f"fit: fine $\\Delta$DM {slope:+.4f}")
+        yfit = slope * xs + fit["intercept_s"] * 1e3
+        axr.errorbar(xs, (ys - yfit) / es, yerr=1.0, fmt="o", ms=4, lw=1,
+                     capsize=2, color="k")
+        axr.axhspan(-1, 1, color="0.92", zorder=0)
+        ax.legend(fontsize=7, frameon=False)
+    axr.axhline(0, color="r", lw=0.8)
+    axr.set_xlabel("dispersion delay per unit DM, $K(\\nu^{-2}-\\nu_{\\rm ref}^{-2})$ "
+                   "[ms/(pc cm$^{-3}$)]", fontsize=8)
+    ax.set_ylabel("subband arrival $t_0$ [ms]", fontsize=8)
+    axr.set_ylabel("(data $-$ fit)/$\\sigma$", fontsize=8)
+    stat = (f"$\\chi^2_\\nu$ = {fit['chi2_red']:.2f}, "
+            f"$\\Delta$DM = {r['residual']:+.4f} $\\pm$ {r['sigma']:.4f}"
+            if constrained else f"unconstrained: {r['reason']}")
+    fig.suptitle(
+        f"{r['burst']} / {r['telescope'].upper()} arrival regression -- "
+        f"{fit['n_good_subbands']}/{fit['n_good_subbands'] + len(fit['subbands_dropped'])} "
+        f"subbands, coarse $\\Delta$DM {fit['coarse_dm'] - r['dm_ref']:+.2f} "
+        f"(peak S/N {fit['peak_snr']:.0f})\n{stat}",
+        fontsize=9)
+    fig.tight_layout(rect=(0, 0, 1, 0.93))
+    fig.savefig(path, dpi=110)
+    plt.close(fig)
 
 
 def plot_method_contact_sheet(results, name, path):
@@ -253,6 +321,10 @@ def main(argv=None):
     panel_dir.mkdir(exist_ok=True)
     for row in rows:
         plot_run_panels(row, cfg, results, panel_dir)
+    for r in results:
+        if r.get("fit"):
+            plot_regression_panel(
+                r, panel_dir / f"{r['burst']}_{r['telescope']}_{r['adapter']}_fit.png")
     for name in cfg["adapters"]:
         plot_method_contact_sheet(results, name, out_dir / f"contact_sheet_{name}.png")
     write_memo(results, cfg, out_dir / "memo.md")

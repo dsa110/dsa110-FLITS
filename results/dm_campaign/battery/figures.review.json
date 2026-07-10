@@ -1,6 +1,11 @@
 {
-  "reviewed_by": "claude-fable (inline visual review, 2026-07-09)",
+  "reviewed_by": "claude-fable (inline visual review, 2026-07-09; fit panels 2026-07-10)",
   "verdicts": [
+    {
+      "path": "run_panels/*_arrival_regression_fit.png",
+      "verdict": "match",
+      "notes": "Spot-checked 4 of 24: zach/chime (8/8 subbands, S/N 21-85, systematic curved deviation from the nu^-2 line at +-20 sigma normalized residuals, chi2_red 173 -- profile evolution across the band, not a DM error; the sigma under-quote mechanism in one image); casey/dsa (0/8 subbands as grey verticals vs coarse peak S/N 158 in the title -- the subband-gate paradox, Phase-2 entry); oran/dsa (3/8 subbands, large honest errors, chi2_red 0.02, sigma 0.15); mahi/chime (2/8 on a non-detection, correctly gated; NOTE: the 575 MHz subband reports an absurd S/N 2.3e10 from a degenerate EMG fit -- excluded from the DM by the gate, flagged as a Phase-2 hardening item to sanity-cap subband S/N)."
+    },
     {
       "path": "contact_sheet_arrival_regression.png",
       "verdict": "match",

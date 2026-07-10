@@ -1,0 +1,9 @@
+{
+ "status": "blocked_missing_absolute_time_origins",
+ "reason": "CHIME and DSA waterfall products are independently burst-centered",
+ "required_inputs": [
+  "verified absolute time origin for each stored CHIME waterfall",
+  "verified absolute time origin for each stored DSA waterfall",
+  "geometric-delay convention and uncertainty"
+ ]
+}

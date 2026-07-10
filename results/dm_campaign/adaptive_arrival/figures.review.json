@@ -1,0 +1,7 @@
+{
+  "reviewed_utc": "2026-07-10T22:30:00Z",
+  "reviewer": "Faber2026-2-codex",
+  "figure": "resolution_stability_contact_sheet.png",
+  "verdict": "decision-pending-not-adoption-ready",
+  "notes": "All 24 panels inspected after categorical time-resolution relabeling. Black stars identify only science-grade PASS results; red x markers identify MARGINAL candidates. Stable clusters and weak alternatives are visible without clipped labels. The adaptive grid recovers candidate DMs for 23/24 products, but the canonical reduced-chi2 gate leaves 15 marginal fits and one weak-only fit. Both retained two-band PASS combinations show cross-band tension. These outputs document the failure mode and must not be used to replace manuscript DMs."
+}

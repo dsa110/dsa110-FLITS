@@ -1,0 +1,112 @@
+[
+ {
+  "burst": "casey",
+  "dm": null,
+  "sigma": null,
+  "support": "none",
+  "bands_used": []
+ },
+ {
+  "burst": "chromatica",
+  "dm": null,
+  "sigma": null,
+  "support": "none",
+  "bands_used": []
+ },
+ {
+  "burst": "freya",
+  "dm": 912.458789167744,
+  "sigma": 0.016539798045491376,
+  "support": "two-band-tension",
+  "bands_used": [
+   "chime",
+   "dsa"
+  ],
+  "agreement_z": 4.53078734784898,
+  "chi2_red": 20.528033991428398
+ },
+ {
+  "burst": "hamilton",
+  "dm": 518.7880581241063,
+  "sigma": 0.04143797163039767,
+  "support": "single-band",
+  "bands_used": [
+   "dsa"
+  ],
+  "agreement_z": null,
+  "chi2_red": null
+ },
+ {
+  "burst": "isha",
+  "dm": null,
+  "sigma": null,
+  "support": "none",
+  "bands_used": []
+ },
+ {
+  "burst": "johndoeII",
+  "dm": null,
+  "sigma": null,
+  "support": "none",
+  "bands_used": []
+ },
+ {
+  "burst": "mahi",
+  "dm": 960.1580334884326,
+  "sigma": 0.04217800027396665,
+  "support": "single-band",
+  "bands_used": [
+   "dsa"
+  ],
+  "agreement_z": null,
+  "chi2_red": null
+ },
+ {
+  "burst": "oran",
+  "dm": 396.8284586124191,
+  "sigma": 0.11522633191112903,
+  "support": "two-band-tension",
+  "bands_used": [
+   "chime",
+   "dsa"
+  ],
+  "agreement_z": 3.521791175701888,
+  "chi2_red": 12.403013085251686
+ },
+ {
+  "burst": "phineas",
+  "dm": 610.4810174798656,
+  "sigma": 0.008920041035109894,
+  "support": "single-band",
+  "bands_used": [
+   "chime"
+  ],
+  "agreement_z": null,
+  "chi2_red": null
+ },
+ {
+  "burst": "whitney",
+  "dm": 462.1900388023581,
+  "sigma": 0.00634399723647038,
+  "support": "single-band",
+  "bands_used": [
+   "chime"
+  ],
+  "agreement_z": null,
+  "chi2_red": null
+ },
+ {
+  "burst": "wilhelm",
+  "dm": null,
+  "sigma": null,
+  "support": "none",
+  "bands_used": []
+ },
+ {
+  "burst": "zach",
+  "dm": null,
+  "sigma": null,
+  "support": "none",
+  "bands_used": []
+ }
+]

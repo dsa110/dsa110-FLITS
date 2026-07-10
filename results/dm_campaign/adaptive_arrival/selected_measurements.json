@@ -1,0 +1,1572 @@
+[
+ {
+  "burst": "casey",
+  "telescope": "chime",
+  "status": "marginal-fit",
+  "dm": 491.21634184461715,
+  "sigma": 0.02410869456281781,
+  "residual": 0.007841844617132665,
+  "selected_resolution": {
+   "max_channels": 512,
+   "max_time": 256,
+   "n_subband": 8,
+   "freq_factor": 2,
+   "time_factor": 125,
+   "dt_ms": 0.32
+  },
+  "n_good_subbands": 7,
+  "chi2_red": 0.0005958778187492573,
+  "fit_quality": "MARGINAL",
+  "fit_quality_notes": [
+   "Suspiciously low chi2_red (0.00); noise may be overestimated"
+  ],
+  "subbands": [
+   {
+    "freq_mhz": 475.0,
+    "t0_s": 0.040934221445962655,
+    "t0_err_s": 0.00016724884443704632,
+    "snr": 2278.928711685934
+   },
+   {
+    "freq_mhz": 525.0,
+    "t0_s": 0.040903667769051986,
+    "t0_err_s": 0.00020473381498295468,
+    "snr": 2541.1710571102235
+   },
+   {
+    "freq_mhz": 575.0,
+    "t0_s": 0.04087910069666955,
+    "t0_err_s": 0.00024287775837053652,
+    "snr": 1775.4658856231551
+   },
+   {
+    "freq_mhz": 625.0,
+    "t0_s": 0.040865288247728844,
+    "t0_err_s": 0.0002860335001495908,
+    "snr": 1260.1650701280626
+   },
+   {
+    "freq_mhz": 675.0,
+    "t0_s": 0.04085729003110914,
+    "t0_err_s": 0.00031203973896522745,
+    "snr": 1340.4623542068412
+   },
+   {
+    "freq_mhz": 725.0,
+    "t0_s": 0.04085335916034922,
+    "t0_err_s": 0.0003450220591521841,
+    "snr": 544.7183997079047
+   },
+   {
+    "freq_mhz": 775.0,
+    "t0_s": 0.04085742983781008,
+    "t0_err_s": 0.0004265924703562112,
+    "snr": 406.8236743062846
+   }
+  ],
+  "subbands_dropped": [
+   {
+    "freq_mhz": 425.0,
+    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
+   }
+  ],
+  "cluster_median_dm": 491.21634184461715,
+  "cluster_span_dm": 0.008062250155603579,
+  "candidate_count": 48,
+  "constrained_candidate_count": 36,
+  "stable_candidate_count": 15,
+  "distinct_resolution_count": 15,
+  "product_dm": 491.2085,
+  "catalog_dm": 491.207
+ },
+ {
+  "burst": "chromatica",
+  "telescope": "chime",
+  "status": "marginal-fit",
+  "dm": 272.6549727703158,
+  "sigma": 0.002766028604924651,
+  "residual": 0.016772770315810703,
+  "selected_resolution": {
+   "max_channels": 256,
+   "max_time": 512,
+   "n_subband": 6,
+   "freq_factor": 4,
+   "time_factor": 62,
+   "dt_ms": 0.15872
+  },
+  "n_good_subbands": 6,
+  "chi2_red": 9.034826009523677,
+  "fit_quality": "MARGINAL",
+  "fit_quality_notes": [
+   "Elevated chi2_red (9.03)"
+  ],
+  "subbands": [
+   {
+    "freq_mhz": 432.8125,
+    "t0_s": 0.040828671537563394,
+    "t0_err_s": 1.53284029368693e-05,
+    "snr": 34.712536110345546
+   },
+   {
+    "freq_mhz": 499.21875,
+    "t0_s": 0.04066981719177232,
+    "t0_err_s": 9.691713120851943e-06,
+    "snr": 54.307166503941964
+   },
+   {
+    "freq_mhz": 566.40625,
+    "t0_s": 0.040590906028742775,
+    "t0_err_s": 8.61000620853562e-06,
+    "snr": 54.567526294129536
+   },
+   {
+    "freq_mhz": 632.8125,
+    "t0_s": 0.04057934828211502,
+    "t0_err_s": 7.7138680573397e-06,
+    "snr": 75.268391427276
+   },
+   {
+    "freq_mhz": 699.21875,
+    "t0_s": 0.04056471541442578,
+    "t0_err_s": 6.146021831200604e-06,
+    "snr": 94.9599603714227
+   },
+   {
+    "freq_mhz": 766.40625,
+    "t0_s": 0.04050888353089096,
+    "t0_err_s": 1.244116778379148e-05,
+    "snr": 30.705706535564524
+   }
+  ],
+  "subbands_dropped": [],
+  "cluster_median_dm": 272.65497978233617,
+  "cluster_span_dm": 0.005773916042357996,
+  "candidate_count": 48,
+  "constrained_candidate_count": 48,
+  "stable_candidate_count": 26,
+  "distinct_resolution_count": 26,
+  "product_dm": 272.6382,
+  "catalog_dm": 272.664
+ },
+ {
+  "burst": "freya",
+  "telescope": "chime",
+  "status": "science-grade",
+  "dm": 912.4535240431181,
+  "sigma": 0.0038310350546605777,
+  "residual": 0.046824043118135705,
+  "selected_resolution": {
+   "max_channels": 128,
+   "max_time": 256,
+   "n_subband": 8,
+   "freq_factor": 8,
+   "time_factor": 125,
+   "dt_ms": 0.32
+  },
+  "n_good_subbands": 4,
+  "chi2_red": 0.5014831399009076,
+  "fit_quality": "PASS",
+  "fit_quality_notes": [],
+  "subbands": [
+   {
+    "freq_mhz": 425.0,
+    "t0_s": 0.04131989966618634,
+    "t0_err_s": 4.750422558283017e-05,
+    "snr": 15.190221328016664
+   },
+   {
+    "freq_mhz": 475.0,
+    "t0_s": 0.04105079806334172,
+    "t0_err_s": 3.444460325071781e-05,
+    "snr": 17.773168423453182
+   },
+   {
+    "freq_mhz": 525.0,
+    "t0_s": 0.04091230290314307,
+    "t0_err_s": 2.271038827085798e-05,
+    "snr": 25.29463431077024
+   },
+   {
+    "freq_mhz": 575.0,
+    "t0_s": 0.04080341501705948,
+    "t0_err_s": 1.2220772264284532e-05,
+    "snr": 51.712380886945795
+   }
+  ],
+  "subbands_dropped": [
+   {
+    "freq_mhz": 625.0,
+    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
+   },
+   {
+    "freq_mhz": 675.0,
+    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
+   },
+   {
+    "freq_mhz": 725.0,
+    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
+   },
+   {
+    "freq_mhz": 775.0,
+    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
+   }
+  ],
+  "cluster_median_dm": 912.4534895560205,
+  "cluster_span_dm": 0.00016198919297494285,
+  "candidate_count": 48,
+  "constrained_candidate_count": 42,
+  "stable_candidate_count": 6,
+  "distinct_resolution_count": 6,
+  "product_dm": 912.4067,
+  "catalog_dm": 912.4
+ },
+ {
+  "burst": "hamilton",
+  "telescope": "chime",
+  "status": "marginal-fit",
+  "dm": 518.7949784301436,
+  "sigma": 0.08528586853209504,
+  "residual": -0.00572156985640504,
+  "selected_resolution": {
+   "max_channels": 512,
+   "max_time": 256,
+   "n_subband": 8,
+   "freq_factor": 2,
+   "time_factor": 125,
+   "dt_ms": 0.32
+  },
+  "n_good_subbands": 5,
+  "chi2_red": 0.00026942451739871376,
+  "fit_quality": "MARGINAL",
+  "fit_quality_notes": [
+   "Suspiciously low chi2_red (0.00); noise may be overestimated"
+  ],
+  "subbands": [
+   {
+    "freq_mhz": 575.0,
+    "t0_s": 0.04084556930296851,
+    "t0_err_s": 0.00031569615832471263,
+    "snr": 361.43557536322396
+   },
+   {
+    "freq_mhz": 625.0,
+    "t0_s": 0.04085617842216814,
+    "t0_err_s": 0.000325985265352842,
+    "snr": 406.14921623851274
+   },
+   {
+    "freq_mhz": 675.0,
+    "t0_s": 0.040869094735814016,
+    "t0_err_s": 0.00037286560134593713,
+    "snr": 566.3912344677942
+   },
+   {
+    "freq_mhz": 725.0,
+    "t0_s": 0.04088135204633138,
+    "t0_err_s": 0.00046232832473886354,
+    "snr": 333.3932355637466
+   },
+   {
+    "freq_mhz": 775.0,
+    "t0_s": 0.04086917503814082,
+    "t0_err_s": 0.0004758676281940656,
+    "snr": 164.76825268282425
+   }
+  ],
+  "subbands_dropped": [
+   {
+    "freq_mhz": 425.0,
+    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
+   },
+   {
+    "freq_mhz": 475.0,
+    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
+   },
+   {
+    "freq_mhz": 525.0,
+    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
+   }
+  ],
+  "cluster_median_dm": 518.7858382993218,
+  "cluster_span_dm": 0.022244188293370826,
+  "candidate_count": 48,
+  "constrained_candidate_count": 21,
+  "stable_candidate_count": 12,
+  "distinct_resolution_count": 12,
+  "product_dm": 518.8007,
+  "catalog_dm": 518.799
+ },
+ {
+  "burst": "isha",
+  "telescope": "chime",
+  "status": "marginal-fit",
+  "dm": 411.5817918032431,
+  "sigma": 0.01674351225015057,
+  "residual": 0.1458918032431029,
+  "selected_resolution": {
+   "max_channels": 128,
+   "max_time": 1024,
+   "n_subband": 6,
+   "freq_factor": 8,
+   "time_factor": 31,
+   "dt_ms": 0.07936
+  },
+  "n_good_subbands": 3,
+  "chi2_red": 0.00022939824884442143,
+  "fit_quality": "MARGINAL",
+  "fit_quality_notes": [
+   "Suspiciously low chi2_red (0.00); noise may be overestimated"
+  ],
+  "subbands": [
+   {
+    "freq_mhz": 565.625,
+    "t0_s": 0.03913967859403617,
+    "t0_err_s": 6.125975643013109e-05,
+    "snr": 5.465715503326824
+   },
+   {
+    "freq_mhz": 632.8125,
+    "t0_s": 0.039410051687635166,
+    "t0_err_s": 5.742115000659259e-05,
+    "snr": 6.405357072692481
+   },
+   {
+    "freq_mhz": 698.4375,
+    "t0_s": 0.039604200989757185,
+    "t0_err_s": 4.3333587165722985e-05,
+    "snr": 6.882880102366254
+   }
+  ],
+  "subbands_dropped": [
+   {
+    "freq_mhz": 432.8125,
+    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
+   },
+   {
+    "freq_mhz": 498.4375,
+    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
+   },
+   {
+    "freq_mhz": 765.625,
+    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
+   }
+  ],
+  "cluster_median_dm": 411.5817918032431,
+  "cluster_span_dm": 0.14646311747389973,
+  "candidate_count": 48,
+  "constrained_candidate_count": 39,
+  "stable_candidate_count": 31,
+  "distinct_resolution_count": 31,
+  "product_dm": 411.4359,
+  "catalog_dm": 411.568
+ },
+ {
+  "burst": "johndoeII",
+  "telescope": "chime",
+  "status": "marginal-fit",
+  "dm": 696.514264467974,
+  "sigma": 0.006900313023103442,
+  "residual": -0.004135532025998145,
+  "selected_resolution": {
+   "max_channels": 128,
+   "max_time": 1024,
+   "n_subband": 8,
+   "freq_factor": 8,
+   "time_factor": 31,
+   "dt_ms": 0.07936
+  },
+  "n_good_subbands": 5,
+  "chi2_red": 2.393812614065034,
+  "fit_quality": "MARGINAL",
+  "fit_quality_notes": [
+   "Elevated chi2_red (2.39)"
+  ],
+  "subbands": [
+   {
+    "freq_mhz": 575.0,
+    "t0_s": 0.04078508327005859,
+    "t0_err_s": 2.361929988504621e-05,
+    "snr": 5.8780787510363774
+   },
+   {
+    "freq_mhz": 625.0,
+    "t0_s": 0.04081846175021899,
+    "t0_err_s": 1.452723363149381e-05,
+    "snr": 7.769596298314488
+   },
+   {
+    "freq_mhz": 675.0,
+    "t0_s": 0.04079349050516883,
+    "t0_err_s": 7.926083439750945e-06,
+    "snr": 11.373993093120779
+   },
+   {
+    "freq_mhz": 725.0,
+    "t0_s": 0.04084788687911456,
+    "t0_err_s": 2.1257279367149107e-05,
+    "snr": 4.5373953772574565
+   },
+   {
+    "freq_mhz": 775.0,
+    "t0_s": 0.040815045316294964,
+    "t0_err_s": 1.772485860393432e-05,
+    "snr": 5.261447919213304
+   }
+  ],
+  "subbands_dropped": [
+   {
+    "freq_mhz": 425.0,
+    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
+   },
+   {
+    "freq_mhz": 475.0,
+    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
+   },
+   {
+    "freq_mhz": 525.0,
+    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
+   }
+  ],
+  "cluster_median_dm": 696.5138455227673,
+  "cluster_span_dm": 0.03679861999614786,
+  "candidate_count": 48,
+  "constrained_candidate_count": 30,
+  "stable_candidate_count": 30,
+  "distinct_resolution_count": 30,
+  "product_dm": 696.5184,
+  "catalog_dm": 696.506
+ },
+ {
+  "burst": "mahi",
+  "telescope": "chime",
+  "status": "marginal-fit",
+  "dm": 960.0987153393609,
+  "sigma": 0.02463206190321807,
+  "residual": -0.032884660639183494,
+  "selected_resolution": {
+   "max_channels": 512,
+   "max_time": 256,
+   "n_subband": 6,
+   "freq_factor": 2,
+   "time_factor": 125,
+   "dt_ms": 0.32
+  },
+  "n_good_subbands": 4,
+  "chi2_red": 0.24738454312844205,
+  "fit_quality": "MARGINAL",
+  "fit_quality_notes": [
+   "Suspiciously low chi2_red (0.25); noise may be overestimated"
+  ],
+  "subbands": [
+   {
+    "freq_mhz": 566.40625,
+    "t0_s": 0.0399439215649135,
+    "t0_err_s": 9.93012029557189e-05,
+    "snr": 4.127534959293378
+   },
+   {
+    "freq_mhz": 633.203125,
+    "t0_s": 0.03997066629002592,
+    "t0_err_s": 6.825712217350954e-05,
+    "snr": 8.84186285053217
+   },
+   {
+    "freq_mhz": 699.609375,
+    "t0_s": 0.04006154907690405,
+    "t0_err_s": 6.28430586220577e-05,
+    "snr": 9.735792661827118
+   },
+   {
+    "freq_mhz": 766.40625,
+    "t0_s": 0.04021506226947242,
+    "t0_err_s": 0.00022427003643046977,
+    "snr": 6.836059584680173
+   }
+  ],
+  "subbands_dropped": [
+   {
+    "freq_mhz": 433.203125,
+    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
+   },
+   {
+    "freq_mhz": 499.609375,
+    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
+   }
+  ],
+  "cluster_median_dm": 960.0989589927777,
+  "cluster_span_dm": 0.07493805458796032,
+  "candidate_count": 48,
+  "constrained_candidate_count": 16,
+  "stable_candidate_count": 6,
+  "distinct_resolution_count": 6,
+  "product_dm": 960.1316,
+  "catalog_dm": 960.128
+ },
+ {
+  "burst": "oran",
+  "telescope": "chime",
+  "status": "science-grade",
+  "dm": 396.7077452264517,
+  "sigma": 0.04738488917430671,
+  "residual": -0.3075547735483042,
+  "selected_resolution": {
+   "max_channels": 256,
+   "max_time": 1024,
+   "n_subband": 6,
+   "freq_factor": 4,
+   "time_factor": 31,
+   "dt_ms": 0.07936
+  },
+  "n_good_subbands": 4,
+  "chi2_red": 1.2169130334654108,
+  "fit_quality": "PASS",
+  "fit_quality_notes": [],
+  "subbands": [
+   {
+    "freq_mhz": 432.8125,
+    "t0_s": 0.07664990876453955,
+    "t0_err_s": 0.0005516086512015627,
+    "snr": 24269189970.920654
+   },
+   {
+    "freq_mhz": 499.21875,
+    "t0_s": 0.06499704437319198,
+    "t0_err_s": 0.0012808928339945616,
+    "snr": 47048331797.34753
+   },
+   {
+    "freq_mhz": 566.40625,
+    "t0_s": 0.05502405402261262,
+    "t0_err_s": 0.0007037402634516292,
+    "snr": 11.412491252522953
+   },
+   {
+    "freq_mhz": 699.21875,
+    "t0_s": 0.043497498964078646,
+    "t0_err_s": 0.00024338812318848752,
+    "snr": 4.197100572803754
+   }
+  ],
+  "subbands_dropped": [
+   {
+    "freq_mhz": 632.8125,
+    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
+   },
+   {
+    "freq_mhz": 766.40625,
+    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
+   }
+  ],
+  "cluster_median_dm": 396.69836931686257,
+  "cluster_span_dm": 0.24382675204373072,
+  "candidate_count": 48,
+  "constrained_candidate_count": 12,
+  "stable_candidate_count": 8,
+  "distinct_resolution_count": 8,
+  "product_dm": 397.0153,
+  "catalog_dm": 396.882
+ },
+ {
+  "burst": "phineas",
+  "telescope": "chime",
+  "status": "science-grade",
+  "dm": 610.4810174798656,
+  "sigma": 0.008920041035109894,
+  "residual": 0.19161747986561295,
+  "selected_resolution": {
+   "max_channels": 512,
+   "max_time": 512,
+   "n_subband": 4,
+   "freq_factor": 2,
+   "time_factor": 62,
+   "dt_ms": 0.15872
+  },
+  "n_good_subbands": 4,
+  "chi2_red": 0.3206784621300919,
+  "fit_quality": "PASS",
+  "fit_quality_notes": [],
+  "subbands": [
+   {
+    "freq_mhz": 450.0,
+    "t0_s": 0.03539465613022043,
+    "t0_err_s": 0.00011660463818380764,
+    "snr": 8.134416215208253
+   },
+   {
+    "freq_mhz": 550.0,
+    "t0_s": 0.03750558423579362,
+    "t0_err_s": 8.013341958418544e-05,
+    "snr": 13.451727766514425
+   },
+   {
+    "freq_mhz": 650.0,
+    "t0_s": 0.038727738252899276,
+    "t0_err_s": 3.0798177346266686e-05,
+    "snr": 14.891613585595339
+   },
+   {
+    "freq_mhz": 750.0,
+    "t0_s": 0.039434648259595646,
+    "t0_err_s": 5.4265352356642734e-05,
+    "snr": 5.859771928247664
+   }
+  ],
+  "subbands_dropped": [],
+  "cluster_median_dm": 610.4807835120334,
+  "cluster_span_dm": 0.040552768348902646,
+  "candidate_count": 48,
+  "constrained_candidate_count": 44,
+  "stable_candidate_count": 28,
+  "distinct_resolution_count": 28,
+  "product_dm": 610.2894,
+  "catalog_dm": 610.274
+ },
+ {
+  "burst": "whitney",
+  "telescope": "chime",
+  "status": "science-grade",
+  "dm": 462.1900388023581,
+  "sigma": 0.00634399723647038,
+  "residual": 0.0009388023581209382,
+  "selected_resolution": {
+   "max_channels": 512,
+   "max_time": 256,
+   "n_subband": 4,
+   "freq_factor": 2,
+   "time_factor": 125,
+   "dt_ms": 0.32
+  },
+  "n_good_subbands": 4,
+  "chi2_red": 0.3075388641649214,
+  "fit_quality": "PASS",
+  "fit_quality_notes": [],
+  "subbands": [
+   {
+    "freq_mhz": 450.0,
+    "t0_s": 0.04073407719676741,
+    "t0_err_s": 7.344612447234144e-05,
+    "snr": 5.633858337343463
+   },
+   {
+    "freq_mhz": 550.0,
+    "t0_s": 0.040782360749278934,
+    "t0_err_s": 6.131511470010893e-05,
+    "snr": 11.872571485499568
+   },
+   {
+    "freq_mhz": 650.0,
+    "t0_s": 0.04072902157610414,
+    "t0_err_s": 3.0527618994606366e-05,
+    "snr": 29.062999823901194
+   },
+   {
+    "freq_mhz": 750.0,
+    "t0_s": 0.04074832690526732,
+    "t0_err_s": 5.282721655076758e-05,
+    "snr": 21.86321403514661
+   }
+  ],
+  "subbands_dropped": [],
+  "cluster_median_dm": 462.1900388023581,
+  "cluster_span_dm": 0.006901234310760174,
+  "candidate_count": 48,
+  "constrained_candidate_count": 27,
+  "stable_candidate_count": 27,
+  "distinct_resolution_count": 27,
+  "product_dm": 462.1891,
+  "catalog_dm": 462.174
+ },
+ {
+  "burst": "wilhelm",
+  "telescope": "chime",
+  "status": "marginal-fit",
+  "dm": 602.3704920581839,
+  "sigma": 0.01136780241940104,
+  "residual": -0.010407941816083621,
+  "selected_resolution": {
+   "max_channels": 512,
+   "max_time": 512,
+   "n_subband": 8,
+   "freq_factor": 2,
+   "time_factor": 62,
+   "dt_ms": 0.15872
+  },
+  "n_good_subbands": 5,
+  "chi2_red": 4.401765185048501,
+  "fit_quality": "MARGINAL",
+  "fit_quality_notes": [
+   "Elevated chi2_red (4.40)"
+  ],
+  "subbands": [
+   {
+    "freq_mhz": 575.0,
+    "t0_s": 0.040641199493973074,
+    "t0_err_s": 3.96564161650278e-05,
+    "snr": 4.571330255656259
+   },
+   {
+    "freq_mhz": 625.0,
+    "t0_s": 0.04068786098410016,
+    "t0_err_s": 2.5095011224672938e-05,
+    "snr": 7.841312051485703
+   },
+   {
+    "freq_mhz": 675.0,
+    "t0_s": 0.04074611700021785,
+    "t0_err_s": 7.235699996466018e-06,
+    "snr": 29.24713577076682
+   },
+   {
+    "freq_mhz": 725.0,
+    "t0_s": 0.04072219195857467,
+    "t0_err_s": 9.646063731379598e-06,
+    "snr": 28.79562115275564
+   },
+   {
+    "freq_mhz": 775.0,
+    "t0_s": 0.04077205308402964,
+    "t0_err_s": 1.9278626205623502e-05,
+    "snr": 13.816192985705761
+   }
+  ],
+  "subbands_dropped": [
+   {
+    "freq_mhz": 425.0,
+    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
+   },
+   {
+    "freq_mhz": 475.0,
+    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
+   },
+   {
+    "freq_mhz": 525.0,
+    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
+   }
+  ],
+  "cluster_median_dm": 602.3704920581839,
+  "cluster_span_dm": 0.013109987687812463,
+  "candidate_count": 48,
+  "constrained_candidate_count": 21,
+  "stable_candidate_count": 21,
+  "distinct_resolution_count": 21,
+  "product_dm": 602.3809,
+  "catalog_dm": 602.346
+ },
+ {
+  "burst": "zach",
+  "telescope": "chime",
+  "status": "marginal-fit",
+  "dm": 262.3964821469157,
+  "sigma": 0.004337370138512395,
+  "residual": 0.034382146915675094,
+  "selected_resolution": {
+   "max_channels": 128,
+   "max_time": 256,
+   "n_subband": 8,
+   "freq_factor": 8,
+   "time_factor": 125,
+   "dt_ms": 0.32
+  },
+  "n_good_subbands": 6,
+  "chi2_red": 9.446724638375189,
+  "fit_quality": "MARGINAL",
+  "fit_quality_notes": [
+   "Elevated chi2_red (9.45)"
+  ],
+  "subbands": [
+   {
+    "freq_mhz": 425.0,
+    "t0_s": 0.041107451199494854,
+    "t0_err_s": 2.216652562644481e-05,
+    "snr": 46.572639100169745
+   },
+   {
+    "freq_mhz": 475.0,
+    "t0_s": 0.0409117562592328,
+    "t0_err_s": 1.5756857633994234e-05,
+    "snr": 63.83495520859404
+   },
+   {
+    "freq_mhz": 525.0,
+    "t0_s": 0.040741366256042286,
+    "t0_err_s": 8.720516654584766e-06,
+    "snr": 75.5522780821367
+   },
+   {
+    "freq_mhz": 575.0,
+    "t0_s": 0.04066686314886622,
+    "t0_err_s": 8.600913349000151e-06,
+    "snr": 74.62081932628655
+   },
+   {
+    "freq_mhz": 625.0,
+    "t0_s": 0.04063763506104541,
+    "t0_err_s": 1.0103267205667943e-05,
+    "snr": 132.16891917350847
+   },
+   {
+    "freq_mhz": 675.0,
+    "t0_s": 0.04060400994897665,
+    "t0_err_s": 1.3990617709633022e-05,
+    "snr": 191.33670185956257
+   }
+  ],
+  "subbands_dropped": [
+   {
+    "freq_mhz": 725.0,
+    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
+   },
+   {
+    "freq_mhz": 775.0,
+    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
+   }
+  ],
+  "cluster_median_dm": 262.39555749157057,
+  "cluster_span_dm": 0.002031476209538141,
+  "candidate_count": 48,
+  "constrained_candidate_count": 48,
+  "stable_candidate_count": 6,
+  "distinct_resolution_count": 6,
+  "product_dm": 262.3621,
+  "catalog_dm": 262.368
+ },
+ {
+  "burst": "casey",
+  "telescope": "dsa",
+  "status": "marginal-fit",
+  "dm": 491.18907803189734,
+  "sigma": 0.006120459060156524,
+  "residual": -0.021921968102674327,
+  "selected_resolution": {
+   "max_channels": 512,
+   "max_time": 2048,
+   "n_subband": 6,
+   "freq_factor": 12,
+   "time_factor": 1,
+   "dt_ms": 0.032768000000000005
+  },
+  "n_good_subbands": 3,
+  "chi2_red": 0.23009897288104014,
+  "fit_quality": "MARGINAL",
+  "fit_quality_notes": [
+   "Suspiciously low chi2_red (0.23); noise may be overestimated"
+  ],
+  "subbands": [
+   {
+    "freq_mhz": 1326.8292236609802,
+    "t0_s": 0.04128415261057831,
+    "t0_err_s": 1.46846625729095e-06,
+    "snr": 153.3091213681999
+   },
+   {
+    "freq_mhz": 1420.5792236456198,
+    "t0_s": 0.041290360266523704,
+    "t0_err_s": 1.3713979001837817e-06,
+    "snr": 158.79272809346025
+   },
+   {
+    "freq_mhz": 1451.7071533280202,
+    "t0_s": 0.04129397855081589,
+    "t0_err_s": 3.325178801463665e-06,
+    "snr": 91.95306717324092
+   }
+  ],
+  "subbands_dropped": [
+   {
+    "freq_mhz": 1357.9571533433798,
+    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
+   },
+   {
+    "freq_mhz": 1389.2681884945,
+    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
+   },
+   {
+    "freq_mhz": 1483.01818847914,
+    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
+   }
+  ],
+  "cluster_median_dm": 491.1889065414433,
+  "cluster_span_dm": 0.009874962263722864,
+  "candidate_count": 48,
+  "constrained_candidate_count": 32,
+  "stable_candidate_count": 14,
+  "distinct_resolution_count": 14,
+  "product_dm": 491.211,
+  "catalog_dm": 491.207
+ },
+ {
+  "burst": "chromatica",
+  "telescope": "dsa",
+  "status": "marginal-fit",
+  "dm": 272.6625673685471,
+  "sigma": 0.025065514988564238,
+  "residual": 0.2945673685471206,
+  "selected_resolution": {
+   "max_channels": 256,
+   "max_time": 2048,
+   "n_subband": 6,
+   "freq_factor": 24,
+   "time_factor": 1,
+   "dt_ms": 0.032768000000000005
+  },
+  "n_good_subbands": 5,
+  "chi2_red": 0.10829622731200683,
+  "fit_quality": "MARGINAL",
+  "fit_quality_notes": [
+   "Suspiciously low chi2_red (0.11); noise may be overestimated"
+  ],
+  "subbands": [
+   {
+    "freq_mhz": 1326.64611819226,
+    "t0_s": 0.04095648333085349,
+    "t0_err_s": 6.030823764121906e-06,
+    "snr": 18.658444035295155
+   },
+   {
+    "freq_mhz": 1357.77404787466,
+    "t0_s": 0.040952645394123965,
+    "t0_err_s": 7.04879271372246e-06,
+    "snr": 17.45047993733935
+   },
+   {
+    "freq_mhz": 1389.2681884945,
+    "t0_s": 0.04094349125125134,
+    "t0_err_s": 8.752367650060815e-06,
+    "snr": 9.872861047892933
+   },
+   {
+    "freq_mhz": 1420.3961181769,
+    "t0_s": 0.04094688889501487,
+    "t0_err_s": 1.0859773880566916e-05,
+    "snr": 10.893259299061041
+   },
+   {
+    "freq_mhz": 1483.01818847914,
+    "t0_s": 0.04093492865319475,
+    "t0_err_s": 1.2073107835330894e-05,
+    "snr": 10.676153936642361
+   }
+  ],
+  "subbands_dropped": [
+   {
+    "freq_mhz": 1451.5240478593,
+    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
+   }
+  ],
+  "cluster_median_dm": 272.6636636834423,
+  "cluster_span_dm": 0.040707105194996984,
+  "candidate_count": 48,
+  "constrained_candidate_count": 36,
+  "stable_candidate_count": 24,
+  "distinct_resolution_count": 24,
+  "product_dm": 272.368,
+  "catalog_dm": 272.664
+ },
+ {
+  "burst": "freya",
+  "telescope": "dsa",
+  "status": "science-grade",
+  "dm": 912.5107470868492,
+  "sigma": 0.012034766622417065,
+  "residual": 0.11074708684918733,
+  "selected_resolution": {
+   "max_channels": 512,
+   "max_time": 2048,
+   "n_subband": 6,
+   "freq_factor": 12,
+   "time_factor": 1,
+   "dt_ms": 0.032768000000000005
+  },
+  "n_good_subbands": 6,
+  "chi2_red": 0.8338847610998585,
+  "fit_quality": "PASS",
+  "fit_quality_notes": [],
+  "subbands": [
+   {
+    "freq_mhz": 1326.8292236609802,
+    "t0_s": 0.04194764828685636,
+    "t0_err_s": 4.027782958525724e-06,
+    "snr": 144.64440575636908
+   },
+   {
+    "freq_mhz": 1357.9571533433798,
+    "t0_s": 0.04193880753470347,
+    "t0_err_s": 4.583491035901514e-06,
+    "snr": 98.7813427558182
+   },
+   {
+    "freq_mhz": 1389.2681884945,
+    "t0_s": 0.041921520645558576,
+    "t0_err_s": 3.837679090213444e-06,
+    "snr": 94.51756068236483
+   },
+   {
+    "freq_mhz": 1420.5792236456198,
+    "t0_s": 0.04191016208563431,
+    "t0_err_s": 3.364229811392591e-06,
+    "snr": 82.15613828038681
+   },
+   {
+    "freq_mhz": 1451.7071533280202,
+    "t0_s": 0.04191009583869881,
+    "t0_err_s": 7.641418542951885e-06,
+    "snr": 107.4334223216693
+   },
+   {
+    "freq_mhz": 1483.01818847914,
+    "t0_s": 0.041898710295856054,
+    "t0_err_s": 5.285290125246177e-06,
+    "snr": 54.53179707203746
+   }
+  ],
+  "subbands_dropped": [],
+  "cluster_median_dm": 912.511820648114,
+  "cluster_span_dm": 0.02558442339591238,
+  "candidate_count": 48,
+  "constrained_candidate_count": 27,
+  "stable_candidate_count": 12,
+  "distinct_resolution_count": 12,
+  "product_dm": 912.4,
+  "catalog_dm": 912.4
+ },
+ {
+  "burst": "hamilton",
+  "telescope": "dsa",
+  "status": "science-grade",
+  "dm": 518.7880581241063,
+  "sigma": 0.04143797163039767,
+  "residual": -0.010941875893649922,
+  "selected_resolution": {
+   "max_channels": 128,
+   "max_time": 2048,
+   "n_subband": 6,
+   "freq_factor": 48,
+   "time_factor": 1,
+   "dt_ms": 0.032768000000000005
+  },
+  "n_good_subbands": 4,
+  "chi2_red": 1.4539932593555178,
+  "fit_quality": "PASS",
+  "fit_quality_notes": [],
+  "subbands": [
+   {
+    "freq_mhz": 1326.64611819226,
+    "t0_s": 0.04111183713803664,
+    "t0_err_s": 8.585803609012152e-06,
+    "snr": 23.70558194486025
+   },
+   {
+    "freq_mhz": 1357.4078369372203,
+    "t0_s": 0.041085712776329525,
+    "t0_err_s": 1.4166608460389716e-05,
+    "snr": 8.252957662534367
+   },
+   {
+    "freq_mhz": 1420.3961181768998,
+    "t0_s": 0.0411337746600832,
+    "t0_err_s": 9.240931736265493e-05,
+    "snr": 57.94985321047625
+   },
+   {
+    "freq_mhz": 1482.6519775416998,
+    "t0_s": 0.041115152280596014,
+    "t0_err_s": 1.375027301095917e-05,
+    "snr": 13.268862387842713
+   }
+  ],
+  "subbands_dropped": [
+   {
+    "freq_mhz": 1388.9019775570596,
+    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
+   },
+   {
+    "freq_mhz": 1451.1578369218603,
+    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
+   }
+  ],
+  "cluster_median_dm": 518.8195382027786,
+  "cluster_span_dm": 0.0650670177523125,
+  "candidate_count": 48,
+  "constrained_candidate_count": 15,
+  "stable_candidate_count": 6,
+  "distinct_resolution_count": 6,
+  "product_dm": 518.799,
+  "catalog_dm": 518.799
+ },
+ {
+  "burst": "isha",
+  "telescope": "dsa",
+  "status": "weak-only",
+  "dm": null,
+  "sigma": null,
+  "best_weak_dm": 411.27558999388214,
+  "best_weak_sigma": 7.825017776366798,
+  "candidate_count": 48,
+  "constrained_candidate_count": 9,
+  "stable_candidate_count": 0,
+  "distinct_resolution_count": 0
+ },
+ {
+  "burst": "johndoeII",
+  "telescope": "dsa",
+  "status": "marginal-fit",
+  "dm": 696.4906564640182,
+  "sigma": 0.018566146000195703,
+  "residual": -0.015343535981742207,
+  "selected_resolution": {
+   "max_channels": 512,
+   "max_time": 2048,
+   "n_subband": 8,
+   "freq_factor": 12,
+   "time_factor": 1,
+   "dt_ms": 0.032768000000000005
+  },
+  "n_good_subbands": 8,
+  "chi2_red": 2.145540697476856,
+  "fit_quality": "MARGINAL",
+  "fit_quality_notes": [
+   "Elevated chi2_red (2.15)"
+  ],
+  "subbands": [
+   {
+    "freq_mhz": 1322.9840088178598,
+    "t0_s": 0.04140036824458642,
+    "t0_err_s": 4.2113415860139715e-06,
+    "snr": 8.669456260858913
+   },
+   {
+    "freq_mhz": 1346.42150881402,
+    "t0_s": 0.04138886730858437,
+    "t0_err_s": 7.223365895562792e-06,
+    "snr": 4.474261523376982
+   },
+   {
+    "freq_mhz": 1369.8590088101798,
+    "t0_s": 0.04139499315156809,
+    "t0_err_s": 5.763366474496602e-06,
+    "snr": 5.8366425698367905
+   },
+   {
+    "freq_mhz": 1393.2965088063397,
+    "t0_s": 0.04141968001742073,
+    "t0_err_s": 8.539473061345812e-06,
+    "snr": 4.623538787255265
+   },
+   {
+    "freq_mhz": 1416.7340088024998,
+    "t0_s": 0.0413923347936869,
+    "t0_err_s": 6.110152274062962e-06,
+    "snr": 6.2507808636014435
+   },
+   {
+    "freq_mhz": 1440.17150879866,
+    "t0_s": 0.041412741355050756,
+    "t0_err_s": 6.2815097215804e-06,
+    "snr": 6.794940340709869
+   },
+   {
+    "freq_mhz": 1463.60900879482,
+    "t0_s": 0.04140166154583624,
+    "t0_err_s": 7.566776553622725e-06,
+    "snr": 4.596464016635086
+   },
+   {
+    "freq_mhz": 1487.04650879098,
+    "t0_s": 0.04140358532193385,
+    "t0_err_s": 7.140378624836432e-06,
+    "snr": 4.885919573116713
+   }
+  ],
+  "subbands_dropped": [],
+  "cluster_median_dm": 696.4906564640182,
+  "cluster_span_dm": 0.045424989954995,
+  "candidate_count": 48,
+  "constrained_candidate_count": 33,
+  "stable_candidate_count": 33,
+  "distinct_resolution_count": 33,
+  "product_dm": 696.506,
+  "catalog_dm": 696.506
+ },
+ {
+  "burst": "mahi",
+  "telescope": "dsa",
+  "status": "science-grade",
+  "dm": 960.1580334884326,
+  "sigma": 0.04217800027396665,
+  "residual": 0.030033488432536615,
+  "selected_resolution": {
+   "max_channels": 128,
+   "max_time": 2048,
+   "n_subband": 3,
+   "freq_factor": 48,
+   "time_factor": 1,
+   "dt_ms": 0.032768000000000005
+  },
+  "n_good_subbands": 3,
+  "chi2_red": 1.2862300349233884,
+  "fit_quality": "PASS",
+  "fit_quality_notes": [],
+  "subbands": [
+   {
+    "freq_mhz": 1342.02697756474,
+    "t0_s": 0.04118845931778154,
+    "t0_err_s": 1.2377966842899873e-05,
+    "snr": 10.996969586316421
+   },
+   {
+    "freq_mhz": 1404.28283692954,
+    "t0_s": 0.04119797375845002,
+    "t0_err_s": 9.436531529481236e-06,
+    "snr": 8.836912539744336
+   },
+   {
+    "freq_mhz": 1467.2711181692198,
+    "t0_s": 0.04118123350173035,
+    "t0_err_s": 7.4676027640746886e-06,
+    "snr": 7.3981087301533455
+   }
+  ],
+  "subbands_dropped": [],
+  "cluster_median_dm": 960.1517305684172,
+  "cluster_span_dm": 0.0229449300518354,
+  "candidate_count": 48,
+  "constrained_candidate_count": 6,
+  "stable_candidate_count": 6,
+  "distinct_resolution_count": 6,
+  "product_dm": 960.128,
+  "catalog_dm": 960.128
+ },
+ {
+  "burst": "oran",
+  "telescope": "dsa",
+  "status": "science-grade",
+  "dm": 396.9384473055478,
+  "sigma": 0.045230998400176164,
+  "residual": 0.05644730554780608,
+  "selected_resolution": {
+   "max_channels": 128,
+   "max_time": 2048,
+   "n_subband": 4,
+   "freq_factor": 48,
+   "time_factor": 1,
+   "dt_ms": 0.032768000000000005
+  },
+  "n_good_subbands": 3,
+  "chi2_red": 0.6144076993632132,
+  "fit_quality": "PASS",
+  "fit_quality_notes": [],
+  "subbands": [
+   {
+    "freq_mhz": 1334.70275881594,
+    "t0_s": 0.04076929736253179,
+    "t0_err_s": 1.0198474032278997e-05,
+    "snr": 5.209913135674427
+   },
+   {
+    "freq_mhz": 1381.5777588082601,
+    "t0_s": 0.040792379474717956,
+    "t0_err_s": 4.981889079837762e-06,
+    "snr": 7.954576106613013
+   },
+   {
+    "freq_mhz": 1475.3277587929,
+    "t0_s": 0.040853805393750345,
+    "t0_err_s": 1.6533109179782425e-05,
+    "snr": 5.029264979308103
+   }
+  ],
+  "subbands_dropped": [
+   {
+    "freq_mhz": 1428.4527588005799,
+    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
+   }
+  ],
+  "cluster_median_dm": 396.92348429555875,
+  "cluster_span_dm": 0.2367223432744936,
+  "candidate_count": 48,
+  "constrained_candidate_count": 24,
+  "stable_candidate_count": 20,
+  "distinct_resolution_count": 20,
+  "product_dm": 396.882,
+  "catalog_dm": 396.882
+ },
+ {
+  "burst": "phineas",
+  "telescope": "dsa",
+  "status": "marginal-fit",
+  "dm": 610.2142578309994,
+  "sigma": 0.0062113122435268455,
+  "residual": -0.059742169000628564,
+  "selected_resolution": {
+   "max_channels": 512,
+   "max_time": 2048,
+   "n_subband": 4,
+   "freq_factor": 12,
+   "time_factor": 1,
+   "dt_ms": 0.032768000000000005
+  },
+  "n_good_subbands": 4,
+  "chi2_red": 4.95199216517811,
+  "fit_quality": "MARGINAL",
+  "fit_quality_notes": [
+   "Elevated chi2_red (4.95)"
+  ],
+  "subbands": [
+   {
+    "freq_mhz": 1334.7027588159403,
+    "t0_s": 0.04105120441521841,
+    "t0_err_s": 7.03742036504614e-07,
+    "snr": 98.9410251079975
+   },
+   {
+    "freq_mhz": 1381.5777588082601,
+    "t0_s": 0.041064569710382706,
+    "t0_err_s": 1.2643504033512793e-06,
+    "snr": 57.65490419441254
+   },
+   {
+    "freq_mhz": 1428.4527588005799,
+    "t0_s": 0.0410705984344185,
+    "t0_err_s": 1.4093617136207177e-06,
+    "snr": 49.50910840499883
+   },
+   {
+    "freq_mhz": 1475.3277587928997,
+    "t0_s": 0.041076046040475794,
+    "t0_err_s": 1.0124369320891993e-06,
+    "snr": 74.28229737664059
+   }
+  ],
+  "subbands_dropped": [],
+  "cluster_median_dm": 610.2114486058198,
+  "cluster_span_dm": 0.009744065181507722,
+  "candidate_count": 48,
+  "constrained_candidate_count": 24,
+  "stable_candidate_count": 12,
+  "distinct_resolution_count": 12,
+  "product_dm": 610.274,
+  "catalog_dm": 610.274
+ },
+ {
+  "burst": "whitney",
+  "telescope": "dsa",
+  "status": "marginal-fit",
+  "dm": 462.1919349999547,
+  "sigma": 0.01582006815451954,
+  "residual": 0.017934999954718478,
+  "selected_resolution": {
+   "max_channels": 128,
+   "max_time": 1024,
+   "n_subband": 6,
+   "freq_factor": 48,
+   "time_factor": 2,
+   "dt_ms": 0.06553600000000001
+  },
+  "n_good_subbands": 6,
+  "chi2_red": 0.2403727332087481,
+  "fit_quality": "MARGINAL",
+  "fit_quality_notes": [
+   "Suspiciously low chi2_red (0.24); noise may be overestimated"
+  ],
+  "subbands": [
+   {
+    "freq_mhz": 1326.64611819226,
+    "t0_s": 0.04114350796239363,
+    "t0_err_s": 5.5168290478979145e-06,
+    "snr": 24.40719053092246
+   },
+   {
+    "freq_mhz": 1357.4078369372203,
+    "t0_s": 0.04114850233390436,
+    "t0_err_s": 1.0068165264391731e-05,
+    "snr": 10.956808071177765
+   },
+   {
+    "freq_mhz": 1388.9019775570596,
+    "t0_s": 0.04114308687980104,
+    "t0_err_s": 1.0704481234116437e-05,
+    "snr": 9.204514663694681
+   },
+   {
+    "freq_mhz": 1420.3961181768998,
+    "t0_s": 0.04114676713776166,
+    "t0_err_s": 9.871342292975798e-06,
+    "snr": 10.42094858355652
+   },
+   {
+    "freq_mhz": 1451.1578369218603,
+    "t0_s": 0.041136608995817406,
+    "t0_err_s": 5.999513059382389e-06,
+    "snr": 24.91414561666171
+   },
+   {
+    "freq_mhz": 1482.6519775416998,
+    "t0_s": 0.04113614811391366,
+    "t0_err_s": 6.4259018198846485e-06,
+    "snr": 23.915584016768683
+   }
+  ],
+  "subbands_dropped": [],
+  "cluster_median_dm": 462.1919349999547,
+  "cluster_span_dm": 0.015425201363257202,
+  "candidate_count": 48,
+  "constrained_candidate_count": 33,
+  "stable_candidate_count": 33,
+  "distinct_resolution_count": 33,
+  "product_dm": 462.174,
+  "catalog_dm": 462.174
+ },
+ {
+  "burst": "wilhelm",
+  "telescope": "dsa",
+  "status": "marginal-fit",
+  "dm": 602.4076209195857,
+  "sigma": 0.2946025208862543,
+  "residual": 0.06162091958572091,
+  "selected_resolution": {
+   "max_channels": 256,
+   "max_time": 512,
+   "n_subband": 8,
+   "freq_factor": 24,
+   "time_factor": 4,
+   "dt_ms": 0.13107200000000002
+  },
+  "n_good_subbands": 3,
+  "chi2_red": 1.61082633188418e-05,
+  "fit_quality": "MARGINAL",
+  "fit_quality_notes": [
+   "Suspiciously low chi2_red (0.00); noise may be overestimated"
+  ],
+  "subbands": [
+   {
+    "freq_mhz": 1416.7340088025,
+    "t0_s": 0.04101099264751732,
+    "t0_err_s": 3.724930560095678e-05,
+    "snr": 632.5922487137323
+   },
+   {
+    "freq_mhz": 1463.60900879482,
+    "t0_s": 0.04100312561334385,
+    "t0_err_s": 4.117220642504324e-05,
+    "snr": 653.0515344724006
+   },
+   {
+    "freq_mhz": 1487.0465087909802,
+    "t0_s": 0.04099915516911639,
+    "t0_err_s": 4.6287948720602843e-05,
+    "snr": 526.7433110457945
+   }
+  ],
+  "subbands_dropped": [
+   {
+    "freq_mhz": 1322.98400881786,
+    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
+   },
+   {
+    "freq_mhz": 1346.42150881402,
+    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
+   },
+   {
+    "freq_mhz": 1369.85900881018,
+    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
+   },
+   {
+    "freq_mhz": 1393.29650880634,
+    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
+   },
+   {
+    "freq_mhz": 1440.17150879866,
+    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
+   }
+  ],
+  "cluster_median_dm": 602.4076209195857,
+  "cluster_span_dm": 0.01806757194981401,
+  "candidate_count": 48,
+  "constrained_candidate_count": 39,
+  "stable_candidate_count": 15,
+  "distinct_resolution_count": 15,
+  "product_dm": 602.346,
+  "catalog_dm": 602.346
+ },
+ {
+  "burst": "zach",
+  "telescope": "dsa",
+  "status": "marginal-fit",
+  "dm": 262.311454408498,
+  "sigma": 0.014565716815077593,
+  "residual": -0.05654559150201521,
+  "selected_resolution": {
+   "max_channels": 256,
+   "max_time": 2048,
+   "n_subband": 8,
+   "freq_factor": 24,
+   "time_factor": 1,
+   "dt_ms": 0.032768000000000005
+  },
+  "n_good_subbands": 8,
+  "chi2_red": 1.5787054732470926,
+  "fit_quality": "MARGINAL",
+  "fit_quality_notes": [
+   "Elevated chi2_red (1.58)"
+  ],
+  "subbands": [
+   {
+    "freq_mhz": 1322.98400881786,
+    "t0_s": 0.04123170190946622,
+    "t0_err_s": 3.0727543434653905e-06,
+    "snr": 21.77301953759555
+   },
+   {
+    "freq_mhz": 1346.42150881402,
+    "t0_s": 0.04123320084257814,
+    "t0_err_s": 3.557125875481227e-06,
+    "snr": 28.724972543239648
+   },
+   {
+    "freq_mhz": 1369.85900881018,
+    "t0_s": 0.04123547322139431,
+    "t0_err_s": 3.416489043638991e-06,
+    "snr": 38.47190358243867
+   },
+   {
+    "freq_mhz": 1393.29650880634,
+    "t0_s": 0.04123029115665694,
+    "t0_err_s": 5.0222814289895676e-06,
+    "snr": 12.078171963647282
+   },
+   {
+    "freq_mhz": 1416.7340088025,
+    "t0_s": 0.041248393002818275,
+    "t0_err_s": 6.933607851638974e-06,
+    "snr": 11.623952028873326
+   },
+   {
+    "freq_mhz": 1440.17150879866,
+    "t0_s": 0.041252554532090174,
+    "t0_err_s": 5.78862185511775e-06,
+    "snr": 19.328503257589738
+   },
+   {
+    "freq_mhz": 1463.60900879482,
+    "t0_s": 0.041263202277078005,
+    "t0_err_s": 6.569541762316496e-06,
+    "snr": 25.538065703330975
+   },
+   {
+    "freq_mhz": 1487.0465087909802,
+    "t0_s": 0.041253364477976166,
+    "t0_err_s": 1.3903907999485108e-05,
+    "snr": 15.326664283984613
+   }
+  ],
+  "subbands_dropped": [],
+  "cluster_median_dm": 262.31250897645396,
+  "cluster_span_dm": 0.07011982492355173,
+  "candidate_count": 48,
+  "constrained_candidate_count": 30,
+  "stable_candidate_count": 18,
+  "distinct_resolution_count": 18,
+  "product_dm": 262.368,
+  "catalog_dm": 262.368
+ }
+]

@@ -1,0 +1,211 @@
+{
+ "created_utc": "2026-07-10T22:32:24.687568+00:00",
+ "mode": "replot",
+ "command": "python -m dispersion.dm_campaign.run_adaptive_arrival --replot",
+ "git_head": "fd8887fd560d18582bd1cc47f5490638bf500ae3",
+ "git_status": [
+  " M dispersion/dm_campaign/configs/battery.yaml",
+  "?? dispersion/dm_campaign/adaptive_arrival.py",
+  "?? dispersion/dm_campaign/run_adaptive_arrival.py",
+  "?? results/dm_campaign/adaptive_arrival/",
+  "?? tests/test_adaptive_arrival.py"
+ ],
+ "code_diff_sha256": "c1d54c35e3bf3122c8620c895d9a8b804301ec2b3fdd349088df0d3e19f403f0",
+ "source_files": [
+  {
+   "path": "dispersion/dm_campaign/adaptive_arrival.py",
+   "sha256": "f1f33f30a8d1ec6a9c483d99a4f5e6f78223e3f29406da14e4c4b0cc5fbff968"
+  },
+  {
+   "path": "dispersion/dm_campaign/run_adaptive_arrival.py",
+   "sha256": "9a73f124cbef42f8b0b6ed973079fad7c5994cc7ede0e7911df6687f9a905eb7"
+  },
+  {
+   "path": "dispersion/dm_campaign/configs/battery.yaml",
+   "sha256": "de7948d0c76a8dbf4115b08af85b95004c732cba5b0df3686b58f3b8a3b76a93"
+  },
+  {
+   "path": "tests/test_adaptive_arrival.py",
+   "sha256": "96a386bfca7bbb9c03c3f347e436053dca1227f49179ecc2fd1df890dbfa3a46"
+  }
+ ],
+ "config_path": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/dispersion/dm_campaign/configs/battery.yaml",
+ "config_sha256": "de7948d0c76a8dbf4115b08af85b95004c732cba5b0df3686b58f3b8a3b76a93",
+ "candidate_grid_sha256": "fc20d48b40ae36255a7cfabb0556aa106b32b55c8c7eb052214d292d2d8c0ece",
+ "environment": {
+  "python": "3.12.13 | packaged by conda-forge | (main, Mar  5 2026, 17:06:14) [Clang 19.1.7 ]",
+  "platform": "macOS-27.0-arm64-arm-64bit",
+  "numpy": "2.4.6",
+  "scipy": "1.17.1"
+ },
+ "inputs": [
+  {
+   "burst": "casey",
+   "telescope": "chime",
+   "path": "/Users/jakobfaber/Data/Faber2026/dsa110/DSA_bursts/casey_chime_I_491_2085_32000b_cntr_bpc.npy",
+   "bytes": 131072128,
+   "sha256": "79e9cba92716263d7644cafafe4d35a3ea646f18509be094033b67c6fc4440c4"
+  },
+  {
+   "burst": "chromatica",
+   "telescope": "chime",
+   "path": "/Users/jakobfaber/Data/Faber2026/dsa110/DSA_bursts/chromatica_chime_I_272_6382_32000b_cntr_bpc.npy",
+   "bytes": 131072128,
+   "sha256": "609a8751415323f3191ea2f45b07d6598c5336247f523eda887668f26b29b2b5"
+  },
+  {
+   "burst": "freya",
+   "telescope": "chime",
+   "path": "/Users/jakobfaber/Data/Faber2026/dsa110/DSA_bursts/freya_chime_I_912_4067_32000b_cntr_bpc.npy",
+   "bytes": 131072128,
+   "sha256": "55561c3d9daad2023f876d62e7579ecea987b214022882a6930fe8c242d59f80"
+  },
+  {
+   "burst": "hamilton",
+   "telescope": "chime",
+   "path": "/Users/jakobfaber/Data/Faber2026/dsa110/DSA_bursts/hamilton_chime_I_518_8007_32000b_cntr_bpc.npy",
+   "bytes": 131072128,
+   "sha256": "86be9081500950735bd3f5d5cdd3370f101c260501f56001bb9cc9ce439652cb"
+  },
+  {
+   "burst": "isha",
+   "telescope": "chime",
+   "path": "/Users/jakobfaber/Data/Faber2026/dsa110/DSA_bursts/isha_chime_I_411_4359_32000b_cntr_bpc.npy",
+   "bytes": 131072128,
+   "sha256": "c372d6cb2ef62c1ceca28fb6f130cc6fac253bcf97087c3f0555c3f4580b9c2c"
+  },
+  {
+   "burst": "johndoeII",
+   "telescope": "chime",
+   "path": "/Users/jakobfaber/Data/Faber2026/dsa110/DSA_bursts/johndoeII_chime_I_696_5184_32000b_cntr_bpc.npy",
+   "bytes": 131072128,
+   "sha256": "d5f35c8b94de82dbc080938bf8e2ce4b725d189d8e5c66ef83b3ca6c84edede6"
+  },
+  {
+   "burst": "mahi",
+   "telescope": "chime",
+   "path": "/Users/jakobfaber/Data/Faber2026/dsa110/DSA_bursts/mahi_chime_I_960_1316_32000b_cntr_bpc.npy",
+   "bytes": 131072128,
+   "sha256": "be722c48157beb989c53b209f0842e5445f08d7695cba49f23593c6b5d06d61f"
+  },
+  {
+   "burst": "oran",
+   "telescope": "chime",
+   "path": "/Users/jakobfaber/Data/Faber2026/dsa110/DSA_bursts/oran_chime_I_397_0153_32000b_cntr_bpc.npy",
+   "bytes": 131072128,
+   "sha256": "73ca14a4d467e7a612cb5c8a9df5d1b17e4dba448e23710663dd1195b0f12092"
+  },
+  {
+   "burst": "phineas",
+   "telescope": "chime",
+   "path": "/Users/jakobfaber/Data/Faber2026/dsa110/DSA_bursts/phineas_chime_I_610_2894_32000b_cntr_bpc.npy",
+   "bytes": 131072128,
+   "sha256": "6f2e3f4c09c131af98dc061e3788fae6817406f4239e77e91dbe209631ebccd7"
+  },
+  {
+   "burst": "whitney",
+   "telescope": "chime",
+   "path": "/Users/jakobfaber/Data/Faber2026/dsa110/DSA_bursts/whitney_chime_I_462_1891_32000b_cntr_bpc.npy",
+   "bytes": 131072128,
+   "sha256": "fb1e5c93291cf35d0b269ebfa6a63409954b4da0aac097b404b926c380f24959"
+  },
+  {
+   "burst": "wilhelm",
+   "telescope": "chime",
+   "path": "/Users/jakobfaber/Data/Faber2026/dsa110/DSA_bursts/wilhelm_chime_I_602_3809_32000b_cntr_bpc.npy",
+   "bytes": 131072128,
+   "sha256": "fe64e87f4a0e33b73572ea498a1b6ba2405d38a979a15dc858647b33357e7c65"
+  },
+  {
+   "burst": "zach",
+   "telescope": "chime",
+   "path": "/Users/jakobfaber/Data/Faber2026/dsa110/DSA_bursts/zach_chime_I_262_3621_32000b_cntr_bpc.npy",
+   "bytes": 131072128,
+   "sha256": "bf317648879936ce4d019f116c17e0c33a22042610e37bddceef0ba48fe40deb"
+  },
+  {
+   "burst": "casey",
+   "telescope": "dsa",
+   "path": "/Users/jakobfaber/Data/Faber2026/dsa110/DSA_bursts/casey_dsa_I_491_211_2500b_cntr_bpc.npy",
+   "bytes": 122880128,
+   "sha256": "5ec04b0d83f66b67209e1539a37e5b917c294784ac85ae6572116fbd319bc4df"
+  },
+  {
+   "burst": "chromatica",
+   "telescope": "dsa",
+   "path": "/Users/jakobfaber/Data/Faber2026/dsa110/DSA_bursts/chromatica_dsa_I_272_368_2500b_cntr_bpc.npy",
+   "bytes": 122880128,
+   "sha256": "93658a33b0facbc3f753480ea48d216b572cc2e0f8b7adaf7f61b92fdd7fe533"
+  },
+  {
+   "burst": "freya",
+   "telescope": "dsa",
+   "path": "/Users/jakobfaber/Data/Faber2026/dsa110/DSA_bursts/freya_dsa_I_912_4_2500b_cntr_bpc.npy",
+   "bytes": 122880128,
+   "sha256": "f01a33531fffd14ac86c9ae1e824b7487df5929b7a4ed735df9e496d41cae705"
+  },
+  {
+   "burst": "hamilton",
+   "telescope": "dsa",
+   "path": "/Users/jakobfaber/Data/Faber2026/dsa110/DSA_bursts/hamilton_dsa_I_518_799_2500b_cntr_bpc.npy",
+   "bytes": 122880128,
+   "sha256": "6693e3108b93c6c5aa560b0edf649fb4e0260f28db2532690ca9fabb726b8aff"
+  },
+  {
+   "burst": "isha",
+   "telescope": "dsa",
+   "path": "/Users/jakobfaber/Data/Faber2026/dsa110/DSA_bursts/isha_dsa_I_411_568_2500b_cntr_bpc.npy",
+   "bytes": 122880128,
+   "sha256": "32499c0e11bed7dc774c02461c1241b5c394cd0d21d79f4bbfaebfda32b57f36"
+  },
+  {
+   "burst": "johndoeII",
+   "telescope": "dsa",
+   "path": "/Users/jakobfaber/Data/Faber2026/dsa110/DSA_bursts/johndoeII_dsa_I_696_506_2500b_cntr_bpc.npy",
+   "bytes": 122880128,
+   "sha256": "92279ca8d987e5b3b93582caf2f7116c2ac1ac4a265483b9f483aadbc53f1051"
+  },
+  {
+   "burst": "mahi",
+   "telescope": "dsa",
+   "path": "/Users/jakobfaber/Data/Faber2026/dsa110/DSA_bursts/mahi_dsa_I_960_128_2500b_cntr_bpc.npy",
+   "bytes": 122880128,
+   "sha256": "eb2e3345e0d334ea87d92d17196a96ae56345833ed4e95c2b4cc30a9d159bbf3"
+  },
+  {
+   "burst": "oran",
+   "telescope": "dsa",
+   "path": "/Users/jakobfaber/Data/Faber2026/dsa110/DSA_bursts/oran_dsa_I_396_882_2500b_cntr_bpc.npy",
+   "bytes": 122880128,
+   "sha256": "09ae92f6434da213487ffc5f97ff22109fd883b0297b495c593334933e6fb3d0"
+  },
+  {
+   "burst": "phineas",
+   "telescope": "dsa",
+   "path": "/Users/jakobfaber/Data/Faber2026/dsa110/DSA_bursts/phineas_dsa_I_610_274_2500b_cntr_bpc.npy",
+   "bytes": 122880128,
+   "sha256": "33e939485a48af97e87a410e60b3a9ddcc2ff4cd3ce25e7e03aeee6937c72f05"
+  },
+  {
+   "burst": "whitney",
+   "telescope": "dsa",
+   "path": "/Users/jakobfaber/Data/Faber2026/dsa110/DSA_bursts/whitney_dsa_I_462_174_2500b_cntr_bpc.npy",
+   "bytes": 122880128,
+   "sha256": "eb22ca5aa7c966335df38de5c3a07f288bcb6ce9789f74d3c0d54c347b24ce12"
+  },
+  {
+   "burst": "wilhelm",
+   "telescope": "dsa",
+   "path": "/Users/jakobfaber/Data/Faber2026/dsa110/DSA_bursts/wilhelm_dsa_I_602_346_2500b_cntr_bpc.npy",
+   "bytes": 122880128,
+   "sha256": "50b8a981bd49730d61939c1cb19f3dfa30fa12256587b6354f4a05e17476fbf3"
+  },
+  {
+   "burst": "zach",
+   "telescope": "dsa",
+   "path": "/Users/jakobfaber/Data/Faber2026/dsa110/DSA_bursts/zach_dsa_I_262_368_2500b_cntr_bpc.npy",
+   "bytes": 122880128,
+   "sha256": "be917e94d89134f699c456b9185422e8cfdbf3d935bbcf4d8b2e798d0ea12b01"
+  }
+ ]
+}

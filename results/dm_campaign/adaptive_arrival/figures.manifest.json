@@ -1,0 +1,20 @@
+{
+ "figures": [
+  {
+   "path": "resolution_stability_contact_sheet.png",
+   "expectation": "24 panels; black stars mark science-grade PASS results; red x marks MARGINAL candidates; marginal/weak labels must not be promoted"
+  }
+ ],
+ "per_band_status_counts": {
+  "marginal-fit": 15,
+  "science-grade": 8,
+  "weak-only": 1
+ },
+ "event_support_counts": {
+  "two-band-consistent": 0,
+  "two-band-tension": 2,
+  "single-band": 4,
+  "none": 6
+ },
+ "adoption_verdict": "not_ready"
+}

@@ -16,7 +16,7 @@
     },
     {
       "path": "contact_sheet.png",
-      "expectation": "Owner-review sheet, rendered natively (v2 after owner found the stacked-PNG version incomprehensible): 3 estimator rows x 2 instrument cols. Each panel answers one question -- does the estimator recover truth and are its errors honest. Color = morphology (blue narrow-1, orange wide-1, purple narrow-2, red wide-2), grey small = S/N 8, triangle = off-scale clipped. Per-panel PASS/FAIL chip with median bias, sigma_med, p68|z|; unconstrained count bottom-right. EXPECT chips to match injection_summary.json and the morphology split to be visible at a glance (dmphase outliers should be predominantly orange/red)."
+      "expectation": "Owner-review sheet v3 (v1 stacked-PNG incomprehensible; v2 conflated accuracy with error calibration in one FAIL and its unbiased-at-own-resolution criterion let an uninformative estimator pass). 3 estimator rows x 2 instrument cols; color = morphology, grey = S/N 8. Each chip carries TWO orthogonal verdicts: line 1 accuracy vs the science requirement (resolve dDM to <= +-0.5 pc/cm3, unbiased; REQ anchored to the 1 pc/cm3 chime_dm agreement floor) -- green only if met, else 'TOO COARSE'; line 2 sigma calibration factor, explicitly marked correctable. Row label states the uniformity verdict: 'sample-wide primary candidate' only if accurate on BOTH geometries (never per-instrument method choice). EXPECT: arrival_regression row green/candidate; dmphase + dmpower rows fail DSA and are marked not-a-candidate despite green CHIME panels."
     }
   ],
   "result": {

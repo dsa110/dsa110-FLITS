@@ -20,7 +20,7 @@
     {
       "file": "contact_sheet.png",
       "verdict": "match",
-      "notes": "v2 native render reviewed 2026-07-09 (v1 stacked-PNG judged incomprehensible by owner). All six PASS/FAIL chips match injection_summary.json. Morphology split legible: dmphase outliers are predominantly orange/red (wide / 2-comp) on both geometries while blue narrow-1 hugs zero; dmpower DSA scatters across ALL colors (geometry-wide failure) while dmpower CHIME is tight; arrival_regression DSA within ~+-1 with honest bars, CHIME flat at zero (its FAIL chip is calibration-only: p68|z| 2.6 with sigma_med 0.01). Legends no longer overlap titles in the per-estimator grids (moved below the axes)."
+      "notes": "v3 reviewed 2026-07-09. Chips now split accuracy from sigma-calibration and anchor accuracy to the +-0.5 pc/cm3 science requirement (v2's self-referential criterion wrongly greened dmpower/DSA at +-2.30 on a +-2.5 truth range). Verified: arrival_regression green on both geometries -> row labeled sample-wide primary candidate (DSA +-0.24 honest sigma; CHIME +-0.03 with 2.6x correctable under-quote); dmphase DSA TOO COARSE +-1.67 red vs CHIME green +-0.42 (4.5x under-quote) -> not a candidate; dmpower DSA TOO COARSE +-2.30 bias +0.81 vs CHIME green +-0.42 honest -> not a candidate. Uniformity rule stated in suptitle and row labels; no panel invites per-instrument method picking."
     }
   ]
 }

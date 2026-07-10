@@ -59,6 +59,10 @@ INSTRUMENTS = {
                   window=4.0, truth_dm=1.5),
 }
 ESTIMATORS = ("arrival_regression", "dmphase_variant_intree", "dmpower_variant_intree")
+# Science requirement on method resolution: the budget reads per-sightline DM
+# structure at the ~1 pc/cm^3 level (the chime_dm campaign's agreement floor is
+# 1 pc/cm^3), so a usable estimator must resolve half that.
+REQ_SCATTER = 0.5
 
 
 def run_cell(cell):
@@ -119,10 +123,19 @@ def run_cell(cell):
 
 
 def summarize(rows):
-    """Numeric gate per (estimator, instrument) on constrained S/N>=25 cells.
+    """Two ORTHOGONAL verdicts per (estimator, instrument), S/N>=25 cells only.
 
-    '68% coverage within [0.5, 1.5]' is read as: the 68th percentile of
-    |err|/sigma must land in [0.5, 1.5] (well-calibrated errors give ~1).
+    ACCURACY: does it recover truth WELL ENOUGH FOR THE SCIENCE? scatter68 =
+    68th pct of |err| is the method's actual resolution; accurate iff
+    |median bias| <= scatter68 AND scatter68 <= REQ_SCATTER. The absolute
+    requirement matters: without it, an estimator whose scatter fills the
+    truth range passes "unbiased" trivially while measuring nothing.
+    CALIBRATION: is the quoted sigma honest? sigma_factor = p68 of |err|/sigma
+    (~1 when honest; >1 means sigma under-quoted by that factor). A stable
+    factor is CORRECTABLE by injection-derived inflation, so miscalibration
+    alone never disqualifies a method -- inaccuracy does. The single
+    sample-wide primary must be accurate on BOTH geometries (uniformity
+    constraint: one method for all 12 bursts, never per-instrument choice).
     """
     out = {}
     for name in ESTIMATORS:
@@ -137,16 +150,20 @@ def summarize(rows):
                 sigs = np.array([r["dm_sigma"] for r in ok])
                 entry.update(
                     median_bias=float(np.median(errs)),
+                    scatter68=float(np.percentile(np.abs(errs), 68)),
                     median_sigma=float(np.median(sigs)),
-                    p68_abs_z=float(np.percentile(np.abs(errs / sigs), 68)),
+                    sigma_factor=float(np.percentile(np.abs(errs / sigs), 68)),
                 )
-                entry["pass_numeric"] = bool(
-                    abs(entry["median_bias"]) < entry["median_sigma"]
-                    and 0.5 <= entry["p68_abs_z"] <= 1.5
-                )
+                entry["accurate"] = bool(abs(entry["median_bias"]) <= entry["scatter68"]
+                                         and entry["scatter68"] <= REQ_SCATTER)
+                entry["calibrated"] = bool(0.5 <= entry["sigma_factor"] <= 1.5)
             else:
-                entry["pass_numeric"] = False
+                entry["accurate"] = entry["calibrated"] = False
             out[f"{name}/{instr}"] = entry
+    for name in ESTIMATORS:
+        out[f"{name}/BOTH"] = {
+            "primary_candidate": all(out[f"{name}/{i}"]["accurate"] for i in INSTRUMENTS)
+        }
     return out
 
 
@@ -229,21 +246,34 @@ def plot_contact_sheet(rows, summary, path):
             ax.set_ylim(-1.05 * lim, 1.05 * lim)
             g = summary[f"{name}/{instr}"]
             if "median_bias" in g:
-                verdict = "PASS" if g["pass_numeric"] else "FAIL"
-                txt = (f"{verdict}   bias {g['median_bias']:+.2f}   "
-                       f"$\\sigma_{{med}}$ {g['median_sigma']:.2f}   "
-                       f"p68$|z|$ {g['p68_abs_z']:.1f}")
+                if g["accurate"]:
+                    line1 = (f"recovers truth to $\\pm${g['scatter68']:.2f}"
+                             f" (bias {g['median_bias']:+.2f})")
+                else:
+                    line1 = (f"TOO COARSE: $\\pm${g['scatter68']:.2f}"
+                             f" (need $\\leq${REQ_SCATTER}),"
+                             f" bias {g['median_bias']:+.2f}")
+                if g["calibrated"]:
+                    line2 = f"quoted $\\sigma$ honest ($\\times${g['sigma_factor']:.1f})"
+                else:
+                    line2 = (f"quoted $\\sigma$ {g['sigma_factor']:.1f}$\\times$"
+                             " under-quoted (correctable)")
+                fc = "#c8e6c9" if g["accurate"] else "#ffcdd2"
+                txt = line1 + "\n" + line2
             else:
-                verdict, txt = "FAIL", "FAIL   no constrained S/N$\\geq$25 cells"
-            ax.text(0.02, 0.97, txt, transform=ax.transAxes, va="top", fontsize=11,
-                    bbox=dict(boxstyle="round,pad=0.3", lw=0,
-                              fc="#c8e6c9" if verdict == "PASS" else "#ffcdd2"))
+                fc, txt = "#ffcdd2", "no constrained S/N$\\geq$25 cells"
+            ax.text(0.02, 0.97, txt, transform=ax.transAxes, va="top", fontsize=10.5,
+                    bbox=dict(boxstyle="round,pad=0.3", lw=0, fc=fc))
             ax.text(0.98, 0.03, f"{n_unc}/{len(sel)} unconstrained",
                     transform=ax.transAxes, ha="right", fontsize=9, color="0.4")
             if i == 0:
                 ax.set_title(instr.upper(), fontsize=14)
             if j == 0:
-                ax.set_ylabel(f"{name}\nrecovered $-$ truth [pc cm$^{{-3}}$]", fontsize=11)
+                cand = summary[f"{name}/BOTH"]["primary_candidate"]
+                tag = ("sample-wide primary candidate" if cand
+                       else "not a candidate (fails $\\geq$1 geometry)")
+                ax.set_ylabel(f"{name}\n({tag})\nrecovered $-$ truth [pc cm$^{{-3}}$]",
+                              fontsize=10.5)
             if i == len(ESTIMATORS) - 1:
                 ax.set_xlabel("true $\\Delta$DM [pc cm$^{-3}$]", fontsize=12)
     handles = [plt.Line2D([], [], marker="o", ls="", ms=8, color=c, label=morph_label[k])
@@ -254,9 +284,11 @@ def plot_contact_sheet(rows, summary, path):
                            label="off-scale (clipped)")]
     fig.legend(handles=handles, loc="upper center", ncols=3, fontsize=11, frameon=False,
                bbox_to_anchor=(0.5, 1.0))
-    fig.suptitle("DM injection recovery -- error bars should cover the scatter;"
-                 " points off the zero line at S/N$\\geq$25 are misses", y=1.045,
-                 fontsize=13)
+    fig.suptitle("DM injection recovery. One method must serve BOTH geometries"
+                 " (uniform battery); green = resolves $\\Delta$DM to"
+                 f" $\\leq\\pm${REQ_SCATTER} pc cm$^{{-3}}$ unbiased."
+                 " $\\sigma$ miscalibration alone is correctable; coarseness is not.",
+                 y=1.045, fontsize=12.5)
     fig.tight_layout(rect=(0, 0, 1, 0.97))
     fig.savefig(path, dpi=150, bbox_inches="tight")
     plt.close(fig)

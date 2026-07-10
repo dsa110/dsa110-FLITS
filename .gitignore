@@ -404,3 +404,7 @@ test_output/
 /analysis/scattering-refit-2026-06/**/*.npz
 /analysis/scattering-refit-2026-06/**/*.csv
 /.superpowers/
+
+# Battery per-run diagnostic panels: 45M of PNGs, regenerable via
+# `python -m dispersion.dm_campaign.run_battery --replot` from the committed JSON.
+/results/dm_campaign/battery/run_panels/

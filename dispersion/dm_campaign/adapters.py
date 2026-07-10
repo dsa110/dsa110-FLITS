@@ -33,6 +33,12 @@ N_BOOT = 100
 
 @dataclass
 class DMResult:
+    """curve contract: key 'residual_dm' is ALWAYS the physical residual-DM
+    axis (positive = low frequencies arrive later, relative to dm_ref); any
+    second key is the method's search metric on that axis. Adapters convert
+    from their native convention (absolute DM, trial sign) here, so plots and
+    downstream consumers never re-derive per-method sign/offset conventions."""
+
     dm: float | None
     sigma: float | None
     curve: dict = field(default_factory=dict)
@@ -46,7 +52,7 @@ def _grid(window):
 def _measure_arrival_regression(wf, freqs_mhz, dt_s, dm_ref, window):
     res = measure_dm(wf, freqs_mhz, dt_s, dm_ref, dm_window=window, dm_step=DM_STEP)
     return DMResult(res["dm"], res["dm_err"],
-                    curve={"dm": np.asarray(res["coarse_curve"]["dm"]),
+                    curve={"residual_dm": np.asarray(res["coarse_curve"]["dm"]) - dm_ref,
                            "snr": np.asarray(res["coarse_curve"]["snr"])},
                     meta=res)
 
@@ -55,8 +61,9 @@ def _measure_dmphase_intree(wf, freqs_mhz, dt_s, dm_ref, window):
     grid = _grid(window)
     est = DMPhaseEstimator(wf.T, freqs_mhz, dt_s, grid, n_boot=N_BOOT, random_state=0)
     dm = dm_ref + dmphase_trial_to_physical_residual_dm(est.dm_best)
+    phys = -grid[::-1]  # trial axis -> physical residual (sign flip, re-sorted)
     return DMResult(float(dm), float(est.dm_sigma),
-                    curve={"dm_trial": grid, "power": np.asarray(est.dm_curve)},
+                    curve={"residual_dm": phys, "power": np.asarray(est.dm_curve)[::-1]},
                     meta={"trial_dm_best": float(est.dm_best)})
 
 
@@ -87,7 +94,7 @@ def _measure_dm_phase_published(wf, freqs_mhz, dt_s, dm_ref, window):
     dm_res, dm_std = DM_phase.get_dm(np.asarray(wf, float), fine, dt_s, freqs,
                                      ref_freq="top", no_plots=True)
     return DMResult(float(dm_ref + dm_res), float(dm_std),
-                    curve={"dm_trial": fine},
+                    curve={"residual_dm": fine},
                     meta={"residual_dm": float(dm_res), "coarse_ddm": float(ddm_c)})
 
 
@@ -141,6 +148,7 @@ def _measure_dm_power_published(wf, freqs_mhz, dt_s, dm_ref, window, trials=20):
     dmp.f_arr = np.asarray(freqs_mhz, float) * u.MHz
     dmp.chan_bw = float(np.abs(np.diff(freqs_mhz)).mean()) * u.MHz
     dmp.dm_series = grid
+    np.random.seed(0)  # released code bootstraps channels via the global RNG
     with contextlib.redirect_stdout(io.StringIO()):
         _, log_dfr, _, dm_power_log = dmp.get_power(np.asarray(wf, float), grid, trials)
         _, fit_dm = dmp.fit_log_dm_width(log_dfr, trials, dm_power_log)
@@ -152,9 +160,12 @@ def _measure_dm_power_published(wf, freqs_mhz, dt_s, dm_ref, window, trials=20):
     per_trial = np.nansum(fit_dm * w, axis=1) / np.nansum(w)
     sigma = float(np.nanstd(per_trial, ddof=1))
     score = np.nanmean(np.nanmean(dm_power_log, axis=1), axis=1)
+    meta = {"residual_dm": float(opt_dm), "trials": trials}
+    if not (np.isfinite(opt_dm) and np.isfinite(sigma) and sigma > 0):
+        meta["reason"] = "non-finite fit (delay-bin Gaussian fits failed)"
+        return DMResult(None, None, curve={"residual_dm": grid, "score": score}, meta=meta)
     return DMResult(float(dm_ref + opt_dm), sigma,
-                    curve={"dm_trial": grid, "score": score},
-                    meta={"residual_dm": float(opt_dm), "trials": trials})
+                    curve={"residual_dm": grid, "score": score}, meta=meta)
 
 
 class _Adapter:
@@ -162,8 +173,12 @@ class _Adapter:
         self.name, self._fn = name, fn
 
     def measure(self, waterfall, freq_ghz, dt_ms, dm_ref, window=5.0):
-        return self._fn(np.asarray(waterfall, float),
-                        np.asarray(freq_ghz, float) * 1e3,
+        # Uniform input cleaning at the contract boundary: real CHIME products
+        # carry NaN-masked channels; some estimators handle them internally,
+        # the released DM-power does not (SVD fails). Every adapter must see
+        # the identical waterfall, so zero-fill once here.
+        wf = np.nan_to_num(np.asarray(waterfall, float))
+        return self._fn(wf, np.asarray(freq_ghz, float) * 1e3,
                         dt_ms * 1e-3, float(dm_ref), float(window))
 
 

@@ -1,0 +1,35 @@
+{
+  "reviewed_by": "claude-fable (inline visual review, 2026-07-09)",
+  "verdicts": [
+    {
+      "path": "contact_sheet_arrival_regression.png",
+      "verdict": "match",
+      "notes": "Red candidate lines sit on curve peaks for all constrained panels. All 7 unconstrained panels (mahi/chime 'only 2 sub-bands'; casey/freya/hamilton/isha/phineas/mahi DSA 'only 0-2 sub-bands above S/N 4.0') still show clearly peaked coarse curves at 0 -- confirms the subband-gate config-sensitivity finding, not non-detections. oran/chime is the weakest constrained curve (-0.33 +- 0.33, noise-dominated), consistent with its known CHIME near-non-detection."
+    },
+    {
+      "path": "contact_sheet_dmphase_variant_intree.png",
+      "verdict": "match",
+      "notes": "Sharp coherent-power peaks at 0 on bright CHIME products (casey, freya, hamilton, zach). Known CHIME non-detections are noise curves; note oran/chime picks a noise spike at +3.66 +- 0.32 and isha/chime at -3.01 +- 0.76 -- overconfident sigma on noise, matching the Phase-0 calibration finding. DSA panels broad but peaked (wilhelm/dsa a smooth dome, sigma 0.03 looks optimistic for that width). y-scales span 1e-33..1e7 across panels -- native metric units, expected."
+    },
+    {
+      "path": "contact_sheet_dmpower_variant_intree.png",
+      "verdict": "match",
+      "notes": "All 24 panels populated, peaks near 0, red lines on-peak. DSA sigmas visibly larger (0.7-2.0) than CHIME as Phase 0 predicted for this geometry. isha/dsa and mahi/dsa near-noise with sigma ~1-2 (honest). No empty panels or axis artifacts."
+    },
+    {
+      "path": "contact_sheet_dm_phase_published.png",
+      "verdict": "match",
+      "notes": "Post-fix render: every panel shows the +-1 fine window around the coarse center with the red candidate inside and the grey 'package exposes no search curve' note; no more auto-scaled micro-ranges. Non-detections self-flag: mahi/chime -3.28 +- 489.39, oran/chime -1.83 +- 18.52. isha/dsa -0.67 +- 0.00 has a suspiciously zero sigma -- noted for the memo, not a plotting artifact."
+    },
+    {
+      "path": "contact_sheet_dm_power_published.png",
+      "verdict": "match",
+      "notes": "Peaked log-power curves near 0 on bright products, red lines on-peak. Exactly one unconstrained panel: casey/chime 'LinAlgError: SVD did not converge' (deterministic with seeded RNG; recorded finding). Weak-geometry DSA products (mahi +-2.16, isha +-3.19, oran +-1.18, zach +-2.32) show flat noisy curves with honestly large sigma."
+    },
+    {
+      "path": "run_panels/*.png",
+      "verdict": "match",
+      "notes": "Spot-checked 4 of 120: casey_dsa_arrival_regression (unconstrained yet burst clearly visible and curve peaked -- the gate finding in one image); zach_chime_dm_power_published (+0.032 +- 0.020, curve peak, waterfalls aligned, profile sharpest at candidate); mahi_chime_dmphase_variant_intree (non-detection: noise curve, no burst in waterfall, honest +-0.99); chromatica_dsa_dm_phase_published (+0.493 +- 0.043, profile at candidate ~10x sharper than at reference -- consistent with the known file-stem 272.368 vs bursts.yaml 272.664 DM convention gap, cross-method agreement with arrival +0.29 and dmpower +0.28)."
+    }
+  ]
+}

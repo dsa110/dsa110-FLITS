@@ -35,6 +35,7 @@ def test_adapter_returns_search_curve(name):
     res = ADAPTERS[name].measure(
         wf, freq_ghz=freq, dt_ms=dt, dm_ref=truth["dm_ref"], window=truth["window"]
     )
-    assert isinstance(res.curve, dict) and len(res.curve) > 0
-    trial = np.asarray(next(iter(res.curve.values())))
+    assert "residual_dm" in res.curve  # normalized physical-residual axis
+    trial = np.asarray(res.curve["residual_dm"])
     assert trial.ndim == 1 and trial.size >= 3
+    assert np.all(np.diff(trial) > 0)  # ascending physical axis, any native sign

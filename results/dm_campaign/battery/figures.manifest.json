@@ -1,0 +1,35 @@
+{
+  "generated_by": "dispersion/dm_campaign/run_battery.py (Phase 1, plan-dm-measurement-methods)",
+  "regen": "conda run -n flits python -m dispersion.dm_campaign.run_battery [--replot]",
+  "figures": [
+    {
+      "path": "contact_sheet_arrival_regression.png",
+      "expectation": "4x6 grid, one panel per product (12 CHIME rows then 12 DSA), coarse S/N-vs-residual-DM curve on the physical residual axis with a red candidate line and residual+-sigma chip. EXPECT: red line sits on the curve peak for constrained runs; 7 unconstrained panels (mahi/chime + 6 DSA: casey, freya, hamilton, isha, phineas, mahi) show the subband-gate reason in red -- their coarse curves should still be visibly peaked (the Phase-2 config-sensitivity finding), NOT flat noise."
+    },
+    {
+      "path": "contact_sheet_dmphase_variant_intree.png",
+      "expectation": "Same grid, in-tree DM-phase coherence power vs residual DM. EXPECT: sharp peaks at 0 on bright CHIME products; known CHIME non-detections (mahi, oran, isha, phineas) are noise curves where any candidate carries sigma near 1; DSA panels broad but peaked near 0."
+    },
+    {
+      "path": "contact_sheet_dmpower_variant_intree.png",
+      "expectation": "Same grid, in-tree DM-power score vs residual DM. EXPECT: peaked near 0 with red line on-peak; DSA sigmas visibly larger (Phase-0 TOO COARSE geometry); no empty panels."
+    },
+    {
+      "path": "contact_sheet_dm_phase_published.png",
+      "expectation": "Same grid. The released DM_phase.get_dm returns no search curve, so panels show only the +-1 pc/cm3 fine search window (centered on the method-independent coarse stage), the red candidate line inside it, a grey 'package exposes no search curve' note, and the residual+-sigma chip. EXPECT: no misleading auto-scaled micro-ranges; non-detections self-flag via huge sigma (mahi/chime ~+-489, oran/chime ~+-18)."
+    },
+    {
+      "path": "contact_sheet_dm_power_published.png",
+      "expectation": "Same grid, released DM-power mean log-power vs residual DM on the coarse grid. EXPECT: peaked near 0 on bright products; exactly one unconstrained panel (casey/chime, deterministic 'LinAlgError: SVD did not converge' with seeded RNG -- recorded finding); noisy flat curves on DSA products where the geometry is weak (mahi, isha) with honestly large sigma."
+    },
+    {
+      "path": "run_panels/*.png",
+      "expectation": "120 per-run 4-panel diagnostics (search curve on residual axis + red candidate line / waterfall at candidate / waterfall at reference / band profile overlay grey-vs-red). Family spot-check policy: review at least one panel per adapter family and one known non-detection; EXPECT waterfall burst alignment consistent with the curve peak and the profile overlay sharpest at the candidate for constrained runs."
+    }
+  ],
+  "result": {
+    "constrained": "112/120",
+    "unconstrained": "7 arrival_regression (subband S/N gate; coarse peaks still visible) + 1 dm_power_published casey/chime (SVD)",
+    "memo": "memo.md (descriptive only; no method promoted -- Phase-3 owner adjudication)"
+  }
+}

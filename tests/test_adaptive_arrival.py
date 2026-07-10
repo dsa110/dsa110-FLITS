@@ -58,7 +58,7 @@ def test_adaptive_policy_recovers_known_bright_injection(instrument):
     )
     selected = select_stable_candidate(candidates, sigma_max=0.5, stability_dm=0.25)
 
-    assert selected["status"] == "marginal-fit"
+    assert selected["status"] in {"science-grade", "marginal-fit"}
     assert abs(selected["dm"] - truth["dm_true"]) < 0.5
 
 
@@ -76,6 +76,24 @@ def test_selects_stable_science_grade_cluster_not_isolated_precision():
     assert selected["dm"] == 100.01
     assert selected["stable_candidate_count"] == 3
     assert selected["distinct_resolution_count"] == 3
+
+
+def test_prefers_stable_pass_cluster_over_central_marginal_candidate():
+    candidates = [
+        _candidate(100.00, 0.08, time_factor=1, n_subband=4),
+        _candidate(100.04, 0.08, time_factor=2, n_subband=6),
+        _candidate(100.02, 0.04, time_factor=4, n_subband=8),
+    ]
+    candidates[0]["chi2_red"] = 0.8
+    candidates[1]["chi2_red"] = 1.1
+    candidates[2]["chi2_red"] = 0.05
+
+    selected = select_stable_candidate(candidates, sigma_max=0.5, stability_dm=0.25)
+
+    assert selected["status"] == "science-grade"
+    assert selected["fit_quality"] == "PASS"
+    assert selected["dm"] in (100.00, 100.04)
+    assert selected["stable_candidate_count"] == 2
 
 
 def test_rejects_catastrophic_regression_chi2_from_science_grade_cluster():
@@ -157,7 +175,7 @@ def test_event_combination_labels_two_band_and_single_band_cases():
     assert one["dm"] == 411.56
 
 
-def test_event_combination_flags_and_inflates_cross_band_tension():
+def test_event_combination_flags_tension_without_choosing_a_single_dm():
     result = combine_event_measurements(
         "phineas",
         {
@@ -168,7 +186,10 @@ def test_event_combination_flags_and_inflates_cross_band_tension():
 
     assert result["support"] == "two-band-tension"
     assert result["agreement_z"] > 3
-    assert result["sigma"] > 0.01
+    assert result["dm"] is None
+    assert result["sigma"] is None
+    assert result["band_measurements"]["chime"]["dm"] == 610.47
+    assert result["band_measurements"]["dsa"]["dm"] == 610.21
 
 
 def test_event_combination_does_not_claim_dm_without_science_grade_band():

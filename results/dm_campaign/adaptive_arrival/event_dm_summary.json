@@ -4,109 +4,229 @@
   "dm": null,
   "sigma": null,
   "support": "none",
-  "bands_used": []
+  "bands_used": [],
+  "band_measurements": {}
  },
  {
   "burst": "chromatica",
-  "dm": null,
-  "sigma": null,
-  "support": "none",
-  "bands_used": []
+  "dm": 272.66475999833744,
+  "sigma": 0.03102102222795341,
+  "support": "single-band",
+  "bands_used": [
+   "dsa"
+  ],
+  "agreement_z": null,
+  "chi2_red": null,
+  "band_measurements": {
+   "dsa": {
+    "dm": 272.66475999833744,
+    "sigma": 0.03102102222795341
+   }
+  }
  },
  {
   "burst": "freya",
-  "dm": 912.458789167744,
-  "sigma": 0.016539798045491376,
+  "dm": null,
+  "sigma": null,
   "support": "two-band-tension",
   "bands_used": [
    "chime",
    "dsa"
   ],
-  "agreement_z": 4.53078734784898,
-  "chi2_red": 20.528033991428398
+  "agreement_z": 3.651876565132415,
+  "chi2_red": 13.336202446963325,
+  "band_measurements": {
+   "chime": {
+    "dm": 912.4535240431205,
+    "sigma": 0.003831035054484569
+   },
+   "dsa": {
+    "dm": 912.5034991747413,
+    "sigma": 0.013137595131341972
+   }
+  }
  },
  {
   "burst": "hamilton",
-  "dm": 518.7880581241063,
-  "sigma": 0.04143797163039767,
-  "support": "single-band",
+  "dm": 518.7730347246506,
+  "sigma": 0.0008253546432005266,
+  "support": "two-band-consistent",
   "bands_used": [
+   "chime",
    "dsa"
   ],
-  "agreement_z": null,
-  "chi2_red": null
+  "agreement_z": 0.49892168620852867,
+  "chi2_red": 0.24892284896916156,
+  "band_measurements": {
+   "chime": {
+    "dm": 518.7730325502332,
+    "sigma": 0.0008253661498122296
+   },
+   "dsa": {
+    "dm": 518.851018281451,
+    "sigma": 0.15630638265931582
+   }
+  }
  },
  {
   "burst": "isha",
-  "dm": null,
-  "sigma": null,
-  "support": "none",
-  "bands_used": []
+  "dm": 411.58232819505486,
+  "sigma": 0.016254691175172687,
+  "support": "single-band",
+  "bands_used": [
+   "chime"
+  ],
+  "agreement_z": null,
+  "chi2_red": null,
+  "band_measurements": {
+   "chime": {
+    "dm": 411.58232819505486,
+    "sigma": 0.016254691175172687
+   }
+  }
  },
  {
   "burst": "johndoeII",
-  "dm": null,
-  "sigma": null,
-  "support": "none",
-  "bands_used": []
+  "dm": 696.5095121343002,
+  "sigma": 0.003973685779821773,
+  "support": "two-band-consistent",
+  "bands_used": [
+   "chime",
+   "dsa"
+  ],
+  "agreement_z": 0.28395634289267563,
+  "chi2_red": 0.0806312046689828,
+  "band_measurements": {
+   "chime": {
+    "dm": 696.5095865724211,
+    "sigma": 0.003982323365756913
+   },
+   "dsa": {
+    "dm": 696.4924082483823,
+    "sigma": 0.0603651406274954
+   }
+  }
  },
  {
   "burst": "mahi",
-  "dm": 960.1580334884326,
-  "sigma": 0.04217800027396665,
-  "support": "single-band",
+  "dm": 960.1640404649332,
+  "sigma": 0.03921167926106285,
+  "support": "two-band-consistent",
   "bands_used": [
+   "chime",
    "dsa"
   ],
-  "agreement_z": null,
-  "chi2_red": null
+  "agreement_z": 0.33939377487658845,
+  "chi2_red": 0.1151881344249804,
+  "band_measurements": {
+   "chime": {
+    "dm": 960.045956081046,
+    "sigma": 0.35012999215358653
+   },
+   "dsa": {
+    "dm": 960.1655403091737,
+    "sigma": 0.039459916319638175
+   }
+  }
  },
  {
   "burst": "oran",
-  "dm": 396.8284586124191,
-  "sigma": 0.11522633191112903,
+  "dm": null,
+  "sigma": null,
   "support": "two-band-tension",
   "bands_used": [
    "chime",
    "dsa"
   ],
-  "agreement_z": 3.521791175701888,
-  "chi2_red": 12.403013085251686
+  "agreement_z": 3.337571604472554,
+  "chi2_red": 11.139384214981497,
+  "band_measurements": {
+   "chime": {
+    "dm": 396.7077452264517,
+    "sigma": 0.04738488917430671
+   },
+   "dsa": {
+    "dm": 396.96091951328583,
+    "sigma": 0.059234958005231896
+   }
+  }
  },
  {
   "burst": "phineas",
-  "dm": 610.4810174798656,
-  "sigma": 0.008920041035109894,
+  "dm": 610.4803351396263,
+  "sigma": 0.008779132706739209,
   "support": "single-band",
   "bands_used": [
    "chime"
   ],
   "agreement_z": null,
-  "chi2_red": null
+  "chi2_red": null,
+  "band_measurements": {
+   "chime": {
+    "dm": 610.4803351396263,
+    "sigma": 0.008779132706739209
+   }
+  }
  },
  {
   "burst": "whitney",
-  "dm": 462.1900388023581,
-  "sigma": 0.00634399723647038,
-  "support": "single-band",
+  "dm": 462.1899168929667,
+  "sigma": 0.0059919314238046474,
+  "support": "two-band-consistent",
   "bands_used": [
-   "chime"
+   "chime",
+   "dsa"
   ],
-  "agreement_z": null,
-  "chi2_red": null
+  "agreement_z": 0.05849777005302267,
+  "chi2_red": 0.003421989101176316,
+  "band_measurements": {
+   "chime": {
+    "dm": 462.1900388023581,
+    "sigma": 0.00634399723647038
+   },
+   "dsa": {
+    "dm": 462.18890909117164,
+    "sigma": 0.018240299599036128
+   }
+  }
  },
  {
   "burst": "wilhelm",
   "dm": null,
   "sigma": null,
-  "support": "none",
-  "bands_used": []
+  "support": "two-band-tension",
+  "bands_used": [
+   "chime",
+   "dsa"
+  ],
+  "agreement_z": 5.433841681489245,
+  "chi2_red": 29.526635419489864,
+  "band_measurements": {
+   "chime": {
+    "dm": 602.3688163637423,
+    "sigma": 0.005834320717439093
+   },
+   "dsa": {
+    "dm": 602.410499236601,
+    "sigma": 0.004980420172651329
+   }
+  }
  },
  {
   "burst": "zach",
-  "dm": null,
-  "sigma": null,
-  "support": "none",
-  "bands_used": []
+  "dm": 262.2976337789972,
+  "sigma": 0.023229223637954773,
+  "support": "single-band",
+  "bands_used": [
+   "dsa"
+  ],
+  "agreement_z": null,
+  "chi2_red": null,
+  "band_measurements": {
+   "dsa": {
+    "dm": 262.2976337789972,
+    "sigma": 0.023229223637954773
+   }
+  }
  }
 ]

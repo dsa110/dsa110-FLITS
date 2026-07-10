@@ -208,8 +208,9 @@ def write_memo(selected: list[dict], events: list[dict], config: dict, path: Pat
         "on all 24 products. A per-band result is science-grade only when at least",
         "two distinct resolution choices agree within "
         f"{config['adaptive']['stability_dm']} pc/cm3 and sigma_DM <= "
-        f"{config['adaptive']['sigma_max']} pc/cm3, and the canonical reduced-chi2",
-        "classifier returns PASS. MARGINAL fits retain their candidate DM for audit",
+        f"{config['adaptive']['sigma_max']} pc/cm3. Science-grade clusters contain",
+        "only candidates for which the canonical reduced-chi2 classifier returns PASS.",
+        "MARGINAL fits retain their candidate DM for audit",
         "but are excluded from event-level summaries.", "",
         "The event-level inverse-variance summaries below are not direct cross-band",
         "fits. The stored CHIME and DSA arrays have independent time origins; a fit",
@@ -265,7 +266,12 @@ def main(argv=None):
     (out_dir / "event_dm_summary.json").write_text(json.dumps(events, indent=1))
     (out_dir / "cross_band_fit_gate.json").write_text(json.dumps({
         "status": "blocked_missing_absolute_time_origins",
-        "reason": "CHIME and DSA waterfall products are independently burst-centered",
+        "reason": "The stored arrays do not record a timestamp-to-sample mapping, and the final "
+                  "centering/cropping builder was not recovered in the completed host audit",
+        "provenance_evidence": [
+            "Faber2026/docs/rse/specs/handoff-2026-07-06-22-30-provenance-p0-p2-machine-verification.md",
+            "Faber2026/docs/rse/specs/research-trust-reset-revalidation.md",
+        ],
         "required_inputs": [
             "verified absolute time origin for each stored CHIME waterfall",
             "verified absolute time origin for each stored DSA waterfall",

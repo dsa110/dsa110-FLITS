@@ -152,45 +152,45 @@
   "burst": "freya",
   "telescope": "chime",
   "status": "science-grade",
-  "dm": 912.4535240431181,
-  "sigma": 0.0038310350546605777,
-  "residual": 0.046824043118135705,
+  "dm": 912.4535240431205,
+  "sigma": 0.003831035054484569,
+  "residual": 0.04682404312052313,
   "selected_resolution": {
-   "max_channels": 128,
+   "max_channels": 256,
    "max_time": 256,
    "n_subband": 8,
-   "freq_factor": 8,
+   "freq_factor": 4,
    "time_factor": 125,
    "dt_ms": 0.32
   },
   "n_good_subbands": 4,
-  "chi2_red": 0.5014831399009076,
+  "chi2_red": 0.501483139695017,
   "fit_quality": "PASS",
   "fit_quality_notes": [],
   "subbands": [
    {
     "freq_mhz": 425.0,
-    "t0_s": 0.04131989966618634,
-    "t0_err_s": 4.750422558283017e-05,
-    "snr": 15.190221328016664
+    "t0_s": 0.04131989966618609,
+    "t0_err_s": 4.750422557521004e-05,
+    "snr": 15.190221330238083
    },
    {
     "freq_mhz": 475.0,
-    "t0_s": 0.04105079806334172,
-    "t0_err_s": 3.444460325071781e-05,
-    "snr": 17.773168423453182
+    "t0_s": 0.04105079806334391,
+    "t0_err_s": 3.444460325010322e-05,
+    "snr": 17.773168427408017
    },
    {
     "freq_mhz": 525.0,
-    "t0_s": 0.04091230290314307,
-    "t0_err_s": 2.271038827085798e-05,
-    "snr": 25.29463431077024
+    "t0_s": 0.04091230290314652,
+    "t0_err_s": 2.271038827478099e-05,
+    "snr": 25.294634315322554
    },
    {
     "freq_mhz": 575.0,
-    "t0_s": 0.04080341501705948,
-    "t0_err_s": 1.2220772264284532e-05,
-    "snr": 51.712380886945795
+    "t0_s": 0.04080341501704912,
+    "t0_err_s": 1.2220772266457858e-05,
+    "snr": 51.712380893764276
    }
   ],
   "subbands_dropped": [
@@ -211,66 +211,140 @@
     "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
    }
   ],
-  "cluster_median_dm": 912.4534895560205,
-  "cluster_span_dm": 0.00016198919297494285,
+  "cluster_median_dm": 912.4535240431205,
+  "cluster_span_dm": 8.753886504564434e-12,
   "candidate_count": 48,
   "constrained_candidate_count": 42,
-  "stable_candidate_count": 6,
-  "distinct_resolution_count": 6,
+  "stable_candidate_count": 3,
+  "distinct_resolution_count": 3,
   "product_dm": 912.4067,
   "catalog_dm": 912.4
  },
  {
   "burst": "hamilton",
   "telescope": "chime",
-  "status": "marginal-fit",
-  "dm": 518.7949784301436,
-  "sigma": 0.08528586853209504,
-  "residual": -0.00572156985640504,
+  "status": "science-grade",
+  "dm": 518.7730325502332,
+  "sigma": 0.0008253661498122296,
+  "residual": -0.02766744976679547,
   "selected_resolution": {
-   "max_channels": 512,
-   "max_time": 256,
+   "max_channels": 256,
+   "max_time": 1024,
    "n_subband": 8,
-   "freq_factor": 2,
-   "time_factor": 125,
-   "dt_ms": 0.32
+   "freq_factor": 4,
+   "time_factor": 31,
+   "dt_ms": 0.07936
   },
-  "n_good_subbands": 5,
-  "chi2_red": 0.00026942451739871376,
-  "fit_quality": "MARGINAL",
-  "fit_quality_notes": [
-   "Suspiciously low chi2_red (0.00); noise may be overestimated"
-  ],
+  "n_good_subbands": 6,
+  "chi2_red": 0.30466202035875656,
+  "fit_quality": "PASS",
+  "fit_quality_notes": [],
   "subbands": [
    {
-    "freq_mhz": 575.0,
-    "t0_s": 0.04084556930296851,
-    "t0_err_s": 0.00031569615832471263,
-    "snr": 361.43557536322396
+    "freq_mhz": 425.0,
+    "t0_s": 0.04056575741190453,
+    "t0_err_s": 1.0734916393277533e-05,
+    "snr": 10.2549737572055
    },
    {
-    "freq_mhz": 625.0,
-    "t0_s": 0.04085617842216814,
-    "t0_err_s": 0.000325985265352842,
-    "snr": 406.14921623851274
+    "freq_mhz": 475.0,
+    "t0_s": 0.04071612705564197,
+    "t0_err_s": 2.0892063681358986e-05,
+    "snr": 25.84666429738174
+   },
+   {
+    "freq_mhz": 525.0,
+    "t0_s": 0.04090733855043062,
+    "t0_err_s": 0.0006010574527407665,
+    "snr": 257.15286589217556
+   },
+   {
+    "freq_mhz": 575.0,
+    "t0_s": 0.040957909928817274,
+    "t0_err_s": 0.00026743929186972,
+    "snr": 282.38937180505974
    },
    {
     "freq_mhz": 675.0,
-    "t0_s": 0.040869094735814016,
-    "t0_err_s": 0.00037286560134593713,
-    "snr": 566.3912344677942
-   },
-   {
-    "freq_mhz": 725.0,
-    "t0_s": 0.04088135204633138,
-    "t0_err_s": 0.00046232832473886354,
-    "snr": 333.3932355637466
+    "t0_s": 0.04095249849302854,
+    "t0_err_s": 5.035644096277199e-06,
+    "snr": 100.19364003773616
    },
    {
     "freq_mhz": 775.0,
-    "t0_s": 0.04086917503814082,
-    "t0_err_s": 0.0004758676281940656,
-    "snr": 164.76825268282425
+    "t0_s": 0.041022639026601214,
+    "t0_err_s": 0.0002812062152399222,
+    "snr": 103.92771570685967
+   }
+  ],
+  "subbands_dropped": [
+   {
+    "freq_mhz": 625.0,
+    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
+   },
+   {
+    "freq_mhz": 725.0,
+    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
+   }
+  ],
+  "cluster_median_dm": 518.7730325502332,
+  "cluster_span_dm": 2.3871746179793263e-07,
+  "candidate_count": 48,
+  "constrained_candidate_count": 21,
+  "stable_candidate_count": 3,
+  "distinct_resolution_count": 3,
+  "product_dm": 518.8007,
+  "catalog_dm": 518.799
+ },
+ {
+  "burst": "isha",
+  "telescope": "chime",
+  "status": "science-grade",
+  "dm": 411.58232819505486,
+  "sigma": 0.016254691175172687,
+  "residual": 0.1464281950548525,
+  "selected_resolution": {
+   "max_channels": 512,
+   "max_time": 512,
+   "n_subband": 8,
+   "freq_factor": 2,
+   "time_factor": 62,
+   "dt_ms": 0.15872
+  },
+  "n_good_subbands": 5,
+  "chi2_red": 1.1271989223458114,
+  "fit_quality": "PASS",
+  "fit_quality_notes": [],
+  "subbands": [
+   {
+    "freq_mhz": 525.0,
+    "t0_s": 0.03906545570365687,
+    "t0_err_s": 0.0001361816505748632,
+    "snr": 4.331329790810743
+   },
+   {
+    "freq_mhz": 575.0,
+    "t0_s": 0.03909626703762099,
+    "t0_err_s": 6.19918900528855e-05,
+    "snr": 7.38952014605454
+   },
+   {
+    "freq_mhz": 625.0,
+    "t0_s": 0.03926453267363035,
+    "t0_err_s": 8.216053560251408e-05,
+    "snr": 6.624391267635052
+   },
+   {
+    "freq_mhz": 675.0,
+    "t0_s": 0.03950287055337464,
+    "t0_err_s": 4.120234672382453e-05,
+    "snr": 10.0285945942854
+   },
+   {
+    "freq_mhz": 725.0,
+    "t0_s": 0.03965722526076158,
+    "t0_err_s": 7.98734184009272e-05,
+    "snr": 6.985164611283526
    }
   ],
   "subbands_dropped": [
@@ -283,58 +357,62 @@
     "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
    },
    {
-    "freq_mhz": 525.0,
+    "freq_mhz": 775.0,
     "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
    }
   ],
-  "cluster_median_dm": 518.7858382993218,
-  "cluster_span_dm": 0.022244188293370826,
+  "cluster_median_dm": 411.581772538309,
+  "cluster_span_dm": 0.008612139683293663,
   "candidate_count": 48,
-  "constrained_candidate_count": 21,
-  "stable_candidate_count": 12,
-  "distinct_resolution_count": 12,
-  "product_dm": 518.8007,
-  "catalog_dm": 518.799
+  "constrained_candidate_count": 39,
+  "stable_candidate_count": 4,
+  "distinct_resolution_count": 4,
+  "product_dm": 411.4359,
+  "catalog_dm": 411.568
  },
  {
-  "burst": "isha",
+  "burst": "johndoeII",
   "telescope": "chime",
-  "status": "marginal-fit",
-  "dm": 411.5817918032431,
-  "sigma": 0.01674351225015057,
-  "residual": 0.1458918032431029,
+  "status": "science-grade",
+  "dm": 696.5095865724211,
+  "sigma": 0.003982323365756913,
+  "residual": -0.00881342757895709,
   "selected_resolution": {
-   "max_channels": 128,
+   "max_channels": 256,
    "max_time": 1024,
    "n_subband": 6,
-   "freq_factor": 8,
+   "freq_factor": 4,
    "time_factor": 31,
    "dt_ms": 0.07936
   },
-  "n_good_subbands": 3,
-  "chi2_red": 0.00022939824884442143,
-  "fit_quality": "MARGINAL",
-  "fit_quality_notes": [
-   "Suspiciously low chi2_red (0.00); noise may be overestimated"
-  ],
+  "n_good_subbands": 4,
+  "chi2_red": 0.3359911855250772,
+  "fit_quality": "PASS",
+  "fit_quality_notes": [],
   "subbands": [
    {
-    "freq_mhz": 565.625,
-    "t0_s": 0.03913967859403617,
-    "t0_err_s": 6.125975643013109e-05,
-    "snr": 5.465715503326824
+    "freq_mhz": 566.40625,
+    "t0_s": 0.04077495682995229,
+    "t0_err_s": 2.1797826673136566e-05,
+    "snr": 5.829066477947018
    },
    {
     "freq_mhz": 632.8125,
-    "t0_s": 0.039410051687635166,
-    "t0_err_s": 5.742115000659259e-05,
-    "snr": 6.405357072692481
+    "t0_s": 0.04079173243891198,
+    "t0_err_s": 1.0560501342817516e-05,
+    "snr": 10.245061435164617
    },
    {
-    "freq_mhz": 698.4375,
-    "t0_s": 0.039604200989757185,
-    "t0_err_s": 4.3333587165722985e-05,
-    "snr": 6.882880102366254
+    "freq_mhz": 699.21875,
+    "t0_s": 0.04081620315271561,
+    "t0_err_s": 8.413562325295857e-06,
+    "snr": 11.332956855964882
+   },
+   {
+    "freq_mhz": 766.40625,
+    "t0_s": 0.04081504531631769,
+    "t0_err_s": 1.7724858599731706e-05,
+    "snr": 5.261447920858144
    }
   ],
   "subbands_dropped": [
@@ -343,30 +421,26 @@
     "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
    },
    {
-    "freq_mhz": 498.4375,
-    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
-   },
-   {
-    "freq_mhz": 765.625,
+    "freq_mhz": 499.21875,
     "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
    }
   ],
-  "cluster_median_dm": 411.5817918032431,
-  "cluster_span_dm": 0.14646311747389973,
+  "cluster_median_dm": 696.5095865724211,
+  "cluster_span_dm": 0.0009960327303133454,
   "candidate_count": 48,
-  "constrained_candidate_count": 39,
-  "stable_candidate_count": 31,
-  "distinct_resolution_count": 31,
-  "product_dm": 411.4359,
-  "catalog_dm": 411.568
+  "constrained_candidate_count": 30,
+  "stable_candidate_count": 3,
+  "distinct_resolution_count": 3,
+  "product_dm": 696.5184,
+  "catalog_dm": 696.506
  },
  {
-  "burst": "johndoeII",
+  "burst": "mahi",
   "telescope": "chime",
-  "status": "marginal-fit",
-  "dm": 696.514264467974,
-  "sigma": 0.006900313023103442,
-  "residual": -0.004135532025998145,
+  "status": "science-grade",
+  "dm": 960.045956081046,
+  "sigma": 0.35012999215358653,
+  "residual": -0.08564391895401968,
   "selected_resolution": {
    "max_channels": 128,
    "max_time": 1024,
@@ -375,130 +449,66 @@
    "time_factor": 31,
    "dt_ms": 0.07936
   },
-  "n_good_subbands": 5,
-  "chi2_red": 2.393812614065034,
-  "fit_quality": "MARGINAL",
-  "fit_quality_notes": [
-   "Elevated chi2_red (2.39)"
-  ],
+  "n_good_subbands": 7,
+  "chi2_red": 1.3191609770754928,
+  "fit_quality": "PASS",
+  "fit_quality_notes": [],
   "subbands": [
    {
-    "freq_mhz": 575.0,
-    "t0_s": 0.04078508327005859,
-    "t0_err_s": 2.361929988504621e-05,
-    "snr": 5.8780787510363774
-   },
-   {
-    "freq_mhz": 625.0,
-    "t0_s": 0.04081846175021899,
-    "t0_err_s": 1.452723363149381e-05,
-    "snr": 7.769596298314488
-   },
-   {
-    "freq_mhz": 675.0,
-    "t0_s": 0.04079349050516883,
-    "t0_err_s": 7.926083439750945e-06,
-    "snr": 11.373993093120779
-   },
-   {
-    "freq_mhz": 725.0,
-    "t0_s": 0.04084788687911456,
-    "t0_err_s": 2.1257279367149107e-05,
-    "snr": 4.5373953772574565
-   },
-   {
-    "freq_mhz": 775.0,
-    "t0_s": 0.040815045316294964,
-    "t0_err_s": 1.772485860393432e-05,
-    "snr": 5.261447919213304
-   }
-  ],
-  "subbands_dropped": [
-   {
     "freq_mhz": 425.0,
-    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
+    "t0_s": 0.06640383136590296,
+    "t0_err_s": 0.018916385161763534,
+    "snr": 10773823645.861715
    },
    {
     "freq_mhz": 475.0,
-    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
+    "t0_s": 0.06787795211172835,
+    "t0_err_s": 0.0026724755996754505,
+    "snr": 9949898721.895208
    },
    {
     "freq_mhz": 525.0,
-    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
-   }
-  ],
-  "cluster_median_dm": 696.5138455227673,
-  "cluster_span_dm": 0.03679861999614786,
-  "candidate_count": 48,
-  "constrained_candidate_count": 30,
-  "stable_candidate_count": 30,
-  "distinct_resolution_count": 30,
-  "product_dm": 696.5184,
-  "catalog_dm": 696.506
- },
- {
-  "burst": "mahi",
-  "telescope": "chime",
-  "status": "marginal-fit",
-  "dm": 960.0987153393609,
-  "sigma": 0.02463206190321807,
-  "residual": -0.032884660639183494,
-  "selected_resolution": {
-   "max_channels": 512,
-   "max_time": 256,
-   "n_subband": 6,
-   "freq_factor": 2,
-   "time_factor": 125,
-   "dt_ms": 0.32
-  },
-  "n_good_subbands": 4,
-  "chi2_red": 0.24738454312844205,
-  "fit_quality": "MARGINAL",
-  "fit_quality_notes": [
-   "Suspiciously low chi2_red (0.25); noise may be overestimated"
-  ],
-  "subbands": [
-   {
-    "freq_mhz": 566.40625,
-    "t0_s": 0.0399439215649135,
-    "t0_err_s": 9.93012029557189e-05,
-    "snr": 4.127534959293378
+    "t0_s": 0.06477829902360482,
+    "t0_err_s": 0.0011611365886092875,
+    "snr": 25049429252.81895
    },
    {
-    "freq_mhz": 633.203125,
-    "t0_s": 0.03997066629002592,
-    "t0_err_s": 6.825712217350954e-05,
-    "snr": 8.84186285053217
+    "freq_mhz": 575.0,
+    "t0_s": 0.05575997777016658,
+    "t0_err_s": 0.0003770489537750995,
+    "snr": 5.110788812369658
    },
    {
-    "freq_mhz": 699.609375,
-    "t0_s": 0.04006154907690405,
-    "t0_err_s": 6.28430586220577e-05,
-    "snr": 9.735792661827118
+    "freq_mhz": 625.0,
+    "t0_s": 0.05347506401826933,
+    "t0_err_s": 0.023771884582201596,
+    "snr": 36.20982078444002
    },
    {
-    "freq_mhz": 766.40625,
-    "t0_s": 0.04021506226947242,
-    "t0_err_s": 0.00022427003643046977,
-    "snr": 6.836059584680173
+    "freq_mhz": 675.0,
+    "t0_s": 0.048019726941425166,
+    "t0_err_s": 0.002808731751538673,
+    "snr": 24.616072287337527
+   },
+   {
+    "freq_mhz": 775.0,
+    "t0_s": 0.04158903230583602,
+    "t0_err_s": 0.014794837808170959,
+    "snr": 22.169436068891105
    }
   ],
   "subbands_dropped": [
    {
-    "freq_mhz": 433.203125,
-    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
-   },
-   {
-    "freq_mhz": 499.609375,
+    "freq_mhz": 725.0,
     "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
    }
   ],
-  "cluster_median_dm": 960.0989589927777,
-  "cluster_span_dm": 0.07493805458796032,
+  "cluster_median_dm": 960.0619251423307,
+  "cluster_span_dm": 0.03193812256927231,
   "candidate_count": 48,
   "constrained_candidate_count": 16,
-  "stable_candidate_count": 6,
-  "distinct_resolution_count": 6,
+  "stable_candidate_count": 2,
+  "distinct_resolution_count": 2,
   "product_dm": 960.1316,
   "catalog_dm": 960.128
  },
@@ -557,12 +567,12 @@
     "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
    }
   ],
-  "cluster_median_dm": 396.69836931686257,
-  "cluster_span_dm": 0.24382675204373072,
+  "cluster_median_dm": 396.7077452264517,
+  "cluster_span_dm": 0.11385800502580423,
   "candidate_count": 48,
   "constrained_candidate_count": 12,
-  "stable_candidate_count": 8,
-  "distinct_resolution_count": 8,
+  "stable_candidate_count": 3,
+  "distinct_resolution_count": 3,
   "product_dm": 397.0153,
   "catalog_dm": 396.882
  },
@@ -570,54 +580,54 @@
   "burst": "phineas",
   "telescope": "chime",
   "status": "science-grade",
-  "dm": 610.4810174798656,
-  "sigma": 0.008920041035109894,
-  "residual": 0.19161747986561295,
+  "dm": 610.4803351396263,
+  "sigma": 0.008779132706739209,
+  "residual": 0.1909351396262764,
   "selected_resolution": {
-   "max_channels": 512,
+   "max_channels": 256,
    "max_time": 512,
    "n_subband": 4,
-   "freq_factor": 2,
+   "freq_factor": 4,
    "time_factor": 62,
    "dt_ms": 0.15872
   },
   "n_good_subbands": 4,
-  "chi2_red": 0.3206784621300919,
+  "chi2_red": 0.33073339755316367,
   "fit_quality": "PASS",
   "fit_quality_notes": [],
   "subbands": [
    {
     "freq_mhz": 450.0,
-    "t0_s": 0.03539465613022043,
-    "t0_err_s": 0.00011660463818380764,
-    "snr": 8.134416215208253
+    "t0_s": 0.035391927643545436,
+    "t0_err_s": 0.00011348806463165992,
+    "snr": 7.816326030792963
    },
    {
     "freq_mhz": 550.0,
-    "t0_s": 0.03750558423579362,
-    "t0_err_s": 8.013341958418544e-05,
-    "snr": 13.451727766514425
+    "t0_s": 0.037498494566146234,
+    "t0_err_s": 8.296445724134493e-05,
+    "snr": 12.635510720799504
    },
    {
     "freq_mhz": 650.0,
-    "t0_s": 0.038727738252899276,
-    "t0_err_s": 3.0798177346266686e-05,
-    "snr": 14.891613585595339
+    "t0_s": 0.03872894686271812,
+    "t0_err_s": 3.07486075334761e-05,
+    "snr": 14.47965773951666
    },
    {
     "freq_mhz": 750.0,
-    "t0_s": 0.039434648259595646,
-    "t0_err_s": 5.4265352356642734e-05,
-    "snr": 5.859771928247664
+    "t0_s": 0.03943748873027407,
+    "t0_err_s": 5.324548399678342e-05,
+    "snr": 5.861437382813479
    }
   ],
   "subbands_dropped": [],
-  "cluster_median_dm": 610.4807835120334,
-  "cluster_span_dm": 0.040552768348902646,
+  "cluster_median_dm": 610.4803351396263,
+  "cluster_span_dm": 0.024063722983328262,
   "candidate_count": 48,
   "constrained_candidate_count": 44,
-  "stable_candidate_count": 28,
-  "distinct_resolution_count": 28,
+  "stable_candidate_count": 11,
+  "distinct_resolution_count": 11,
   "product_dm": 610.2894,
   "catalog_dm": 610.274
  },
@@ -668,87 +678,73 @@
   ],
   "subbands_dropped": [],
   "cluster_median_dm": 462.1900388023581,
-  "cluster_span_dm": 0.006901234310760174,
+  "cluster_span_dm": 0.005179265155902613,
   "candidate_count": 48,
   "constrained_candidate_count": 27,
-  "stable_candidate_count": 27,
-  "distinct_resolution_count": 27,
+  "stable_candidate_count": 15,
+  "distinct_resolution_count": 15,
   "product_dm": 462.1891,
   "catalog_dm": 462.174
  },
  {
   "burst": "wilhelm",
   "telescope": "chime",
-  "status": "marginal-fit",
-  "dm": 602.3704920581839,
-  "sigma": 0.01136780241940104,
-  "residual": -0.010407941816083621,
+  "status": "science-grade",
+  "dm": 602.3688163637423,
+  "sigma": 0.005834320717439093,
+  "residual": -0.01208363625767106,
   "selected_resolution": {
-   "max_channels": 512,
-   "max_time": 512,
-   "n_subband": 8,
-   "freq_factor": 2,
-   "time_factor": 62,
-   "dt_ms": 0.15872
+   "max_channels": 256,
+   "max_time": 1024,
+   "n_subband": 6,
+   "freq_factor": 4,
+   "time_factor": 31,
+   "dt_ms": 0.07936
   },
-  "n_good_subbands": 5,
-  "chi2_red": 4.401765185048501,
-  "fit_quality": "MARGINAL",
-  "fit_quality_notes": [
-   "Elevated chi2_red (4.40)"
-  ],
+  "n_good_subbands": 3,
+  "chi2_red": 0.8581415343004306,
+  "fit_quality": "PASS",
+  "fit_quality_notes": [],
   "subbands": [
    {
-    "freq_mhz": 575.0,
-    "t0_s": 0.040641199493973074,
-    "t0_err_s": 3.96564161650278e-05,
-    "snr": 4.571330255656259
+    "freq_mhz": 632.8125,
+    "t0_s": 0.04076021690168764,
+    "t0_err_s": 1.2678396917320317e-05,
+    "snr": 10.946746195370384
    },
    {
-    "freq_mhz": 625.0,
-    "t0_s": 0.04068786098410016,
-    "t0_err_s": 2.5095011224672938e-05,
-    "snr": 7.841312051485703
+    "freq_mhz": 699.21875,
+    "t0_s": 0.04077467491202953,
+    "t0_err_s": 6.087518067157416e-06,
+    "snr": 25.09259777475746
    },
    {
-    "freq_mhz": 675.0,
-    "t0_s": 0.04074611700021785,
-    "t0_err_s": 7.235699996466018e-06,
-    "snr": 29.24713577076682
-   },
-   {
-    "freq_mhz": 725.0,
-    "t0_s": 0.04072219195857467,
-    "t0_err_s": 9.646063731379598e-06,
-    "snr": 28.79562115275564
-   },
-   {
-    "freq_mhz": 775.0,
-    "t0_s": 0.04077205308402964,
-    "t0_err_s": 1.9278626205623502e-05,
-    "snr": 13.816192985705761
+    "freq_mhz": 766.40625,
+    "t0_s": 0.04080525583456709,
+    "t0_err_s": 1.5517001268039585e-05,
+    "snr": 9.033526630747124
    }
   ],
   "subbands_dropped": [
    {
-    "freq_mhz": 425.0,
+    "freq_mhz": 432.8125,
     "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
    },
    {
-    "freq_mhz": 475.0,
+    "freq_mhz": 499.21875,
     "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
    },
    {
-    "freq_mhz": 525.0,
+    "freq_mhz": 566.40625,
     "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
    }
   ],
-  "cluster_median_dm": 602.3704920581839,
-  "cluster_span_dm": 0.013109987687812463,
+  "cluster_median_dm": 602.3688163637423,
+  "cluster_span_dm": 0.005762611325280886,
   "candidate_count": 48,
   "constrained_candidate_count": 21,
-  "stable_candidate_count": 21,
-  "distinct_resolution_count": 21,
+  "stable_candidate_count": 9,
+  "distinct_resolution_count": 9,
   "product_dm": 602.3809,
   "catalog_dm": 602.346
  },
@@ -897,68 +893,66 @@
  {
   "burst": "chromatica",
   "telescope": "dsa",
-  "status": "marginal-fit",
-  "dm": 272.6625673685471,
-  "sigma": 0.025065514988564238,
-  "residual": 0.2945673685471206,
+  "status": "science-grade",
+  "dm": 272.66475999833744,
+  "sigma": 0.03102102222795341,
+  "residual": 0.2967599983374498,
   "selected_resolution": {
-   "max_channels": 256,
-   "max_time": 2048,
+   "max_channels": 128,
+   "max_time": 1024,
    "n_subband": 6,
-   "freq_factor": 24,
-   "time_factor": 1,
-   "dt_ms": 0.032768000000000005
+   "freq_factor": 48,
+   "time_factor": 2,
+   "dt_ms": 0.06553600000000001
   },
   "n_good_subbands": 5,
-  "chi2_red": 0.10829622731200683,
-  "fit_quality": "MARGINAL",
-  "fit_quality_notes": [
-   "Suspiciously low chi2_red (0.11); noise may be overestimated"
-  ],
+  "chi2_red": 0.4752355948554057,
+  "fit_quality": "PASS",
+  "fit_quality_notes": [],
   "subbands": [
    {
     "freq_mhz": 1326.64611819226,
-    "t0_s": 0.04095648333085349,
-    "t0_err_s": 6.030823764121906e-06,
-    "snr": 18.658444035295155
+    "t0_s": 0.04093931760435274,
+    "t0_err_s": 7.6208286237217256e-06,
+    "snr": 21.015092961059043
    },
    {
-    "freq_mhz": 1357.77404787466,
-    "t0_s": 0.040952645394123965,
-    "t0_err_s": 7.04879271372246e-06,
-    "snr": 17.45047993733935
+    "freq_mhz": 1357.4078369372203,
+    "t0_s": 0.04092066751224229,
+    "t0_err_s": 9.577279489243989e-06,
+    "snr": 19.44923135031373
    },
    {
-    "freq_mhz": 1389.2681884945,
-    "t0_s": 0.04094349125125134,
-    "t0_err_s": 8.752367650060815e-06,
-    "snr": 9.872861047892933
+    "freq_mhz": 1388.9019775570596,
+    "t0_s": 0.04092759840636996,
+    "t0_err_s": 1.0254919071371792e-05,
+    "snr": 10.568294482550012
    },
    {
-    "freq_mhz": 1420.3961181769,
-    "t0_s": 0.04094688889501487,
-    "t0_err_s": 1.0859773880566916e-05,
-    "snr": 10.893259299061041
+    "freq_mhz": 1420.3961181768998,
+    "t0_s": 0.04091984704868323,
+    "t0_err_s": 1.2777199730364576e-05,
+    "snr": 11.595326371077132
    },
    {
-    "freq_mhz": 1483.01818847914,
-    "t0_s": 0.04093492865319475,
-    "t0_err_s": 1.2073107835330894e-05,
-    "snr": 10.676153936642361
+    "freq_mhz": 1482.6519775416998,
+    "t0_s": 0.04091744658161463,
+    "t0_err_s": 1.4904132405778717e-05,
+    "snr": 11.99510175500755
    }
   ],
   "subbands_dropped": [
    {
-    "freq_mhz": 1451.5240478593,
+    "freq_mhz": 1451.1578369218603,
     "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
    }
   ],
-  "cluster_median_dm": 272.6636636834423,
-  "cluster_span_dm": 0.040707105194996984,
+  "cluster_median_dm": 272.66475999833744,
+  "cluster_span_dm": 0.03384763882638708,
   "candidate_count": 48,
   "constrained_candidate_count": 36,
-  "stable_candidate_count": 24,
-  "distinct_resolution_count": 24,
+  "stable_candidate_count": 11,
+  "distinct_resolution_count": 11,
   "product_dm": 272.368,
   "catalog_dm": 272.664
  },
@@ -966,66 +960,78 @@
   "burst": "freya",
   "telescope": "dsa",
   "status": "science-grade",
-  "dm": 912.5107470868492,
-  "sigma": 0.012034766622417065,
-  "residual": 0.11074708684918733,
+  "dm": 912.5034991747413,
+  "sigma": 0.013137595131341972,
+  "residual": 0.10349917474127324,
   "selected_resolution": {
-   "max_channels": 512,
+   "max_channels": 128,
    "max_time": 2048,
-   "n_subband": 6,
-   "freq_factor": 12,
+   "n_subband": 8,
+   "freq_factor": 48,
    "time_factor": 1,
    "dt_ms": 0.032768000000000005
   },
-  "n_good_subbands": 6,
-  "chi2_red": 0.8338847610998585,
+  "n_good_subbands": 8,
+  "chi2_red": 1.4543608968370185,
   "fit_quality": "PASS",
   "fit_quality_notes": [],
   "subbands": [
    {
-    "freq_mhz": 1326.8292236609802,
-    "t0_s": 0.04194764828685636,
-    "t0_err_s": 4.027782958525724e-06,
-    "snr": 144.64440575636908
+    "freq_mhz": 1322.98400881786,
+    "t0_s": 0.04194117652120105,
+    "t0_err_s": 3.3812046242182073e-06,
+    "snr": 101.94687797169016
    },
    {
-    "freq_mhz": 1357.9571533433798,
-    "t0_s": 0.04193880753470347,
-    "t0_err_s": 4.583491035901514e-06,
-    "snr": 98.7813427558182
+    "freq_mhz": 1346.42150881402,
+    "t0_s": 0.04196503761613581,
+    "t0_err_s": 1.6310336895834287e-05,
+    "snr": 215.75419539726434
    },
    {
-    "freq_mhz": 1389.2681884945,
-    "t0_s": 0.041921520645558576,
-    "t0_err_s": 3.837679090213444e-06,
-    "snr": 94.51756068236483
+    "freq_mhz": 1369.85900881018,
+    "t0_s": 0.04193082881814446,
+    "t0_err_s": 5.557982375301488e-06,
+    "snr": 72.0237417384144
    },
    {
-    "freq_mhz": 1420.5792236456198,
-    "t0_s": 0.04191016208563431,
-    "t0_err_s": 3.364229811392591e-06,
-    "snr": 82.15613828038681
+    "freq_mhz": 1393.29650880634,
+    "t0_s": 0.04191841456206207,
+    "t0_err_s": 3.821993292669784e-06,
+    "snr": 81.08849507925154
    },
    {
-    "freq_mhz": 1451.7071533280202,
-    "t0_s": 0.04191009583869881,
-    "t0_err_s": 7.641418542951885e-06,
-    "snr": 107.4334223216693
+    "freq_mhz": 1416.7340088024998,
+    "t0_s": 0.04191139054951071,
+    "t0_err_s": 4.072059904590075e-06,
+    "snr": 77.27681421043843
    },
    {
-    "freq_mhz": 1483.01818847914,
-    "t0_s": 0.041898710295856054,
-    "t0_err_s": 5.285290125246177e-06,
-    "snr": 54.53179707203746
+    "freq_mhz": 1440.17150879866,
+    "t0_s": 0.041898757685641656,
+    "t0_err_s": 3.907082754123286e-06,
+    "snr": 63.93342833490111
+   },
+   {
+    "freq_mhz": 1463.60900879482,
+    "t0_s": 0.041924768060862296,
+    "t0_err_s": 2.2724121859342642e-05,
+    "snr": 141.48818836501835
+   },
+   {
+    "freq_mhz": 1487.0465087909802,
+    "t0_s": 0.041896926261195615,
+    "t0_err_s": 6.104035358114015e-06,
+    "snr": 45.725168489142455
    }
   ],
   "subbands_dropped": [],
-  "cluster_median_dm": 912.511820648114,
-  "cluster_span_dm": 0.02558442339591238,
+  "cluster_median_dm": 912.5057263090956,
+  "cluster_span_dm": 0.007247914739195949,
   "candidate_count": 48,
   "constrained_candidate_count": 27,
-  "stable_candidate_count": 12,
-  "distinct_resolution_count": 12,
+  "stable_candidate_count": 6,
+  "distinct_resolution_count": 6,
   "product_dm": 912.4,
   "catalog_dm": 912.4
  },
@@ -1033,63 +1039,71 @@
   "burst": "hamilton",
   "telescope": "dsa",
   "status": "science-grade",
-  "dm": 518.7880581241063,
-  "sigma": 0.04143797163039767,
-  "residual": -0.010941875893649922,
+  "dm": 518.851018281451,
+  "sigma": 0.15630638265931582,
+  "residual": 0.052018281451069015,
   "selected_resolution": {
-   "max_channels": 128,
+   "max_channels": 512,
    "max_time": 2048,
-   "n_subband": 6,
-   "freq_factor": 48,
+   "n_subband": 8,
+   "freq_factor": 12,
    "time_factor": 1,
    "dt_ms": 0.032768000000000005
   },
   "n_good_subbands": 4,
-  "chi2_red": 1.4539932593555178,
+  "chi2_red": 0.34605600674131515,
   "fit_quality": "PASS",
   "fit_quality_notes": [],
   "subbands": [
    {
-    "freq_mhz": 1326.64611819226,
-    "t0_s": 0.04111183713803664,
-    "t0_err_s": 8.585803609012152e-06,
-    "snr": 23.70558194486025
+    "freq_mhz": 1322.9840088178598,
+    "t0_s": 0.04111159506095929,
+    "t0_err_s": 1.0309518387710827e-05,
+    "snr": 23.79658892427823
    },
    {
-    "freq_mhz": 1357.4078369372203,
-    "t0_s": 0.041085712776329525,
-    "t0_err_s": 1.4166608460389716e-05,
-    "snr": 8.252957662534367
+    "freq_mhz": 1346.42150881402,
+    "t0_s": 0.0411001619641091,
+    "t0_err_s": 1.1618068971066324e-05,
+    "snr": 11.175327885665386
    },
    {
-    "freq_mhz": 1420.3961181768998,
-    "t0_s": 0.0411337746600832,
-    "t0_err_s": 9.240931736265493e-05,
-    "snr": 57.94985321047625
+    "freq_mhz": 1416.7340088024998,
+    "t0_s": 0.04113202167227798,
+    "t0_err_s": 9.321492487389265e-05,
+    "snr": 56.931039082401256
    },
    {
-    "freq_mhz": 1482.6519775416998,
-    "t0_s": 0.041115152280596014,
-    "t0_err_s": 1.375027301095917e-05,
-    "snr": 13.268862387842713
+    "freq_mhz": 1440.17150879866,
+    "t0_s": 0.04117079829568798,
+    "t0_err_s": 0.00014796976513076565,
+    "snr": 36.416056484133236
    }
   ],
   "subbands_dropped": [
    {
-    "freq_mhz": 1388.9019775570596,
+    "freq_mhz": 1369.8590088101798,
     "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
    },
    {
-    "freq_mhz": 1451.1578369218603,
+    "freq_mhz": 1393.2965088063397,
+    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
+   },
+   {
+    "freq_mhz": 1463.60900879482,
+    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
+   },
+   {
+    "freq_mhz": 1487.04650879098,
     "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
    }
   ],
-  "cluster_median_dm": 518.8195382027786,
-  "cluster_span_dm": 0.0650670177523125,
+  "cluster_median_dm": 518.8510198256786,
+  "cluster_span_dm": 0.06296328298651588,
   "candidate_count": 48,
   "constrained_candidate_count": 15,
-  "stable_candidate_count": 6,
-  "distinct_resolution_count": 6,
+  "stable_candidate_count": 4,
+  "distinct_resolution_count": 4,
   "product_dm": 518.799,
   "catalog_dm": 518.799
  },
@@ -1109,81 +1123,76 @@
  {
   "burst": "johndoeII",
   "telescope": "dsa",
-  "status": "marginal-fit",
-  "dm": 696.4906564640182,
-  "sigma": 0.018566146000195703,
-  "residual": -0.015343535981742207,
+  "status": "science-grade",
+  "dm": 696.4924082483823,
+  "sigma": 0.0603651406274954,
+  "residual": -0.01359175161769599,
   "selected_resolution": {
-   "max_channels": 512,
-   "max_time": 2048,
+   "max_channels": 128,
+   "max_time": 512,
    "n_subband": 8,
-   "freq_factor": 12,
-   "time_factor": 1,
-   "dt_ms": 0.032768000000000005
+   "freq_factor": 48,
+   "time_factor": 4,
+   "dt_ms": 0.13107200000000002
   },
-  "n_good_subbands": 8,
-  "chi2_red": 2.145540697476856,
-  "fit_quality": "MARGINAL",
-  "fit_quality_notes": [
-   "Elevated chi2_red (2.15)"
-  ],
+  "n_good_subbands": 6,
+  "chi2_red": 1.0516354260353034,
+  "fit_quality": "PASS",
+  "fit_quality_notes": [],
   "subbands": [
    {
-    "freq_mhz": 1322.9840088178598,
-    "t0_s": 0.04140036824458642,
-    "t0_err_s": 4.2113415860139715e-06,
-    "snr": 8.669456260858913
+    "freq_mhz": 1322.98400881786,
+    "t0_s": 0.04134286703941434,
+    "t0_err_s": 1.4825044366132663e-05,
+    "snr": 14.439168386107664
    },
    {
     "freq_mhz": 1346.42150881402,
-    "t0_s": 0.04138886730858437,
-    "t0_err_s": 7.223365895562792e-06,
-    "snr": 4.474261523376982
+    "t0_s": 0.041343980326762696,
+    "t0_err_s": 2.336319615812974e-05,
+    "snr": 6.977037499165235
    },
    {
-    "freq_mhz": 1369.8590088101798,
-    "t0_s": 0.04139499315156809,
-    "t0_err_s": 5.763366474496602e-06,
-    "snr": 5.8366425698367905
+    "freq_mhz": 1369.85900881018,
+    "t0_s": 0.04134651714823545,
+    "t0_err_s": 2.0644536887055813e-05,
+    "snr": 9.71352860191562
    },
    {
-    "freq_mhz": 1393.2965088063397,
-    "t0_s": 0.04141968001742073,
-    "t0_err_s": 8.539473061345812e-06,
-    "snr": 4.623538787255265
+    "freq_mhz": 1393.29650880634,
+    "t0_s": 0.04138079394500232,
+    "t0_err_s": 2.5630597020170375e-05,
+    "snr": 8.24484153378598
    },
    {
     "freq_mhz": 1416.7340088024998,
-    "t0_s": 0.0413923347936869,
-    "t0_err_s": 6.110152274062962e-06,
-    "snr": 6.2507808636014435
+    "t0_s": 0.04131740886451294,
+    "t0_err_s": 2.0749201847673237e-05,
+    "snr": 9.383276661105981
    },
    {
     "freq_mhz": 1440.17150879866,
-    "t0_s": 0.041412741355050756,
-    "t0_err_s": 6.2815097215804e-06,
-    "snr": 6.794940340709869
-   },
-   {
-    "freq_mhz": 1463.60900879482,
-    "t0_s": 0.04140166154583624,
-    "t0_err_s": 7.566776553622725e-06,
-    "snr": 4.596464016635086
-   },
-   {
-    "freq_mhz": 1487.04650879098,
-    "t0_s": 0.04140358532193385,
-    "t0_err_s": 7.140378624836432e-06,
-    "snr": 4.885919573116713
+    "t0_s": 0.041359970281479204,
+    "t0_err_s": 2.0460456164370777e-05,
+    "snr": 11.461207103159317
    }
   ],
-  "subbands_dropped": [],
-  "cluster_median_dm": 696.4906564640182,
-  "cluster_span_dm": 0.045424989954995,
+  "subbands_dropped": [
+   {
+    "freq_mhz": 1463.60900879482,
+    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
+   },
+   {
+    "freq_mhz": 1487.0465087909802,
+    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
+   }
+  ],
+  "cluster_median_dm": 696.4924082483823,
+  "cluster_span_dm": 0.040158312163725896,
   "candidate_count": 48,
   "constrained_candidate_count": 33,
-  "stable_candidate_count": 33,
-  "distinct_resolution_count": 33,
+  "stable_candidate_count": 21,
+  "distinct_resolution_count": 21,
   "product_dm": 696.506,
   "catalog_dm": 696.506
  },
@@ -1191,48 +1200,48 @@
   "burst": "mahi",
   "telescope": "dsa",
   "status": "science-grade",
-  "dm": 960.1580334884326,
-  "sigma": 0.04217800027396665,
-  "residual": 0.030033488432536615,
+  "dm": 960.1655403091737,
+  "sigma": 0.039459916319638175,
+  "residual": 0.037540309173664355,
   "selected_resolution": {
-   "max_channels": 128,
+   "max_channels": 256,
    "max_time": 2048,
    "n_subband": 3,
-   "freq_factor": 48,
+   "freq_factor": 24,
    "time_factor": 1,
    "dt_ms": 0.032768000000000005
   },
   "n_good_subbands": 3,
-  "chi2_red": 1.2862300349233884,
+  "chi2_red": 0.9634118815145599,
   "fit_quality": "PASS",
   "fit_quality_notes": [],
   "subbands": [
    {
-    "freq_mhz": 1342.02697756474,
-    "t0_s": 0.04118845931778154,
-    "t0_err_s": 1.2377966842899873e-05,
-    "snr": 10.996969586316421
+    "freq_mhz": 1342.39318850218,
+    "t0_s": 0.04119043090888566,
+    "t0_err_s": 1.372071389754087e-05,
+    "snr": 11.433597665602525
    },
    {
-    "freq_mhz": 1404.28283692954,
-    "t0_s": 0.04119797375845002,
-    "t0_err_s": 9.436531529481236e-06,
-    "snr": 8.836912539744336
+    "freq_mhz": 1404.64904786698,
+    "t0_s": 0.04119706341239325,
+    "t0_err_s": 8.989811671382805e-06,
+    "snr": 8.840465381912514
    },
    {
-    "freq_mhz": 1467.2711181692198,
-    "t0_s": 0.04118123350173035,
-    "t0_err_s": 7.4676027640746886e-06,
-    "snr": 7.3981087301533455
+    "freq_mhz": 1467.27111816922,
+    "t0_s": 0.041181233501481215,
+    "t0_err_s": 7.467602687898772e-06,
+    "snr": 7.398108667855731
    }
   ],
   "subbands_dropped": [],
-  "cluster_median_dm": 960.1517305684172,
-  "cluster_span_dm": 0.0229449300518354,
+  "cluster_median_dm": 960.1655403091737,
+  "cluster_span_dm": 0.010312173553984394,
   "candidate_count": 48,
   "constrained_candidate_count": 6,
-  "stable_candidate_count": 6,
-  "distinct_resolution_count": 6,
+  "stable_candidate_count": 3,
+  "distinct_resolution_count": 3,
   "product_dm": 960.128,
   "catalog_dm": 960.128
  },
@@ -1240,53 +1249,53 @@
   "burst": "oran",
   "telescope": "dsa",
   "status": "science-grade",
-  "dm": 396.9384473055478,
-  "sigma": 0.045230998400176164,
-  "residual": 0.05644730554780608,
+  "dm": 396.96091951328583,
+  "sigma": 0.059234958005231896,
+  "residual": 0.07891951328582536,
   "selected_resolution": {
-   "max_channels": 128,
-   "max_time": 2048,
+   "max_channels": 256,
+   "max_time": 1024,
    "n_subband": 4,
-   "freq_factor": 48,
-   "time_factor": 1,
-   "dt_ms": 0.032768000000000005
+   "freq_factor": 24,
+   "time_factor": 2,
+   "dt_ms": 0.06553600000000001
   },
   "n_good_subbands": 3,
-  "chi2_red": 0.6144076993632132,
+  "chi2_red": 0.6933169483036807,
   "fit_quality": "PASS",
   "fit_quality_notes": [],
   "subbands": [
    {
     "freq_mhz": 1334.70275881594,
-    "t0_s": 0.04076929736253179,
-    "t0_err_s": 1.0198474032278997e-05,
-    "snr": 5.209913135674427
+    "t0_s": 0.040873437728902944,
+    "t0_err_s": 1.4194127768993207e-05,
+    "snr": 6.2021014356941695
    },
    {
     "freq_mhz": 1381.5777588082601,
-    "t0_s": 0.040792379474717956,
-    "t0_err_s": 4.981889079837762e-06,
-    "snr": 7.954576106613013
+    "t0_s": 0.04087399662344574,
+    "t0_err_s": 1.0965169099657316e-05,
+    "snr": 10.279862055090893
    },
    {
-    "freq_mhz": 1475.3277587929,
-    "t0_s": 0.040853805393750345,
-    "t0_err_s": 1.6533109179782425e-05,
-    "snr": 5.029264979308103
+    "freq_mhz": 1475.3277587928999,
+    "t0_s": 0.04083850074357517,
+    "t0_err_s": 2.072076815859883e-05,
+    "snr": 5.390782230900679
    }
   ],
   "subbands_dropped": [
    {
-    "freq_mhz": 1428.4527588005799,
+    "freq_mhz": 1428.45275880058,
     "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
    }
   ],
-  "cluster_median_dm": 396.92348429555875,
-  "cluster_span_dm": 0.2367223432744936,
+  "cluster_median_dm": 396.9609195130122,
+  "cluster_span_dm": 0.23005806334708723,
   "candidate_count": 48,
   "constrained_candidate_count": 24,
-  "stable_candidate_count": 20,
-  "distinct_resolution_count": 20,
+  "stable_candidate_count": 8,
+  "distinct_resolution_count": 8,
   "product_dm": 396.882,
   "catalog_dm": 396.882
  },
@@ -1350,222 +1359,178 @@
  {
   "burst": "whitney",
   "telescope": "dsa",
-  "status": "marginal-fit",
-  "dm": 462.1919349999547,
-  "sigma": 0.01582006815451954,
-  "residual": 0.017934999954718478,
+  "status": "science-grade",
+  "dm": 462.18890909117164,
+  "sigma": 0.018240299599036128,
+  "residual": 0.014909091171659838,
   "selected_resolution": {
    "max_channels": 128,
    "max_time": 1024,
-   "n_subband": 6,
+   "n_subband": 4,
    "freq_factor": 48,
    "time_factor": 2,
    "dt_ms": 0.06553600000000001
   },
-  "n_good_subbands": 6,
-  "chi2_red": 0.2403727332087481,
-  "fit_quality": "MARGINAL",
-  "fit_quality_notes": [
-   "Suspiciously low chi2_red (0.24); noise may be overestimated"
-  ],
+  "n_good_subbands": 4,
+  "chi2_red": 0.6026550564297036,
+  "fit_quality": "PASS",
+  "fit_quality_notes": [],
   "subbands": [
    {
-    "freq_mhz": 1326.64611819226,
-    "t0_s": 0.04114350796239363,
-    "t0_err_s": 5.5168290478979145e-06,
-    "snr": 24.40719053092246
+    "freq_mhz": 1334.70275881594,
+    "t0_s": 0.041142095401798896,
+    "t0_err_s": 5.5393781624922905e-06,
+    "snr": 24.852870129765257
    },
    {
-    "freq_mhz": 1357.4078369372203,
-    "t0_s": 0.04114850233390436,
-    "t0_err_s": 1.0068165264391731e-05,
-    "snr": 10.956808071177765
+    "freq_mhz": 1381.5777588082601,
+    "t0_s": 0.04115169367532442,
+    "t0_err_s": 1.0622484457368328e-05,
+    "snr": 10.303895419728086
    },
    {
-    "freq_mhz": 1388.9019775570596,
-    "t0_s": 0.04114308687980104,
-    "t0_err_s": 1.0704481234116437e-05,
-    "snr": 9.204514663694681
+    "freq_mhz": 1428.4527588005799,
+    "t0_s": 0.041142023262694886,
+    "t0_err_s": 7.519948239475405e-06,
+    "snr": 15.503411492277714
    },
    {
-    "freq_mhz": 1420.3961181768998,
-    "t0_s": 0.04114676713776166,
-    "t0_err_s": 9.871342292975798e-06,
-    "snr": 10.42094858355652
-   },
-   {
-    "freq_mhz": 1451.1578369218603,
-    "t0_s": 0.041136608995817406,
-    "t0_err_s": 5.999513059382389e-06,
-    "snr": 24.91414561666171
-   },
-   {
-    "freq_mhz": 1482.6519775416998,
-    "t0_s": 0.04113614811391366,
-    "t0_err_s": 6.4259018198846485e-06,
-    "snr": 23.915584016768683
+    "freq_mhz": 1475.3277587929,
+    "t0_s": 0.04113593841729534,
+    "t0_err_s": 5.646750218517565e-06,
+    "snr": 32.12514887807514
    }
   ],
   "subbands_dropped": [],
-  "cluster_median_dm": 462.1919349999547,
+  "cluster_median_dm": 462.18940637142066,
   "cluster_span_dm": 0.015425201363257202,
   "candidate_count": 48,
   "constrained_candidate_count": 33,
-  "stable_candidate_count": 33,
-  "distinct_resolution_count": 33,
+  "stable_candidate_count": 12,
+  "distinct_resolution_count": 12,
   "product_dm": 462.174,
   "catalog_dm": 462.174
  },
  {
   "burst": "wilhelm",
   "telescope": "dsa",
-  "status": "marginal-fit",
-  "dm": 602.4076209195857,
-  "sigma": 0.2946025208862543,
-  "residual": 0.06162091958572091,
+  "status": "science-grade",
+  "dm": 602.410499236601,
+  "sigma": 0.004980420172651329,
+  "residual": 0.06449923660102286,
   "selected_resolution": {
-   "max_channels": 256,
-   "max_time": 512,
-   "n_subband": 8,
-   "freq_factor": 24,
-   "time_factor": 4,
-   "dt_ms": 0.13107200000000002
+   "max_channels": 512,
+   "max_time": 1024,
+   "n_subband": 3,
+   "freq_factor": 12,
+   "time_factor": 2,
+   "dt_ms": 0.06553600000000001
   },
   "n_good_subbands": 3,
-  "chi2_red": 1.61082633188418e-05,
-  "fit_quality": "MARGINAL",
-  "fit_quality_notes": [
-   "Suspiciously low chi2_red (0.00); noise may be overestimated"
-  ],
+  "chi2_red": 0.839776695964006,
+  "fit_quality": "PASS",
+  "fit_quality_notes": [],
   "subbands": [
    {
-    "freq_mhz": 1416.7340088025,
-    "t0_s": 0.04101099264751732,
-    "t0_err_s": 3.724930560095678e-05,
-    "snr": 632.5922487137323
+    "freq_mhz": 1342.39318850218,
+    "t0_s": 0.04100387571632164,
+    "t0_err_s": 1.3971885121645624e-06,
+    "snr": 235.1826382373485
    },
    {
-    "freq_mhz": 1463.60900879482,
-    "t0_s": 0.04100312561334385,
-    "t0_err_s": 4.117220642504324e-05,
-    "snr": 653.0515344724006
+    "freq_mhz": 1404.8321533357,
+    "t0_s": 0.04098962759418115,
+    "t0_err_s": 1.0878604442379132e-06,
+    "snr": 203.97612459068577
    },
    {
-    "freq_mhz": 1487.0465087909802,
-    "t0_s": 0.04099915516911639,
-    "t0_err_s": 4.6287948720602843e-05,
-    "snr": 526.7433110457945
+    "freq_mhz": 1467.4542236379402,
+    "t0_s": 0.040979588779148,
+    "t0_err_s": 1.2460236856557012e-06,
+    "snr": 185.749462516188
    }
   ],
-  "subbands_dropped": [
-   {
-    "freq_mhz": 1322.98400881786,
-    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
-   },
-   {
-    "freq_mhz": 1346.42150881402,
-    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
-   },
-   {
-    "freq_mhz": 1369.85900881018,
-    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
-   },
-   {
-    "freq_mhz": 1393.29650880634,
-    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
-   },
-   {
-    "freq_mhz": 1440.17150879866,
-    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
-   }
-  ],
-  "cluster_median_dm": 602.4076209195857,
-  "cluster_span_dm": 0.01806757194981401,
+  "subbands_dropped": [],
+  "cluster_median_dm": 602.4102979311053,
+  "cluster_span_dm": 0.006231105434267192,
   "candidate_count": 48,
   "constrained_candidate_count": 39,
-  "stable_candidate_count": 15,
-  "distinct_resolution_count": 15,
+  "stable_candidate_count": 4,
+  "distinct_resolution_count": 4,
   "product_dm": 602.346,
   "catalog_dm": 602.346
  },
  {
   "burst": "zach",
   "telescope": "dsa",
-  "status": "marginal-fit",
-  "dm": 262.311454408498,
-  "sigma": 0.014565716815077593,
-  "residual": -0.05654559150201521,
+  "status": "science-grade",
+  "dm": 262.2976337789972,
+  "sigma": 0.023229223637954773,
+  "residual": -0.0703662210028142,
   "selected_resolution": {
-   "max_channels": 256,
-   "max_time": 2048,
+   "max_channels": 512,
+   "max_time": 1024,
    "n_subband": 8,
-   "freq_factor": 24,
-   "time_factor": 1,
-   "dt_ms": 0.032768000000000005
+   "freq_factor": 12,
+   "time_factor": 2,
+   "dt_ms": 0.06553600000000001
   },
-  "n_good_subbands": 8,
-  "chi2_red": 1.5787054732470926,
-  "fit_quality": "MARGINAL",
-  "fit_quality_notes": [
-   "Elevated chi2_red (1.58)"
-  ],
+  "n_good_subbands": 5,
+  "chi2_red": 0.37755493085447145,
+  "fit_quality": "PASS",
+  "fit_quality_notes": [],
   "subbands": [
    {
-    "freq_mhz": 1322.98400881786,
-    "t0_s": 0.04123170190946622,
-    "t0_err_s": 3.0727543434653905e-06,
-    "snr": 21.77301953759555
-   },
-   {
     "freq_mhz": 1346.42150881402,
-    "t0_s": 0.04123320084257814,
-    "t0_err_s": 3.557125875481227e-06,
-    "snr": 28.724972543239648
+    "t0_s": 0.04121929749732204,
+    "t0_err_s": 5.259997002763035e-06,
+    "snr": 34.983400123747934
    },
    {
-    "freq_mhz": 1369.85900881018,
-    "t0_s": 0.04123547322139431,
-    "t0_err_s": 3.416489043638991e-06,
-    "snr": 38.47190358243867
-   },
-   {
-    "freq_mhz": 1393.29650880634,
-    "t0_s": 0.04123029115665694,
-    "t0_err_s": 5.0222814289895676e-06,
-    "snr": 12.078171963647282
-   },
-   {
-    "freq_mhz": 1416.7340088025,
-    "t0_s": 0.041248393002818275,
-    "t0_err_s": 6.933607851638974e-06,
-    "snr": 11.623952028873326
+    "freq_mhz": 1393.2965088063397,
+    "t0_s": 0.04122142418102793,
+    "t0_err_s": 9.783651056024789e-06,
+    "snr": 16.035307623569363
    },
    {
     "freq_mhz": 1440.17150879866,
-    "t0_s": 0.041252554532090174,
-    "t0_err_s": 5.78862185511775e-06,
-    "snr": 19.328503257589738
+    "t0_s": 0.041237791642939906,
+    "t0_err_s": 7.916189659135292e-06,
+    "snr": 23.57659570937604
    },
    {
     "freq_mhz": 1463.60900879482,
-    "t0_s": 0.041263202277078005,
-    "t0_err_s": 6.569541762316496e-06,
-    "snr": 25.538065703330975
+    "t0_s": 0.04124806371523735,
+    "t0_err_s": 8.767641962328639e-06,
+    "snr": 29.272710788768038
    },
    {
-    "freq_mhz": 1487.0465087909802,
-    "t0_s": 0.041253364477976166,
-    "t0_err_s": 1.3903907999485108e-05,
-    "snr": 15.326664283984613
+    "freq_mhz": 1487.04650879098,
+    "t0_s": 0.04123977103048825,
+    "t0_err_s": 1.8292542900044433e-05,
+    "snr": 18.90792064853908
    }
   ],
-  "subbands_dropped": [],
-  "cluster_median_dm": 262.31250897645396,
-  "cluster_span_dm": 0.07011982492355173,
+  "subbands_dropped": [
+   {
+    "freq_mhz": 1322.9840088178598,
+    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
+   },
+   {
+    "freq_mhz": 1369.8590088101798,
+    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
+   },
+   {
+    "freq_mhz": 1416.7340088024998,
+    "reason": "no arrival fit (below S/N 4.0 or EMG fit failed)"
+   }
+  ],
+  "cluster_median_dm": 262.2976337789972,
+  "cluster_span_dm": 0.04872177655266796,
   "candidate_count": 48,
   "constrained_candidate_count": 30,
-  "stable_candidate_count": 18,
-  "distinct_resolution_count": 18,
+  "stable_candidate_count": 5,
+  "distinct_resolution_count": 5,
   "product_dm": 262.368,
   "catalog_dm": 262.368
  }

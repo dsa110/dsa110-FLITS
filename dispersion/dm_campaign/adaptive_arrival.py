@@ -158,19 +158,31 @@ def select_stable_candidate(
             "distinct_resolution_count": 0,
         }
 
-    clusters = []
-    ordered = sorted(eligible, key=lambda candidate: candidate["dm"])
-    for start in range(len(ordered)):
-        members = []
-        for candidate in ordered[start:]:
-            if candidate["dm"] - ordered[start]["dm"] > stability_dm:
-                break
-            members.append(candidate)
-        distinct = len({_resolution_key(c) for c in members})
-        spread = float(np.ptp([c["dm"] for c in members])) if len(members) > 1 else 0.0
-        clusters.append((members, distinct, spread))
-    members, distinct, spread = max(
-        clusters, key=lambda item: (item[1], len(item[0]), -item[2])
+    def best_cluster(pool: list[dict]) -> tuple[list[dict], int, float]:
+        clusters = []
+        ordered = sorted(pool, key=lambda candidate: candidate["dm"])
+        for start in range(len(ordered)):
+            members = []
+            for candidate in ordered[start:]:
+                if candidate["dm"] - ordered[start]["dm"] > stability_dm:
+                    break
+                members.append(candidate)
+            distinct = len({_resolution_key(c) for c in members})
+            spread = float(np.ptp([c["dm"] for c in members])) if len(members) > 1 else 0.0
+            clusters.append((members, distinct, spread))
+        return max(clusters, key=lambda item: (item[1], len(item[0]), -item[2]))
+
+    # A nearby MARGINAL resolution must not displace a stable cluster whose
+    # members all pass the preregistered fit-quality gate.  Fall back to the
+    # wider non-FAIL pool only when no stable PASS cluster exists, retaining a
+    # marginal result for audit without promoting it to science grade.
+    pass_only = [candidate for candidate in eligible if candidate["fit_quality"] == "PASS"]
+    if pass_only:
+        pass_cluster = best_cluster(pass_only)
+    else:
+        pass_cluster = ([], 0, 0.0)
+    members, distinct, spread = (
+        pass_cluster if pass_cluster[1] >= 2 else best_cluster(eligible)
     )
     if distinct < 2:
         return {
@@ -217,15 +229,18 @@ def select_stable_candidate(
 def combine_event_measurements(burst: str, bands: dict[str, dict]) -> dict:
     """Inverse-variance event summary, with honest support classification.
 
-    For two bands, inflate the fixed-effect uncertainty by reduced chi-square
-    and flag >3-sigma tension instead of presenting an over-precise average.
+    For two bands, flag >3-sigma tension and withhold a single event DM rather
+    than averaging mutually inconsistent measurements.
     """
     usable = [
         (name, result) for name, result in bands.items()
         if result.get("status") == "science-grade" and result.get("dm") is not None
     ]
     if not usable:
-        return {"burst": burst, "dm": None, "sigma": None, "support": "none", "bands_used": []}
+        return {
+            "burst": burst, "dm": None, "sigma": None, "support": "none",
+            "bands_used": [], "band_measurements": {},
+        }
     weights = np.array([1.0 / result["sigma"] ** 2 for _, result in usable])
     values = np.array([result["dm"] for _, result in usable])
     dm = float(np.sum(weights * values) / np.sum(weights))
@@ -233,14 +248,20 @@ def combine_event_measurements(burst: str, bands: dict[str, dict]) -> dict:
     agreement_z = None
     chi2_red = None
     support = "single-band"
+    band_measurements = {
+        name: {"dm": float(result["dm"]), "sigma": float(result["sigma"])}
+        for name, result in usable
+    }
     if len(usable) == 2:
         residuals = values - dm
         chi2_red = float(np.sum(weights * residuals**2))
-        sigma *= max(chi2_red, 1.0) ** 0.5
         agreement_z = float(abs(values[0] - values[1]) / np.hypot(
             usable[0][1]["sigma"], usable[1][1]["sigma"]
         ))
         support = "two-band-tension" if agreement_z > 3.0 else "two-band-consistent"
+        if support == "two-band-tension":
+            dm = None
+            sigma = None
     return {
         "burst": burst,
         "dm": dm,
@@ -249,4 +270,5 @@ def combine_event_measurements(burst: str, bands: dict[str, dict]) -> dict:
         "bands_used": [name for name, _ in usable],
         "agreement_z": agreement_z,
         "chi2_red": chi2_red,
+        "band_measurements": band_measurements,
     }

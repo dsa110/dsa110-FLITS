@@ -1,6 +1,10 @@
 {
  "status": "blocked_missing_absolute_time_origins",
- "reason": "CHIME and DSA waterfall products are independently burst-centered",
+ "reason": "The stored arrays do not record a timestamp-to-sample mapping, and the final centering/cropping builder was not recovered in the completed host audit",
+ "provenance_evidence": [
+  "Faber2026/docs/rse/specs/handoff-2026-07-06-22-30-provenance-p0-p2-machine-verification.md",
+  "Faber2026/docs/rse/specs/research-trust-reset-revalidation.md"
+ ],
  "required_inputs": [
   "verified absolute time origin for each stored CHIME waterfall",
   "verified absolute time origin for each stored DSA waterfall",

@@ -1,24 +1,29 @@
 {
- "created_utc": "2026-07-10T22:32:24.687568+00:00",
+ "created_utc": "2026-07-10T22:52:52.307073+00:00",
  "mode": "replot",
  "command": "python -m dispersion.dm_campaign.run_adaptive_arrival --replot",
- "git_head": "fd8887fd560d18582bd1cc47f5490638bf500ae3",
+ "git_head": "2934f449f99281bca7129686ba444291ec963cd3",
  "git_status": [
-  " M dispersion/dm_campaign/configs/battery.yaml",
-  "?? dispersion/dm_campaign/adaptive_arrival.py",
-  "?? dispersion/dm_campaign/run_adaptive_arrival.py",
-  "?? results/dm_campaign/adaptive_arrival/",
-  "?? tests/test_adaptive_arrival.py"
+  " M dispersion/dm_campaign/adaptive_arrival.py",
+  " M dispersion/dm_campaign/run_adaptive_arrival.py",
+  " M results/dm_campaign/adaptive_arrival/cross_band_fit_gate.json",
+  " M results/dm_campaign/adaptive_arrival/event_dm_summary.json",
+  " M results/dm_campaign/adaptive_arrival/figures.manifest.json",
+  " M results/dm_campaign/adaptive_arrival/memo.md",
+  " M results/dm_campaign/adaptive_arrival/resolution_stability_contact_sheet.png",
+  " M results/dm_campaign/adaptive_arrival/run_provenance.json",
+  " M results/dm_campaign/adaptive_arrival/selected_measurements.json",
+  " M tests/test_adaptive_arrival.py"
  ],
- "code_diff_sha256": "c1d54c35e3bf3122c8620c895d9a8b804301ec2b3fdd349088df0d3e19f403f0",
+ "code_diff_sha256": "6bfd21060122363278b8a9dd1b53df6e4f79903b0e9eea9a0c0772fc117ae66d",
  "source_files": [
   {
    "path": "dispersion/dm_campaign/adaptive_arrival.py",
-   "sha256": "f1f33f30a8d1ec6a9c483d99a4f5e6f78223e3f29406da14e4c4b0cc5fbff968"
+   "sha256": "841fb3ab038448c61f78fc8df49aa23b82dbd153386db2952f55f979953f6886"
   },
   {
    "path": "dispersion/dm_campaign/run_adaptive_arrival.py",
-   "sha256": "9a73f124cbef42f8b0b6ed973079fad7c5994cc7ede0e7911df6687f9a905eb7"
+   "sha256": "bff3fb37f449ce9e4e28653a851f7250b3e056e683c6356b4a286d99a1c239df"
   },
   {
    "path": "dispersion/dm_campaign/configs/battery.yaml",
@@ -26,7 +31,7 @@
   },
   {
    "path": "tests/test_adaptive_arrival.py",
-   "sha256": "96a386bfca7bbb9c03c3f347e436053dca1227f49179ecc2fd1df890dbfa3a46"
+   "sha256": "db93a9a92c8fcb134b1710df639ed340966e8e8827b9ef9987c8caa0f6d67b7c"
   }
  ],
  "config_path": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/dispersion/dm_campaign/configs/battery.yaml",

@@ -16,7 +16,7 @@
     },
     {
       "path": "contact_sheet.png",
-      "expectation": "The three recovery grids stacked vertically for side-by-side owner review."
+      "expectation": "Owner-review sheet, rendered natively (v2 after owner found the stacked-PNG version incomprehensible): 3 estimator rows x 2 instrument cols. Each panel answers one question -- does the estimator recover truth and are its errors honest. Color = morphology (blue narrow-1, orange wide-1, purple narrow-2, red wide-2), grey small = S/N 8, triangle = off-scale clipped. Per-panel PASS/FAIL chip with median bias, sigma_med, p68|z|; unconstrained count bottom-right. EXPECT chips to match injection_summary.json and the morphology split to be visible at a glance (dmphase outliers should be predominantly orange/red)."
     }
   ],
   "result": {

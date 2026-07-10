@@ -183,8 +183,81 @@ def plot_recovery_grid(rows, name, path):
                for s, c in snr_color.items()]
     handles += [plt.Line2D([], [], marker="s", ls="", color="k", label="2 components"),
                 plt.Line2D([], [], marker="x", ls="", color="k", label="unconstrained")]
-    fig.legend(handles=handles, loc="upper right", ncols=5, fontsize=8, frameon=False)
-    fig.suptitle(f"{name}: DM recovery vs truth (open markers = 2 ms width)", y=1.05)
+    fig.legend(handles=handles, loc="lower center", ncols=5, fontsize=9, frameon=False,
+               bbox_to_anchor=(0.5, -0.05))
+    fig.suptitle(f"{name}: DM recovery vs truth (open markers = 2 ms width)", y=1.04)
+    fig.savefig(path, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+
+
+def plot_contact_sheet(rows, summary, path):
+    """Owner-review sheet: one panel per (estimator, instrument), one question each —
+    does the estimator recover truth, and are its errors honest? Morphology is the
+    only color dimension (it drove the dmphase finding); S/N 8 is de-emphasized."""
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    morph_color = {(0.3, 1): "tab:blue", (2.0, 1): "tab:orange",
+                   (0.3, 2): "tab:purple", (2.0, 2): "tab:red"}
+    morph_label = {(0.3, 1): "narrow, 1 comp", (2.0, 1): "wide (2 ms), 1 comp",
+                   (0.3, 2): "narrow, 2 comp", (2.0, 2): "wide, 2 comp"}
+    ylim = {"arrival_regression": 3.0, "dmphase_variant_intree": 6.5,
+            "dmpower_variant_intree": 6.5}
+
+    fig, axes = plt.subplots(len(ESTIMATORS), 2, figsize=(12, 13), sharex="col")
+    for i, name in enumerate(ESTIMATORS):
+        for j, instr in enumerate(INSTRUMENTS):
+            ax = axes[i, j]
+            lim = ylim[name]
+            sel = [r for r in rows if r["estimator"] == name and r["instrument"] == instr]
+            n_unc = sum(not r["constrained"] for r in sel)
+            for r in sel:
+                if not r["constrained"]:
+                    continue
+                lo_snr = r["snr"] < 25
+                c = "0.75" if lo_snr else morph_color[(r["width_ms"], r["components"])]
+                y = float(np.clip(r["err"], -lim, lim))
+                clipped = abs(r["err"]) > lim
+                ax.errorbar(r["dm_offset_true"], y,
+                            yerr=None if clipped else r["dm_sigma"],
+                            fmt="^" if clipped else "o", ms=5 if lo_snr else 7,
+                            color=c, elinewidth=1.0, capsize=0,
+                            alpha=0.45 if lo_snr else 0.9, zorder=2 if lo_snr else 3)
+            ax.axhline(0, color="k", lw=0.8)
+            ax.set_ylim(-1.05 * lim, 1.05 * lim)
+            g = summary[f"{name}/{instr}"]
+            if "median_bias" in g:
+                verdict = "PASS" if g["pass_numeric"] else "FAIL"
+                txt = (f"{verdict}   bias {g['median_bias']:+.2f}   "
+                       f"$\\sigma_{{med}}$ {g['median_sigma']:.2f}   "
+                       f"p68$|z|$ {g['p68_abs_z']:.1f}")
+            else:
+                verdict, txt = "FAIL", "FAIL   no constrained S/N$\\geq$25 cells"
+            ax.text(0.02, 0.97, txt, transform=ax.transAxes, va="top", fontsize=11,
+                    bbox=dict(boxstyle="round,pad=0.3", lw=0,
+                              fc="#c8e6c9" if verdict == "PASS" else "#ffcdd2"))
+            ax.text(0.98, 0.03, f"{n_unc}/{len(sel)} unconstrained",
+                    transform=ax.transAxes, ha="right", fontsize=9, color="0.4")
+            if i == 0:
+                ax.set_title(instr.upper(), fontsize=14)
+            if j == 0:
+                ax.set_ylabel(f"{name}\nrecovered $-$ truth [pc cm$^{{-3}}$]", fontsize=11)
+            if i == len(ESTIMATORS) - 1:
+                ax.set_xlabel("true $\\Delta$DM [pc cm$^{-3}$]", fontsize=12)
+    handles = [plt.Line2D([], [], marker="o", ls="", ms=8, color=c, label=morph_label[k])
+               for k, c in morph_color.items()]
+    handles += [plt.Line2D([], [], marker="o", ls="", ms=5, color="0.75", alpha=0.6,
+                           label="S/N 8 (any morphology)"),
+                plt.Line2D([], [], marker="^", ls="", ms=7, color="k",
+                           label="off-scale (clipped)")]
+    fig.legend(handles=handles, loc="upper center", ncols=3, fontsize=11, frameon=False,
+               bbox_to_anchor=(0.5, 1.0))
+    fig.suptitle("DM injection recovery -- error bars should cover the scatter;"
+                 " points off the zero line at S/N$\\geq$25 are misses", y=1.045,
+                 fontsize=13)
+    fig.tight_layout(rect=(0, 0, 1, 0.97))
     fig.savefig(path, dpi=150, bbox_inches="tight")
     plt.close(fig)
 
@@ -195,7 +268,18 @@ def main(argv=None):
                     help="2 seeds/cell, reduced bootstraps (local smoke of the full matrix)")
     ap.add_argument("--out", type=Path, default=Path("results/dm_campaign/injections"))
     ap.add_argument("--workers", type=int, default=4)
+    ap.add_argument("--replot", action="store_true",
+                    help="re-render figures from the JSONs already in --out (no compute)")
     args = ap.parse_args(argv)
+
+    if args.replot:
+        rows = [r for name in ESTIMATORS
+                for r in json.loads((args.out / f"{name}.json").read_text())]
+        for name in ESTIMATORS:
+            plot_recovery_grid(rows, name, args.out / f"{name}_recovery.png")
+        plot_contact_sheet(rows, summarize(rows), args.out / "contact_sheet.png")
+        print(f"replotted {args.out}")
+        return
 
     n_seeds = 2 if args.quick else 5
     n_boot = 20 if args.quick else 100
@@ -235,18 +319,7 @@ def main(argv=None):
         {"mode": "quick" if args.quick else "full", "n_cells": len(cells),
          "dm_ref": DM_REF, "gate": summary}, indent=1))
 
-    import matplotlib
-
-    matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
-
-    fig, axes = plt.subplots(len(ESTIMATORS), 1, figsize=(11, 6 * len(ESTIMATORS)))
-    for ax, name in zip(axes, ESTIMATORS, strict=True):
-        ax.imshow(plt.imread(args.out / f"{name}_recovery.png"))
-        ax.set_axis_off()
-    fig.tight_layout()
-    fig.savefig(args.out / "contact_sheet.png", dpi=110)
-    plt.close(fig)
+    plot_contact_sheet(rows, summary, args.out / "contact_sheet.png")
 
     for key, entry in summary.items():
         print(f"{key}: {entry}")

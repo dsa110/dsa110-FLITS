@@ -1,0 +1,82 @@
+{
+ "mode": "full",
+ "n_cells": 360,
+ "dm_ref": 500.0,
+ "gate": {
+  "arrival_regression/dsa": {
+   "n_cells": 180,
+   "n_constrained_snr25": 120,
+   "n_unconstrained": 25,
+   "median_bias": 0.055420430402335796,
+   "scatter68": 0.27477616679837413,
+   "median_sigma": 0.2583042956044179,
+   "sigma_factor": 0.884026833204147,
+   "accurate": true,
+   "calibrated": true
+  },
+  "arrival_regression/chime": {
+   "n_cells": 180,
+   "n_constrained_snr25": 120,
+   "n_unconstrained": 22,
+   "median_bias": 0.0064875141783034,
+   "scatter68": 0.02629307585619927,
+   "median_sigma": 0.009393671425055787,
+   "sigma_factor": 2.3324544921090427,
+   "accurate": true,
+   "calibrated": false
+  },
+  "dmphase_variant_intree/dsa": {
+   "n_cells": 180,
+   "n_constrained_snr25": 120,
+   "n_unconstrained": 0,
+   "median_bias": 0.013450662716763873,
+   "scatter68": 1.3966732565923257,
+   "median_sigma": 0.9929732688975954,
+   "sigma_factor": 1.781899338101557,
+   "accurate": false,
+   "calibrated": false
+  },
+  "dmphase_variant_intree/chime": {
+   "n_cells": 180,
+   "n_constrained_snr25": 120,
+   "n_unconstrained": 0,
+   "median_bias": 0.008650988254430558,
+   "scatter68": 0.36930036174123193,
+   "median_sigma": 0.2507549609026406,
+   "sigma_factor": 3.4677533034707397,
+   "accurate": true,
+   "calibrated": false
+  },
+  "dmpower_variant_intree/dsa": {
+   "n_cells": 180,
+   "n_constrained_snr25": 107,
+   "n_unconstrained": 44,
+   "median_bias": 0.22633076587476353,
+   "scatter68": 2.165771302310245,
+   "median_sigma": 1.4116348934051366,
+   "sigma_factor": 1.4256228964314093,
+   "accurate": false,
+   "calibrated": true
+  },
+  "dmpower_variant_intree/chime": {
+   "n_cells": 180,
+   "n_constrained_snr25": 104,
+   "n_unconstrained": 26,
+   "median_bias": 0.023581798767736473,
+   "scatter68": 0.36966461493140973,
+   "median_sigma": 0.3447853111666856,
+   "sigma_factor": 1.4594413675703173,
+   "accurate": true,
+   "calibrated": true
+  },
+  "arrival_regression/BOTH": {
+   "primary_candidate": true
+  },
+  "dmphase_variant_intree/BOTH": {
+   "primary_candidate": false
+  },
+  "dmpower_variant_intree/BOTH": {
+   "primary_candidate": false
+  }
+ }
+}

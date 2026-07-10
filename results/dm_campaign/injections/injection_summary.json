@@ -8,54 +8,75 @@
    "n_constrained_snr25": 48,
    "n_unconstrained": 11,
    "median_bias": 0.05906312523856627,
+   "scatter68": 0.24192732488811775,
    "median_sigma": 0.29021953023977165,
-   "p68_abs_z": 0.9280559685417703,
-   "pass_numeric": true
+   "sigma_factor": 0.9280559685417703,
+   "accurate": true,
+   "calibrated": true
   },
   "arrival_regression/chime": {
    "n_cells": 72,
    "n_constrained_snr25": 48,
    "n_unconstrained": 9,
    "median_bias": 0.006208343844775754,
+   "scatter68": 0.02796186641333634,
    "median_sigma": 0.009363983596479032,
-   "p68_abs_z": 2.5547623520934897,
-   "pass_numeric": false
+   "sigma_factor": 2.5547623520934897,
+   "accurate": true,
+   "calibrated": false
   },
   "dmphase_variant_intree/dsa": {
    "n_cells": 72,
    "n_constrained_snr25": 48,
    "n_unconstrained": 0,
    "median_bias": -0.01702121285410385,
+   "scatter68": 1.6726744022237223,
    "median_sigma": 0.6394723272053056,
-   "p68_abs_z": 2.0972345818626383,
-   "pass_numeric": false
+   "sigma_factor": 2.0972345818626383,
+   "accurate": false,
+   "calibrated": false
   },
   "dmphase_variant_intree/chime": {
    "n_cells": 72,
    "n_constrained_snr25": 48,
    "n_unconstrained": 0,
    "median_bias": 0.033174423488162574,
+   "scatter68": 0.4234818157717589,
    "median_sigma": 0.11431079914259117,
-   "p68_abs_z": 4.46854259647372,
-   "pass_numeric": false
+   "sigma_factor": 4.46854259647372,
+   "accurate": true,
+   "calibrated": false
   },
   "dmpower_variant_intree/dsa": {
    "n_cells": 72,
    "n_constrained_snr25": 40,
    "n_unconstrained": 19,
    "median_bias": 0.8080488305780591,
+   "scatter68": 2.2955557310746264,
    "median_sigma": 1.443960966038627,
-   "p68_abs_z": 1.5947088104645182,
-   "pass_numeric": false
+   "sigma_factor": 1.5947088104645182,
+   "accurate": false,
+   "calibrated": false
   },
   "dmpower_variant_intree/chime": {
    "n_cells": 72,
    "n_constrained_snr25": 38,
    "n_unconstrained": 16,
    "median_bias": 0.06954642851081871,
+   "scatter68": 0.42144765792943417,
    "median_sigma": 0.3279229546096415,
-   "p68_abs_z": 1.2869145648942337,
-   "pass_numeric": true
+   "sigma_factor": 1.2869145648942337,
+   "accurate": true,
+   "calibrated": true
+  },
+  "arrival_regression/BOTH": {
+   "primary_candidate": true
+  },
+  "dmphase_variant_intree/BOTH": {
+   "primary_candidate": false
+  },
+  "dmpower_variant_intree/BOTH": {
+   "primary_candidate": false
   }
  }
 }

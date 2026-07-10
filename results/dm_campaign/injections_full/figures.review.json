@@ -1,0 +1,25 @@
+{
+  "reviewed_by": "claude-fable (inline visual review, 2026-07-09)",
+  "verdicts": [
+    {
+      "path": "arrival_regression_recovery.png",
+      "verdict": "match",
+      "notes": "Both geometries hug zero at S/N>=25 across all tau columns; DSA S/N-8 cells (grey) carry large honest bars (some to +-20) and the unconstrained x's cluster there; CHIME row is a flat line at this y-scale. No diagonal trend -- no sign/scale bug at 5-seed statistics."
+    },
+    {
+      "path": "dmphase_variant_intree_recovery.png",
+      "verdict": "match",
+      "notes": "Narrow 1-comp (filled blue/red circles) sit near zero on both geometries; wide (open) and 2-comp (square) cells scatter to +-5 with small bars -- confidently-wrong on complex morphology, worse with increasing tau. Matches the TOO COARSE DSA verdict and the morphology-fragility finding."
+    },
+    {
+      "path": "dmpower_variant_intree_recovery.png",
+      "verdict": "match",
+      "notes": "CHIME row tight around zero (worst outliers ~+-2 at tau=20). DSA row: broad +-5 scatter at all tau, many unconstrained x's along zero (44/180), positive bias visible at tau=0. The weak-DSA-sweep geometry at full statistics."
+    },
+    {
+      "path": "contact_sheet.png",
+      "verdict": "match",
+      "notes": "Verdict chips match injection_summary.json exactly: arrival green/green (DSA +-0.27 bias +0.06 honest x0.9; CHIME +-0.03 sigma 2.3x correctable), row labeled sample-wide primary candidate; dmphase TOO COARSE DSA +-1.40 (sigma 1.8x) / green CHIME +-0.37 (sigma 3.5x); dmpower TOO COARSE DSA +-2.17 bias +0.23 (honest x1.4) / green CHIME +-0.37 (x1.5). Wide+2-comp (red/orange) points visibly drive the DSA failures. Unconstrained counts printed per panel (25/22/0/0/44/26)."
+    }
+  ]
+}

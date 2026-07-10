@@ -303,7 +303,15 @@ def main(argv=None):
                 for r in json.loads((args.out / f"{name}.json").read_text())]
         for name in ESTIMATORS:
             plot_recovery_grid(rows, name, args.out / f"{name}_recovery.png")
-        plot_contact_sheet(rows, summarize(rows), args.out / "contact_sheet.png")
+        summary = summarize(rows)
+        # rewrite the summary too: verdict logic lives here, not in the JSONs,
+        # so a stale summary would contradict the sheet rendered beside it
+        sf = args.out / "injection_summary.json"
+        mode = json.loads(sf.read_text())["mode"] if sf.exists() else "replot"
+        sf.write_text(json.dumps(
+            {"mode": mode, "n_cells": len(rows) // len(ESTIMATORS),
+             "dm_ref": DM_REF, "gate": summary}, indent=1))
+        plot_contact_sheet(rows, summary, args.out / "contact_sheet.png")
         print(f"replotted {args.out}")
         return
 

@@ -1,0 +1,27 @@
+{
+  "generated_by": "dispersion/dm_campaign/run_injections.py (full 360-cell matrix computed on h17 @ 0a88d44; figures re-rendered locally with current v3 code via --replot)",
+  "regen": "conda run -n flits python -m dispersion.dm_campaign.run_injections --replot --out results/dm_campaign/injections_full",
+  "figures": [
+    {
+      "path": "arrival_regression_recovery.png",
+      "expectation": "2x3 grid (DSA/CHIME x tau600 {0,5,20} ms): recovered-truth vs true dDM, colored by S/N, squares=2 comp, open=2 ms width, x=unconstrained. EXPECT (5 seeds): same shape as quick run -- points hug zero at S/N>=25 on both geometries, S/N 8 large bars, no diagonal trend."
+    },
+    {
+      "path": "dmphase_variant_intree_recovery.png",
+      "expectation": "Same layout. EXPECT: narrow single-component cells near zero; wide (open) and 2-comp (square) cells scatter to +-5 on both geometries -- the morphology fragility that disqualifies it, now at 5-seed statistics."
+    },
+    {
+      "path": "dmpower_variant_intree_recovery.png",
+      "expectation": "Same layout. EXPECT: CHIME row tight; DSA row scattered/biased with many unconstrained (x) -- the intrinsically weak DSA sweep geometry."
+    },
+    {
+      "path": "contact_sheet.png",
+      "expectation": "v3 owner sheet, full-matrix statistics: 3 estimator rows x 2 geometry cols, two-line chips (accuracy vs +-0.5 requirement / sigma calibration marked correctable), row label = uniformity verdict. EXPECT same verdicts as quick run: arrival_regression sample-wide primary candidate (DSA +-0.27 honest, CHIME +-0.03 sigma 2.3x correctable); dmphase TOO COARSE DSA +-1.40; dmpower TOO COARSE DSA +-2.17 bias +0.23. Only quick->full flip: dmpower/DSA sigma_factor 1.43 now inside [0.5,1.5] (moot -- still inaccurate)."
+    }
+  ],
+  "result": {
+    "n_cells": 360,
+    "verdict": "no primary-candidate flips vs quick matrix; arrival_regression remains the only both-geometry candidate",
+    "compute": "h17, 32 workers, 5827s; JSONs pulled back, figures+summary re-rendered locally"
+  }
+}

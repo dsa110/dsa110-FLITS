@@ -42,7 +42,7 @@ for _var in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS",
 import numpy as np
 
 from dispersion.chime_dm import measure_dm
-from dispersion.dm_campaign.injection import InjectionSpec, inject_pulse
+from dispersion.dm_campaign.injection import INSTRUMENTS, InjectionSpec, inject_pulse
 from dispersion.dm_power_analysis import measure_dm_power
 from dispersion.dmphasev2 import DMPhaseEstimator, dmphase_trial_to_physical_residual_dm
 
@@ -52,12 +52,6 @@ SNRS = (8.0, 25.0, 80.0)
 WIDTHS_MS = (0.3, 2.0)
 TAU600_MS = (0.0, 5.0, 20.0)  # scattering at 600 MHz; tau_1GHz = tau_600 * 0.6^4
 COMPONENTS = (1, 2)
-INSTRUMENTS = {
-    "dsa": dict(f_lo_ghz=1.31125, f_hi_ghz=1.49875, nchan=256, dt_ms=0.16384, ntime=1024,
-                window=5.0, truth_dm=2.5),
-    "chime": dict(f_lo_ghz=0.40019, f_hi_ghz=0.80019, nchan=256, dt_ms=0.16384, ntime=512,
-                  window=4.0, truth_dm=1.5),
-}
 ESTIMATORS = ("arrival_regression", "dmphase_variant_intree", "dmpower_variant_intree")
 # Science requirement on method resolution: the budget reads per-sightline DM
 # structure at the ~1 pc/cm^3 level (the chime_dm campaign's agreement floor is

@@ -29,6 +29,34 @@ from dispersion.chime_dm import K_DM, _dedisperse, exgauss
 
 K_DM_MS_GHZ2 = K_DM * 1e-3  # 4.148808 ms GHz^2 pc^-1 cm^3 (K_DM is s MHz^2)
 
+# Analysis-product resolution (256 ch, 163.84 us) -- the resolution the battery
+# runs on, not raw. CHIME truth range is bounded by the 82 ms singlebeam cutout
+# (+-1.5 -> +-29 ms sweep at 400-800 MHz); DSA sweep is unbound at these ranges.
+# Search windows are uniform across estimators (uniform-battery constraint).
+INSTRUMENTS = {
+    "dsa": dict(f_lo_ghz=1.31125, f_hi_ghz=1.49875, nchan=256, dt_ms=0.16384, ntime=1024,
+                window=5.0, truth_dm=2.5),
+    "chime": dict(f_lo_ghz=0.40019, f_hi_ghz=0.80019, nchan=256, dt_ms=0.16384, ntime=512,
+                  window=4.0, truth_dm=1.5),
+}
+
+
+def standard_bright_case(instrument, seed=0, dm_ref=500.0):
+    """Adapter contract fixture (Phase 1): S/N 80, 0.5 ms, dDM=+0.7, unscattered.
+
+    Returns (waterfall, freq_ghz, dt_ms, truth) with truth carrying dm_ref,
+    dm_true = dm_ref + 0.7, and the instrument's uniform search window.
+    """
+    geom = INSTRUMENTS[instrument]
+    rng = np.random.default_rng(seed)
+    freq_ghz = np.linspace(geom["f_lo_ghz"], geom["f_hi_ghz"], geom["nchan"])
+    noise = rng.normal(size=(geom["nchan"], geom["ntime"])).astype(np.float32)
+    spec = InjectionSpec(dm_offset=0.7, snr=80.0, width_ms=0.5, tau_1ghz_ms=0.0)
+    wf, truth = inject_pulse(noise, freq_ghz, geom["dt_ms"], spec, rng)
+    truth.update(dm_ref=float(dm_ref), dm_true=float(dm_ref) + spec.dm_offset,
+                 window=geom["window"])
+    return wf, freq_ghz, geom["dt_ms"], truth
+
 
 @dataclass
 class InjectionSpec:

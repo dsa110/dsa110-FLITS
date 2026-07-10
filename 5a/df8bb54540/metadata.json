@@ -1,0 +1,32 @@
+{
+  "cli_version": "0.8.42",
+  "checkpoint_id": "5adf8bb54540",
+  "strategy": "manual-commit",
+  "branch": "scint/revalidate-bandwidth-modulation-2026-07",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "analysis/scintillation-dsa-lorentzian-2026-07-07/README.md",
+    "analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/casey_dsa_acf_lorentzian_fits.png",
+    "analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/casey_dsa_acf_lorentzian_fits.svg",
+    "analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/freya_dsa_acf_lorentzian_fits.png",
+    "analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/freya_dsa_acf_lorentzian_fits.svg",
+    "analysis/scintillation-dsa-lorentzian-2026-07-07/run_dsa_lorentzian_fits.py",
+    "analysis/scintillation-dsa-lorentzian-2026-07-07/test_driver_guards.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/5a/df8bb54540/0/metadata.json",
+      "transcript": "/5a/df8bb54540/0/full.jsonl",
+      "compact_transcript": "/5a/df8bb54540/0/transcript.jsonl",
+      "content_hash": "/5a/df8bb54540/0/content_hash.txt",
+      "prompt": "/5a/df8bb54540/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 50183,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 95744,
+    "output_tokens": 2945,
+    "api_call_count": 4
+  }
+}

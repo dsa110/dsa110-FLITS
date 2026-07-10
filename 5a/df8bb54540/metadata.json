@@ -3,7 +3,7 @@
   "checkpoint_id": "5adf8bb54540",
   "strategy": "manual-commit",
   "branch": "scint/revalidate-bandwidth-modulation-2026-07",
-  "checkpoints_count": 1,
+  "checkpoints_count": 2,
   "files_touched": [
     "analysis/scintillation-dsa-lorentzian-2026-07-07/README.md",
     "analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/casey_dsa_acf_lorentzian_fits.png",
@@ -20,13 +20,20 @@
       "compact_transcript": "/5a/df8bb54540/0/transcript.jsonl",
       "content_hash": "/5a/df8bb54540/0/content_hash.txt",
       "prompt": "/5a/df8bb54540/0/prompt.txt"
+    },
+    {
+      "metadata": "/5a/df8bb54540/1/metadata.json",
+      "transcript": "/5a/df8bb54540/1/full.jsonl",
+      "compact_transcript": "/5a/df8bb54540/1/transcript.jsonl",
+      "content_hash": "/5a/df8bb54540/1/content_hash.txt",
+      "prompt": "/5a/df8bb54540/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 50183,
+    "input_tokens": 123876,
     "cache_creation_tokens": 0,
-    "cache_read_tokens": 95744,
-    "output_tokens": 2945,
-    "api_call_count": 4
+    "cache_read_tokens": 307968,
+    "output_tokens": 5257,
+    "api_call_count": 10
   }
 }

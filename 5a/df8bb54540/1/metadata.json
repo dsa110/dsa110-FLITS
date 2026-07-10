@@ -1,0 +1,71 @@
+{
+  "cli_version": "0.8.42",
+  "checkpoint_id": "5adf8bb54540",
+  "session_id": "019f4d8b-0f96-70b1-a4d9-63875bd1032d",
+  "strategy": "manual-commit",
+  "created_at": "2026-07-10T19:43:42.933888Z",
+  "branch": "scint/revalidate-bandwidth-modulation-2026-07",
+  "checkpoints_count": 1,
+  "save_step_count": 1,
+  "files_touched": [
+    "analysis/scintillation-dsa-lorentzian-2026-07-07/README.md",
+    "analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/casey_dsa_acf_lorentzian_fits.png",
+    "analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/casey_dsa_acf_lorentzian_fits.svg",
+    "analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/freya_dsa_acf_lorentzian_fits.png",
+    "analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/freya_dsa_acf_lorentzian_fits.svg",
+    "analysis/scintillation-dsa-lorentzian-2026-07-07/run_dsa_lorentzian_fits.py",
+    "analysis/scintillation-dsa-lorentzian-2026-07-07/test_driver_guards.py"
+  ],
+  "agent": "Codex",
+  "model": "gpt-5.5",
+  "turn_id": "c57fdcb65ff5",
+  "compact_transcript_start": 0,
+  "token_usage": {
+    "input_tokens": 73693,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 212224,
+    "output_tokens": 2312,
+    "api_call_count": 6
+  },
+  "session_metrics": {
+    "turn_count": 1
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-07-10T19:43:42.880746Z",
+    "agent_lines": 0,
+    "agent_removed": 0,
+    "human_added": 0,
+    "human_modified": 3241,
+    "human_removed": 11657,
+    "total_committed": 0,
+    "total_lines_changed": 14898,
+    "agent_percentage": 0,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 15872,
+      "user_lines_removed": 12569,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0,
+      "user_added_per_file": {
+        "analysis/scintillation-dsa-lorentzian-2026-07-07/README.md": 15,
+        "analysis/scintillation-dsa-lorentzian-2026-07-07/results/casey_dsa_lorentzian_fits.json": 374,
+        "analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/casey_dsa_acf_lorentzian_fits.svg": 9538,
+        "analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/freya_dsa_acf_lorentzian_fits.svg": 5507,
+        "analysis/scintillation-dsa-lorentzian-2026-07-07/run_dsa_lorentzian_fits.py": 324,
+        "analysis/scintillation-dsa-lorentzian-2026-07-07/test_driver_guards.py": 84,
+        "docs/entire-tracing-checkpoints.md": 30
+      },
+      "user_removed_per_file": {
+        "analysis/scintillation-dsa-lorentzian-2026-07-07/README.md": 6,
+        "analysis/scintillation-dsa-lorentzian-2026-07-07/results/casey_dsa_lorentzian_fits.json": 210,
+        "analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/casey_dsa_acf_lorentzian_fits.svg": 8082,
+        "analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/freya_dsa_acf_lorentzian_fits.svg": 4141,
+        "analysis/scintillation-dsa-lorentzian-2026-07-07/run_dsa_lorentzian_fits.py": 109,
+        "analysis/scintillation-dsa-lorentzian-2026-07-07/test_driver_guards.py": 21
+      }
+    }
+  ]
+}

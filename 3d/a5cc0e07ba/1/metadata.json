@@ -1,0 +1,33 @@
+{
+  "cli_version": "0.8.42",
+  "checkpoint_id": "3da5cc0e07ba",
+  "session_id": "019f4d8b-0f96-70b1-a4d9-63875bd1032d",
+  "strategy": "manual-commit",
+  "created_at": "2026-07-11T21:09:33.79673Z",
+  "branch": "scint/revalidate-bandwidth-modulation-2026-07",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "analysis/scintillation-dsa-lorentzian-2026-07-07/results/casey_dsa_lorentzian_fits.json"
+  ],
+  "agent": "Codex",
+  "model": "gpt-5.5",
+  "turn_id": "c57fdcb65ff5",
+  "checkpoint_transcript_start": 64,
+  "transcript_lines_at_start": 64,
+  "compact_transcript_start": 7,
+  "session_metrics": {
+    "turn_count": 1
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-07-11T21:09:33.748752Z",
+    "agent_lines": 127,
+    "agent_removed": 10,
+    "human_added": 94844,
+    "human_modified": 247,
+    "human_removed": 0,
+    "total_committed": 95218,
+    "total_lines_changed": 164529,
+    "agent_percentage": 0.08326799530781807,
+    "metric_version": 2
+  }
+}

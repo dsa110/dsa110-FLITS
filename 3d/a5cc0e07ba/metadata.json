@@ -3,7 +3,7 @@
   "checkpoint_id": "3da5cc0e07ba",
   "strategy": "manual-commit",
   "branch": "scint/revalidate-bandwidth-modulation-2026-07",
-  "checkpoints_count": 1,
+  "checkpoints_count": 2,
   "files_touched": [
     "analysis/scintillation-dsa-lorentzian-2026-07-07/results/casey_dsa_lorentzian_fits.json"
   ],
@@ -14,6 +14,13 @@
       "compact_transcript": "/3d/a5cc0e07ba/0/transcript.jsonl",
       "content_hash": "/3d/a5cc0e07ba/0/content_hash.txt",
       "prompt": "/3d/a5cc0e07ba/0/prompt.txt"
+    },
+    {
+      "metadata": "/3d/a5cc0e07ba/1/metadata.json",
+      "transcript": "/3d/a5cc0e07ba/1/full.jsonl",
+      "compact_transcript": "/3d/a5cc0e07ba/1/transcript.jsonl",
+      "content_hash": "/3d/a5cc0e07ba/1/content_hash.txt",
+      "prompt": "/3d/a5cc0e07ba/1/prompt.txt"
     }
   ],
   "token_usage": {

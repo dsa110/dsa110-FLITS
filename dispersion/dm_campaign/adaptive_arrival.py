@@ -181,8 +181,9 @@ def select_stable_candidate(
         pass_cluster = best_cluster(pass_only)
     else:
         pass_cluster = ([], 0, 0.0)
+    has_stable_pass_cluster = pass_cluster[1] >= 2
     members, distinct, spread = (
-        pass_cluster if pass_cluster[1] >= 2 else best_cluster(eligible)
+        pass_cluster if has_stable_pass_cluster else best_cluster(eligible)
     )
     if distinct < 2:
         return {
@@ -206,7 +207,7 @@ def select_stable_candidate(
         key=lambda c: (round(abs(c["dm"] - median_dm), 6), -c["n_good_subbands"], c["sigma"]),
     )
     return {
-        "status": "science-grade" if selected["fit_quality"] == "PASS" else "marginal-fit",
+        "status": "science-grade" if has_stable_pass_cluster else "marginal-fit",
         "dm": float(selected["dm"]),
         "sigma": float(selected["sigma"]),
         "residual": float(selected["residual"]) if selected.get("residual") is not None else None,
@@ -267,6 +268,8 @@ def combine_event_measurements(burst: str, bands: dict[str, dict]) -> dict:
         if support == "two-band-tension":
             dm = None
             sigma = None
+        else:
+            sigma *= float(np.sqrt(max(1.0, chi2_red)))
     return {
         "burst": burst,
         "dm": dm,

@@ -1,25 +1,21 @@
 {
- "created_utc": "2026-07-10T22:52:52.307073+00:00",
+ "created_utc": "2026-07-11T21:14:17.763353+00:00",
  "mode": "replot",
  "command": "python -m dispersion.dm_campaign.run_adaptive_arrival --replot",
- "git_head": "2934f449f99281bca7129686ba444291ec963cd3",
+ "git_head": "e596b956c3882075b25c477513c7c3922a99233a",
  "git_status": [
   " M dispersion/dm_campaign/adaptive_arrival.py",
-  " M dispersion/dm_campaign/run_adaptive_arrival.py",
-  " M results/dm_campaign/adaptive_arrival/cross_band_fit_gate.json",
   " M results/dm_campaign/adaptive_arrival/event_dm_summary.json",
-  " M results/dm_campaign/adaptive_arrival/figures.manifest.json",
   " M results/dm_campaign/adaptive_arrival/memo.md",
   " M results/dm_campaign/adaptive_arrival/resolution_stability_contact_sheet.png",
-  " M results/dm_campaign/adaptive_arrival/run_provenance.json",
   " M results/dm_campaign/adaptive_arrival/selected_measurements.json",
   " M tests/test_adaptive_arrival.py"
  ],
- "code_diff_sha256": "6bfd21060122363278b8a9dd1b53df6e4f79903b0e9eea9a0c0772fc117ae66d",
+ "code_diff_sha256": "eececb9c1960545a9d0655d68582830d27fcf534bd38a24325b68b745e9e21c9",
  "source_files": [
   {
    "path": "dispersion/dm_campaign/adaptive_arrival.py",
-   "sha256": "841fb3ab038448c61f78fc8df49aa23b82dbd153386db2952f55f979953f6886"
+   "sha256": "97d6cf2e2d150ae4b72ad0092b0ad15b0f75b869ba537122471039ca725069ff"
   },
   {
    "path": "dispersion/dm_campaign/run_adaptive_arrival.py",
@@ -31,10 +27,10 @@
   },
   {
    "path": "tests/test_adaptive_arrival.py",
-   "sha256": "db93a9a92c8fcb134b1710df639ed340966e8e8827b9ef9987c8caa0f6d67b7c"
+   "sha256": "d1738dcbde66c0f144a911a8791aa4629df9759deb863d56c9b6e7ab5363e646"
   }
  ],
- "config_path": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/dispersion/dm_campaign/configs/battery.yaml",
+ "config_path": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/.worktrees/flits-pr82/dispersion/dm_campaign/configs/battery.yaml",
  "config_sha256": "de7948d0c76a8dbf4115b08af85b95004c732cba5b0df3686b58f3b8a3b76a93",
  "candidate_grid_sha256": "fc20d48b40ae36255a7cfabb0556aa106b32b55c8c7eb052214d292d2d8c0ece",
  "environment": {

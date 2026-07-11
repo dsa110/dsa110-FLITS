@@ -14,7 +14,7 @@ per-array time origins are restored and verified.
 
 | burst | CHIME | DSA | event support | event DM |
 |---|---|---|---|---:|
-| casey | marginal-fit: 491.216342 +/- 0.024109 | marginal-fit: 491.189078 +/- 0.006120 | none | -- |
+| casey | marginal-fit: 491.216342 +/- 0.024109 | marginal-fit: 491.188735 +/- 0.005800 | none | -- |
 | chromatica | marginal-fit: 272.654973 +/- 0.002766 | science-grade: 272.664760 +/- 0.031021 | single-band | 272.664760 +/- 0.031021 |
 | freya | science-grade: 912.453524 +/- 0.003831 | science-grade: 912.503499 +/- 0.013138 | two-band-tension | -- |
 | hamilton | science-grade: 518.773033 +/- 0.000825 | science-grade: 518.851018 +/- 0.156306 | two-band-consistent | 518.773035 +/- 0.000825 |
@@ -23,6 +23,6 @@ per-array time origins are restored and verified.
 | mahi | science-grade: 960.045956 +/- 0.350130 | science-grade: 960.165540 +/- 0.039460 | two-band-consistent | 960.164040 +/- 0.039212 |
 | oran | science-grade: 396.707745 +/- 0.047385 | science-grade: 396.960920 +/- 0.059235 | two-band-tension | -- |
 | phineas | science-grade: 610.480335 +/- 0.008779 | marginal-fit: 610.214258 +/- 0.006211 | single-band | 610.480335 +/- 0.008779 |
-| whitney | science-grade: 462.190039 +/- 0.006344 | science-grade: 462.188909 +/- 0.018240 | two-band-consistent | 462.189917 +/- 0.005992 |
+| whitney | science-grade: 462.190039 +/- 0.006344 | science-grade: 462.189904 +/- 0.014710 | two-band-consistent | 462.190018 +/- 0.005825 |
 | wilhelm | science-grade: 602.368816 +/- 0.005834 | science-grade: 602.410499 +/- 0.004980 | two-band-tension | -- |
 | zach | marginal-fit: 262.396482 +/- 0.004337 | science-grade: 262.297634 +/- 0.023229 | single-band | 262.297634 +/- 0.023229 |

@@ -1,5 +1,7 @@
 """Adaptive arrival-regression selection and event-level DM synthesis."""
 
+import math
+
 import pytest
 
 from dispersion.dm_campaign.adaptive_arrival import (
@@ -101,6 +103,20 @@ def test_prefers_stable_pass_cluster_over_central_marginal_candidate():
     assert selected["stable_candidate_count"] == 2
 
 
+def test_mixed_fallback_cluster_is_not_promoted_to_science_grade():
+    candidates = [
+        _candidate(100.00, 0.08, time_factor=1, n_subband=4),
+        _candidate(100.04, 0.08, time_factor=2, n_subband=6),
+    ]
+    candidates[0]["chi2_red"] = 1.0
+    candidates[1]["chi2_red"] = 0.05
+
+    selected = select_stable_candidate(candidates, sigma_max=0.5, stability_dm=0.25)
+
+    assert selected["status"] == "marginal-fit"
+    assert selected["distinct_resolution_count"] == 2
+
+
 def test_rejects_catastrophic_regression_chi2_from_science_grade_cluster():
     candidates = [
         _candidate(100.01, 0.02, time_factor=1, n_subband=4),
@@ -195,6 +211,24 @@ def test_event_combination_flags_tension_without_choosing_a_single_dm():
     assert result["sigma"] is None
     assert result["band_measurements"]["chime"]["dm"] == 610.47
     assert result["band_measurements"]["dsa"]["dm"] == 610.21
+
+
+def test_event_combination_inflates_subthreshold_disagreement_error():
+    result = combine_event_measurements(
+        "example",
+        {
+            "chime": {"status": "science-grade", "dm": 100.0, "sigma": 0.1},
+            "dsa": {"status": "science-grade", "dm": 100.28, "sigma": 0.1},
+        },
+    )
+
+    fixed_effect_sigma = 1.0 / math.sqrt(200.0)
+    assert result["support"] == "two-band-consistent"
+    assert 1.9 < result["agreement_z"] < 2.0
+    assert result["sigma"] > fixed_effect_sigma
+    assert result["sigma"] == pytest.approx(
+        fixed_effect_sigma * math.sqrt(result["chi2_red"])
+    )
 
 
 def test_event_combination_does_not_claim_dm_without_science_grade_band():

@@ -1,6 +1,33 @@
 {
   "results": [
     {
+      "artifact_control": {
+        "downgraded": false,
+        "failed_checks": [],
+        "low_lag_stability": {
+          "n_subbands_failed": 0,
+          "n_subbands_judged": 4,
+          "stable": true
+        },
+        "measurement_status": "measurement",
+        "off_pulse_null": {
+          "n_subbands_failed": 0,
+          "n_subbands_judged": 4,
+          "null_pass": true
+        },
+        "provenance": {
+          "is_chime": false,
+          "missing": [],
+          "reason": "non-CHIME telescope not subject to upchannelization comb gate",
+          "records": {
+            "bandpass_normalization": false,
+            "grid_regularization": false,
+            "harmonic_mask": false
+          },
+          "status": "measurement",
+          "telescope": "dsa"
+        }
+      },
       "burst": "casey",
       "burst_preferred_n": 1,
       "component_median_dnu_mhz": {
@@ -12,12 +39,30 @@
         "2": 18.387156820715035
       },
       "config_path": "scintillation/configs/bursts/casey_dsa.yaml",
-      "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/casey_dsa_acf_lorentzian_fits.pdf",
-      "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/casey_dsa_acf_lorentzian_fits.png",
-      "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/casey_dsa_acf_lorentzian_fits.svg",
+      "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/casey_dsa_acf_lorentzian_fits.pdf",
+      "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/casey_dsa_acf_lorentzian_fits.png",
+      "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/casey_dsa_acf_lorentzian_fits.svg",
       "fit_lagrange_mhz": 25.0,
+      "gamma_power_law_fit": {
+        "alpha": 5.890745552473065,
+        "covariance": [
+          [
+            0.0026338462053559046,
+            0.008782720027394181
+          ],
+          [
+            0.008782720027394181,
+            1.2558399667632152
+          ]
+        ],
+        "gamma_ref_mhz": 2.878757814801567,
+        "n_fit_components": 4,
+        "nu_ref_mhz": 1400.0,
+        "selection_policy": "narrowest_clean_lorentzian_per_subband"
+      },
       "input_data_path": "/Users/jakobfaber/Data/Faber2026/dsa110/scintillation/data/casey.npz",
       "max_components": 3,
+      "measurement_status": "measurement",
       "n_per_subband": [
         1,
         2,
@@ -25,6 +70,22 @@
         2
       ],
       "num_subbands": 4,
+      "pbf_overlay": {
+        "alpha": 4.0,
+        "alpha_err_minus": 0.0,
+        "alpha_err_plus": 0.0,
+        "c1": 1.16,
+        "relation": "delta_nu_mhz = C1 / (2 pi tau_ms 1e3)",
+        "roster_gate_final": "MARGINAL",
+        "roster_locked_utc": "2026-07-07",
+        "roster_rail_class": "railed-hi",
+        "roster_source": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scattering-refit-2026-06/citable_alpha_roster.json",
+        "source": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/beta_campaign/fits/casey_joint_fit_sharedzeta.json",
+        "tau_1ghz_err_minus_ms": 4.826336246226484e-05,
+        "tau_1ghz_err_plus_ms": 5.125047211357661e-05,
+        "tau_1ghz_ms": 0.018589939827674748,
+        "uncertainty_method": "approximate independent Gaussian draws from marginal 16th-84th percentile summaries; tau-alpha covariance unavailable"
+      },
       "requested_num_subbands": 4,
       "subband_selection": {
         "candidate_counts": [
@@ -170,10 +231,44 @@
             "2": 1.0
           },
           "fit_range_mhz": 13.185739866514746,
+          "harmonic_mask": {
+            "enabled": false,
+            "halfwidth_mhz": null,
+            "n_bins_kept": 865,
+            "n_bins_removed": 0,
+            "spacing_mhz": null
+          },
+          "harmonic_mask_systematic": {
+            "abs_diff_mhz": 0.0,
+            "dnu_masked_mhz": 2.0997153786622054,
+            "dnu_unmasked_mhz": 2.0997153786622054,
+            "reason": "harmonic-mask sensitivity reported as a systematic band, not a correction",
+            "systematic_frac": 0.0
+          },
           "index": 0,
+          "low_lag_stability": {
+            "dnu_by_excision": {
+              "1": 2.098552455785592,
+              "2": 2.0843757370380356,
+              "3": 2.0656727305193217
+            },
+            "dnu_full_mhz": 2.0997153786622054,
+            "failed_ks": [],
+            "min_ratio": 0.9837870177602007,
+            "reason": "width survives low-lag excision (no collapse) -> wing is resolved",
+            "stable": true
+          },
           "n_fit_points": 432,
           "n_preferred": 1,
           "num_channels": 864,
+          "off_pulse_null": {
+            "null_pass": true,
+            "off_median_dnu_mhz": 7.072791164035837,
+            "off_n_fits": 12,
+            "on_dnu_mhz": 2.0997153786622054,
+            "ratio": 3.3684523321166195,
+            "reason": "off-pulse median 7072.8 kHz differs from on-pulse 2099.7 kHz (ratio 3.37 > 2.0) -> null passes"
+          },
           "selected_bic": 244.2663087075333,
           "selected_components": [
             {
@@ -242,26 +337,26 @@
               "chi2": 98.77585091840959,
               "components": [
                 {
-                  "dnu_err": 24.055805665079642,
+                  "dnu_err": 24.055805665080584,
                   "dnu_mhz": 8.589852988916398,
                   "m": 0.7807691195309836,
-                  "m_err": 5.908204663646616
+                  "m_err": 5.90820466364686
                 },
                 {
-                  "dnu_err": 4356080.220703205,
+                  "dnu_err": 4356080.220703274,
                   "dnu_mhz": 18.38453058030141,
                   "m": 0.7493469509447042,
-                  "m_err": 44009359.827609524
+                  "m_err": 44009359.827610224
                 },
                 {
-                  "dnu_err": 11583780.60494246,
+                  "dnu_err": 11583780.60494264,
                   "dnu_mhz": 18.39091626729347,
                   "m": 0.45856436458119454,
-                  "m_err": 71916298.33909048
+                  "m_err": 71916298.3390916
                 }
               ],
               "constant": -0.6420367078783884,
-              "constant_err": 0.918988455877531,
+              "constant_err": 0.9189884558775386,
               "n": 3,
               "n_params": 7,
               "ndata": 819,
@@ -281,10 +376,44 @@
             "3": 1.0
           },
           "fit_range_mhz": 25.0,
+          "harmonic_mask": {
+            "enabled": false,
+            "halfwidth_mhz": null,
+            "n_bins_kept": 1639,
+            "n_bins_removed": 0,
+            "spacing_mhz": null
+          },
+          "harmonic_mask_systematic": {
+            "abs_diff_mhz": 0.0,
+            "dnu_masked_mhz": 8.590165166700002,
+            "dnu_unmasked_mhz": 8.590165166700002,
+            "reason": "harmonic-mask sensitivity reported as a systematic band, not a correction",
+            "systematic_frac": 0.0
+          },
           "index": 1,
+          "low_lag_stability": {
+            "dnu_by_excision": {
+              "1": 8.623647427951868,
+              "2": 8.672207427809553,
+              "3": 8.652486780936835
+            },
+            "dnu_full_mhz": 8.590165166700002,
+            "failed_ks": [],
+            "min_ratio": 1.003897743594228,
+            "reason": "width survives low-lag excision (no collapse) -> wing is resolved",
+            "stable": true
+          },
           "n_fit_points": 819,
           "n_preferred": 2,
           "num_channels": 1812,
+          "off_pulse_null": {
+            "null_pass": true,
+            "off_median_dnu_mhz": 3.4145264638318022,
+            "off_n_fits": 12,
+            "on_dnu_mhz": 8.590165166700002,
+            "ratio": 2.515770563705067,
+            "reason": "off-pulse median 3414.5 kHz differs from on-pulse 8590.2 kHz (ratio 2.52 > 2.0) -> null passes"
+          },
           "selected_bic": -1698.8337140515598,
           "selected_components": [
             {
@@ -396,10 +525,44 @@
             "2": 0.9999996624672904
           },
           "fit_range_mhz": 17.73359921862288,
+          "harmonic_mask": {
+            "enabled": false,
+            "halfwidth_mhz": null,
+            "n_bins_kept": 1163,
+            "n_bins_removed": 0,
+            "spacing_mhz": null
+          },
+          "harmonic_mask_systematic": {
+            "abs_diff_mhz": 0.0,
+            "dnu_masked_mhz": 1.4549778282805348,
+            "dnu_unmasked_mhz": 1.4549778282805348,
+            "reason": "harmonic-mask sensitivity reported as a systematic band, not a correction",
+            "systematic_frac": 0.0
+          },
           "index": 2,
+          "low_lag_stability": {
+            "dnu_by_excision": {
+              "1": 1.4482139569816552,
+              "2": 1.4269858779792473,
+              "3": 1.4284375622777588
+            },
+            "dnu_full_mhz": 1.4549778282805348,
+            "failed_ks": [],
+            "min_ratio": 0.980761253018977,
+            "reason": "width survives low-lag excision (no collapse) -> wing is resolved",
+            "stable": true
+          },
           "n_fit_points": 581,
           "n_preferred": 1,
           "num_channels": 1162,
+          "off_pulse_null": {
+            "null_pass": true,
+            "off_median_dnu_mhz": 10.587637477436493,
+            "off_n_fits": 12,
+            "on_dnu_mhz": 1.4549778282805348,
+            "ratio": 7.27683767521651,
+            "reason": "off-pulse median 10587.6 kHz differs from on-pulse 1455.0 kHz (ratio 7.28 > 2.0) -> null passes"
+          },
           "selected_bic": 297.66327414926855,
           "selected_components": [
             {
@@ -509,10 +672,44 @@
             "3": 1.0
           },
           "fit_range_mhz": 25.0,
+          "harmonic_mask": {
+            "enabled": false,
+            "halfwidth_mhz": null,
+            "n_bins_kept": 1639,
+            "n_bins_removed": 0,
+            "spacing_mhz": null
+          },
+          "harmonic_mask_systematic": {
+            "abs_diff_mhz": 0.0,
+            "dnu_masked_mhz": 4.354450291979191,
+            "dnu_unmasked_mhz": 4.354450291979191,
+            "reason": "harmonic-mask sensitivity reported as a systematic band, not a correction",
+            "systematic_frac": 0.0
+          },
           "index": 3,
+          "low_lag_stability": {
+            "dnu_by_excision": {
+              "1": 4.3549104725129215,
+              "2": 4.350617478261328,
+              "3": 4.351125149266541
+            },
+            "dnu_full_mhz": 4.354450291979191,
+            "failed_ks": [],
+            "min_ratio": 0.9991197938979983,
+            "reason": "width survives low-lag excision (no collapse) -> wing is resolved",
+            "stable": true
+          },
           "n_fit_points": 819,
           "n_preferred": 2,
           "num_channels": 2266,
+          "off_pulse_null": {
+            "null_pass": true,
+            "off_median_dnu_mhz": 9.367801671184981,
+            "off_n_fits": 12,
+            "on_dnu_mhz": 4.354450291979191,
+            "ratio": 2.151316708894411,
+            "reason": "off-pulse median 9367.8 kHz differs from on-pulse 4354.5 kHz (ratio 2.15 > 2.0) -> null passes"
+          },
           "selected_bic": -1759.8925946411553,
           "selected_components": [
             {
@@ -537,6 +734,33 @@
       ]
     },
     {
+      "artifact_control": {
+        "downgraded": false,
+        "failed_checks": [],
+        "low_lag_stability": {
+          "n_subbands_failed": 0,
+          "n_subbands_judged": 4,
+          "stable": true
+        },
+        "measurement_status": "measurement",
+        "off_pulse_null": {
+          "n_subbands_failed": 1,
+          "n_subbands_judged": 4,
+          "null_pass": false
+        },
+        "provenance": {
+          "is_chime": false,
+          "missing": [],
+          "reason": "non-CHIME telescope not subject to upchannelization comb gate",
+          "records": {
+            "bandpass_normalization": false,
+            "grid_regularization": false,
+            "harmonic_mask": false
+          },
+          "status": "measurement",
+          "telescope": "dsa"
+        }
+      },
       "burst": "chromatica",
       "burst_preferred_n": 1,
       "component_median_dnu_mhz": {
@@ -547,12 +771,30 @@
         "1": 1.0588192575583122
       },
       "config_path": "scintillation/configs/bursts/chromatica_dsa.yaml",
-      "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/chromatica_dsa_acf_lorentzian_fits.pdf",
-      "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/chromatica_dsa_acf_lorentzian_fits.png",
-      "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/chromatica_dsa_acf_lorentzian_fits.svg",
+      "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/chromatica_dsa_acf_lorentzian_fits.pdf",
+      "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/chromatica_dsa_acf_lorentzian_fits.png",
+      "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/chromatica_dsa_acf_lorentzian_fits.svg",
       "fit_lagrange_mhz": 25.0,
+      "gamma_power_law_fit": {
+        "alpha": 6.477752916489201,
+        "covariance": [
+          [
+            0.0020914496572467392,
+            -0.005458033353712498
+          ],
+          [
+            -0.005458033353712498,
+            1.6192196696139696
+          ]
+        ],
+        "gamma_ref_mhz": 1.3006221835024827,
+        "n_fit_components": 4,
+        "nu_ref_mhz": 1400.0,
+        "selection_policy": "narrowest_clean_lorentzian_per_subband"
+      },
       "input_data_path": "/Users/jakobfaber/Data/Faber2026/dsa110/scintillation/data/chromatica.npz",
       "max_components": 3,
+      "measurement_status": "measurement",
       "n_per_subband": [
         1,
         2,
@@ -560,6 +802,7 @@
         2
       ],
       "num_subbands": 4,
+      "pbf_overlay": null,
       "requested_num_subbands": 4,
       "subband_selection": {
         "candidate_counts": [
@@ -703,10 +946,44 @@
             "2": 0.02262280561909022
           },
           "fit_range_mhz": 9.797737261924173,
+          "harmonic_mask": {
+            "enabled": false,
+            "halfwidth_mhz": null,
+            "n_bins_kept": 643,
+            "n_bins_removed": 0,
+            "spacing_mhz": null
+          },
+          "harmonic_mask_systematic": {
+            "abs_diff_mhz": 0.0,
+            "dnu_masked_mhz": 0.7284567935451594,
+            "dnu_unmasked_mhz": 0.7284567935451594,
+            "reason": "harmonic-mask sensitivity reported as a systematic band, not a correction",
+            "systematic_frac": 0.0
+          },
           "index": 0,
+          "low_lag_stability": {
+            "dnu_by_excision": {
+              "1": 0.7550257249280725,
+              "2": 0.7776761710728732,
+              "3": 0.7970510348595699
+            },
+            "dnu_full_mhz": 0.7284567935451594,
+            "failed_ks": [],
+            "min_ratio": 1.0364728994476267,
+            "reason": "width survives low-lag excision (no collapse) -> wing is resolved",
+            "stable": true
+          },
           "n_fit_points": 321,
           "n_preferred": 1,
           "num_channels": 642,
+          "off_pulse_null": {
+            "null_pass": true,
+            "off_median_dnu_mhz": 1.7770957562280656,
+            "off_n_fits": 12,
+            "on_dnu_mhz": 0.7284567935451594,
+            "ratio": 2.4395348797277676,
+            "reason": "off-pulse median 1777.1 kHz differs from on-pulse 728.5 kHz (ratio 2.44 > 2.0) -> null passes"
+          },
           "selected_bic": 363.57583480380464,
           "selected_components": [
             {
@@ -816,10 +1093,44 @@
             "3": 1.0
           },
           "fit_range_mhz": 20.083835259645152,
+          "harmonic_mask": {
+            "enabled": false,
+            "halfwidth_mhz": null,
+            "n_bins_kept": 1317,
+            "n_bins_removed": 0,
+            "spacing_mhz": null
+          },
+          "harmonic_mask_systematic": {
+            "abs_diff_mhz": 0.0,
+            "dnu_masked_mhz": 0.5957143809411005,
+            "dnu_unmasked_mhz": 0.5957143809411005,
+            "reason": "harmonic-mask sensitivity reported as a systematic band, not a correction",
+            "systematic_frac": 0.0
+          },
           "index": 1,
+          "low_lag_stability": {
+            "dnu_by_excision": {
+              "1": 0.5714122441181075,
+              "2": 0.5620122285999485,
+              "3": 0.5311301623189377
+            },
+            "dnu_full_mhz": 0.5957143809411005,
+            "failed_ks": [],
+            "min_ratio": 0.8915852618495903,
+            "reason": "width survives low-lag excision (no collapse) -> wing is resolved",
+            "stable": true
+          },
           "n_fit_points": 658,
           "n_preferred": 2,
           "num_channels": 1316,
+          "off_pulse_null": {
+            "null_pass": true,
+            "off_median_dnu_mhz": 5.165996863568323,
+            "off_n_fits": 12,
+            "on_dnu_mhz": 0.5957143809411005,
+            "ratio": 8.671935794813548,
+            "reason": "off-pulse median 5166.0 kHz differs from on-pulse 595.7 kHz (ratio 8.67 > 2.0) -> null passes"
+          },
           "selected_bic": 31.375619237140867,
           "selected_components": [
             {
@@ -896,26 +1207,26 @@
               "chi2": 1441.6683808964742,
               "components": [
                 {
-                  "dnu_err": 0.8230874880780343,
+                  "dnu_err": 0.8230874880773036,
                   "dnu_mhz": 0.5454498852724676,
                   "m": 0.60041575438934,
-                  "m_err": 0.5062527584743758
+                  "m_err": 0.5062527584737142
                 },
                 {
-                  "dnu_err": 3252559.579773016,
+                  "dnu_err": 3252559.5797741073,
                   "dnu_mhz": 2.564765546850102,
                   "m": 0.731098224194245,
-                  "m_err": 1552982535.5116553
+                  "m_err": 1552982535.5121746
                 },
                 {
-                  "dnu_err": 7501905.825401935,
+                  "dnu_err": 7501905.825404431,
                   "dnu_mhz": 2.564942065403833,
                   "m": 0.48141131411928173,
-                  "m_err": 2358297316.6052003
+                  "m_err": 2358297316.6059885
                 }
               ],
               "constant": -0.1858249324274648,
-              "constant_err": 0.018223791599656716,
+              "constant_err": 0.0182237915996669,
               "n": 3,
               "n_params": 7,
               "ndata": 799,
@@ -933,10 +1244,44 @@
             "2": 0.11965128669618583
           },
           "fit_range_mhz": 24.387514243854795,
+          "harmonic_mask": {
+            "enabled": false,
+            "halfwidth_mhz": null,
+            "n_bins_kept": 1599,
+            "n_bins_removed": 0,
+            "spacing_mhz": null
+          },
+          "harmonic_mask_systematic": {
+            "abs_diff_mhz": 0.0,
+            "dnu_masked_mhz": 2.0652691362888826,
+            "dnu_unmasked_mhz": 2.0652691362888826,
+            "reason": "harmonic-mask sensitivity reported as a systematic band, not a correction",
+            "systematic_frac": 0.0
+          },
           "index": 2,
+          "low_lag_stability": {
+            "dnu_by_excision": {
+              "1": 2.093075377997951,
+              "2": 2.077713779710111,
+              "3": 2.0953486564106116
+            },
+            "dnu_full_mhz": 2.0652691362888826,
+            "failed_ks": [],
+            "min_ratio": 1.0060256763646747,
+            "reason": "width survives low-lag excision (no collapse) -> wing is resolved",
+            "stable": true
+          },
           "n_fit_points": 799,
           "n_preferred": 1,
           "num_channels": 1598,
+          "off_pulse_null": {
+            "null_pass": true,
+            "off_median_dnu_mhz": 6.43988248842391,
+            "off_n_fits": 12,
+            "on_dnu_mhz": 2.0652691362888826,
+            "ratio": 3.1181807616589112,
+            "reason": "off-pulse median 6439.9 kHz differs from on-pulse 2065.3 kHz (ratio 3.12 > 2.0) -> null passes"
+          },
           "selected_bic": 495.8892728334514,
           "selected_components": [
             {
@@ -1047,10 +1392,44 @@
             "2": 1.768727993496368e-08
           },
           "fit_range_mhz": 25.0,
+          "harmonic_mask": {
+            "enabled": false,
+            "halfwidth_mhz": null,
+            "n_bins_kept": 1639,
+            "n_bins_removed": 0,
+            "spacing_mhz": null
+          },
+          "harmonic_mask_systematic": {
+            "abs_diff_mhz": 0.0,
+            "dnu_masked_mhz": 1.389181721571465,
+            "dnu_unmasked_mhz": 1.389181721571465,
+            "reason": "harmonic-mask sensitivity reported as a systematic band, not a correction",
+            "systematic_frac": 0.0
+          },
           "index": 3,
+          "low_lag_stability": {
+            "dnu_by_excision": {
+              "1": 1.414231892751142,
+              "2": 1.4009299031663098,
+              "3": 1.391443592165782
+            },
+            "dnu_full_mhz": 1.389181721571465,
+            "failed_ks": [],
+            "min_ratio": 1.0016282035382371,
+            "reason": "width survives low-lag excision (no collapse) -> wing is resolved",
+            "stable": true
+          },
           "n_fit_points": 819,
           "n_preferred": 2,
           "num_channels": 2554,
+          "off_pulse_null": {
+            "null_pass": false,
+            "off_median_dnu_mhz": 1.3854927633300909,
+            "off_n_fits": 12,
+            "on_dnu_mhz": 1.389181721571465,
+            "ratio": 1.0026625604543091,
+            "reason": "off-pulse median 1385.5 kHz brackets on-pulse 1389.2 kHz (ratio 1.00 <= 2.0); scale is instrumental -> null FAILS"
+          },
           "selected_bic": 219.528343205392,
           "selected_components": [
             {
@@ -1078,6 +1457,33 @@
       ]
     },
     {
+      "artifact_control": {
+        "downgraded": false,
+        "failed_checks": [],
+        "low_lag_stability": {
+          "n_subbands_failed": 0,
+          "n_subbands_judged": 2,
+          "stable": true
+        },
+        "measurement_status": "measurement",
+        "off_pulse_null": {
+          "n_subbands_failed": 0,
+          "n_subbands_judged": 2,
+          "null_pass": true
+        },
+        "provenance": {
+          "is_chime": false,
+          "missing": [],
+          "reason": "non-CHIME telescope not subject to upchannelization comb gate",
+          "records": {
+            "bandpass_normalization": false,
+            "grid_regularization": false,
+            "harmonic_mask": false
+          },
+          "status": "measurement",
+          "telescope": "dsa"
+        }
+      },
       "burst": "freya",
       "burst_preferred_n": 1,
       "component_median_dnu_mhz": {
@@ -1087,17 +1493,35 @@
         "1": 11.914664957701838
       },
       "config_path": "scintillation/configs/bursts/freya_dsa.yaml",
-      "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/freya_dsa_acf_lorentzian_fits.pdf",
-      "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/freya_dsa_acf_lorentzian_fits.png",
-      "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/freya_dsa_acf_lorentzian_fits.svg",
+      "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/freya_dsa_acf_lorentzian_fits.pdf",
+      "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/freya_dsa_acf_lorentzian_fits.png",
+      "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/freya_dsa_acf_lorentzian_fits.svg",
       "fit_lagrange_mhz": 25.0,
+      "gamma_power_law_fit": null,
       "input_data_path": "/Users/jakobfaber/Data/Faber2026/dsa110/scintillation/data/freya.npz",
       "max_components": 3,
+      "measurement_status": "measurement",
       "n_per_subband": [
         1,
         1
       ],
       "num_subbands": 2,
+      "pbf_overlay": {
+        "alpha": 4.323299058036697,
+        "alpha_err_minus": 0.01897430455543514,
+        "alpha_err_plus": 0.020126756655646894,
+        "c1": 1.16,
+        "relation": "delta_nu_mhz = C1 / (2 pi tau_ms 1e3)",
+        "roster_gate_final": "MARGINAL",
+        "roster_locked_utc": "2026-07-07",
+        "roster_rail_class": "interior",
+        "roster_source": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scattering-refit-2026-06/citable_alpha_roster.json",
+        "source": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/beta_campaign/fits/freya_joint_fit_sharedzeta.json",
+        "tau_1ghz_err_minus_ms": 0.0011814983612511432,
+        "tau_1ghz_err_plus_ms": 0.001217165093037445,
+        "tau_1ghz_ms": 0.1193849491889905,
+        "uncertainty_method": "approximate independent Gaussian draws from marginal 16th-84th percentile summaries; tau-alpha covariance unavailable"
+      },
       "requested_num_subbands": 2,
       "subband_selection": {
         "candidate_counts": [
@@ -1247,10 +1671,44 @@
             "2": 0.0001443428551918888
           },
           "fit_range_mhz": 25.0,
+          "harmonic_mask": {
+            "enabled": false,
+            "halfwidth_mhz": null,
+            "n_bins_kept": 1639,
+            "n_bins_removed": 0,
+            "spacing_mhz": null
+          },
+          "harmonic_mask_systematic": {
+            "abs_diff_mhz": 0.0,
+            "dnu_masked_mhz": 11.914664957701838,
+            "dnu_unmasked_mhz": 11.914664957701838,
+            "reason": "harmonic-mask sensitivity reported as a systematic band, not a correction",
+            "systematic_frac": 0.0
+          },
           "index": 0,
+          "low_lag_stability": {
+            "dnu_by_excision": {
+              "1": 13.351425531443615,
+              "2": 13.607064329043157,
+              "3": 13.748513975309587
+            },
+            "dnu_full_mhz": 11.914664957701838,
+            "failed_ks": [],
+            "min_ratio": 1.1205875766412576,
+            "reason": "width survives low-lag excision (no collapse) -> wing is resolved",
+            "stable": true
+          },
           "n_fit_points": 819,
           "n_preferred": 1,
           "num_channels": 2630,
+          "off_pulse_null": {
+            "null_pass": true,
+            "off_median_dnu_mhz": 2.3576931890985398,
+            "off_n_fits": 12,
+            "on_dnu_mhz": 11.914664957701838,
+            "ratio": 5.053526477826995,
+            "reason": "off-pulse median 2357.7 kHz differs from on-pulse 11914.7 kHz (ratio 5.05 > 2.0) -> null passes"
+          },
           "selected_bic": -58.08812466959675,
           "selected_components": [
             {
@@ -1360,10 +1818,44 @@
             "2": 0.01260148248404442
           },
           "fit_range_mhz": 25.0,
+          "harmonic_mask": {
+            "enabled": false,
+            "halfwidth_mhz": null,
+            "n_bins_kept": 1639,
+            "n_bins_removed": 0,
+            "spacing_mhz": null
+          },
+          "harmonic_mask_systematic": {
+            "abs_diff_mhz": 0.0,
+            "dnu_masked_mhz": 392.8026785642447,
+            "dnu_unmasked_mhz": 392.8026785642447,
+            "reason": "harmonic-mask sensitivity reported as a systematic band, not a correction",
+            "systematic_frac": 0.0
+          },
           "index": 1,
+          "low_lag_stability": {
+            "dnu_by_excision": {
+              "1": 331.9876480956626,
+              "2": 411.5095554830693,
+              "3": 445.1025203708828
+            },
+            "dnu_full_mhz": 392.8026785642447,
+            "failed_ks": [],
+            "min_ratio": 0.8451766401113391,
+            "reason": "width survives low-lag excision (no collapse) -> wing is resolved",
+            "stable": true
+          },
           "n_fit_points": 819,
           "n_preferred": 1,
           "num_channels": 3482,
+          "off_pulse_null": {
+            "null_pass": true,
+            "off_median_dnu_mhz": 9.360776746248547,
+            "off_n_fits": 12,
+            "on_dnu_mhz": 392.8026785642447,
+            "ratio": 41.9626158397235,
+            "reason": "off-pulse median 9360.8 kHz differs from on-pulse 392802.7 kHz (ratio 41.96 > 2.0) -> null passes"
+          },
           "selected_bic": -72.29270603057805,
           "selected_components": [
             {
@@ -1384,6 +1876,33 @@
       ]
     },
     {
+      "artifact_control": {
+        "downgraded": false,
+        "failed_checks": [],
+        "low_lag_stability": {
+          "n_subbands_failed": 0,
+          "n_subbands_judged": 4,
+          "stable": true
+        },
+        "measurement_status": "measurement",
+        "off_pulse_null": {
+          "n_subbands_failed": 0,
+          "n_subbands_judged": 4,
+          "null_pass": true
+        },
+        "provenance": {
+          "is_chime": false,
+          "missing": [],
+          "reason": "non-CHIME telescope not subject to upchannelization comb gate",
+          "records": {
+            "bandpass_normalization": false,
+            "grid_regularization": false,
+            "harmonic_mask": false
+          },
+          "status": "measurement",
+          "telescope": "dsa"
+        }
+      },
       "burst": "hamilton",
       "burst_preferred_n": 1,
       "component_median_dnu_mhz": {
@@ -1395,12 +1914,30 @@
         "2": 17.395904923741575
       },
       "config_path": "scintillation/configs/bursts/hamilton_dsa.yaml",
-      "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/hamilton_dsa_acf_lorentzian_fits.pdf",
-      "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/hamilton_dsa_acf_lorentzian_fits.png",
-      "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/hamilton_dsa_acf_lorentzian_fits.svg",
+      "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/hamilton_dsa_acf_lorentzian_fits.pdf",
+      "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/hamilton_dsa_acf_lorentzian_fits.png",
+      "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/hamilton_dsa_acf_lorentzian_fits.svg",
       "fit_lagrange_mhz": 25.0,
+      "gamma_power_law_fit": {
+        "alpha": -7.179786513165298,
+        "covariance": [
+          [
+            0.04257896447072864,
+            0.41616276457757223
+          ],
+          [
+            0.41616276457757234,
+            39.848859708212764
+          ]
+        ],
+        "gamma_ref_mhz": 0.29068269386211926,
+        "n_fit_components": 4,
+        "nu_ref_mhz": 1400.0,
+        "selection_policy": "narrowest_clean_lorentzian_per_subband"
+      },
       "input_data_path": "/Users/jakobfaber/Data/Faber2026/dsa110/scintillation/data/hamilton.npz",
       "max_components": 3,
+      "measurement_status": "measurement",
       "n_per_subband": [
         1,
         1,
@@ -1408,6 +1945,22 @@
         2
       ],
       "num_subbands": 4,
+      "pbf_overlay": {
+        "alpha": 4.022233269097418,
+        "alpha_err_minus": 0.001563249898961061,
+        "alpha_err_plus": 0.00344035503731277,
+        "c1": 1.16,
+        "relation": "delta_nu_mhz = C1 / (2 pi tau_ms 1e3)",
+        "roster_gate_final": "MARGINAL",
+        "roster_locked_utc": "2026-07-07",
+        "roster_rail_class": "railed-hi",
+        "roster_source": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scattering-refit-2026-06/citable_alpha_roster.json",
+        "source": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/beta_campaign/fits/hamilton_joint_fit_sharedzeta.json",
+        "tau_1ghz_err_minus_ms": 0.0003119758311984633,
+        "tau_1ghz_err_plus_ms": 0.0003357962355388759,
+        "tau_1ghz_ms": 0.024470729413943397,
+        "uncertainty_method": "approximate independent Gaussian draws from marginal 16th-84th percentile summaries; tau-alpha covariance unavailable"
+      },
       "requested_num_subbands": 4,
       "subband_selection": {
         "candidate_counts": [
@@ -1551,10 +2104,44 @@
             "2": 1.0
           },
           "fit_range_mhz": 10.545539638613104,
+          "harmonic_mask": {
+            "enabled": false,
+            "halfwidth_mhz": null,
+            "n_bins_kept": 691,
+            "n_bins_removed": 0,
+            "spacing_mhz": null
+          },
+          "harmonic_mask_systematic": {
+            "abs_diff_mhz": 0.0,
+            "dnu_masked_mhz": 0.12859013592190127,
+            "dnu_unmasked_mhz": 0.12859013592190127,
+            "reason": "harmonic-mask sensitivity reported as a systematic band, not a correction",
+            "systematic_frac": 0.0
+          },
           "index": 0,
+          "low_lag_stability": {
+            "dnu_by_excision": {
+              "1": 2.5098523028405104,
+              "2": 0.18318993638515657,
+              "3": 0.16096729527307918
+            },
+            "dnu_full_mhz": 0.12859013592190127,
+            "failed_ks": [],
+            "min_ratio": 1.2517857152810077,
+            "reason": "width survives low-lag excision (no collapse) -> wing is resolved",
+            "stable": true
+          },
           "n_fit_points": 345,
           "n_preferred": 1,
           "num_channels": 691,
+          "off_pulse_null": {
+            "null_pass": true,
+            "off_median_dnu_mhz": 3.377757426649399,
+            "off_n_fits": 12,
+            "on_dnu_mhz": 0.12859013592190127,
+            "ratio": 26.267624669911438,
+            "reason": "off-pulse median 3377.8 kHz differs from on-pulse 128.6 kHz (ratio 26.27 > 2.0) -> null passes"
+          },
           "selected_bic": 22.1756759813783,
           "selected_components": [
             {
@@ -1659,10 +2246,44 @@
             "2": 0.6671141583300255
           },
           "fit_range_mhz": 19.16815888002606,
+          "harmonic_mask": {
+            "enabled": false,
+            "halfwidth_mhz": null,
+            "n_bins_kept": 1257,
+            "n_bins_removed": 0,
+            "spacing_mhz": null
+          },
+          "harmonic_mask_systematic": {
+            "abs_diff_mhz": 0.0,
+            "dnu_masked_mhz": 1.0663028113217452,
+            "dnu_unmasked_mhz": 1.0663028113217452,
+            "reason": "harmonic-mask sensitivity reported as a systematic band, not a correction",
+            "systematic_frac": 0.0
+          },
           "index": 1,
+          "low_lag_stability": {
+            "dnu_by_excision": {
+              "1": 1.349999579330126,
+              "2": 1.4275290727114434,
+              "3": 1.3934120498748328
+            },
+            "dnu_full_mhz": 1.0663028113217452,
+            "failed_ks": [],
+            "min_ratio": 1.2660564756991703,
+            "reason": "width survives low-lag excision (no collapse) -> wing is resolved",
+            "stable": true
+          },
           "n_fit_points": 628,
           "n_preferred": 1,
           "num_channels": 1256,
+          "off_pulse_null": {
+            "null_pass": true,
+            "off_median_dnu_mhz": 8.131279773304303,
+            "off_n_fits": 12,
+            "on_dnu_mhz": 1.0663028113217452,
+            "ratio": 7.625676015263528,
+            "reason": "off-pulse median 8131.3 kHz differs from on-pulse 1066.3 kHz (ratio 7.63 > 2.0) -> null passes"
+          },
           "selected_bic": 48.2624118323826,
           "selected_components": [
             {
@@ -1775,10 +2396,44 @@
             "3": 0.8093421048614555
           },
           "fit_range_mhz": 24.280685332899335,
+          "harmonic_mask": {
+            "enabled": false,
+            "halfwidth_mhz": null,
+            "n_bins_kept": 1591,
+            "n_bins_removed": 0,
+            "spacing_mhz": null
+          },
+          "harmonic_mask_systematic": {
+            "abs_diff_mhz": 0.0,
+            "dnu_masked_mhz": 0.207269714386499,
+            "dnu_unmasked_mhz": 0.207269714386499,
+            "reason": "harmonic-mask sensitivity reported as a systematic band, not a correction",
+            "systematic_frac": 0.0
+          },
           "index": 2,
+          "low_lag_stability": {
+            "dnu_by_excision": {
+              "1": 0.19809924419674707,
+              "2": 0.1854043501299436,
+              "3": 0.2867689862354408
+            },
+            "dnu_full_mhz": 0.207269714386499,
+            "failed_ks": [],
+            "min_ratio": 0.894507674113051,
+            "reason": "width survives low-lag excision (no collapse) -> wing is resolved",
+            "stable": true
+          },
           "n_fit_points": 795,
           "n_preferred": 2,
           "num_channels": 1591,
+          "off_pulse_null": {
+            "null_pass": true,
+            "off_median_dnu_mhz": 4.8333660720201745,
+            "off_n_fits": 12,
+            "on_dnu_mhz": 0.207269714386499,
+            "ratio": 23.31921036474882,
+            "reason": "off-pulse median 4833.4 kHz differs from on-pulse 207.3 kHz (ratio 23.32 > 2.0) -> null passes"
+          },
           "selected_bic": -43.56765199811229,
           "selected_components": [
             {
@@ -1898,10 +2553,44 @@
             "3": 0.8274012366659339
           },
           "fit_range_mhz": 25.0,
+          "harmonic_mask": {
+            "enabled": false,
+            "halfwidth_mhz": null,
+            "n_bins_kept": 1639,
+            "n_bins_removed": 0,
+            "spacing_mhz": null
+          },
+          "harmonic_mask_systematic": {
+            "abs_diff_mhz": 0.0,
+            "dnu_masked_mhz": 0.23874580023782,
+            "dnu_unmasked_mhz": 0.23874580023782,
+            "reason": "harmonic-mask sensitivity reported as a systematic band, not a correction",
+            "systematic_frac": 0.0
+          },
           "index": 3,
+          "low_lag_stability": {
+            "dnu_by_excision": {
+              "1": 14.012541862626906,
+              "2": 14.361394738115118,
+              "3": 14.248272588513334
+            },
+            "dnu_full_mhz": 0.23874580023782,
+            "failed_ks": [],
+            "min_ratio": 58.69230725176611,
+            "reason": "width survives low-lag excision (no collapse) -> wing is resolved",
+            "stable": true
+          },
           "n_fit_points": 819,
           "n_preferred": 2,
           "num_channels": 2568,
+          "off_pulse_null": {
+            "null_pass": true,
+            "off_median_dnu_mhz": 2.518207303043197,
+            "off_n_fits": 12,
+            "on_dnu_mhz": 0.23874580023782,
+            "ratio": 10.547650683424608,
+            "reason": "off-pulse median 2518.2 kHz differs from on-pulse 238.7 kHz (ratio 10.55 > 2.0) -> null passes"
+          },
           "selected_bic": 11.911581887049145,
           "selected_components": [
             {
@@ -1924,6 +2613,33 @@
       ]
     },
     {
+      "artifact_control": {
+        "downgraded": false,
+        "failed_checks": [],
+        "low_lag_stability": {
+          "n_subbands_failed": 0,
+          "n_subbands_judged": 2,
+          "stable": true
+        },
+        "measurement_status": "measurement",
+        "off_pulse_null": {
+          "n_subbands_failed": 0,
+          "n_subbands_judged": 2,
+          "null_pass": true
+        },
+        "provenance": {
+          "is_chime": false,
+          "missing": [],
+          "reason": "non-CHIME telescope not subject to upchannelization comb gate",
+          "records": {
+            "bandpass_normalization": false,
+            "grid_regularization": false,
+            "harmonic_mask": false
+          },
+          "status": "measurement",
+          "telescope": "dsa"
+        }
+      },
       "burst": "isha",
       "burst_preferred_n": 1,
       "component_median_dnu_mhz": {
@@ -1933,17 +2649,35 @@
         "1": 0.6716347741480599
       },
       "config_path": "scintillation/configs/bursts/isha_dsa.yaml",
-      "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/isha_dsa_acf_lorentzian_fits.pdf",
-      "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/isha_dsa_acf_lorentzian_fits.png",
-      "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/isha_dsa_acf_lorentzian_fits.svg",
+      "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/isha_dsa_acf_lorentzian_fits.pdf",
+      "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/isha_dsa_acf_lorentzian_fits.png",
+      "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/isha_dsa_acf_lorentzian_fits.svg",
       "fit_lagrange_mhz": 25.0,
+      "gamma_power_law_fit": null,
       "input_data_path": "/Users/jakobfaber/Data/Faber2026/dsa110/scintillation/data/isha.npz",
       "max_components": 3,
+      "measurement_status": "measurement",
       "n_per_subband": [
         1,
         1
       ],
       "num_subbands": 2,
+      "pbf_overlay": {
+        "alpha": 4.173320063285557,
+        "alpha_err_minus": 0.09592664150771846,
+        "alpha_err_plus": 0.1319417955908504,
+        "c1": 1.16,
+        "relation": "delta_nu_mhz = C1 / (2 pi tau_ms 1e3)",
+        "roster_gate_final": "MARGINAL",
+        "roster_locked_utc": "2026-07-07",
+        "roster_rail_class": "railed-hi",
+        "roster_source": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scattering-refit-2026-06/citable_alpha_roster.json",
+        "source": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/beta_campaign/fits/isha_joint_fit_C2D1.json",
+        "tau_1ghz_err_minus_ms": 0.023256003103859002,
+        "tau_1ghz_err_plus_ms": 0.019053553732729767,
+        "tau_1ghz_ms": 0.31384875520730254,
+        "uncertainty_method": "approximate independent Gaussian draws from marginal 16th-84th percentile summaries; tau-alpha covariance unavailable"
+      },
       "requested_num_subbands": 2,
       "subband_selection": {
         "candidate_counts": [
@@ -2097,10 +2831,44 @@
             "2": 0.05363940531000737
           },
           "fit_range_mhz": 25.0,
+          "harmonic_mask": {
+            "enabled": false,
+            "halfwidth_mhz": null,
+            "n_bins_kept": 1639,
+            "n_bins_removed": 0,
+            "spacing_mhz": null
+          },
+          "harmonic_mask_systematic": {
+            "abs_diff_mhz": 0.0,
+            "dnu_masked_mhz": 81.23773514645417,
+            "dnu_unmasked_mhz": 81.23773514645417,
+            "reason": "harmonic-mask sensitivity reported as a systematic band, not a correction",
+            "systematic_frac": 0.0
+          },
           "index": 0,
+          "low_lag_stability": {
+            "dnu_by_excision": {
+              "1": 160.44391336652683,
+              "2": 165.58168734231378,
+              "3": 114.95296739336358
+            },
+            "dnu_full_mhz": 81.23773514645417,
+            "failed_ks": [],
+            "min_ratio": 1.4150193525967716,
+            "reason": "width survives low-lag excision (no collapse) -> wing is resolved",
+            "stable": true
+          },
           "n_fit_points": 819,
           "n_preferred": 1,
           "num_channels": 3203,
+          "off_pulse_null": {
+            "null_pass": true,
+            "off_median_dnu_mhz": 5.733773718865468,
+            "off_n_fits": 12,
+            "on_dnu_mhz": 81.23773514645417,
+            "ratio": 14.168284123100788,
+            "reason": "off-pulse median 5733.8 kHz differs from on-pulse 81237.7 kHz (ratio 14.17 > 2.0) -> null passes"
+          },
           "selected_bic": 47.43896218673234,
           "selected_components": [
             {
@@ -2209,10 +2977,44 @@
             "2": 0.9919543796473482
           },
           "fit_range_mhz": 25.0,
+          "harmonic_mask": {
+            "enabled": false,
+            "halfwidth_mhz": null,
+            "n_bins_kept": 1639,
+            "n_bins_removed": 0,
+            "spacing_mhz": null
+          },
+          "harmonic_mask_systematic": {
+            "abs_diff_mhz": 0.0,
+            "dnu_masked_mhz": 0.6716347741480599,
+            "dnu_unmasked_mhz": 0.6716347741480599,
+            "reason": "harmonic-mask sensitivity reported as a systematic band, not a correction",
+            "systematic_frac": 0.0
+          },
           "index": 1,
+          "low_lag_stability": {
+            "dnu_by_excision": {
+              "1": 0.789296470322054,
+              "2": 0.7122761143608318,
+              "3": 0.7411666522771263
+            },
+            "dnu_full_mhz": 0.6716347741480599,
+            "failed_ks": [],
+            "min_ratio": 1.0605110720544864,
+            "reason": "width survives low-lag excision (no collapse) -> wing is resolved",
+            "stable": true
+          },
           "n_fit_points": 819,
           "n_preferred": 1,
           "num_channels": 2762,
+          "off_pulse_null": {
+            "null_pass": true,
+            "off_median_dnu_mhz": 3.222199224101521,
+            "off_n_fits": 12,
+            "on_dnu_mhz": 0.6716347741480599,
+            "ratio": 4.797546744342926,
+            "reason": "off-pulse median 3222.2 kHz differs from on-pulse 671.6 kHz (ratio 4.80 > 2.0) -> null passes"
+          },
           "selected_bic": -41.63081527023181,
           "selected_components": [
             {
@@ -2228,6 +3030,33 @@
       ]
     },
     {
+      "artifact_control": {
+        "downgraded": false,
+        "failed_checks": [],
+        "low_lag_stability": {
+          "n_subbands_failed": 0,
+          "n_subbands_judged": 3,
+          "stable": true
+        },
+        "measurement_status": "measurement",
+        "off_pulse_null": {
+          "n_subbands_failed": 0,
+          "n_subbands_judged": 3,
+          "null_pass": true
+        },
+        "provenance": {
+          "is_chime": false,
+          "missing": [],
+          "reason": "non-CHIME telescope not subject to upchannelization comb gate",
+          "records": {
+            "bandpass_normalization": false,
+            "grid_regularization": false,
+            "harmonic_mask": false
+          },
+          "status": "measurement",
+          "telescope": "dsa"
+        }
+      },
       "burst": "johndoeII",
       "burst_preferred_n": 1,
       "component_median_dnu_mhz": {
@@ -2237,18 +3066,52 @@
         "1": 1.8770112402283923
       },
       "config_path": "scintillation/configs/bursts/johndoeII_dsa.yaml",
-      "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/johndoeII_dsa_acf_lorentzian_fits.pdf",
-      "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/johndoeII_dsa_acf_lorentzian_fits.png",
-      "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/johndoeII_dsa_acf_lorentzian_fits.svg",
+      "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/johndoeII_dsa_acf_lorentzian_fits.pdf",
+      "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/johndoeII_dsa_acf_lorentzian_fits.png",
+      "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/johndoeII_dsa_acf_lorentzian_fits.svg",
       "fit_lagrange_mhz": 25.0,
+      "gamma_power_law_fit": {
+        "alpha": -32.00547269843165,
+        "covariance": [
+          [
+            0.019306467668543412,
+            0.19819932533646817
+          ],
+          [
+            0.19819932533646817,
+            11.777523753687312
+          ]
+        ],
+        "gamma_ref_mhz": 3.068197323300275,
+        "n_fit_components": 3,
+        "nu_ref_mhz": 1400.0,
+        "selection_policy": "narrowest_clean_lorentzian_per_subband"
+      },
       "input_data_path": "/Users/jakobfaber/Data/Faber2026/dsa110/scintillation/data/johndoeII.npz",
       "max_components": 3,
+      "measurement_status": "measurement",
       "n_per_subband": [
         1,
         1,
         1
       ],
       "num_subbands": 3,
+      "pbf_overlay": {
+        "alpha": 4.066411381454531,
+        "alpha_err_minus": 0.033986997925645746,
+        "alpha_err_plus": 0.07517133665678344,
+        "c1": 1.16,
+        "relation": "delta_nu_mhz = C1 / (2 pi tau_ms 1e3)",
+        "roster_gate_final": "MARGINAL",
+        "roster_locked_utc": "2026-07-07",
+        "roster_rail_class": "railed-hi",
+        "roster_source": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scattering-refit-2026-06/citable_alpha_roster.json",
+        "source": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/beta_campaign/fits/johndoeII_joint_fit_C2D2.json",
+        "tau_1ghz_err_minus_ms": 0.07694040419266823,
+        "tau_1ghz_err_plus_ms": 0.07321053947946243,
+        "tau_1ghz_ms": 2.219292440306282,
+        "uncertainty_method": "approximate independent Gaussian draws from marginal 16th-84th percentile summaries; tau-alpha covariance unavailable"
+      },
       "requested_num_subbands": 3,
       "subband_selection": {
         "candidate_counts": [
@@ -2394,10 +3257,44 @@
             "2": 0.0003451255939592672
           },
           "fit_range_mhz": 24.44855933582948,
+          "harmonic_mask": {
+            "enabled": false,
+            "halfwidth_mhz": null,
+            "n_bins_kept": 801,
+            "n_bins_removed": 0,
+            "spacing_mhz": null
+          },
+          "harmonic_mask_systematic": {
+            "abs_diff_mhz": 0.0,
+            "dnu_masked_mhz": 21.57102952342621,
+            "dnu_unmasked_mhz": 21.57102952342621,
+            "reason": "harmonic-mask sensitivity reported as a systematic band, not a correction",
+            "systematic_frac": 0.0
+          },
           "index": 0,
+          "low_lag_stability": {
+            "dnu_by_excision": {
+              "1": 22.25332972579228,
+              "2": 22.889722612079574,
+              "3": 23.16691861686789
+            },
+            "dnu_full_mhz": 21.57102952342621,
+            "failed_ks": [],
+            "min_ratio": 1.0316303958336848,
+            "reason": "width survives low-lag excision (no collapse) -> wing is resolved",
+            "stable": true
+          },
           "n_fit_points": 400,
           "n_preferred": 1,
           "num_channels": 801,
+          "off_pulse_null": {
+            "null_pass": true,
+            "off_median_dnu_mhz": 6.311278699834662,
+            "off_n_fits": 12,
+            "on_dnu_mhz": 21.57102952342621,
+            "ratio": 3.417854059271905,
+            "reason": "off-pulse median 6311.3 kHz differs from on-pulse 21571.0 kHz (ratio 3.42 > 2.0) -> null passes"
+          },
           "selected_bic": -40.20296001711651,
           "selected_components": [
             {
@@ -2460,35 +3357,35 @@
               "success": false
             },
             {
-              "aic": 126.52636787014107,
-              "bic": 154.6223739624407,
-              "chi2": 538.5286776445685,
+              "aic": 126.52636441617592,
+              "bic": 154.62237050847554,
+              "chi2": 538.5286730967463,
               "components": [
                 {
-                  "dnu_err": 1297180.4099757997,
-                  "dnu_mhz": 0.06432592968159734,
-                  "m": 0.10934227190967905,
-                  "m_err": 119621608.29911512
+                  "dnu_err": 1298679.7596730057,
+                  "dnu_mhz": 0.06429754386728781,
+                  "m": 0.10934322625540682,
+                  "m_err": 118633902.04141656
                 },
                 {
-                  "dnu_err": 96138.46978591621,
-                  "dnu_mhz": 0.06439477198904398,
-                  "m": 0.39506625793883154,
-                  "m_err": 33110815.99689148
+                  "dnu_err": 96186.34077365142,
+                  "dnu_mhz": 0.06437077299086169,
+                  "m": 0.39514912922427525,
+                  "m_err": 32830760.34741005
                 },
                 {
-                  "dnu_err": 1.0133570187031504,
-                  "dnu_mhz": 0.6005832724977843,
-                  "m": 0.3788981961275131,
-                  "m_err": 0.6987882074538702
+                  "dnu_err": 1.0362500120274984,
+                  "dnu_mhz": 0.6005783436265705,
+                  "m": 0.3789025204110794,
+                  "m_err": 0.7151390981636165
                 }
               ],
-              "constant": -0.0046951277615955135,
-              "constant_err": 0.0034925057067040164,
+              "constant": -0.004695136646084155,
+              "constant_err": 0.0034975994422465845,
               "n": 3,
               "n_params": 7,
               "ndata": 409,
-              "redchi": 1.3396235762302697,
+              "redchi": 1.3396235649172792,
               "success": true
             }
           ],
@@ -2498,10 +3395,44 @@
           "delta_bic": {},
           "f_test_p": {},
           "fit_range_mhz": 25.0,
+          "harmonic_mask": {
+            "enabled": false,
+            "halfwidth_mhz": null,
+            "n_bins_kept": 819,
+            "n_bins_removed": 0,
+            "spacing_mhz": null
+          },
+          "harmonic_mask_systematic": {
+            "abs_diff_mhz": 0.0,
+            "dnu_masked_mhz": 0.4936516363856439,
+            "dnu_unmasked_mhz": 0.4936516363856439,
+            "reason": "harmonic-mask sensitivity reported as a systematic band, not a correction",
+            "systematic_frac": 0.0
+          },
           "index": 1,
+          "low_lag_stability": {
+            "dnu_by_excision": {
+              "1": 0.5476870450778312,
+              "2": 0.6092211458709161,
+              "3": 0.6179593595502809
+            },
+            "dnu_full_mhz": 0.4936516363856439,
+            "failed_ks": [],
+            "min_ratio": 1.109460608877582,
+            "reason": "width survives low-lag excision (no collapse) -> wing is resolved",
+            "stable": true
+          },
           "n_fit_points": 409,
           "n_preferred": 1,
           "num_channels": 1041,
+          "off_pulse_null": {
+            "null_pass": true,
+            "off_median_dnu_mhz": 5.9885033636799445,
+            "off_n_fits": 12,
+            "on_dnu_mhz": 0.4936516363856439,
+            "ratio": 12.131031120499895,
+            "reason": "off-pulse median 5988.5 kHz differs from on-pulse 493.7 kHz (ratio 12.13 > 2.0) -> null passes"
+          },
           "selected_bic": 131.6701366783601,
           "selected_components": [
             {
@@ -2606,10 +3537,44 @@
             "2": 0.0004763468785949796
           },
           "fit_range_mhz": 25.0,
+          "harmonic_mask": {
+            "enabled": false,
+            "halfwidth_mhz": null,
+            "n_bins_kept": 819,
+            "n_bins_removed": 0,
+            "spacing_mhz": null
+          },
+          "harmonic_mask_systematic": {
+            "abs_diff_mhz": 0.0,
+            "dnu_masked_mhz": 1.8770112402283923,
+            "dnu_unmasked_mhz": 1.8770112402283923,
+            "reason": "harmonic-mask sensitivity reported as a systematic band, not a correction",
+            "systematic_frac": 0.0
+          },
           "index": 2,
+          "low_lag_stability": {
+            "dnu_by_excision": {
+              "1": 2.0905765590984045,
+              "2": 2.144896833634312,
+              "3": 2.288761911413242
+            },
+            "dnu_full_mhz": 1.8770112402283923,
+            "failed_ks": [],
+            "min_ratio": 1.1137794565599008,
+            "reason": "width survives low-lag excision (no collapse) -> wing is resolved",
+            "stable": true
+          },
           "n_fit_points": 409,
           "n_preferred": 1,
           "num_channels": 1226,
+          "off_pulse_null": {
+            "null_pass": true,
+            "off_median_dnu_mhz": 6.3599986521929335,
+            "off_n_fits": 12,
+            "on_dnu_mhz": 1.8770112402283923,
+            "ratio": 3.3883647129460224,
+            "reason": "off-pulse median 6360.0 kHz differs from on-pulse 1877.0 kHz (ratio 3.39 > 2.0) -> null passes"
+          },
           "selected_bic": 56.674813304136414,
           "selected_components": [
             {
@@ -2625,6 +3590,33 @@
       ]
     },
     {
+      "artifact_control": {
+        "downgraded": false,
+        "failed_checks": [],
+        "low_lag_stability": {
+          "n_subbands_failed": 0,
+          "n_subbands_judged": 3,
+          "stable": true
+        },
+        "measurement_status": "measurement",
+        "off_pulse_null": {
+          "n_subbands_failed": 0,
+          "n_subbands_judged": 3,
+          "null_pass": true
+        },
+        "provenance": {
+          "is_chime": false,
+          "missing": [],
+          "reason": "non-CHIME telescope not subject to upchannelization comb gate",
+          "records": {
+            "bandpass_normalization": false,
+            "grid_regularization": false,
+            "harmonic_mask": false
+          },
+          "status": "measurement",
+          "telescope": "dsa"
+        }
+      },
       "burst": "mahi",
       "burst_preferred_n": 1,
       "component_median_dnu_mhz": {
@@ -2634,18 +3626,52 @@
         "1": 1.8345250637657164
       },
       "config_path": "scintillation/configs/bursts/mahi_dsa.yaml",
-      "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/mahi_dsa_acf_lorentzian_fits.pdf",
-      "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/mahi_dsa_acf_lorentzian_fits.png",
-      "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/mahi_dsa_acf_lorentzian_fits.svg",
+      "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/mahi_dsa_acf_lorentzian_fits.pdf",
+      "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/mahi_dsa_acf_lorentzian_fits.png",
+      "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/mahi_dsa_acf_lorentzian_fits.svg",
       "fit_lagrange_mhz": 25.0,
+      "gamma_power_law_fit": {
+        "alpha": 21.998779867244707,
+        "covariance": [
+          [
+            0.025322779148931305,
+            0.22552671195348598
+          ],
+          [
+            0.225526711953486,
+            14.707447168028585
+          ]
+        ],
+        "gamma_ref_mhz": 4.352801503339817,
+        "n_fit_components": 3,
+        "nu_ref_mhz": 1400.0,
+        "selection_policy": "narrowest_clean_lorentzian_per_subband"
+      },
       "input_data_path": "/Users/jakobfaber/Data/Faber2026/dsa110/scintillation/data/mahi.npz",
       "max_components": 3,
+      "measurement_status": "measurement",
       "n_per_subband": [
         1,
         1,
         1
       ],
       "num_subbands": 3,
+      "pbf_overlay": {
+        "alpha": 4.240680424922565,
+        "alpha_err_minus": 0.16074381377168834,
+        "alpha_err_plus": 0.21282750402338824,
+        "c1": 1.16,
+        "relation": "delta_nu_mhz = C1 / (2 pi tau_ms 1e3)",
+        "roster_gate_final": "MARGINAL",
+        "roster_locked_utc": "2026-07-07",
+        "roster_rail_class": "railed-hi",
+        "roster_source": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scattering-refit-2026-06/citable_alpha_roster.json",
+        "source": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/beta_campaign/fits/mahi_joint_fit_C1D1.json",
+        "tau_1ghz_err_minus_ms": 0.027226586598568636,
+        "tau_1ghz_err_plus_ms": 0.025048562007195102,
+        "tau_1ghz_ms": 0.21930274316476195,
+        "uncertainty_method": "approximate independent Gaussian draws from marginal 16th-84th percentile summaries; tau-alpha covariance unavailable"
+      },
       "requested_num_subbands": 3,
       "subband_selection": {
         "candidate_counts": [
@@ -2749,35 +3775,35 @@
               "success": true
             },
             {
-              "aic": 14.385481069700912,
-              "bic": 47.34206965667241,
-              "chi2": 819.3855718016734,
+              "aic": 14.383458069555205,
+              "bic": 47.340046656526695,
+              "chi2": 819.3835478516321,
               "components": [
                 {
-                  "dnu_err": 0.3383606357133952,
-                  "dnu_mhz": 0.0033765595578605367,
-                  "m": 11.363915021712177,
-                  "m_err": 1126.2008864038671
+                  "dnu_err": 0.3393946920959447,
+                  "dnu_mhz": 0.0031934857851794174,
+                  "m": 12.010450212769364,
+                  "m_err": 1265.6168645983885
                 },
                 {
-                  "dnu_err": 3202108.0424249186,
-                  "dnu_mhz": 2.0107331505852395,
-                  "m": 0.8534050379429168,
-                  "m_err": 1604629802.2436228
+                  "dnu_err": 3388058.524204801,
+                  "dnu_mhz": 2.0109635427944816,
+                  "m": 0.677870993652266,
+                  "m_err": 4231078819.9355764
                 },
                 {
-                  "dnu_err": 5243815.9705062155,
-                  "dnu_mhz": 2.012037235311993,
-                  "m": 0.6771367906980146,
-                  "m_err": 2022292397.6788836
+                  "dnu_err": 2351399.3067874177,
+                  "dnu_mhz": 2.0114090700990586,
+                  "m": 0.8528216391453796,
+                  "m_err": 3363088703.2122517
                 }
               ],
-              "constant": -0.2305700230585735,
-              "constant_err": 0.045865748101708056,
+              "constant": -0.23056990986005751,
+              "constant_err": 0.04013178024445534,
               "n": 3,
               "n_params": 7,
               "ndata": 819,
-              "redchi": 1.00909553177546,
+              "redchi": 1.009093039226148,
               "success": true
             }
           ],
@@ -2791,10 +3817,44 @@
             "2": 0.2918411432606409
           },
           "fit_range_mhz": 25.0,
+          "harmonic_mask": {
+            "enabled": false,
+            "halfwidth_mhz": null,
+            "n_bins_kept": 1639,
+            "n_bins_removed": 0,
+            "spacing_mhz": null
+          },
+          "harmonic_mask_systematic": {
+            "abs_diff_mhz": 0.0,
+            "dnu_masked_mhz": 1.8345250637657164,
+            "dnu_unmasked_mhz": 1.8345250637657164,
+            "reason": "harmonic-mask sensitivity reported as a systematic band, not a correction",
+            "systematic_frac": 0.0
+          },
           "index": 0,
+          "low_lag_stability": {
+            "dnu_by_excision": {
+              "1": 1.9648223339712936,
+              "2": 1.9206730271153365,
+              "3": 1.8887319182198787
+            },
+            "dnu_full_mhz": 1.8345250637657164,
+            "failed_ks": [],
+            "min_ratio": 1.0295481678200091,
+            "reason": "width survives low-lag excision (no collapse) -> wing is resolved",
+            "stable": true
+          },
           "n_fit_points": 819,
           "n_preferred": 1,
           "num_channels": 2145,
+          "off_pulse_null": {
+            "null_pass": true,
+            "off_median_dnu_mhz": 4.046478623769795,
+            "off_n_fits": 12,
+            "on_dnu_mhz": 1.8345250637657164,
+            "ratio": 2.205736353072014,
+            "reason": "off-pulse median 4046.5 kHz differs from on-pulse 1834.5 kHz (ratio 2.21 > 2.0) -> null passes"
+          },
           "selected_bic": 25.43088210387551,
           "selected_components": [
             {
@@ -2899,10 +3959,44 @@
             "2": 0.8713439526088769
           },
           "fit_range_mhz": 25.0,
+          "harmonic_mask": {
+            "enabled": false,
+            "halfwidth_mhz": null,
+            "n_bins_kept": 1639,
+            "n_bins_removed": 0,
+            "spacing_mhz": null
+          },
+          "harmonic_mask_systematic": {
+            "abs_diff_mhz": 0.0,
+            "dnu_masked_mhz": 1.0469485788357256,
+            "dnu_unmasked_mhz": 1.0469485788357256,
+            "reason": "harmonic-mask sensitivity reported as a systematic band, not a correction",
+            "systematic_frac": 0.0
+          },
           "index": 1,
+          "low_lag_stability": {
+            "dnu_by_excision": {
+              "1": 1.1109567974587469,
+              "2": 1.080080092373557,
+              "3": 1.2242268763879958
+            },
+            "dnu_full_mhz": 1.0469485788357256,
+            "failed_ks": [],
+            "min_ratio": 1.0316457887307855,
+            "reason": "width survives low-lag excision (no collapse) -> wing is resolved",
+            "stable": true
+          },
           "n_fit_points": 819,
           "n_preferred": 1,
           "num_channels": 1765,
+          "off_pulse_null": {
+            "null_pass": true,
+            "off_median_dnu_mhz": 6.60605425226837,
+            "off_n_fits": 12,
+            "on_dnu_mhz": 1.0469485788357256,
+            "ratio": 6.309817297440461,
+            "reason": "off-pulse median 6606.1 kHz differs from on-pulse 1046.9 kHz (ratio 6.31 > 2.0) -> null passes"
+          },
           "selected_bic": -27.937348828427613,
           "selected_components": [
             {
@@ -3007,10 +4101,44 @@
             "2": 0.010971610964662365
           },
           "fit_range_mhz": 25.0,
+          "harmonic_mask": {
+            "enabled": false,
+            "halfwidth_mhz": null,
+            "n_bins_kept": 1639,
+            "n_bins_removed": 0,
+            "spacing_mhz": null
+          },
+          "harmonic_mask_systematic": {
+            "abs_diff_mhz": 0.0,
+            "dnu_masked_mhz": 12.82193012007466,
+            "dnu_unmasked_mhz": 12.82193012007466,
+            "reason": "harmonic-mask sensitivity reported as a systematic band, not a correction",
+            "systematic_frac": 0.0
+          },
           "index": 2,
+          "low_lag_stability": {
+            "dnu_by_excision": {
+              "1": 14.264673953618333,
+              "2": 13.971031566360692,
+              "3": 14.352981192092718
+            },
+            "dnu_full_mhz": 12.82193012007466,
+            "failed_ks": [],
+            "min_ratio": 1.0896200053755511,
+            "reason": "width survives low-lag excision (no collapse) -> wing is resolved",
+            "stable": true
+          },
           "n_fit_points": 819,
           "n_preferred": 1,
           "num_channels": 2205,
+          "off_pulse_null": {
+            "null_pass": true,
+            "off_median_dnu_mhz": 2.042918548875359,
+            "off_n_fits": 12,
+            "on_dnu_mhz": 12.82193012007466,
+            "ratio": 6.276280631517698,
+            "reason": "off-pulse median 2042.9 kHz differs from on-pulse 12821.9 kHz (ratio 6.28 > 2.0) -> null passes"
+          },
           "selected_bic": 25.965177289313093,
           "selected_components": [
             {
@@ -3026,6 +4154,33 @@
       ]
     },
     {
+      "artifact_control": {
+        "downgraded": false,
+        "failed_checks": [],
+        "low_lag_stability": {
+          "n_subbands_failed": 0,
+          "n_subbands_judged": 4,
+          "stable": true
+        },
+        "measurement_status": "measurement",
+        "off_pulse_null": {
+          "n_subbands_failed": 1,
+          "n_subbands_judged": 4,
+          "null_pass": false
+        },
+        "provenance": {
+          "is_chime": false,
+          "missing": [],
+          "reason": "non-CHIME telescope not subject to upchannelization comb gate",
+          "records": {
+            "bandpass_normalization": false,
+            "grid_regularization": false,
+            "harmonic_mask": false
+          },
+          "status": "measurement",
+          "telescope": "dsa"
+        }
+      },
       "burst": "oran",
       "burst_preferred_n": 1,
       "component_median_dnu_mhz": {
@@ -3036,12 +4191,30 @@
         "1": 1.0246885177316212
       },
       "config_path": "scintillation/configs/bursts/oran_dsa.yaml",
-      "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/oran_dsa_acf_lorentzian_fits.pdf",
-      "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/oran_dsa_acf_lorentzian_fits.png",
-      "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/oran_dsa_acf_lorentzian_fits.svg",
+      "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/oran_dsa_acf_lorentzian_fits.pdf",
+      "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/oran_dsa_acf_lorentzian_fits.png",
+      "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/oran_dsa_acf_lorentzian_fits.svg",
       "fit_lagrange_mhz": 25.0,
+      "gamma_power_law_fit": {
+        "alpha": -24.13345738378931,
+        "covariance": [
+          [
+            0.005577130078334473,
+            0.17065938684890306
+          ],
+          [
+            0.17065938684890306,
+            7.52152802144551
+          ]
+        ],
+        "gamma_ref_mhz": 1.998226675993927,
+        "n_fit_components": 4,
+        "nu_ref_mhz": 1400.0,
+        "selection_policy": "narrowest_clean_lorentzian_per_subband"
+      },
       "input_data_path": "/Users/jakobfaber/Data/Faber2026/dsa110/scintillation/data/oran.npz",
       "max_components": 3,
+      "measurement_status": "measurement",
       "n_per_subband": [
         1,
         1,
@@ -3049,6 +4222,22 @@
         2
       ],
       "num_subbands": 4,
+      "pbf_overlay": {
+        "alpha": 4.0,
+        "alpha_err_minus": 0.0,
+        "alpha_err_plus": 0.034129006914356275,
+        "c1": 1.16,
+        "relation": "delta_nu_mhz = C1 / (2 pi tau_ms 1e3)",
+        "roster_gate_final": "MARGINAL",
+        "roster_locked_utc": "2026-07-07",
+        "roster_rail_class": "railed-hi",
+        "roster_source": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scattering-refit-2026-06/citable_alpha_roster.json",
+        "source": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/beta_campaign/fits/oran_joint_fit_C2D1.json",
+        "tau_1ghz_err_minus_ms": 0.07780094390058334,
+        "tau_1ghz_err_plus_ms": 0.07339722011626404,
+        "tau_1ghz_ms": 0.8428116817186169,
+        "uncertainty_method": "approximate independent Gaussian draws from marginal 16th-84th percentile summaries; tau-alpha covariance unavailable"
+      },
       "requested_num_subbands": 4,
       "subband_selection": {
         "candidate_counts": [
@@ -3192,10 +4381,44 @@
             "2": 1.0
           },
           "fit_range_mhz": 16.98579684193396,
+          "harmonic_mask": {
+            "enabled": false,
+            "halfwidth_mhz": null,
+            "n_bins_kept": 1113,
+            "n_bins_removed": 0,
+            "spacing_mhz": null
+          },
+          "harmonic_mask_systematic": {
+            "abs_diff_mhz": 0.0,
+            "dnu_masked_mhz": 0.4019000279585556,
+            "dnu_unmasked_mhz": 0.4019000279585556,
+            "reason": "harmonic-mask sensitivity reported as a systematic band, not a correction",
+            "systematic_frac": 0.0
+          },
           "index": 0,
+          "low_lag_stability": {
+            "dnu_by_excision": {
+              "1": 0.40769056709096607,
+              "2": 0.3494506958595196,
+              "3": 0.38076437014267994
+            },
+            "dnu_full_mhz": 0.4019000279585556,
+            "failed_ks": [],
+            "min_ratio": 0.8694965701658407,
+            "reason": "width survives low-lag excision (no collapse) -> wing is resolved",
+            "stable": true
+          },
           "n_fit_points": 556,
           "n_preferred": 1,
           "num_channels": 1113,
+          "off_pulse_null": {
+            "null_pass": true,
+            "off_median_dnu_mhz": 5.388808456684876,
+            "off_n_fits": 12,
+            "on_dnu_mhz": 0.4019000279585556,
+            "ratio": 13.408330634006763,
+            "reason": "off-pulse median 5388.8 kHz differs from on-pulse 401.9 kHz (ratio 13.41 > 2.0) -> null passes"
+          },
           "selected_bic": 70.00776343420351,
           "selected_components": [
             {
@@ -3300,10 +4523,44 @@
             "2": 0.702405008314136
           },
           "fit_range_mhz": 13.628316783330614,
+          "harmonic_mask": {
+            "enabled": false,
+            "halfwidth_mhz": null,
+            "n_bins_kept": 893,
+            "n_bins_removed": 0,
+            "spacing_mhz": null
+          },
+          "harmonic_mask_systematic": {
+            "abs_diff_mhz": 0.0,
+            "dnu_masked_mhz": 5.514758018231005,
+            "dnu_unmasked_mhz": 5.514758018231005,
+            "reason": "harmonic-mask sensitivity reported as a systematic band, not a correction",
+            "systematic_frac": 0.0
+          },
           "index": 1,
+          "low_lag_stability": {
+            "dnu_by_excision": {
+              "1": 5.525676521032357,
+              "2": 5.530402923801193,
+              "3": 5.53925622915419
+            },
+            "dnu_full_mhz": 5.514758018231005,
+            "failed_ks": [],
+            "min_ratio": 1.0019798697903437,
+            "reason": "width survives low-lag excision (no collapse) -> wing is resolved",
+            "stable": true
+          },
           "n_fit_points": 446,
           "n_preferred": 1,
           "num_channels": 893,
+          "off_pulse_null": {
+            "null_pass": false,
+            "off_median_dnu_mhz": 5.406655045352231,
+            "off_n_fits": 12,
+            "on_dnu_mhz": 5.514758018231005,
+            "ratio": 1.0199944276030155,
+            "reason": "off-pulse median 5406.7 kHz brackets on-pulse 5514.8 kHz (ratio 1.02 <= 2.0); scale is instrumental -> null FAILS"
+          },
           "selected_bic": -807.0500856890378,
           "selected_components": [
             {
@@ -3408,10 +4665,44 @@
             "2": 0.08030167511101327
           },
           "fit_range_mhz": 22.846125671495937,
+          "harmonic_mask": {
+            "enabled": false,
+            "halfwidth_mhz": null,
+            "n_bins_kept": 1497,
+            "n_bins_removed": 0,
+            "spacing_mhz": null
+          },
+          "harmonic_mask_systematic": {
+            "abs_diff_mhz": 0.0,
+            "dnu_masked_mhz": 1.5786504402182082,
+            "dnu_unmasked_mhz": 1.5786504402182082,
+            "reason": "harmonic-mask sensitivity reported as a systematic band, not a correction",
+            "systematic_frac": 0.0
+          },
           "index": 2,
+          "low_lag_stability": {
+            "dnu_by_excision": {
+              "1": 1.5859729220244607,
+              "2": 1.564330691862731,
+              "3": 1.579735952929708
+            },
+            "dnu_full_mhz": 1.5786504402182082,
+            "failed_ks": [],
+            "min_ratio": 0.9909291202215116,
+            "reason": "width survives low-lag excision (no collapse) -> wing is resolved",
+            "stable": true
+          },
           "n_fit_points": 748,
           "n_preferred": 1,
           "num_channels": 1497,
+          "off_pulse_null": {
+            "null_pass": true,
+            "off_median_dnu_mhz": 5.722002458379828,
+            "off_n_fits": 12,
+            "on_dnu_mhz": 1.5786504402182082,
+            "ratio": 3.624616515856992,
+            "reason": "off-pulse median 5722.0 kHz differs from on-pulse 1578.7 kHz (ratio 3.62 > 2.0) -> null passes"
+          },
           "selected_bic": 24.095530032165914,
           "selected_components": [
             {
@@ -3524,10 +4815,44 @@
             "3": 1.0
           },
           "fit_range_mhz": 25.0,
+          "harmonic_mask": {
+            "enabled": false,
+            "halfwidth_mhz": null,
+            "n_bins_kept": 1639,
+            "n_bins_removed": 0,
+            "spacing_mhz": null
+          },
+          "harmonic_mask_systematic": {
+            "abs_diff_mhz": 0.0,
+            "dnu_masked_mhz": 0.47072659524503413,
+            "dnu_unmasked_mhz": 0.47072659524503413,
+            "reason": "harmonic-mask sensitivity reported as a systematic band, not a correction",
+            "systematic_frac": 0.0
+          },
           "index": 3,
+          "low_lag_stability": {
+            "dnu_by_excision": {
+              "1": 0.47631938015787,
+              "2": 0.4657437888654372,
+              "3": 0.36933467182331703
+            },
+            "dnu_full_mhz": 0.47072659524503413,
+            "failed_ks": [],
+            "min_ratio": 0.7846054919226774,
+            "reason": "width survives low-lag excision (no collapse) -> wing is resolved",
+            "stable": true
+          },
           "n_fit_points": 819,
           "n_preferred": 2,
           "num_channels": 2611,
+          "off_pulse_null": {
+            "null_pass": true,
+            "off_median_dnu_mhz": 0.9772047132132939,
+            "off_n_fits": 12,
+            "on_dnu_mhz": 0.47072659524503413,
+            "ratio": 2.075949655456827,
+            "reason": "off-pulse median 977.2 kHz differs from on-pulse 470.7 kHz (ratio 2.08 > 2.0) -> null passes"
+          },
           "selected_bic": 60.52650545690109,
           "selected_components": [
             {
@@ -3555,6 +4880,33 @@
       ]
     },
     {
+      "artifact_control": {
+        "downgraded": false,
+        "failed_checks": [],
+        "low_lag_stability": {
+          "n_subbands_failed": 0,
+          "n_subbands_judged": 3,
+          "stable": true
+        },
+        "measurement_status": "measurement",
+        "off_pulse_null": {
+          "n_subbands_failed": 2,
+          "n_subbands_judged": 3,
+          "null_pass": false
+        },
+        "provenance": {
+          "is_chime": false,
+          "missing": [],
+          "reason": "non-CHIME telescope not subject to upchannelization comb gate",
+          "records": {
+            "bandpass_normalization": false,
+            "grid_regularization": false,
+            "harmonic_mask": false
+          },
+          "status": "measurement",
+          "telescope": "dsa"
+        }
+      },
       "burst": "phineas",
       "burst_preferred_n": 1,
       "component_median_dnu_mhz": {
@@ -3564,18 +4916,52 @@
         "1": 7.044478935425509
       },
       "config_path": "scintillation/configs/bursts/phineas_dsa.yaml",
-      "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/phineas_dsa_acf_lorentzian_fits.pdf",
-      "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/phineas_dsa_acf_lorentzian_fits.png",
-      "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/phineas_dsa_acf_lorentzian_fits.svg",
+      "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/phineas_dsa_acf_lorentzian_fits.pdf",
+      "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/phineas_dsa_acf_lorentzian_fits.png",
+      "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/phineas_dsa_acf_lorentzian_fits.svg",
       "fit_lagrange_mhz": 25.0,
+      "gamma_power_law_fit": {
+        "alpha": -5.850248527675372,
+        "covariance": [
+          [
+            0.07922556374650833,
+            1.4030641029329514
+          ],
+          [
+            1.4030641029329514,
+            31.533263614912457
+          ]
+        ],
+        "gamma_ref_mhz": 5.345005276264919,
+        "n_fit_components": 3,
+        "nu_ref_mhz": 1400.0,
+        "selection_policy": "narrowest_clean_lorentzian_per_subband"
+      },
       "input_data_path": "/Users/jakobfaber/Data/Faber2026/dsa110/scintillation/data/phineas.npz",
       "max_components": 3,
+      "measurement_status": "measurement",
       "n_per_subband": [
         1,
         1,
         1
       ],
       "num_subbands": 3,
+      "pbf_overlay": {
+        "alpha": 5.257141807025097,
+        "alpha_err_minus": 0.053366649487236906,
+        "alpha_err_plus": 0.04874108355718754,
+        "c1": 1.16,
+        "relation": "delta_nu_mhz = C1 / (2 pi tau_ms 1e3)",
+        "roster_gate_final": "MARGINAL",
+        "roster_locked_utc": "2026-07-07",
+        "roster_rail_class": "interior",
+        "roster_source": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scattering-refit-2026-06/citable_alpha_roster.json",
+        "source": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/beta_campaign/fits/phineas_joint_fit_C3D3.json",
+        "tau_1ghz_err_minus_ms": 0.00806329562235969,
+        "tau_1ghz_err_plus_ms": 0.008111762238103115,
+        "tau_1ghz_ms": 0.4693716400435134,
+        "uncertainty_method": "approximate independent Gaussian draws from marginal 16th-84th percentile summaries; tau-alpha covariance unavailable"
+      },
       "requested_num_subbands": 3,
       "subband_selection": {
         "candidate_counts": [
@@ -3721,10 +5107,44 @@
             "2": 0.6030851958513977
           },
           "fit_range_mhz": 17.886211948559335,
+          "harmonic_mask": {
+            "enabled": false,
+            "halfwidth_mhz": null,
+            "n_bins_kept": 1173,
+            "n_bins_removed": 0,
+            "spacing_mhz": null
+          },
+          "harmonic_mask_systematic": {
+            "abs_diff_mhz": 0.0,
+            "dnu_masked_mhz": 7.044478935425509,
+            "dnu_unmasked_mhz": 7.044478935425509,
+            "reason": "harmonic-mask sensitivity reported as a systematic band, not a correction",
+            "systematic_frac": 0.0
+          },
           "index": 0,
+          "low_lag_stability": {
+            "dnu_by_excision": {
+              "1": 7.087662775920419,
+              "2": 7.134292235047081,
+              "3": 7.161144569958205
+            },
+            "dnu_full_mhz": 7.044478935425509,
+            "failed_ks": [],
+            "min_ratio": 1.0061301681630057,
+            "reason": "width survives low-lag excision (no collapse) -> wing is resolved",
+            "stable": true
+          },
           "n_fit_points": 586,
           "n_preferred": 1,
           "num_channels": 1172,
+          "off_pulse_null": {
+            "null_pass": false,
+            "off_median_dnu_mhz": 6.047708440588233,
+            "off_n_fits": 12,
+            "on_dnu_mhz": 7.044478935425509,
+            "ratio": 1.1648178817860348,
+            "reason": "off-pulse median 6047.7 kHz brackets on-pulse 7044.5 kHz (ratio 1.16 <= 2.0); scale is instrumental -> null FAILS"
+          },
           "selected_bic": 11.78619803681813,
           "selected_components": [
             {
@@ -3829,10 +5249,44 @@
             "2": 0.999999596871252
           },
           "fit_range_mhz": 25.0,
+          "harmonic_mask": {
+            "enabled": false,
+            "halfwidth_mhz": null,
+            "n_bins_kept": 1639,
+            "n_bins_removed": 0,
+            "spacing_mhz": null
+          },
+          "harmonic_mask_systematic": {
+            "abs_diff_mhz": 0.0,
+            "dnu_masked_mhz": 18.383216052116964,
+            "dnu_unmasked_mhz": 18.383216052116964,
+            "reason": "harmonic-mask sensitivity reported as a systematic band, not a correction",
+            "systematic_frac": 0.0
+          },
           "index": 1,
+          "low_lag_stability": {
+            "dnu_by_excision": {
+              "1": 18.657526749057745,
+              "2": 18.415413514747016,
+              "3": 19.03646336345647
+            },
+            "dnu_full_mhz": 18.383216052116964,
+            "failed_ks": [],
+            "min_ratio": 1.0017514597303743,
+            "reason": "width survives low-lag excision (no collapse) -> wing is resolved",
+            "stable": true
+          },
           "n_fit_points": 819,
           "n_preferred": 1,
           "num_channels": 1886,
+          "off_pulse_null": {
+            "null_pass": true,
+            "off_median_dnu_mhz": 6.235286064174736,
+            "off_n_fits": 12,
+            "on_dnu_mhz": 18.383216052116964,
+            "ratio": 2.9482554389507474,
+            "reason": "off-pulse median 6235.3 kHz differs from on-pulse 18383.2 kHz (ratio 2.95 > 2.0) -> null passes"
+          },
           "selected_bic": 23.983126028802154,
           "selected_components": [
             {
@@ -3937,10 +5391,44 @@
             "2": 0.6121877118646035
           },
           "fit_range_mhz": 25.0,
+          "harmonic_mask": {
+            "enabled": false,
+            "halfwidth_mhz": null,
+            "n_bins_kept": 1639,
+            "n_bins_removed": 0,
+            "spacing_mhz": null
+          },
+          "harmonic_mask_systematic": {
+            "abs_diff_mhz": 0.0,
+            "dnu_masked_mhz": 3.434877025297661,
+            "dnu_unmasked_mhz": 3.434877025297661,
+            "reason": "harmonic-mask sensitivity reported as a systematic band, not a correction",
+            "systematic_frac": 0.0
+          },
           "index": 2,
+          "low_lag_stability": {
+            "dnu_by_excision": {
+              "1": 3.5978814676801747,
+              "2": 3.5658840531560223,
+              "3": 3.422065739327394
+            },
+            "dnu_full_mhz": 3.434877025297661,
+            "failed_ks": [],
+            "min_ratio": 0.9962702344579114,
+            "reason": "width survives low-lag excision (no collapse) -> wing is resolved",
+            "stable": true
+          },
           "n_fit_points": 819,
           "n_preferred": 1,
           "num_channels": 3054,
+          "off_pulse_null": {
+            "null_pass": false,
+            "off_median_dnu_mhz": 3.441558183559385,
+            "off_n_fits": 12,
+            "on_dnu_mhz": 3.434877025297661,
+            "ratio": 1.0019450938745456,
+            "reason": "off-pulse median 3441.6 kHz brackets on-pulse 3434.9 kHz (ratio 1.00 <= 2.0); scale is instrumental -> null FAILS"
+          },
           "selected_bic": 27.784744059539477,
           "selected_components": [
             {
@@ -3956,6 +5444,33 @@
       ]
     },
     {
+      "artifact_control": {
+        "downgraded": false,
+        "failed_checks": [],
+        "low_lag_stability": {
+          "n_subbands_failed": 0,
+          "n_subbands_judged": 2,
+          "stable": true
+        },
+        "measurement_status": "measurement",
+        "off_pulse_null": {
+          "n_subbands_failed": 1,
+          "n_subbands_judged": 2,
+          "null_pass": false
+        },
+        "provenance": {
+          "is_chime": false,
+          "missing": [],
+          "reason": "non-CHIME telescope not subject to upchannelization comb gate",
+          "records": {
+            "bandpass_normalization": false,
+            "grid_regularization": false,
+            "harmonic_mask": false
+          },
+          "status": "measurement",
+          "telescope": "dsa"
+        }
+      },
       "burst": "whitney",
       "burst_preferred_n": 1,
       "component_median_dnu_mhz": {
@@ -3965,17 +5480,35 @@
         "1": 23.365065914836734
       },
       "config_path": "scintillation/configs/bursts/whitney_dsa.yaml",
-      "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/whitney_dsa_acf_lorentzian_fits.pdf",
-      "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/whitney_dsa_acf_lorentzian_fits.png",
-      "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/whitney_dsa_acf_lorentzian_fits.svg",
+      "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/whitney_dsa_acf_lorentzian_fits.pdf",
+      "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/whitney_dsa_acf_lorentzian_fits.png",
+      "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/whitney_dsa_acf_lorentzian_fits.svg",
       "fit_lagrange_mhz": 25.0,
+      "gamma_power_law_fit": null,
       "input_data_path": "/Users/jakobfaber/Data/Faber2026/dsa110/scintillation/data/whitney.npz",
       "max_components": 3,
+      "measurement_status": "measurement",
       "n_per_subband": [
         1,
         1
       ],
       "num_subbands": 2,
+      "pbf_overlay": {
+        "alpha": 4.032301539988532,
+        "alpha_err_minus": 0.009185746992415922,
+        "alpha_err_plus": 0.017293576548490286,
+        "c1": 1.16,
+        "relation": "delta_nu_mhz = C1 / (2 pi tau_ms 1e3)",
+        "roster_gate_final": "MARGINAL",
+        "roster_locked_utc": "2026-07-07",
+        "roster_rail_class": "railed-hi",
+        "roster_source": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scattering-refit-2026-06/citable_alpha_roster.json",
+        "source": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/beta_campaign/fits/whitney_fine_joint_fit_C2D2.json",
+        "tau_1ghz_err_minus_ms": 0.022648994821091284,
+        "tau_1ghz_err_plus_ms": 0.02642643742397488,
+        "tau_1ghz_ms": 1.1821129548071687,
+        "uncertainty_method": "approximate independent Gaussian draws from marginal 16th-84th percentile summaries; tau-alpha covariance unavailable"
+      },
       "requested_num_subbands": 2,
       "subband_selection": {
         "candidate_counts": [
@@ -4127,10 +5660,44 @@
             "2": 0.6528101728785501
           },
           "fit_range_mhz": 25.0,
+          "harmonic_mask": {
+            "enabled": false,
+            "halfwidth_mhz": null,
+            "n_bins_kept": 1639,
+            "n_bins_removed": 0,
+            "spacing_mhz": null
+          },
+          "harmonic_mask_systematic": {
+            "abs_diff_mhz": 0.0,
+            "dnu_masked_mhz": 29.462926346250832,
+            "dnu_unmasked_mhz": 29.462926346250832,
+            "reason": "harmonic-mask sensitivity reported as a systematic band, not a correction",
+            "systematic_frac": 0.0
+          },
           "index": 0,
+          "low_lag_stability": {
+            "dnu_by_excision": {
+              "1": 29.692040792616858,
+              "2": 29.745630510998858,
+              "3": 29.607074078180155
+            },
+            "dnu_full_mhz": 29.462926346250832,
+            "failed_ks": [],
+            "min_ratio": 1.004892512380993,
+            "reason": "width survives low-lag excision (no collapse) -> wing is resolved",
+            "stable": true
+          },
           "n_fit_points": 819,
           "n_preferred": 1,
           "num_channels": 3928,
+          "off_pulse_null": {
+            "null_pass": false,
+            "off_median_dnu_mhz": 16.815089590674916,
+            "off_n_fits": 12,
+            "on_dnu_mhz": 29.462926346250832,
+            "ratio": 1.752171832767991,
+            "reason": "off-pulse median 16815.1 kHz brackets on-pulse 29462.9 kHz (ratio 1.75 <= 2.0); scale is instrumental -> null FAILS"
+          },
           "selected_bic": -41.77491039353447,
           "selected_components": [
             {
@@ -4195,35 +5762,35 @@
               "success": true
             },
             {
-              "aic": -120.23667665316037,
-              "bic": -87.28008806618888,
-              "chi2": 695.1870442381208,
+              "aic": -120.2366766542377,
+              "bic": -87.2800880672662,
+              "chi2": 695.1870442372065,
               "components": [
                 {
-                  "dnu_err": 0.06309464296606164,
-                  "dnu_mhz": 0.0030522567251669575,
-                  "m": 1.5227827531904161,
-                  "m_err": 536.5468746700028
+                  "dnu_err": 0.06453525046657473,
+                  "dnu_mhz": 0.00305225683632937,
+                  "m": 1.5227827177209088,
+                  "m_err": 536.3118153554057
                 },
                 {
-                  "dnu_err": 9037114.737768805,
-                  "dnu_mhz": 23.41149643594204,
-                  "m": 0.5960002750245068,
-                  "m_err": 419243192.41207284
+                  "dnu_err": 9447746.676728735,
+                  "dnu_mhz": 23.411501056634435,
+                  "m": 0.5960002757379486,
+                  "m_err": 437983347.10990316
                 },
                 {
-                  "dnu_err": 9397494.624591373,
-                  "dnu_mhz": 23.417104381110875,
-                  "m": 0.573715566152406,
-                  "m_err": 435527775.110024
+                  "dnu_err": 9825803.401034215,
+                  "dnu_mhz": 23.417099408852906,
+                  "m": 0.573715567070384,
+                  "m_err": 454995849.83626
                 }
               ],
-              "constant": -0.5054338929810334,
-              "constant_err": 0.19437298542297185,
+              "constant": -0.5054338943835024,
+              "constant_err": 0.20279208712341237,
               "n": 3,
               "n_params": 7,
               "ndata": 819,
-              "redchi": 0.856141680096208,
+              "redchi": 0.8561416800950818,
               "success": true
             }
           ],
@@ -4237,10 +5804,44 @@
             "2": 0.8080878498058719
           },
           "fit_range_mhz": 25.0,
+          "harmonic_mask": {
+            "enabled": false,
+            "halfwidth_mhz": null,
+            "n_bins_kept": 1639,
+            "n_bins_removed": 0,
+            "spacing_mhz": null
+          },
+          "harmonic_mask_systematic": {
+            "abs_diff_mhz": 0.0,
+            "dnu_masked_mhz": 23.365065914836734,
+            "dnu_unmasked_mhz": 23.365065914836734,
+            "reason": "harmonic-mask sensitivity reported as a systematic band, not a correction",
+            "systematic_frac": 0.0
+          },
           "index": 1,
+          "low_lag_stability": {
+            "dnu_by_excision": {
+              "1": 23.40790957116908,
+              "2": 23.375227685518936,
+              "3": 23.353634002578183
+            },
+            "dnu_full_mhz": 23.365065914836734,
+            "failed_ks": [],
+            "min_ratio": 0.9995107262996724,
+            "reason": "width survives low-lag excision (no collapse) -> wing is resolved",
+            "stable": true
+          },
           "n_fit_points": 819,
           "n_preferred": 1,
           "num_channels": 2184,
+          "off_pulse_null": {
+            "null_pass": true,
+            "off_median_dnu_mhz": 5.840230998637107,
+            "off_n_fits": 12,
+            "on_dnu_mhz": 23.365065914836734,
+            "ratio": 4.000709204873792,
+            "reason": "off-pulse median 5840.2 kHz differs from on-pulse 23365.1 kHz (ratio 4.00 > 2.0) -> null passes"
+          },
           "selected_bic": -113.6836299202214,
           "selected_components": [
             {
@@ -4256,6 +5857,33 @@
       ]
     },
     {
+      "artifact_control": {
+        "downgraded": false,
+        "failed_checks": [],
+        "low_lag_stability": {
+          "n_subbands_failed": 0,
+          "n_subbands_judged": 4,
+          "stable": true
+        },
+        "measurement_status": "measurement",
+        "off_pulse_null": {
+          "n_subbands_failed": 1,
+          "n_subbands_judged": 4,
+          "null_pass": false
+        },
+        "provenance": {
+          "is_chime": false,
+          "missing": [],
+          "reason": "non-CHIME telescope not subject to upchannelization comb gate",
+          "records": {
+            "bandpass_normalization": false,
+            "grid_regularization": false,
+            "harmonic_mask": false
+          },
+          "status": "measurement",
+          "telescope": "dsa"
+        }
+      },
       "burst": "wilhelm",
       "burst_preferred_n": 1,
       "component_median_dnu_mhz": {
@@ -4267,12 +5895,30 @@
         "2": 14.714516442916421
       },
       "config_path": "scintillation/configs/bursts/wilhelm_dsa.yaml",
-      "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/wilhelm_dsa_acf_lorentzian_fits.pdf",
-      "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/wilhelm_dsa_acf_lorentzian_fits.png",
-      "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/wilhelm_dsa_acf_lorentzian_fits.svg",
+      "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/wilhelm_dsa_acf_lorentzian_fits.pdf",
+      "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/wilhelm_dsa_acf_lorentzian_fits.png",
+      "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/wilhelm_dsa_acf_lorentzian_fits.svg",
       "fit_lagrange_mhz": 25.0,
+      "gamma_power_law_fit": {
+        "alpha": 18.354500126069603,
+        "covariance": [
+          [
+            0.00802016950794328,
+            -0.03314454489473679
+          ],
+          [
+            -0.03314454489473679,
+            8.16285333443481
+          ]
+        ],
+        "gamma_ref_mhz": 1.4738261648926376,
+        "n_fit_components": 4,
+        "nu_ref_mhz": 1400.0,
+        "selection_policy": "narrowest_clean_lorentzian_per_subband"
+      },
       "input_data_path": "/Users/jakobfaber/Data/Faber2026/dsa110/scintillation/data/wilhelm.npz",
       "max_components": 3,
+      "measurement_status": "measurement",
       "n_per_subband": [
         1,
         1,
@@ -4280,6 +5926,22 @@
         2
       ],
       "num_subbands": 4,
+      "pbf_overlay": {
+        "alpha": 4.021011224467348,
+        "alpha_err_minus": 0.0006046717163874504,
+        "alpha_err_plus": 0.00128071605505653,
+        "c1": 1.16,
+        "relation": "delta_nu_mhz = C1 / (2 pi tau_ms 1e3)",
+        "roster_gate_final": "MARGINAL",
+        "roster_locked_utc": "2026-07-07",
+        "roster_rail_class": "railed-hi",
+        "roster_source": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scattering-refit-2026-06/citable_alpha_roster.json",
+        "source": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/beta_campaign/fits/wilhelm_joint_fit_sharedzeta.json",
+        "tau_1ghz_err_minus_ms": 0.00562605499231017,
+        "tau_1ghz_err_plus_ms": 0.005751036761634354,
+        "tau_1ghz_ms": 0.26930674993199494,
+        "uncertainty_method": "approximate independent Gaussian draws from marginal 16th-84th percentile summaries; tau-alpha covariance unavailable"
+      },
       "requested_num_subbands": 4,
       "subband_selection": {
         "candidate_counts": [
@@ -4423,10 +6085,44 @@
             "2": 0.00015203600515229258
           },
           "fit_range_mhz": 20.480628357480047,
+          "harmonic_mask": {
+            "enabled": false,
+            "halfwidth_mhz": null,
+            "n_bins_kept": 1343,
+            "n_bins_removed": 0,
+            "spacing_mhz": null
+          },
+          "harmonic_mask_systematic": {
+            "abs_diff_mhz": 0.0,
+            "dnu_masked_mhz": 0.3288312882766691,
+            "dnu_unmasked_mhz": 0.3288312882766691,
+            "reason": "harmonic-mask sensitivity reported as a systematic band, not a correction",
+            "systematic_frac": 0.0
+          },
           "index": 0,
+          "low_lag_stability": {
+            "dnu_by_excision": {
+              "1": 0.4856094728266622,
+              "2": 1.1169777381904167,
+              "3": 1.4611407105550942
+            },
+            "dnu_full_mhz": 0.3288312882766691,
+            "failed_ks": [],
+            "min_ratio": 1.4767739267501958,
+            "reason": "width survives low-lag excision (no collapse) -> wing is resolved",
+            "stable": true
+          },
           "n_fit_points": 671,
           "n_preferred": 1,
           "num_channels": 1342,
+          "off_pulse_null": {
+            "null_pass": true,
+            "off_median_dnu_mhz": 6.079141271302332,
+            "off_n_fits": 12,
+            "on_dnu_mhz": 0.3288312882766691,
+            "ratio": 18.487113264561124,
+            "reason": "off-pulse median 6079.1 kHz differs from on-pulse 328.8 kHz (ratio 18.49 > 2.0) -> null passes"
+          },
           "selected_bic": 66.46383083554643,
           "selected_components": [
             {
@@ -4531,10 +6227,44 @@
             "2": 0.9999991288314848
           },
           "fit_range_mhz": 24.5859107927722,
+          "harmonic_mask": {
+            "enabled": false,
+            "halfwidth_mhz": null,
+            "n_bins_kept": 1611,
+            "n_bins_removed": 0,
+            "spacing_mhz": null
+          },
+          "harmonic_mask_systematic": {
+            "abs_diff_mhz": 0.0,
+            "dnu_masked_mhz": 1.014537745752499,
+            "dnu_unmasked_mhz": 1.014537745752499,
+            "reason": "harmonic-mask sensitivity reported as a systematic band, not a correction",
+            "systematic_frac": 0.0
+          },
           "index": 1,
+          "low_lag_stability": {
+            "dnu_by_excision": {
+              "1": 1.068490573012122,
+              "2": 1.085102784985882,
+              "3": 1.0873237491001744
+            },
+            "dnu_full_mhz": 1.014537745752499,
+            "failed_ks": [],
+            "min_ratio": 1.0531797140968917,
+            "reason": "width survives low-lag excision (no collapse) -> wing is resolved",
+            "stable": true
+          },
           "n_fit_points": 805,
           "n_preferred": 1,
           "num_channels": 1611,
+          "off_pulse_null": {
+            "null_pass": true,
+            "off_median_dnu_mhz": 10.078461224498227,
+            "off_n_fits": 12,
+            "on_dnu_mhz": 1.014537745752499,
+            "ratio": 9.934042638327734,
+            "reason": "off-pulse median 10078.5 kHz differs from on-pulse 1014.5 kHz (ratio 9.93 > 2.0) -> null passes"
+          },
           "selected_bic": 100.57913959409349,
           "selected_components": [
             {
@@ -4639,10 +6369,44 @@
             "2": 0.0022438468740115475
           },
           "fit_range_mhz": 21.60996255901016,
+          "harmonic_mask": {
+            "enabled": false,
+            "halfwidth_mhz": null,
+            "n_bins_kept": 1417,
+            "n_bins_removed": 0,
+            "spacing_mhz": null
+          },
+          "harmonic_mask_systematic": {
+            "abs_diff_mhz": 0.0,
+            "dnu_masked_mhz": 3.780166111644024,
+            "dnu_unmasked_mhz": 3.780166111644024,
+            "reason": "harmonic-mask sensitivity reported as a systematic band, not a correction",
+            "systematic_frac": 0.0
+          },
           "index": 2,
+          "low_lag_stability": {
+            "dnu_by_excision": {
+              "1": 3.8330553752327887,
+              "2": 3.9181720560179665,
+              "3": 4.00454089686446
+            },
+            "dnu_full_mhz": 3.780166111644024,
+            "failed_ks": [],
+            "min_ratio": 1.0139912538303144,
+            "reason": "width survives low-lag excision (no collapse) -> wing is resolved",
+            "stable": true
+          },
           "n_fit_points": 708,
           "n_preferred": 1,
           "num_channels": 1416,
+          "off_pulse_null": {
+            "null_pass": false,
+            "off_median_dnu_mhz": 3.421002288269369,
+            "off_n_fits": 12,
+            "on_dnu_mhz": 3.780166111644024,
+            "ratio": 1.1049878933452426,
+            "reason": "off-pulse median 3421.0 kHz brackets on-pulse 3780.2 kHz (ratio 1.10 <= 2.0); scale is instrumental -> null FAILS"
+          },
           "selected_bic": 68.3084847886527,
           "selected_components": [
             {
@@ -4750,10 +6514,44 @@
             "3": 0.9999999748532094
           },
           "fit_range_mhz": 25.0,
+          "harmonic_mask": {
+            "enabled": false,
+            "halfwidth_mhz": null,
+            "n_bins_kept": 1639,
+            "n_bins_removed": 0,
+            "spacing_mhz": null
+          },
+          "harmonic_mask_systematic": {
+            "abs_diff_mhz": 0.0,
+            "dnu_masked_mhz": 0.3991977900584136,
+            "dnu_unmasked_mhz": 0.3991977900584136,
+            "reason": "harmonic-mask sensitivity reported as a systematic band, not a correction",
+            "systematic_frac": 0.0
+          },
           "index": 3,
+          "low_lag_stability": {
+            "dnu_by_excision": {
+              "1": 0.4231575253496278,
+              "2": 0.542716107864164,
+              "3": 0.5894795770443799
+            },
+            "dnu_full_mhz": 0.3991977900584136,
+            "failed_ks": [],
+            "min_ratio": 1.0600197092466574,
+            "reason": "width survives low-lag excision (no collapse) -> wing is resolved",
+            "stable": true
+          },
           "n_fit_points": 819,
           "n_preferred": 2,
           "num_channels": 1726,
+          "off_pulse_null": {
+            "null_pass": true,
+            "off_median_dnu_mhz": 7.105481306404007,
+            "off_n_fits": 12,
+            "on_dnu_mhz": 0.3991977900584136,
+            "ratio": 17.79940040590976,
+            "reason": "off-pulse median 7105.5 kHz differs from on-pulse 399.2 kHz (ratio 17.80 > 2.0) -> null passes"
+          },
           "selected_bic": -44.72459690864754,
           "selected_components": [
             {
@@ -4776,6 +6574,33 @@
       ]
     },
     {
+      "artifact_control": {
+        "downgraded": false,
+        "failed_checks": [],
+        "low_lag_stability": {
+          "n_subbands_failed": 0,
+          "n_subbands_judged": 4,
+          "stable": true
+        },
+        "measurement_status": "measurement",
+        "off_pulse_null": {
+          "n_subbands_failed": 0,
+          "n_subbands_judged": 4,
+          "null_pass": true
+        },
+        "provenance": {
+          "is_chime": false,
+          "missing": [],
+          "reason": "non-CHIME telescope not subject to upchannelization comb gate",
+          "records": {
+            "bandpass_normalization": false,
+            "grid_regularization": false,
+            "harmonic_mask": false
+          },
+          "status": "measurement",
+          "telescope": "dsa"
+        }
+      },
       "burst": "zach",
       "burst_preferred_n": 2,
       "component_median_dnu_mhz": {
@@ -4787,12 +6612,30 @@
         "2": 18.676829485608298
       },
       "config_path": "scintillation/configs/bursts/zach_dsa.yaml",
-      "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/zach_dsa_acf_lorentzian_fits.pdf",
-      "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/zach_dsa_acf_lorentzian_fits.png",
-      "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/zach_dsa_acf_lorentzian_fits.svg",
+      "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/zach_dsa_acf_lorentzian_fits.pdf",
+      "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/zach_dsa_acf_lorentzian_fits.png",
+      "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/zach_dsa_acf_lorentzian_fits.svg",
       "fit_lagrange_mhz": 25.0,
+      "gamma_power_law_fit": {
+        "alpha": 2.0304981813271974,
+        "covariance": [
+          [
+            0.003204053945994249,
+            -0.003216560974074822
+          ],
+          [
+            -0.003216560974074814,
+            3.759924037297205
+          ]
+        ],
+        "gamma_ref_mhz": 0.6610609708217403,
+        "n_fit_components": 4,
+        "nu_ref_mhz": 1400.0,
+        "selection_policy": "narrowest_clean_lorentzian_per_subband"
+      },
       "input_data_path": "/Users/jakobfaber/Data/Faber2026/dsa110/scintillation/data/zach.npz",
       "max_components": 3,
+      "measurement_status": "measurement",
       "n_per_subband": [
         1,
         2,
@@ -4800,6 +6643,22 @@
         2
       ],
       "num_subbands": 4,
+      "pbf_overlay": {
+        "alpha": 4.0,
+        "alpha_err_minus": 0.0,
+        "alpha_err_plus": 0.0,
+        "c1": 1.16,
+        "relation": "delta_nu_mhz = C1 / (2 pi tau_ms 1e3)",
+        "roster_gate_final": "MARGINAL",
+        "roster_locked_utc": "2026-07-07",
+        "roster_rail_class": "railed-hi",
+        "roster_source": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scattering-refit-2026-06/citable_alpha_roster.json",
+        "source": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/beta_campaign/fits/zach_joint_fit_C2D4_cwin.json",
+        "tau_1ghz_err_minus_ms": 0.0009861337238163126,
+        "tau_1ghz_err_plus_ms": 0.0009474110740741726,
+        "tau_1ghz_ms": 0.1864021408460393,
+        "uncertainty_method": "approximate independent Gaussian draws from marginal 16th-84th percentile summaries; tau-alpha covariance unavailable"
+      },
       "requested_num_subbands": 4,
       "subband_selection": {
         "candidate_counts": [
@@ -4943,10 +6802,44 @@
             "2": 0.9999999898472393
           },
           "fit_range_mhz": 20.25170926257525,
+          "harmonic_mask": {
+            "enabled": false,
+            "halfwidth_mhz": null,
+            "n_bins_kept": 1327,
+            "n_bins_removed": 0,
+            "spacing_mhz": null
+          },
+          "harmonic_mask_systematic": {
+            "abs_diff_mhz": 0.0,
+            "dnu_masked_mhz": 0.2035424784801494,
+            "dnu_unmasked_mhz": 0.2035424784801494,
+            "reason": "harmonic-mask sensitivity reported as a systematic band, not a correction",
+            "systematic_frac": 0.0
+          },
           "index": 0,
+          "low_lag_stability": {
+            "dnu_by_excision": {
+              "1": 0.2005000329048734,
+              "2": 0.19798256096104372,
+              "3": 0.19044000358945223
+            },
+            "dnu_full_mhz": 0.2035424784801494,
+            "failed_ks": [],
+            "min_ratio": 0.9356278110174678,
+            "reason": "width survives low-lag excision (no collapse) -> wing is resolved",
+            "stable": true
+          },
           "n_fit_points": 663,
           "n_preferred": 1,
           "num_channels": 1327,
+          "off_pulse_null": {
+            "null_pass": true,
+            "off_median_dnu_mhz": 1.924746708892169,
+            "off_n_fits": 12,
+            "on_dnu_mhz": 0.2035424784801494,
+            "ratio": 9.456240895091003,
+            "reason": "off-pulse median 1924.7 kHz differs from on-pulse 203.5 kHz (ratio 9.46 > 2.0) -> null passes"
+          },
           "selected_bic": -483.71472969117804,
           "selected_components": [
             {
@@ -5058,10 +6951,44 @@
             "3": 0.9999962527257888
           },
           "fit_range_mhz": 13.811452059254407,
+          "harmonic_mask": {
+            "enabled": false,
+            "halfwidth_mhz": null,
+            "n_bins_kept": 905,
+            "n_bins_removed": 0,
+            "spacing_mhz": null
+          },
+          "harmonic_mask_systematic": {
+            "abs_diff_mhz": 0.0,
+            "dnu_masked_mhz": 0.7657953984182979,
+            "dnu_unmasked_mhz": 0.7657953984182979,
+            "reason": "harmonic-mask sensitivity reported as a systematic band, not a correction",
+            "systematic_frac": 0.0
+          },
           "index": 1,
+          "low_lag_stability": {
+            "dnu_by_excision": {
+              "1": 0.7608161925346362,
+              "2": 0.7559656369841612,
+              "3": 0.7507817927231539
+            },
+            "dnu_full_mhz": 0.7657953984182979,
+            "failed_ks": [],
+            "min_ratio": 0.98039475592808,
+            "reason": "width survives low-lag excision (no collapse) -> wing is resolved",
+            "stable": true
+          },
           "n_fit_points": 452,
           "n_preferred": 2,
           "num_channels": 905,
+          "off_pulse_null": {
+            "null_pass": true,
+            "off_median_dnu_mhz": 4.787358472114091,
+            "off_n_fits": 12,
+            "on_dnu_mhz": 0.7657953984182979,
+            "ratio": 6.251485033733656,
+            "reason": "off-pulse median 4787.4 kHz differs from on-pulse 765.8 kHz (ratio 6.25 > 2.0) -> null passes"
+          },
           "selected_bic": 405.1078407100732,
           "selected_components": [
             {
@@ -5180,10 +7107,44 @@
             "3": 0.01353579319141894
           },
           "fit_range_mhz": 25.0,
+          "harmonic_mask": {
+            "enabled": false,
+            "halfwidth_mhz": null,
+            "n_bins_kept": 1639,
+            "n_bins_removed": 0,
+            "spacing_mhz": null
+          },
+          "harmonic_mask_systematic": {
+            "abs_diff_mhz": 0.0,
+            "dnu_masked_mhz": 0.6637029357026827,
+            "dnu_unmasked_mhz": 0.6637029357026827,
+            "reason": "harmonic-mask sensitivity reported as a systematic band, not a correction",
+            "systematic_frac": 0.0
+          },
           "index": 2,
+          "low_lag_stability": {
+            "dnu_by_excision": {
+              "1": 0.6941206610059931,
+              "2": 0.7200377288541602,
+              "3": 0.7269499124377956
+            },
+            "dnu_full_mhz": 0.6637029357026827,
+            "failed_ks": [],
+            "min_ratio": 1.0458303311120754,
+            "reason": "width survives low-lag excision (no collapse) -> wing is resolved",
+            "stable": true
+          },
           "n_fit_points": 819,
           "n_preferred": 2,
           "num_channels": 2028,
+          "off_pulse_null": {
+            "null_pass": true,
+            "off_median_dnu_mhz": 4.999699636558972,
+            "off_n_fits": 12,
+            "on_dnu_mhz": 0.6637029357026827,
+            "ratio": 7.533038303146327,
+            "reason": "off-pulse median 4999.7 kHz differs from on-pulse 663.7 kHz (ratio 7.53 > 2.0) -> null passes"
+          },
           "selected_bic": 97.4263710842664,
           "selected_components": [
             {
@@ -5298,10 +7259,44 @@
             "3": 1.0
           },
           "fit_range_mhz": 25.0,
+          "harmonic_mask": {
+            "enabled": false,
+            "halfwidth_mhz": null,
+            "n_bins_kept": 1639,
+            "n_bins_removed": 0,
+            "spacing_mhz": null
+          },
+          "harmonic_mask_systematic": {
+            "abs_diff_mhz": 0.0,
+            "dnu_masked_mhz": 0.6722223525432387,
+            "dnu_unmasked_mhz": 0.6722223525432387,
+            "reason": "harmonic-mask sensitivity reported as a systematic band, not a correction",
+            "systematic_frac": 0.0
+          },
           "index": 3,
+          "low_lag_stability": {
+            "dnu_by_excision": {
+              "1": 0.6664438569737003,
+              "2": 0.6547931463818253,
+              "3": 0.6538792396913735
+            },
+            "dnu_full_mhz": 0.6722223525432387,
+            "failed_ks": [],
+            "min_ratio": 0.972712729973249,
+            "reason": "width survives low-lag excision (no collapse) -> wing is resolved",
+            "stable": true
+          },
           "n_fit_points": 819,
           "n_preferred": 2,
           "num_channels": 1848,
+          "off_pulse_null": {
+            "null_pass": true,
+            "off_median_dnu_mhz": 1.7147413022667306,
+            "off_n_fits": 12,
+            "on_dnu_mhz": 0.6722223525432387,
+            "ratio": 2.550854335294414,
+            "reason": "off-pulse median 1714.7 kHz differs from on-pulse 672.2 kHz (ratio 2.55 > 2.0) -> null passes"
+          },
           "selected_bic": 529.2934579704593,
           "selected_components": [
             {
@@ -5340,15 +7335,15 @@
       "zach"
     ],
     "failures": [],
-    "figure_directory": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures",
+    "figure_directory": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures",
     "figures_enabled": true,
     "flits_root": "/Users/jakobfaber/Data/Faber2026/dsa110",
     "max_components": 3,
     "n_failure": 0,
     "n_success": 12,
     "notes": "Fresh DSA ACFs from npz; YAML stored_fits and pkl ACF products are not read. Pipeline caches, diagnostic plots, MC noise templates, and 2D fits are disabled. When enabled, figures show a sample-level summary plus manuscript-style per-burst bandwidth-scaling and stacked ACF diagnostics.",
-    "summary_figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/dsa_lorentzian_summary.pdf",
-    "summary_figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/dsa_lorentzian_summary.png",
-    "summary_figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/dsa_lorentzian_summary.svg"
+    "summary_figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/dsa_lorentzian_summary.pdf",
+    "summary_figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/dsa_lorentzian_summary.png",
+    "summary_figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/dsa_lorentzian_summary.svg"
   }
 }

@@ -38,9 +38,35 @@ The generated tables include `quality_flags` for components that should not be
 used as clean bandwidth measurements without manual inspection. In particular,
 `dnu_exceeds_fit_window` marks a Lorentzian width larger than the lag span fitted
 for that sub-band, and `fractional_dnu_err_gt_1` marks a formally weak width.
-The ACF figures show the fitted lag window, ACF points/errors, the selected
-total Lorentzian model, the fitted constant term, and individual component
-curves. Component annotations include any quality flags.
+The ACF figures show the fitted lag window, ACF points/errors, and the selected
+total Lorentzian model, including its fitted constant term. The validation
+context reports whether selected components carry quality flags.
+
+## Visual provenance and canonical figure policy
+
+The explanatory visual grammar comes from the completed Freya
+instrumental-origin experiment archived at
+`~/Data/Faber2026/dsa110/scintillation-data/exp-instrumental-origin-2026-07-05/`.
+That directory is a read-only evidence archive: it contains one-off scripts,
+captured output, figures, and scratch products from a historical worktree. It is
+not the canonical producer and must not be copied forward as live analysis code.
+
+This tracked driver is the canonical producer. Per-burst figures use the
+experiment's publication summary format: a full-height bandwidth-versus-
+frequency panel beside stacked, symmetric-lag sub-band ACFs. The bandwidth
+panel fits a free power law to clean ACF components and overlays the prediction
+from the tracked beta-coherent time-frequency joint PBF fit via
+`Delta nu_d = C1 / (2 pi tau)`, with the adopted thin-screen convention
+`C1 = 1.16` stated in the legend. The free bandwidth law uses the narrowest
+clean Lorentzian component in each sub-band as the explicit primary diffractive-
+scale policy; broader components remain visible but do not enter that fit. The
+PBF uncertainty band is explicitly an approximate propagation
+of marginal summaries until joint tau-alpha posterior samples are connected.
+The ACF panels use colored data traces,
+light-grey uncertainties, and the selected total Lorentzian model in black.
+Plotting does not alter measurement eligibility. Manuscript replacement remains
+blocked until the upstream producer/ACF/fitting validation records an overall
+Phase 0 `PASS`.
 
 Diagnostic plots and intermediate caches are disabled for this run, so no
 `${FLITS_ROOT}` literal-path plot artifacts or stale ACF caches can affect the

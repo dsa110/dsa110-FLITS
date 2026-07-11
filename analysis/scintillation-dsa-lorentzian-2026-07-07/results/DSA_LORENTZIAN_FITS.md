@@ -14,22 +14,43 @@ fit samples, with at least one selected component not carrying a quality
 flag. If no candidate satisfies all gates, the least pathological candidate
 is retained and the fallback policy is recorded.
 
+### CHIME artifact-control guards
+
+CHIME upchannelized (gen-3) products carry instrumental structure that an
+ACF fit can mistake for scintillation (see
+`docs/rse/specs/experiment-freya-chime-instrumental-origin.md`). For
+`telescope: chime` this driver applies fail-closed guards and records them
+per sub-band in the JSON: (1) the coarse-channel **harmonic mask**
+(`analysis.fitting.harmonic_mask`) is applied to the fit-window ACF before
+the selector and the number of removed comb lag bins is recorded; (2) a
+**provenance gate** requires grid regularization, bandpass normalization,
+and the harmonic mask all be enabled; (3) an **off-pulse ACF null** refits
+burst-free noise slices on the identical sub-band channels and fails when
+they reproduce the on-pulse decorrelation scale; (4) a **low-lag excision**
+check refits after dropping the first few channel lags and fails when the
+width collapses (no resolved wing). The **harmonic-mask systematic** (fit
+with vs without the mask) is reported as a systematic band, not a
+correction. A CHIME burst is a `measurement` only if the provenance gate,
+the off-pulse null, and the low-lag stability all pass; otherwise it is
+`diagnostic_only`. DSA-band results are never demoted by these guards (no
+DSA config enables the harmonic mask, so the DSA fit is unchanged).
+
 ## Burst Overview
 
-| burst | selected subbands | preferred n by subband | plurality n | median dnu by component (MHz) | selection note |
-|---|---:|---|---:|---|---|
-| casey | 4 | [1, 2, 1, 2] | 1 | c1=3.227, c2=18.39 | rejected n=3: subband 0 has no unflagged selected component |
-| chromatica | 4 | [1, 2, 1, 2] | 1 | c1=1.059 | largest viable candidate |
-| freya | 2 | [1, 1] | 1 | c1=11.91 | rejected n=2: subband 1 has no unflagged selected component<br>n=3: subband 0 has no unflagged selected component<br>n=4: subband 0 has no unflagged selected component |
-| hamilton | 4 | [1, 1, 2, 2] | 1 | c1=0.223, c2=17.4 | largest viable candidate |
-| isha | 2 | [1, 1] | 1 | c1=0.6716 | rejected n=2: subband 0 has no unflagged selected component<br>n=3: subband 0 has no unflagged selected component<br>n=4: subband 0 has no unflagged selected component |
-| johndoeII | 3 | [1, 1, 1] | 1 | c1=1.877 | rejected n=4: subband 0 has no unflagged selected component |
-| mahi | 3 | [1, 1, 1] | 1 | c1=1.835 | rejected n=4: subband 1 has no unflagged selected component |
-| oran | 4 | [1, 1, 1, 2] | 1 | c1=1.025 | largest viable candidate |
-| phineas | 3 | [1, 1, 1] | 1 | c1=7.044 | rejected n=4: subband 1 has no unflagged selected component |
-| whitney | 2 | [1, 1] | 1 | c1=23.37 | rejected n=2: subband 0 has no unflagged selected component<br>n=3: subband 0 has no unflagged selected component<br>n=4: subband 0 has no unflagged selected component |
-| wilhelm | 4 | [1, 1, 1, 2] | 1 | c1=0.7069, c2=14.71 | largest viable candidate |
-| zach | 4 | [1, 2, 2, 2] | 2 | c1=0.668, c2=18.68 | largest viable candidate |
+| burst | selected subbands | preferred n by subband | plurality n | median dnu by component (MHz) | status | selection note |
+|---|---:|---|---:|---|---|---|
+| casey | 4 | [1, 2, 1, 2] | 1 | c1=3.227, c2=18.39 | measurement | rejected n=3: subband 0 has no unflagged selected component |
+| chromatica | 4 | [1, 2, 1, 2] | 1 | c1=1.059 | measurement | largest viable candidate |
+| freya | 2 | [1, 1] | 1 | c1=11.91 | measurement | rejected n=2: subband 1 has no unflagged selected component<br>n=3: subband 0 has no unflagged selected component<br>n=4: subband 0 has no unflagged selected component |
+| hamilton | 4 | [1, 1, 2, 2] | 1 | c1=0.223, c2=17.4 | measurement | largest viable candidate |
+| isha | 2 | [1, 1] | 1 | c1=0.6716 | measurement | rejected n=2: subband 0 has no unflagged selected component<br>n=3: subband 0 has no unflagged selected component<br>n=4: subband 0 has no unflagged selected component |
+| johndoeII | 3 | [1, 1, 1] | 1 | c1=1.877 | measurement | rejected n=4: subband 0 has no unflagged selected component |
+| mahi | 3 | [1, 1, 1] | 1 | c1=1.835 | measurement | rejected n=4: subband 1 has no unflagged selected component |
+| oran | 4 | [1, 1, 1, 2] | 1 | c1=1.025 | measurement | largest viable candidate |
+| phineas | 3 | [1, 1, 1] | 1 | c1=7.044 | measurement | rejected n=4: subband 1 has no unflagged selected component |
+| whitney | 2 | [1, 1] | 1 | c1=23.37 | measurement | rejected n=2: subband 0 has no unflagged selected component<br>n=3: subband 0 has no unflagged selected component<br>n=4: subband 0 has no unflagged selected component |
+| wilhelm | 4 | [1, 1, 1, 2] | 1 | c1=0.7069, c2=14.71 | measurement | largest viable candidate |
+| zach | 4 | [1, 2, 2, 2] | 2 | c1=0.668, c2=18.68 | measurement | largest viable candidate |
 
 ## Paper Summary Figure
 
@@ -99,12 +120,13 @@ flags remain in the tables and per-burst diagnostics.
 
 ## ACF Fit Figures
 
-Each burst figure follows the manuscript scintillation-summary
-layout: the left panel shows selected Lorentzian bandwidths versus
-DSA sub-band center frequency with a data-anchored reference
-$\gamma\propto\nu^4$ curve where constrained, and the right column
-shows stacked frequency-lag ACF panels with the fitted total
-Lorentzian model overlaid.
+Each burst figure follows the Freya instrumental-origin experiment's
+publication layout: a fitted bandwidth-frequency relation beside
+stacked symmetric-lag ACF panels, with the selected Lorentzian model
+overlaid in black. When available, the tracked time-frequency joint
+PBF fit supplies a second predicted bandwidth curve using C1=1.16.
+These figures remain diagnostic until the
+upstream Phase 0 producer/ACF/fitting validation passes.
 
 ### casey
 

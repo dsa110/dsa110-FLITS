@@ -388,13 +388,126 @@ MANUSCRIPT_GUIDE = "gray"
 MANUSCRIPT_GRID = "#d9d9d9"
 
 
-def _plot_burst_acfs(
+def _fit_gamma_power_law(
+    component_rows: list[dict[str, Any]], *, nu_ref_mhz: float = 1400.0
+) -> dict[str, Any] | None:
+    """Fit gamma = gamma_ref (nu / nu_ref)^alpha in log space."""
+    usable = [
+        row
+        for row in component_rows
+        if row["usable"]
+        and np.isfinite(row["dnu_err_mhz"])
+        and row["dnu_err_mhz"] > 0
+        and row["dnu_mhz"] > 0
+    ]
+    primary = []
+    for subband in sorted({row["subband"] for row in usable}):
+        candidates = [row for row in usable if row["subband"] == subband]
+        primary.append(min(candidates, key=lambda row: row["dnu_mhz"]))
+    if len(primary) < 2:
+        return None
+    nu = np.asarray([row["center_freq_mhz"] for row in primary], dtype=float)
+    gamma = np.asarray([row["dnu_mhz"] for row in primary], dtype=float)
+    gamma_err = np.asarray([row["dnu_err_mhz"] for row in primary], dtype=float)
+    x = np.log(nu / nu_ref_mhz)
+    y = np.log(gamma)
+    sigma_y = gamma_err / gamma
+    design = np.column_stack((np.ones_like(x), x))
+    precision = 1.0 / np.square(sigma_y)
+    normal = design.T @ (precision[:, None] * design)
+    try:
+        covariance = np.linalg.inv(normal)
+    except np.linalg.LinAlgError:
+        return None
+    coefficients = covariance @ (design.T @ (precision * y))
+    return {
+        "nu_ref_mhz": nu_ref_mhz,
+        "gamma_ref_mhz": float(np.exp(coefficients[0])),
+        "alpha": float(coefficients[1]),
+        "covariance": covariance,
+        "n_fit_components": len(primary),
+        "selection_policy": "narrowest_clean_lorentzian_per_subband",
+    }
+
+
+def _summary_value(summary: dict[str, Any], name: str) -> tuple[float, float, float] | None:
+    """Return median, lower error, upper error from a joint-fit summary."""
+    value = summary.get(name)
+    if not isinstance(value, dict):
+        value = summary.get("percentiles", {}).get(name)
+    if not isinstance(value, dict) or value.get("median") is None:
+        return None
+    median = float(value["median"])
+    err_minus = float(value.get("err_minus", median - float(value.get("lower", median))))
+    err_plus = float(value.get("err_plus", float(value.get("upper", median)) - median))
+    return median, max(err_minus, 0.0), max(err_plus, 0.0)
+
+
+def _pbf_bandwidth_mhz(
+    nu_mhz: np.ndarray, *, tau_1ghz_ms: float, alpha: float, c1: float
+) -> np.ndarray:
+    """Convert a PBF tau(nu) law to decorrelation bandwidth in MHz."""
+    tau_nu_ms = tau_1ghz_ms * np.power(np.asarray(nu_mhz, dtype=float) / 1000.0, -alpha)
+    return c1 / (2.0 * np.pi * tau_nu_ms * 1e3)
+
+
+def _pbf_roster_entry_is_eligible(entry: dict[str, Any] | None) -> bool:
+    """Fail closed unless the locked roster admits the joint-fit product."""
+    return bool(
+        entry
+        and entry.get("gate_final") in {"PASS", "MARGINAL"}
+        and entry.get("rail_class") in {"interior", "railed-hi"}
+        and entry.get("fit_json")
+    )
+
+
+def _load_pbf_fit_for_burst(burst: str) -> dict[str, Any] | None:
+    """Load the roster-adjudicated beta-coherent joint-fit summary."""
+    roster_path = (
+        REPO_ROOT
+        / "analysis"
+        / "scattering-refit-2026-06"
+        / "citable_alpha_roster.json"
+    )
+    if not roster_path.exists():
+        return None
+    roster = json.loads(roster_path.read_text())
+    entries = []
+    for key in ("tier_a_fully_adjudicated", "tier_b_provisional_pending_s2"):
+        entries.extend(roster.get(key, []))
+    exemplar = roster.get("multiplicity_exemplar")
+    if isinstance(exemplar, dict):
+        entries.append(exemplar)
+    entry = next((item for item in entries if item.get("nickname") == burst), None)
+    if not _pbf_roster_entry_is_eligible(entry):
+        return None
+    fit_path = REPO_ROOT / str(entry["fit_json"])
+    if not fit_path.is_file():
+        return None
+    payload = json.loads(fit_path.read_text())
+    payload["_source"] = str(fit_path)
+    payload["_roster_source"] = str(roster_path)
+    payload["_roster_locked_utc"] = roster.get("locked_utc")
+    payload["_roster_gate_final"] = entry.get("gate_final")
+    payload["_roster_rail_class"] = entry.get("rail_class")
+    return payload
+
+
+def plot_burst_acf_diagnostic(
     burst: str,
     plot_subbands: list[dict[str, Any]],
     *,
     figure_dir: Path,
     band: str = "dsa",
-) -> dict[str, str]:
+    pbf_fit: dict[str, Any] | None = None,
+    pbf_c1: float = 1.16,
+) -> dict[str, Any]:
+    """Render the canonical experiment-style per-burst ACF diagnostic.
+
+    The structured ACF payload and tracked joint-PBF summary remain the
+    scientific sources of truth. This function only renders them and never
+    changes measurement eligibility.
+    """
     import matplotlib
 
     matplotlib.use("Agg")
@@ -407,10 +520,10 @@ def _plot_burst_acfs(
     plt.rcParams.update(
         {
             "axes.linewidth": 0.9,
-            "axes.labelsize": 8.0,
-            "axes.titlesize": 8.0,
-            "font.size": 7.5,
-            "legend.fontsize": 7.0,
+            "axes.labelsize": 10.0,
+            "axes.titlesize": 11.0,
+            "font.size": 9.5,
+            "legend.fontsize": 8.5,
             "savefig.dpi": 300,
             "svg.fonttype": "none",
             # STIX math keeps a serif look consistent with the AASTeX manuscript
@@ -420,30 +533,27 @@ def _plot_burst_acfs(
             "mathtext.fontset": "stix",
             "pdf.fonttype": 42,
             "xtick.direction": "in",
-            "xtick.labelsize": 6.8,
+            "xtick.labelsize": 8.5,
             "xtick.top": True,
             "ytick.direction": "in",
-            "ytick.labelsize": 6.8,
+            "ytick.labelsize": 8.5,
             "ytick.right": True,
         }
     )
 
     figure_dir.mkdir(parents=True, exist_ok=True)
     n_subbands = len(plot_subbands)
-    fig = plt.figure(
-        figsize=(7.1, max(3.4, 1.75 * max(n_subbands, 1))),
-        constrained_layout=True,
-    )
+    n_acf_rows = max(1, n_subbands)
+    fig = plt.figure(figsize=(13.0, max(6.5, 2.0 * n_acf_rows)), constrained_layout=True)
     gs = fig.add_gridspec(
-        max(n_subbands, 1),
+        n_acf_rows,
         2,
         width_ratios=[1.15, 1.0],
-        hspace=0.36,
+        hspace=0.24,
         wspace=0.25,
     )
     ax_bw = fig.add_subplot(gs[:, 0])
-    fit_color = "black"
-    stack_colors = [plt.get_cmap("plasma")(x) for x in np.linspace(0.15, 0.78, max(n_subbands, 1))]
+    acf_colors = plt.get_cmap("plasma")(np.linspace(0.15, 0.75, max(n_subbands, 1)))
 
     component_rows = []
     for payload in plot_subbands:
@@ -465,16 +575,26 @@ def _plot_burst_acfs(
 
     clean_rows = [row for row in component_rows if row["usable"]]
     flagged_rows = [row for row in component_rows if not row["usable"]]
-    bandwidth_limits = _bandwidth_axis_limits(component_rows)
-    bandwidth_rows = clean_rows or flagged_rows
-    if bandwidth_rows:
-        x = [row["center_freq_mhz"] for row in bandwidth_rows]
-        y = [row["dnu_mhz"] for row in bandwidth_rows]
+    for rows, marker, color, edge, alpha, label in (
+        (
+            clean_rows,
+            "o",
+            MANUSCRIPT_PURPLE,
+            MANUSCRIPT_PURPLE,
+            0.95,
+            r"Lorentzian Component ($\gamma$)",
+        ),
+        (flagged_rows, "^", "0.65", "0.35", 0.7, "flagged component"),
+    ):
+        if not rows:
+            continue
+        x = [row["center_freq_mhz"] for row in rows]
+        y = [row["dnu_mhz"] for row in rows]
         yerr = [
             row["dnu_err_mhz"]
-            if row["usable"] and np.isfinite(row["dnu_err_mhz"]) and row["dnu_err_mhz"] > 0
+            if np.isfinite(row["dnu_err_mhz"]) and row["dnu_err_mhz"] > 0
             else 0.0
-            for row in bandwidth_rows
+            for row in rows
         ]
         if any(err > 0 for err in yerr):
             ax_bw.errorbar(
@@ -482,17 +602,13 @@ def _plot_burst_acfs(
                 y,
                 yerr=yerr,
                 fmt="none",
-                ecolor=MANUSCRIPT_PURPLE if clean_rows else "0.55",
+                ecolor=color,
                 elinewidth=1.0,
                 capsize=2.5,
                 capthick=1.0,
-                alpha=0.9,
+                alpha=alpha,
                 zorder=1,
             )
-        marker = "o" if clean_rows else "^"
-        color = MANUSCRIPT_PURPLE if clean_rows else "0.55"
-        edge = MANUSCRIPT_PURPLE if clean_rows else "0.35"
-        label = r"Lorentzian Component ($\gamma$)" if clean_rows else "flagged only"
         ax_bw.scatter(
             x,
             y,
@@ -501,31 +617,140 @@ def _plot_burst_acfs(
             color=color,
             edgecolors=edge,
             linewidths=0.7,
-            alpha=0.95 if clean_rows else 0.55,
+            alpha=alpha,
             label=label,
             zorder=3,
         )
 
-    reference = _reference_power_law(component_rows, ref_alpha=4.0)
-    if reference is not None:
-        freqs = np.array(
-            [row["center_freq_mhz"] for row in clean_rows or component_rows], dtype=float
+    freq_rows = component_rows
+    nu = None
+    if freq_rows:
+        freqs = np.asarray([row["center_freq_mhz"] for row in freq_rows], dtype=float)
+        nu = np.linspace(float(np.nanmin(freqs)) - 12.0, float(np.nanmax(freqs)) + 12.0, 320)
+
+    gamma_fit = _fit_gamma_power_law(component_rows)
+    gamma_envelope = None
+    if gamma_fit is not None and nu is not None:
+        log_nu = np.log(nu / gamma_fit["nu_ref_mhz"])
+        design = np.column_stack((np.ones_like(log_nu), log_nu))
+        log_gamma = np.log(gamma_fit["gamma_ref_mhz"]) + gamma_fit["alpha"] * log_nu
+        log_sigma = np.sqrt(
+            np.einsum("ij,jk,ik->i", design, gamma_fit["covariance"], design)
         )
-        nu = np.linspace(float(np.nanmin(freqs)) - 8.0, float(np.nanmax(freqs)) + 8.0, 240)
-        dnu = reference["scale_mhz"] * (nu / reference["nu_ref_mhz"]) ** reference["alpha"]
+        gamma_curve = np.exp(log_gamma)
+        gamma_envelope = (
+            np.exp(log_gamma - log_sigma),
+            np.exp(log_gamma + log_sigma),
+        )
+        ax_bw.fill_between(
+            nu,
+            gamma_envelope[0],
+            gamma_envelope[1],
+            color=MANUSCRIPT_PURPLE,
+            alpha=0.14,
+            linewidth=0,
+            zorder=1,
+        )
         ax_bw.plot(
             nu,
-            dnu,
-            "--",
-            color=MANUSCRIPT_GUIDE,
-            lw=1.1,
-            label=rf"$\gamma \propto \nu^{{{reference['alpha']:g}}}$",
+            gamma_curve,
+            color=MANUSCRIPT_PURPLE,
+            lw=1.7,
+            label=rf"ACF primary-scale fit: $\alpha_\gamma={gamma_fit['alpha']:.2f}$",
+            zorder=2,
+        )
+    elif component_rows:
+        ax_bw.text(
+            0.97,
+            0.97,
+            r"ACF bandwidth fit unavailable ($<2$ usable primary components)",
+            transform=ax_bw.transAxes,
+            fontsize=8.0,
+            color="0.35",
+            ha="right",
+            va="top",
+        )
+
+    if pbf_fit is None:
+        pbf_fit = _load_pbf_fit_for_burst(burst)
+    tau_summary = _summary_value(pbf_fit, "tau_1ghz") if pbf_fit else None
+    alpha_summary = _summary_value(pbf_fit, "alpha") if pbf_fit else None
+    pbf_envelope = None
+    if tau_summary is not None and alpha_summary is not None and nu is not None:
+        tau_ref, tau_minus, tau_plus = tau_summary
+        alpha_pbf, alpha_minus, alpha_plus = alpha_summary
+        pbf_curve = _pbf_bandwidth_mhz(
+            nu, tau_1ghz_ms=tau_ref, alpha=alpha_pbf, c1=pbf_c1
+        )
+
+        rng = np.random.default_rng(20260710)
+        tau_samples = np.clip(
+            rng.normal(tau_ref, 0.5 * (tau_minus + tau_plus), 4096),
+            np.finfo(float).tiny,
+            None,
+        )
+        alpha_samples = rng.normal(alpha_pbf, 0.5 * (alpha_minus + alpha_plus), 4096)
+        sample_curves = _pbf_bandwidth_mhz(
+            nu[None, :],
+            tau_1ghz_ms=tau_samples[:, None],
+            alpha=alpha_samples[:, None],
+            c1=pbf_c1,
+        )
+        pbf_lo, pbf_hi = np.nanpercentile(sample_curves, [16.0, 84.0], axis=0)
+        pbf_envelope = (pbf_lo, pbf_hi)
+        ax_bw.fill_between(
+            nu,
+            pbf_lo,
+            pbf_hi,
+            color="#2ca25f",
+            alpha=0.18,
+            linewidth=0,
+            zorder=1,
+        )
+        ax_bw.plot(
+            nu,
+            pbf_curve,
+            "-.",
+            color="#238b45",
+            lw=1.5,
+            label=rf"PBF-derived (marginal approx.): $\alpha_\tau={alpha_pbf:.2f}$, $C_1={pbf_c1:g}$",
             zorder=2,
         )
 
     if component_rows:
         ax_bw.set_yscale("log")
-        ax_bw.set_ylim(*bandwidth_limits)
+        scale_values = []
+        for row in clean_rows or flagged_rows:
+            scale_values.append(row["dnu_mhz"])
+            if np.isfinite(row["dnu_err_mhz"]) and row["dnu_err_mhz"] > 0:
+                scale_values.append(max(row["dnu_mhz"] - row["dnu_err_mhz"], 0.0))
+                scale_values.append(row["dnu_mhz"] + row["dnu_err_mhz"])
+        for envelope in (gamma_envelope, pbf_envelope):
+            if envelope is not None:
+                scale_values.extend((float(np.nanmin(envelope[0])), float(np.nanmax(envelope[1]))))
+        finite_positive = np.asarray(
+            [value for value in scale_values if np.isfinite(value) and value > 0], dtype=float
+        )
+        if finite_positive.size:
+            y_lower = float(np.nanmin(finite_positive)) / 1.6
+            y_upper = float(np.nanmax(finite_positive)) * 1.8
+            ax_bw.set_ylim(y_lower, y_upper)
+            off_scale = [row for row in flagged_rows if row["dnu_mhz"] > y_upper]
+            if off_scale:
+                label = "; ".join(
+                    f"SB {row['subband'] + 1}: {row['dnu_mhz']:.2g} MHz"
+                    for row in off_scale
+                )
+                ax_bw.text(
+                    0.97,
+                    0.88,
+                    f"flagged, off scale: {label}",
+                    transform=ax_bw.transAxes,
+                    ha="right",
+                    va="top",
+                    fontsize=7.5,
+                    color="0.4",
+                )
         ax_bw.yaxis.set_major_formatter(FuncFormatter(lambda value, _: f"{value:g}"))
         ax_bw.yaxis.set_minor_formatter(NullFormatter())
     ax_bw.set_xlabel("Center Frequency (MHz)")
@@ -557,7 +782,7 @@ def _plot_burst_acfs(
             ax_acf.axis("off")
             continue
 
-        xfit = np.linspace(-lag_zoom, lag_zoom, 700)
+        xfit = np.linspace(-lag_zoom, lag_zoom, 900)
         yfit = _model_curve(xfit, fit)
         if err is not None:
             err_mask = nonzero & np.isfinite(err) & (err > 0)
@@ -573,20 +798,22 @@ def _plot_burst_acfs(
                     alpha=0.75,
                     zorder=0,
                 )
+        data_idx = _decimated_indices(nonzero, max_points=450)
+        order = data_idx[np.argsort(lags[data_idx])]
         ax_acf.plot(
-            lags[nonzero],
-            acf[nonzero],
-            color=stack_colors[row_idx],
-            lw=0.8,
-            alpha=0.85,
+            lags[order],
+            acf[order],
+            color=acf_colors[row_idx],
+            lw=0.85,
+            alpha=0.9,
             zorder=2,
         )
 
         ax_acf.plot(
             xfit,
             yfit,
-            color=fit_color,
-            lw=1.25,
+            color="black",
+            lw=1.65,
             zorder=5,
         )
 
@@ -600,19 +827,20 @@ def _plot_burst_acfs(
             label,
             transform=ax_acf.transAxes,
             va="top",
-            fontsize=6.4,
+            fontsize=8.0,
             bbox={"facecolor": "white", "alpha": 0.75, "boxstyle": "round,pad=0.2"},
         )
         ax_acf.axhline(0.0, color="0.7", lw=0.55, zorder=1)
+        if band == "chime":
+            for harmonic in np.arange(0.390625, lag_zoom + 0.390625, 0.390625):
+                ax_acf.axvline(harmonic, color="0.6", ls=":", lw=0.7, alpha=0.8)
+                ax_acf.axvline(-harmonic, color="0.6", ls=":", lw=0.7, alpha=0.8)
         ax_acf.set_xlim(-lag_zoom, lag_zoom)
         ax_acf.yaxis.set_major_locator(MaxNLocator(nbins=3))
-        ax_acf.grid(axis="y", color=MANUSCRIPT_GRID, alpha=0.5, lw=0.4)
         if row_idx == n_subbands - 1:
             ax_acf.set_xlabel("Frequency Lag (MHz)")
-        else:
-            ax_acf.tick_params(labelbottom=False)
-        if row_idx == max(n_subbands // 2 - 1, 0):
-            ax_acf.set_ylabel(r"ACF Power  ($m^2$)")
+        if row_idx == max(0, n_subbands // 2 - 1):
+            ax_acf.set_ylabel(r"ACF Power ($m^2$)")
         ax_acf.tick_params(top=True, right=True, which="both", direction="in")
 
     png = figure_dir / f"{burst}_{band}_acf_lorentzian_fits.png"
@@ -624,7 +852,44 @@ def _plot_burst_acfs(
     fig.savefig(pdf, bbox_inches="tight")
     svg.write_text("\n".join(line.rstrip() for line in svg.read_text().splitlines()) + "\n")
     plt.close(fig)
-    return {"figure_png": str(png), "figure_svg": str(svg), "figure_pdf": str(pdf)}
+    gamma_fit_record = None
+    if gamma_fit is not None:
+        gamma_fit_record = {
+            "nu_ref_mhz": gamma_fit["nu_ref_mhz"],
+            "gamma_ref_mhz": gamma_fit["gamma_ref_mhz"],
+            "alpha": gamma_fit["alpha"],
+            "covariance": np.asarray(gamma_fit["covariance"], dtype=float).tolist(),
+            "n_fit_components": gamma_fit["n_fit_components"],
+            "selection_policy": gamma_fit["selection_policy"],
+        }
+    pbf_overlay = None
+    if tau_summary is not None and alpha_summary is not None:
+        pbf_overlay = {
+            "source": pbf_fit.get("_source") if pbf_fit else None,
+            "roster_source": pbf_fit.get("_roster_source") if pbf_fit else None,
+            "roster_locked_utc": pbf_fit.get("_roster_locked_utc") if pbf_fit else None,
+            "roster_gate_final": pbf_fit.get("_roster_gate_final") if pbf_fit else None,
+            "roster_rail_class": pbf_fit.get("_roster_rail_class") if pbf_fit else None,
+            "tau_1ghz_ms": tau_summary[0],
+            "tau_1ghz_err_minus_ms": tau_summary[1],
+            "tau_1ghz_err_plus_ms": tau_summary[2],
+            "alpha": alpha_summary[0],
+            "alpha_err_minus": alpha_summary[1],
+            "alpha_err_plus": alpha_summary[2],
+            "c1": pbf_c1,
+            "relation": "delta_nu_mhz = C1 / (2 pi tau_ms 1e3)",
+            "uncertainty_method": (
+                "approximate independent Gaussian draws from marginal 16th-84th "
+                "percentile summaries; tau-alpha covariance unavailable"
+            ),
+        }
+    return {
+        "figure_png": str(png),
+        "figure_svg": str(svg),
+        "figure_pdf": str(pdf),
+        "gamma_power_law_fit": gamma_fit_record,
+        "pbf_overlay": pbf_overlay,
+    }
 
 
 def _summary_subband_status(subband: dict[str, Any]) -> str:
@@ -1280,7 +1545,7 @@ def _fit_one_burst(
     if make_figures:
         selected_n = int(result["requested_num_subbands"])
         result.update(
-            _plot_burst_acfs(
+            plot_burst_acf_diagnostic(
                 burst, plot_payloads[selected_n], figure_dir=output_dir / "figures", band=band
             )
         )
@@ -1447,12 +1712,13 @@ def _write_markdown(
             "",
             "## ACF Fit Figures",
             "",
-            "Each burst figure follows the manuscript scintillation-summary",
-            "layout: the left panel shows selected Lorentzian bandwidths versus",
-            "DSA sub-band center frequency with a data-anchored reference",
-            "$\\gamma\\propto\\nu^4$ curve where constrained, and the right column",
-            "shows stacked frequency-lag ACF panels with the fitted total",
-            "Lorentzian model overlaid.",
+            "Each burst figure follows the Freya instrumental-origin experiment's",
+            "publication layout: a fitted bandwidth-frequency relation beside",
+            "stacked symmetric-lag ACF panels, with the selected Lorentzian model",
+            "overlaid in black. When available, the tracked time-frequency joint",
+            "PBF fit supplies a second predicted bandwidth curve using C1=1.16.",
+            "These figures remain diagnostic until the",
+            "upstream Phase 0 producer/ACF/fitting validation passes.",
             "",
         ]
     )

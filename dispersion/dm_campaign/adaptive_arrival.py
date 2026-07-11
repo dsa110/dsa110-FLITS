@@ -196,9 +196,14 @@ def select_stable_candidate(
         }
 
     median_dm = float(np.median([c["dm"] for c in members]))
+    # For an even-sized cluster the two middle members are exactly equidistant
+    # from the median in real arithmetic, so the raw distance key ties at the
+    # ~1e-10 float level and the winner shifts with library version (observed:
+    # scipy 1.17 vs 1.18). Quantize far below dm_step so the documented
+    # tiebreak (n_good_subbands, then sigma) decides deterministically.
     selected = min(
         members,
-        key=lambda c: (abs(c["dm"] - median_dm), -c["n_good_subbands"], c["sigma"]),
+        key=lambda c: (round(abs(c["dm"] - median_dm), 6), -c["n_good_subbands"], c["sigma"]),
     )
     return {
         "status": "science-grade" if selected["fit_quality"] == "PASS" else "marginal-fit",

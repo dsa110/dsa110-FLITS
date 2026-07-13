@@ -1,0 +1,45 @@
+{
+  "host": "lxd110h17",
+  "remote_root": "/data/research/astrophysics/frbs/chime-dsa-codetections/experiments/freya_endtoend_calibration_v1",
+  "input_h5": {
+    "path": "/data/research/astrophysics/frbs/chime-dsa-codetections/chime_singlebeam/singlebeam_278720455.h5",
+    "sha256": "676a9033c10926c213603939bee78c44d6d1a011c01e4279b41bccc97127df52"
+  },
+  "baseline_replay": {
+    "waterfall_sha256": "f7ce42985a99eeb70565abb1b8458ec888fa2e65396cef2e2bf9b367941f62b9",
+    "frequency_sha256": "b686f99e71ad37a0b9014aae8ea480865b7eda8c94f0eb6c1d82e11d6a800255"
+  },
+  "producer": {
+    "path": "/data/research/astrophysics/frbs/chime-dsa-codetections/scripts/upchannelize_chime.py",
+    "sha256": "45761458bde9085dbb6ce0c662f48678ee38b4417902718c9ef67088a3332a0d"
+  },
+  "container": {
+    "image_id": "sha256:8c903ec6a5a836e8a97fe3468fd3ee02177c220ead84e6d1d25e8f41b735db4b",
+    "repo_digest": "chimefrb/baseband-analysis@sha256:f510909d892d0d5224c982c590cbe80967a49a59b79c396ab72bb710105c4c41",
+    "baseband_analysis_version": "1.9.0"
+  },
+  "executed_runner": {
+    "sha256": "c37a0962c8018a867cb532c68f85ebb97965c7fdf5cc439c198b5d1d9bea85d3",
+    "note": "Scientific computation version. The committed runner adds marker-separated band labels plus pre-run input-provenance and final qualification-gate hardening; injection and fitting computations are unchanged."
+  },
+  "raw_validation": {
+    "path": "/data/research/astrophysics/frbs/chime-dsa-codetections/experiments/freya_endtoend_calibration_v1/results/validation.json",
+    "sha256": "6778a639374ae4e7b6390deda445b638bfc5857d9d83cd5c0cdc28d9d5a2ce04",
+    "size": "73 MB; full target and recovered spectra retained on h17"
+  },
+  "completed_run_log_sha256": "69bf057dca5eab640f23e8e5e83011813f78b7288c63e9afef7062b9fe30d5a2",
+  "pre_verdict_attempts": [
+    {
+      "sha256": "6fb19e7ee36d5ffa5b8622104a4855b31d1530a06995a9591cf9164480875612",
+      "disposition": "mechanical optimizer-start guard; no result emitted"
+    },
+    {
+      "sha256": "4674ccf93d20519522775bc308261863547b8770bfc8321a8c05ef02e181d303",
+      "disposition": "stopped before verdict to preserve absolute hardware channel gaps"
+    },
+    {
+      "sha256": "d4eb6aa4cf6e12f59339d7182d973b9f0438c3da999d979f9a0a495a2a6b8d95",
+      "disposition": "stopped before verdict to use exact per-channel truth normalization"
+    }
+  ]
+}

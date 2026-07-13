@@ -95,7 +95,32 @@ filenames (`<nick>_<tel>_I_<DM>_…`) and should be confirmed against
 
 ## 2. CHIME up-channelized products (voltage-derived, 400–800 MHz)
 
-### 2a. New pass — `upchannelize_chime.py` (current method)
+### 2a. Corrected-product builder and qualification gate (2026-07-12)
+
+`flits-chime-product` / `scintillation/scripts/build_chime_product.py` is the
+tracked replacement for the data-directory-only aligned NPZ builder. It reads
+the detected upchannelized intensity, fine-channel frequencies, and `time0`
+metadata; masks the dispersed burst before alignment; fits one deterministic
+rank-1 common mode per parent CHIME coarse/PFB block; and writes separate
+`*_uncorrected.npz`, `*_corrected.npz`, and hash-addressed manifest files. Both
+products use padded integer placement. The builder never wraps or overwrites an
+existing canonical product.
+
+The target registry is `configs/chime_products.yaml` and covers all 12
+co-detections. A corrected product is not automatically a measurement:
+`chime_correction_validation.py` requires the off-pulse null, injection
+recovery, low-lag and fit-window stability, split-time and split-band tests,
+comb residual, independent kernel cross-check, and manual review. Missing or
+failed checks force `diagnostic_only`.
+
+The first Freya qualification run produced paired external products under
+`~/Data/Faber2026/dsa110/scintillation-data/freya_chime_coarse_rank1_v1_*`.
+The simple builder diagnostic reduced the aggregate off-pulse lags 1–6 from
+0.579 to 0.335 but did **not** make them white. This is a failed correction
+gate, not a CHIME scintillation measurement; the other 11 targets remain
+blocked until the residual mechanism is corrected and Freya passes.
+
+### 2b. New pass — `upchannelize_chime.py` (current method)
 
 **Producer:** `$COD/scripts/upchannelize_chime.py` — runs **inside the
 `chimefrb/baseband-analysis:latest` docker image** on `h17` (`baseband_analysis`
@@ -152,7 +177,7 @@ are symlinked into `~/Data/Faber2026/dsa110/scintillation/data/` for the FLITS
 > time sample is `dt = 2.56e-6 s × 2 × U` (e.g. U=16 → 81.9 µs). Whoever packages a new
 > target must synthesize the time axis from this, as was done for casey.
 
-### 2b. Retired old pass — `chime_acfs/*_subband_acf_fits.pkl`
+### 2c. Retired old pass — `chime_acfs/*_subband_acf_fits.pkl`
 
 The repo used to track four CHIME-band legacy fit pickles:
 `chromatica_356959136_subband_acf_fits.pkl`,

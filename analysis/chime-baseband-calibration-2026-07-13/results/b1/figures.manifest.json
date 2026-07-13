@@ -1,0 +1,8 @@
+{
+  "figures": [
+    {
+      "expectation": "Recovered voltage-injection widths follow identity and recovered signal power remains unity in both CHIME bands and at both injected power ratios.",
+      "path": "/Users/jakobfaber/Developer/scratch/worktrees/flits-chime-endtoend-calibration/analysis/chime-baseband-calibration-2026-07-13/results/b1/freya_b1_voltage_recovery.svg"
+    }
+  ]
+}

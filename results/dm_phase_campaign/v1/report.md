@@ -2,9 +2,11 @@
 
 ## Status
 
-- Implementation: artifacts were generated at FLITS commit `2a08f697e1398bec88cc8d5554cca6425790b540`.
-- Publication provenance: after an unpushed rebase onto `upstream/pin/faber2026`, the byte-identical
-  controlled-suite implementation is commit `ee0c25d`; the original hash is retained in every result.
+- Measurement and validation artifacts were generated at FLITS commit
+  `2a08f697e1398bec88cc8d5554cca6425790b540`.
+- The measurement implementation is byte-identical at rebased commit `ee0c25d`; commit `782bcb1`
+  only repairs preflight provenance accounting.
+- Preflight was regenerated from clean commit `782bcb1`; see `run_manifest.json`.
 - Published oracle: passed on deterministic CHIME and DSA bright fixtures.
 - Known-truth validation: passed on the untouched final seed block.
 - Measurements: 24/24 terminal; 2 PASS and 22 UNCONSTRAINED.

@@ -19,18 +19,37 @@ def _module(path=RUNNER):
     return module
 
 
-def test_manual_review_requires_overall_authorization():
+def test_manual_review_requires_overall_authorization(tmp_path):
     module = _module(FINALIZER)
-    manifest = {"figures": [{"path": "figure.svg"}]}
+    figure = tmp_path / "figure.svg"
+    figure.write_text("reviewed")
+    manifest = {"figures": [{"path": "figure.svg", "sha256": module._sha256(figure)}]}
     review = {
         "figures": [{"path": "figure.svg", "verdict": "match"}],
         "overall_verdict": "match",
         "qualification_authorized": False,
     }
 
-    assert module._manual_review_pass(manifest, review) is False
+    assert module._manual_review_pass(manifest, review, tmp_path) is False
     review["qualification_authorized"] = True
-    assert module._manual_review_pass(manifest, review) is True
+    assert module._manual_review_pass(manifest, review, tmp_path) is True
+
+
+def test_manual_review_rejects_missing_or_changed_figure(tmp_path):
+    module = _module(FINALIZER)
+    figure = tmp_path / "figure.svg"
+    figure.write_text("reviewed")
+    manifest = {"figures": [{"path": "figure.svg", "sha256": module._sha256(figure)}]}
+    review = {
+        "figures": [{"path": "figure.svg", "verdict": "match"}],
+        "overall_verdict": "match",
+        "qualification_authorized": True,
+    }
+
+    figure.write_text("changed after review")
+    assert module._manual_review_pass(manifest, review, tmp_path) is False
+    figure.unlink()
+    assert module._manual_review_pass(manifest, review, tmp_path) is False
 
 
 def test_final_qualification_requires_every_check_to_pass():
@@ -81,3 +100,11 @@ def test_matched_scalar_gain_round_trip():
     observed_power = np.abs(np.sqrt(target) * np.sqrt(scallop)) ** 2
 
     np.testing.assert_allclose(observed_power / scallop, target, rtol=1e-12, atol=1e-12)
+
+
+def test_missing_fit_fails_width_and_comparison_without_crashing():
+    module = _module()
+    missing = {"truth_fit": {"dnu_mhz": 0.05}, "recovered_fit": None}
+
+    assert module._width_pass(missing, channel_width_mhz=0.006) is False
+    assert np.isinf(module._median_abs_fractional_error([missing]))

@@ -76,6 +76,33 @@ def _phase_cycled_signal(
     )
 
 
+def _width_pass(item: dict, channel_width_mhz: float) -> bool:
+    truth_fit = item.get("truth_fit")
+    recovered_fit = item.get("recovered_fit")
+    if not truth_fit or not recovered_fit:
+        return False
+    truth = truth_fit.get("dnu_mhz")
+    recovered = recovered_fit.get("dnu_mhz")
+    if not np.isfinite(truth) or not np.isfinite(recovered) or truth <= 0:
+        return False
+    return bool(abs(recovered - truth) < max(0.10 * truth, 0.25 * channel_width_mhz))
+
+
+def _median_abs_fractional_error(records: list[dict]) -> float:
+    values = []
+    for item in records:
+        truth_fit = item.get("truth_fit")
+        recovered_fit = item.get("recovered_fit")
+        if not truth_fit or not recovered_fit:
+            return math.inf
+        truth = truth_fit.get("dnu_mhz")
+        recovered = recovered_fit.get("dnu_mhz")
+        if not np.isfinite(truth) or not np.isfinite(recovered) or truth <= 0:
+            return math.inf
+        values.append(abs(recovered - truth) / truth)
+    return float(np.median(values)) if values else math.inf
+
+
 def _build_signal(
     b1,
     dedispersed_crop: np.ndarray,
@@ -265,7 +292,11 @@ def _plot(records: list[dict], output: Path) -> None:
     }
     fig, axes = plt.subplots(1, 2, figsize=(12, 5))
     for route in ROUTES:
-        chosen = [item for item in records if item["route"] == route]
+        chosen = [
+            item
+            for item in records
+            if item["route"] == route and item.get("truth_fit") and item.get("recovered_fit")
+        ]
         truth = [item["truth_fit"]["dnu_mhz"] * 1e3 for item in chosen]
         recovered = [item["recovered_fit"]["dnu_mhz"] * 1e3 for item in chosen]
         axes[0].scatter(
@@ -385,27 +416,21 @@ def main() -> int:
         nominal = item["nominal_width_channels"] * b1.CHANNEL_WIDTH_MHZ
         target_pass.append(abs(item["truth_fit"]["dnu_mhz"] - nominal) <= 0.10 * nominal)
 
-    def width_pass(item):
-        truth = item["truth_fit"]["dnu_mhz"]
-        recovered = item["recovered_fit"]["dnu_mhz"]
-        return abs(recovered - truth) < max(0.10 * truth, 0.25 * b1.CHANNEL_WIDTH_MHZ)
-
-    matched_noise_width = [width_pass(item) for item in route_records["matched_noise_free"]]
-    matched_phase_width = [width_pass(item) for item in route_records["matched_phase_cycled"]]
+    matched_noise_width = [
+        _width_pass(item, b1.CHANNEL_WIDTH_MHZ)
+        for item in route_records["matched_noise_free"]
+    ]
+    matched_phase_width = [
+        _width_pass(item, b1.CHANNEL_WIDTH_MHZ)
+        for item in route_records["matched_phase_cycled"]
+    ]
     phase_power = [
         abs(item["power_recovery_ratio"] - 1.0) <= 0.10
         for item in route_records["matched_phase_cycled"]
     ]
 
-    def median_abs_fractional_error(route):
-        values = []
-        for item in route_records[route]:
-            truth = item["truth_fit"]["dnu_mhz"]
-            values.append(abs(item["recovered_fit"]["dnu_mhz"] - truth) / truth)
-        return float(np.median(values))
-
-    matched_error = median_abs_fractional_error("matched_phase_cycled")
-    unmatched_error = median_abs_fractional_error("unmatched_noise_free")
+    matched_error = _median_abs_fractional_error(route_records["matched_phase_cycled"])
+    unmatched_error = _median_abs_fractional_error(route_records["unmatched_noise_free"])
     checks = {
         "baseline_replay": replay,
         "gain_positive_finite": {"pass": bool(np.all(np.isfinite(gain) & (gain > 0)))},
@@ -433,7 +458,11 @@ def main() -> int:
             "n_pass": sum(phase_power),
         },
         "matched_improves_over_unmatched": {
-            "pass": matched_error * 2.0 <= unmatched_error,
+            "pass": bool(
+                np.isfinite(matched_error)
+                and np.isfinite(unmatched_error)
+                and matched_error * 2.0 <= unmatched_error
+            ),
             "matched_median_abs_fractional_error": matched_error,
             "unmatched_median_abs_fractional_error": unmatched_error,
         },
@@ -479,4 +508,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

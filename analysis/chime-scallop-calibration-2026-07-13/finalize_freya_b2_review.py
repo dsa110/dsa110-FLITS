@@ -20,11 +20,18 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def _manual_review_pass(manifest: dict, review: dict) -> bool:
+def _manual_review_pass(manifest: dict, review: dict, root: Path = ROOT) -> bool:
     expected = {item["path"] for item in manifest["figures"]}
     reviewed = {item["path"] for item in review["figures"]}
     if expected != reviewed:
         raise ValueError("figure review does not cover the complete manifest")
+    root = root.resolve()
+    for item in manifest["figures"]:
+        figure = (root / item["path"]).resolve()
+        if not figure.is_relative_to(root) or not figure.is_file():
+            return False
+        if _sha256(figure) != item.get("sha256"):
+            return False
     return (
         all(item["verdict"] == "match" for item in review["figures"])
         and review["overall_verdict"] == "match"

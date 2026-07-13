@@ -816,9 +816,27 @@ def _fit_acf_models(
         # Run the fit
         label = f"fit_{'sn_tpl_' if has_sn and has_tpl else 'sn_' if has_sn else 'tpl_' if has_tpl else ''}{key}"
         try:
-            fit_results[label] = model.fit(
+            result = model.fit(
                 y, params, x=x, weights=w, method="nelder", max_nfev=4000
             )
+            # Nelder-Mead carries no covariance, so every param.stderr is
+            # None and the sub-band bw_err/mod_err serialize as NaN (P4e
+            # audit B3) — which downstream nan_to_num turned into an
+            # all-zero error vector for the gamma scaling fit. Refine at
+            # the Nelder optimum with leastsq to populate stderr; keep the
+            # Nelder result if the refinement fails or wanders.
+            try:
+                refined = model.fit(
+                    y, result.params.copy(), x=x, weights=w,
+                    method="leastsq", max_nfev=2000
+                )
+                if refined.success and np.isfinite(refined.chisqr) and (
+                    refined.chisqr <= result.chisqr * 1.05
+                ):
+                    result = refined
+            except Exception as refine_exc:
+                log.debug(f"{label} leastsq refinement failed ({refine_exc})")
+            fit_results[label] = result
         except Exception as e:
             log.debug(f"{label} failed ({e})")
             fit_results[label] = None
@@ -1915,9 +1933,18 @@ def analyze_scintillation_from_acfs(acf_results, config):
             ]
         )
         bws = np.array([p.get("bw") for p in measurements])
-        bw_errs = np.array([p.get("bw_err") for p in measurements])
-        finite_errs = np.array([p.get("finite_err") for p in measurements])
+        bw_errs = np.array([p.get("bw_err") for p in measurements], dtype=float)
+        finite_errs = np.array([p.get("finite_err") for p in measurements], dtype=float)
         total_errs = np.sqrt(np.nan_to_num(bw_errs) ** 2 + np.nan_to_num(finite_errs) ** 2)
+        # A zeroed error (both components NaN -> nan_to_num) silently turns
+        # the weighted gamma fit into garbage; treat missing errors honestly
+        # by falling back to the unweighted estimator downstream.
+        if not np.all(total_errs > 0):
+            log.warning(
+                "Component %s: %d/%d sub-band widths carry no usable error; "
+                "gamma scaling errors are unreliable.",
+                name, int(np.sum(~(total_errs > 0))), total_errs.size,
+            )
 
         gamma_scaling = estimate_gamma_scaling(
             freqs, bws, gamma_errs=total_errs, ref_freq=ref_freq

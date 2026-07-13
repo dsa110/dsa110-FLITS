@@ -418,10 +418,26 @@ class ScintillationAnalysis:
         provenance = guards.chime_provenance_status(self.config)
         null = guards.off_pulse_null_verdict(on_dnu, off_dnu)
         stability = guards.low_lag_stability_verdict(on_dnu, excision_widths)
+        # P4e blind spots: the null/stability gates only probe the reference
+        # sub-band, so an unphysical fitted amplitude (whitney m = 3.53) or a
+        # zero-dof two-sub-band width (casey_hi) sailed through. Judge the
+        # fitted m values and the valid-sub-band count from the components.
+        all_mods: list = []
+        n_valid_bw = 0
+        for comp in (self.final_results.get("components") or {}).values():
+            for meas in comp.get("subband_measurements", []) or []:
+                bw = meas.get("bw")
+                if bw is not None and np.isfinite(bw) and bw > 0:
+                    n_valid_bw += 1
+                all_mods.append(meas.get("mod"))
+        modulation = guards.modulation_index_verdict(all_mods)
+        support = guards.subband_support_verdict(n_valid_bw)
         status = guards.finalize_measurement_status(
             provenance,
             off_pulse_null=null,
             low_lag_stability=stability,
+            modulation_index=modulation,
+            subband_support=support,
         )
         # Fail closed: finalize_measurement_status only downgrades on an
         # explicit False, but a swallowed re-fit exception or missing ACF
@@ -433,6 +449,7 @@ class ScintillationAnalysis:
                 ("on_pulse_refit", on_dnu is not None),
                 ("off_pulse_null", null.get("null_pass") is not None),
                 ("low_lag_stability", stability.get("stable") is not None),
+                ("modulation_index", modulation.get("physical") is not None),
             )
             if not ran
         ]
@@ -451,6 +468,8 @@ class ScintillationAnalysis:
                 "chime_provenance": provenance,
                 "off_pulse_null": null,
                 "low_lag_stability": stability,
+                "modulation_index_verdict": modulation,
+                "subband_support_verdict": support,
                 "systematic_scan": {
                     "fit_windows": scan_records,
                     "fit_window_systematic_mhz": systematic,

@@ -407,11 +407,75 @@ def harmonic_mask_systematic(
     }
 
 
+def modulation_index_verdict(
+    mods,
+    *,
+    max_m: float = 1.5,
+) -> dict:
+    """Physicality check on the fitted per-sub-band modulation indices.
+
+    Diffractive scintillation of a point source saturates at m = 1; modest
+    excursions above 1 happen in noisy fits, but m >> 1 means the fitted ACF
+    zero-lag amplitude is not scintillation (P4e audit: whitney reached
+    m = 3.53 and still certified as a measurement). Values above ``max_m``
+    fail the verdict; no finite values -> inconclusive (None).
+    """
+    finite = [float(m) for m in (mods or []) if m is not None and np.isfinite(m)]
+    if not finite:
+        return {
+            "physical": None,
+            "m_values": [],
+            "m_max": None,
+            "reason": "no finite modulation indices; physicality inconclusive",
+        }
+    m_max = max(finite)
+    physical = m_max <= max_m
+    return {
+        "physical": bool(physical),
+        "m_values": finite,
+        "m_max": m_max,
+        "reason": (
+            f"all sub-band m <= {max_m:g} -> amplitude physical"
+            if physical
+            else f"max sub-band m = {m_max:.3g} > {max_m:g} -> fitted ACF amplitude "
+            "is not scintillation (unphysical modulation)"
+        ),
+    }
+
+
+def subband_support_verdict(
+    n_valid: int,
+    *,
+    min_subbands: int = 3,
+) -> dict:
+    """Require enough independent sub-bands to call the width a measurement.
+
+    Two sub-bands make any scaling fit an exact zero-dof solution (P4e audit:
+    casey_hi alpha = 9.25 +/- 1e-12 from 2 points) and give no internal
+    consistency check on the width itself.
+    """
+    n_valid = int(n_valid)
+    sufficient = n_valid >= int(min_subbands)
+    return {
+        "sufficient": bool(sufficient),
+        "n_valid_subbands": n_valid,
+        "min_subbands": int(min_subbands),
+        "reason": (
+            f"{n_valid} valid sub-bands >= {min_subbands}"
+            if sufficient
+            else f"only {n_valid} valid sub-band(s) < {min_subbands} -> no "
+            "cross-band consistency; diagnostic only"
+        ),
+    }
+
+
 def finalize_measurement_status(
     provenance: dict,
     *,
     off_pulse_null: dict | None = None,
     low_lag_stability: dict | None = None,
+    modulation_index: dict | None = None,
+    subband_support: dict | None = None,
 ) -> dict:
     """Combine the provenance gate with the physical null/stability verdicts.
 
@@ -437,6 +501,10 @@ def finalize_measurement_status(
         failed.append("off_pulse_null")
     if low_lag_stability is not None and low_lag_stability.get("stable") is False:
         failed.append("low_lag_stability")
+    if modulation_index is not None and modulation_index.get("physical") is False:
+        failed.append("modulation_index")
+    if subband_support is not None and subband_support.get("sufficient") is False:
+        failed.append("subband_support")
 
     status = MEASUREMENT if not failed else DIAGNOSTIC_ONLY
     return {"status": status, "downgraded": bool(failed), "failed_checks": failed}

@@ -184,6 +184,67 @@ def test_low_lag_mild_growth_still_stable():
     assert v["failed_ks"] == []
 
 
+# --- modulation-index physicality (P4e blind spot: whitney) -----------------
+
+
+def test_modulation_unphysical_on_whitney_numbers():
+    # whitney: 3/4 sub-bands m > 1, max 3.53 -> not scintillation amplitude.
+    v = guards.modulation_index_verdict([1.567, 1.871, 0.605, 3.531])
+    assert v["physical"] is False
+    assert v["m_max"] == 3.531
+
+
+def test_modulation_physical_band():
+    v = guards.modulation_index_verdict([0.28, 0.41, 1.1, None, np.nan])
+    assert v["physical"] is True
+    assert v["m_values"] == [0.28, 0.41, 1.1]
+
+
+def test_modulation_inconclusive_without_values():
+    assert guards.modulation_index_verdict([])["physical"] is None
+    assert guards.modulation_index_verdict([None, np.nan])["physical"] is None
+
+
+# --- sub-band support (P4e blind spot: casey_hi) -----------------------------
+
+
+def test_subband_support_two_points_insufficient():
+    v = guards.subband_support_verdict(2)
+    assert v["sufficient"] is False
+
+
+def test_subband_support_three_ok():
+    assert guards.subband_support_verdict(3)["sufficient"] is True
+
+
+def test_finalize_downgrades_on_unphysical_modulation():
+    prov = guards.chime_provenance_status(_chime_cfg())
+    null = guards.off_pulse_null_verdict(0.448, [0.02, 0.025, 0.03, 0.022])
+    stab = guards.low_lag_stability_verdict(0.713, {2: 0.71, 3: 0.70})
+    mod = guards.modulation_index_verdict([1.567, 3.531])
+    sup = guards.subband_support_verdict(4)
+    f = guards.finalize_measurement_status(
+        prov, off_pulse_null=null, low_lag_stability=stab,
+        modulation_index=mod, subband_support=sup,
+    )
+    assert f["status"] == guards.DIAGNOSTIC_ONLY
+    assert f["failed_checks"] == ["modulation_index"]
+
+
+def test_finalize_downgrades_on_thin_subband_support():
+    prov = guards.chime_provenance_status(_chime_cfg())
+    null = guards.off_pulse_null_verdict(0.448, [0.02, 0.025, 0.03, 0.022])
+    stab = guards.low_lag_stability_verdict(0.713, {2: 0.71, 3: 0.70})
+    mod = guards.modulation_index_verdict([0.28, 0.41])
+    sup = guards.subband_support_verdict(2)
+    f = guards.finalize_measurement_status(
+        prov, off_pulse_null=null, low_lag_stability=stab,
+        modulation_index=mod, subband_support=sup,
+    )
+    assert f["status"] == guards.DIAGNOSTIC_ONLY
+    assert f["failed_checks"] == ["subband_support"]
+
+
 # --- harmonic-mask systematic (rec #5) --------------------------------------
 
 

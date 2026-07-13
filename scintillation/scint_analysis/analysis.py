@@ -462,8 +462,18 @@ def _mean_noise_acf(
         log.debug("Evicted oldest entry from noise ACF cache")
 
     acfs = []
-    for _ in range(n_rep):
-        noise_row = noise_desc.sample()[0]  # (nchan,) synthetic row
+    # Deterministic per-draw seeds keyed to the descriptor: unseeded draws
+    # made the sub-band widths (and hence the fitted alpha) drift between
+    # identical runs — casey's odr alpha flipped sign run-to-run. Python's
+    # hash() is salted per process (PYTHONHASHSEED), so use a stable digest.
+    import zlib
+
+    base_seed = zlib.crc32(
+        repr((noise_desc.kind, noise_desc.nt, noise_desc.nchan,
+              round(noise_desc.mu, 8), round(noise_desc.sigma, 8))).encode()
+    ) % (2**31)
+    for i in range(n_rep):
+        noise_row = noise_desc.sample(seed=base_seed + i)[0]  # (nchan,) synthetic row
         acf_obj = acf_fn(
             np.ma.masked_invalid(noise_row),
             channel_width_mhz,

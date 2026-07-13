@@ -188,8 +188,9 @@ class _SeededNoiseDescriptor:
         self.phi_f = 0.0
         self._rng = np.random.default_rng(seed)
 
-    def sample(self):
-        return self._rng.normal(0.0, self.sigma, (self.nt, self.nchan))
+    def sample(self, *, seed=None):
+        rng = self._rng if seed is None else np.random.default_rng(seed)
+        return rng.normal(0.0, self.sigma, (self.nt, self.nchan))
 
 
 @pytest.mark.parametrize("first_fit_lag", [2, 1])

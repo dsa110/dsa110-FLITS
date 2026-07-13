@@ -24,3 +24,30 @@ class DMSearchResult:
     grid_peak_dm: float
     edge_peak: bool
     interpolation_used: bool
+
+
+@dataclass(frozen=True)
+class BootstrapResult:
+    peaks: np.ndarray
+    sigma: float
+    success_fraction: float
+
+
+@dataclass(frozen=True)
+class ResolutionEvaluation:
+    frequency_factor: int
+    time_factor: int
+    shape: tuple[int, int]
+    residual_dm: float | None
+    sigma: float | None
+    profile_snr: float
+    coherence_peak_z: float
+    bootstrap_success_fraction: float
+    edge_peak: bool
+    cutoff_stable: bool
+    eligible: bool
+    failure_reasons: tuple[str, ...]
+
+    @property
+    def information_loss(self) -> float:
+        return float(np.log2(self.time_factor) + np.log2(self.frequency_factor))

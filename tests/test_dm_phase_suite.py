@@ -5,6 +5,13 @@ import pytest
 from scipy.ndimage import shift as nd_shift
 
 from dispersion.dm_phase_suite.coherence import coherence_curve
+from dispersion.dm_phase_suite.cutoff import width_derived_cutoffs
+from dispersion.dm_phase_suite.model import ResolutionEvaluation
+from dispersion.dm_phase_suite.resolution import (
+    block_average,
+    resolution_factors,
+    select_resolution,
+)
 from dispersion.dm_phase_suite.search import search_dm
 from dispersion.dm_phase_suite.shifts import (
     K_DM_S_MHZ2,
@@ -80,3 +87,47 @@ def test_search_is_deterministic_and_returns_physical_absolute_dm() -> None:
     assert a.residual_dm == pytest.approx(b.residual_dm, abs=1e-12)
     assert a.absolute_dm == pytest.approx(500.55, abs=0.12)
     assert not a.edge_peak
+
+
+def test_resolution_grid_is_native_first_and_block_average_is_exact() -> None:
+    assert resolution_factors("chime")[0] == (1, 1)
+    wf = np.arange(8 * 16, dtype=float).reshape(8, 16)
+    freq = np.arange(8, dtype=float)
+    reduced, reduced_freq = block_average(wf, freq, 2, 4)
+    assert reduced.shape == (4, 4)
+    assert reduced[0, 0] == pytest.approx(np.mean(wf[:2, :4]))
+    np.testing.assert_allclose(reduced_freq, [0.5, 2.5, 4.5, 6.5])
+
+
+def _evaluation(ff: int, tf: int, dm: float, eligible: bool = True) -> ResolutionEvaluation:
+    return ResolutionEvaluation(
+        frequency_factor=ff,
+        time_factor=tf,
+        shape=(64, 256),
+        residual_dm=dm,
+        sigma=0.03,
+        profile_snr=12.0,
+        coherence_peak_z=8.0,
+        bootstrap_success_fraction=1.0,
+        edge_peak=False,
+        cutoff_stable=True,
+        eligible=eligible,
+        failure_reasons=(),
+    )
+
+
+def test_resolution_selection_requires_stability_and_prefers_highest_information() -> None:
+    rows = [_evaluation(1, 1, 0.50), _evaluation(2, 1, 0.54), _evaluation(1, 2, 1.2)]
+    selected = select_resolution(rows)
+    assert selected is rows[0]
+    assert select_resolution([rows[0]]) is None
+
+
+def test_width_derived_cutoff_is_lower_for_broader_pulse() -> None:
+    t = np.arange(2048)
+    narrow = np.exp(-0.5 * ((t - 1000) / 3.0) ** 2)[None, :].repeat(16, axis=0)
+    broad = np.exp(-0.5 * ((t - 1000) / 30.0) ** 2)[None, :].repeat(16, axis=0)
+    narrow_cut = width_derived_cutoffs(narrow, 1e-4)[1][1]
+    broad_cut = width_derived_cutoffs(broad, 1e-4)[1][1]
+    assert broad_cut < narrow_cut
+    assert broad_cut >= 100.0

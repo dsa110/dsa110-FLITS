@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 
 from .model import CoherenceCurve
-from .shifts import dedisperse_residual
+from .shifts import residual_delay_s
 
 
 def _normalise_channels(waterfall: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
@@ -52,7 +52,12 @@ def coherence_curve(
         weights = np.where(valid & np.isfinite(weights) & (weights >= 0), weights, 0.0)
     weights /= weights.sum()
 
-    fluctuation = np.fft.rfftfreq(wf.shape[1], float(sample_time_s))
+    maximum_delay_s = float(
+        np.max(np.abs(residual_delay_s(freq, float(np.max(np.abs(grid))))))
+    )
+    pad = int(np.ceil(maximum_delay_s / float(sample_time_s))) + 8
+    padded = np.pad(wf, ((0, 0), (pad, pad)), mode="constant")
+    fluctuation = np.fft.rfftfreq(padded.shape[1], float(sample_time_s))
     low, high = map(float, f_cut_hz)
     if not (0 <= low < high):
         raise ValueError("f_cut_hz must be an increasing non-negative pair")
@@ -60,19 +65,26 @@ def coherence_curve(
     if use.sum() < 2:
         raise ValueError("cutoff leaves fewer than two positive fluctuation bins")
 
+    spectrum = np.fft.rfft(padded, axis=1)[:, use]
+    amplitude = np.abs(spectrum)
+    phase_only = np.divide(
+        spectrum,
+        amplitude,
+        out=np.zeros_like(spectrum),
+        where=amplitude > np.finfo(float).tiny,
+    )
+    f_used = fluctuation[use]
+    delay_per_dm = residual_delay_s(freq, 1.0)
     power = np.empty((grid.size, int(use.sum())), dtype=float)
     for index, residual_dm in enumerate(grid):
-        shifted = dedisperse_residual(wf, freq, sample_time_s, float(residual_dm))
-        spectrum = np.fft.rfft(shifted, axis=1)[:, use]
-        amplitude = np.abs(spectrum)
-        phase = np.divide(
-            spectrum,
-            amplitude,
-            out=np.zeros_like(spectrum),
-            where=amplitude > np.finfo(float).tiny,
+        correction = np.exp(
+            2j
+            * np.pi
+            * delay_per_dm[:, None]
+            * float(residual_dm)
+            * f_used[None, :]
         )
-        coherent = np.sum(phase * weights[:, None], axis=0)
+        coherent = np.sum(phase_only * correction * weights[:, None], axis=0)
         power[index] = np.abs(coherent) ** 2
-    f_used = fluctuation[use]
     score = np.sum(power * f_used[None, :] ** 2, axis=1)
     return CoherenceCurve(grid, score, f_used, power, int(valid.sum()))

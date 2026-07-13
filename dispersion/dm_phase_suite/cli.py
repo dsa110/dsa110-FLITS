@@ -15,6 +15,9 @@ import yaml
 
 from dispersion.dm_power_analysis import CHIME_DT_S, DSA_DT_S
 
+from .diagnostics import render_campaign
+from .injection import run_full_injections, run_quick_injections
+from .measurement import run_measurements
 from .oracle import build_oracle_report
 
 
@@ -101,6 +104,16 @@ def main() -> int:
     preflight_parser.add_argument("--config", type=Path, required=True)
     oracle_parser = commands.add_parser("oracle")
     oracle_parser.add_argument("--config", type=Path, required=True)
+    injection_parser = commands.add_parser("inject")
+    injection_parser.add_argument("--config", type=Path, required=True)
+    injection_parser.add_argument("--tier", choices=("quick", "full"), default="quick")
+    measurement_parser = commands.add_parser("measure")
+    measurement_parser.add_argument("--config", type=Path, required=True)
+    measurement_parser.add_argument("--pilot", action="store_true")
+    measurement_parser.add_argument("--all", action="store_true")
+    render_parser = commands.add_parser("render")
+    render_parser.add_argument("--config", type=Path, required=True)
+    render_parser.add_argument("--pilot", action="store_true")
     args = parser.parse_args()
     if args.command == "preflight":
         return preflight(args.config)
@@ -110,6 +123,26 @@ def main() -> int:
         report = build_oracle_report(output)
         print(json.dumps(report, indent=2))
         return 0 if report["pass"] else 1
+    if args.command == "inject":
+        config = yaml.safe_load(args.config.read_text())
+        output = Path(config["output_dir"]) / "injections" / f"{args.tier}.json"
+        report = (
+            run_quick_injections(output)
+            if args.tier == "quick"
+            else run_full_injections(output)
+        )
+        print(json.dumps({"tier": args.tier, "pass": report["pass"], "summaries": report["summaries"]}, indent=2))
+        return 0 if report["pass"] else 1
+    if args.command == "measure":
+        if args.pilot == args.all:
+            raise SystemExit("choose exactly one of --pilot or --all")
+        summary = run_measurements(args.config, pilot=args.pilot)
+        print(json.dumps(summary, indent=2))
+        return 0
+    if args.command == "render":
+        paths = render_campaign(args.config, pilot=args.pilot)
+        print(json.dumps({"rendered": len(paths), "paths": paths}, indent=2))
+        return 0
     raise AssertionError(args.command)
 
 

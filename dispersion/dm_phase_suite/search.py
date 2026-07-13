@@ -58,6 +58,21 @@ def search_dm(
         f_cut_hz=f_cut_hz,
     )
     fine_index = int(np.argmax(fine.score))
+    if fine_index in (0, fine_grid.size - 1) and coarse_index not in (0, coarse_grid.size - 1):
+        centre = float(fine_grid[fine_index])
+        fine_grid = np.arange(
+            centre - coarse_spacing,
+            centre + coarse_spacing + 0.5 * fine_step,
+            fine_step,
+        )
+        fine = coherence_curve(
+            waterfall,
+            frequencies_mhz,
+            sample_time_s,
+            fine_grid,
+            f_cut_hz=f_cut_hz,
+        )
+        fine_index = int(np.argmax(fine.score))
     peak, interpolated = _bounded_parabolic_peak(fine_grid, fine.score, fine_index)
     edge = coarse_index in (0, coarse_grid.size - 1) or fine_index in (0, fine_grid.size - 1)
     return DMSearchResult(

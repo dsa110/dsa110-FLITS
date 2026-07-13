@@ -12,6 +12,12 @@ quality:
   minimum_profile_snr: 8.0
   maximum_familywise_false_positive: 0.01
   minimum_bootstrap_success_fraction: 0.90
+  injection_supported_accuracy_domain:
+    common: {minimum_snr: 12.0, tau_1ghz_ms: 0.0, components: 1}
+    dsa: {minimum_snr: 50.0}
+  injection_calibration_inflation:
+    chime: {sigma68: 1.0, radius95: 1.0}
+    dsa: {sigma68: 1.0, radius95: 1.0}
 resolution:
   chime_frequency_factors: [1, 2, 4, 8, 16]
   chime_time_factors: [1, 2, 4, 8, 16, 32, 64, 128, 256]

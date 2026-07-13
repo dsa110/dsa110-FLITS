@@ -135,6 +135,18 @@ def test_off_pulse_null_passes_when_scales_differ():
     assert v["ratio"] > 2.0
 
 
+def test_off_pulse_null_records_population_z():
+    # hamilton probe (2026-07-13): off fits sprawl 0.6-246 kHz; the on-pulse
+    # 51.1 kHz sits INSIDE the population (z ~ 0.4), so the spread-aware view
+    # confirms the hard-ratio failure. The z is recorded, not gating.
+    off = [0.1706, 0.0006, 0.0726, 0.1031, 0.2463, 0.0214]
+    v = guards.off_pulse_null_verdict(0.0511, off)
+    assert v["null_pass"] is False
+    assert v["off_dnu_mhz"] == off
+    assert v["off_log_z"] < 1.0
+    assert v["off_log_mad_sigma"] > 0
+
+
 def test_off_pulse_null_inconclusive_without_on_width():
     v = guards.off_pulse_null_verdict(None, [0.03, 0.03, 0.03])
     assert v["null_pass"] is None

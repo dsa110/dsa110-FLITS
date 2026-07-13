@@ -1,15 +1,14 @@
 # ==============================================================================
 # File: scint_analysis/scint_analysis/core.py
 # ==============================================================================
-import numpy as np
 import logging
-from typing import Union
+
+import numpy as np
+
 # Removed astropy.stats import to avoid bottleneck dependency (NumPy 2.x incompatibility)
 # Using NumPy-native sigma clipping below
-from scipy.ndimage import label
 from scipy.stats import median_abs_deviation
 from tqdm import tqdm
-import matplotlib.pyplot as plt
 
 # Set up a logger for this module
 log = logging.getLogger(__name__)
@@ -264,6 +263,8 @@ class DynamicSpectrum:
         """
         log.info("Applying RFI masking.")
         rfi_config = config.get('analysis', {}).get('rfi_masking', {})
+        preprocessing = config.get("analysis", {}).get("preprocessing", {})
+        canfar_reference = preprocessing.get("mode") == "canfar_reference"
         
         ds_factor = rfi_config.get('rfi_downsample_factor', 8)
         log.info(f"Using time downsampling factor of {ds_factor} for RFI statistical checks.")
@@ -301,7 +302,7 @@ class DynamicSpectrum:
 
         # Ensure the window is valid
         if off_burst_start_ds < 0:
-            log.warning(f"Calculated noise window start is before data start. Clipping to 0.")
+            log.warning("Calculated noise window start is before data start. Clipping to 0.")
             off_burst_start_ds = 0
         
         assert off_burst_end_ds > off_burst_start_ds, "Not enough off-burst data to perform RFI masking."
@@ -311,16 +312,34 @@ class DynamicSpectrum:
         
         # Frequency Domain Flagging
         channel_mask = np.zeros(self.num_channels, dtype=bool)
+        if canfar_reference:
+            lte_low, lte_high = preprocessing.get("lte_exclude_mhz", [730.0, 760.0])
+            # LTE band constant: reference_arc baseband_analysis_core.py:2248
+            # ((freq > 730) & (freq < 760)). RECIPE.md:161-175 and
+            # scint_funcs.py:158-167 zero flagged frequencies and convert
+            # those zeros into the ACF-respected mask.
+            channel_mask |= (self.frequencies >= float(lte_low)) & (
+                self.frequencies <= float(lte_high)
+            )
         for _ in tqdm(range(5), desc="Iterative RFI Masking in Frequency Domain"):
             masked_noise = np.ma.masked_array(noise_data_ds, mask=np.tile(channel_mask, (noise_data_ds.shape[1], 1)).T)
             means = np.ma.mean(masked_noise, axis=1)
             stds = np.ma.std(masked_noise, axis=1)
-            if np.ma.is_masked(np.ma.std(means)) or np.ma.std(stds) == 0: continue
+            if np.ma.is_masked(np.ma.std(means)) or np.ma.std(stds) == 0:
+                continue
             snr_means = (means - np.ma.median(means)) / np.ma.std(means)
             snr_stds = (stds - np.ma.median(stds)) / np.ma.std(stds)
-            newly_flagged = (np.abs(snr_means) > rfi_config.get('freq_threshold_sigma', 5.0)) | \
-                (np.abs(snr_stds) > rfi_config.get('freq_threshold_sigma', 5.0))
-            if not np.any(newly_flagged): break
+            if canfar_reference:
+                # RECIPE.md:177-183 records the reference channel-statistic
+                # thresholds as mean=5 sigma and standard deviation=3 sigma.
+                mean_threshold, std_threshold = 5.0, 3.0
+            else:
+                mean_threshold = std_threshold = rfi_config.get('freq_threshold_sigma', 5.0)
+            newly_flagged = (np.abs(snr_means) > mean_threshold) | (
+                np.abs(snr_stds) > std_threshold
+            )
+            if not np.any(newly_flagged):
+                break
             channel_mask |= newly_flagged
         
         log.info(f"Masked {np.sum(channel_mask)} channels based on frequency-domain stats.")
@@ -331,7 +350,8 @@ class DynamicSpectrum:
             freq_masked_power_ds = np.ma.masked_array(power_ds, mask=np.tile(channel_mask, (power_ds.shape[1], 1)).T)
             time_series_ds = np.ma.mean(freq_masked_power_ds, axis=0)
             ts_mad = median_abs_deviation(time_series_ds.compressed(), nan_policy='omit')
-            if ts_mad == 0: ts_mad = 1e-9
+            if ts_mad == 0:
+                ts_mad = 1e-9
             ts_median = np.ma.median(time_series_ds)
             robust_z = 0.6745 * (time_series_ds - ts_median) / ts_mad
             time_mask_ds = np.abs(robust_z) > rfi_config.get('time_threshold_sigma', 7.0)
@@ -360,7 +380,10 @@ class DynamicSpectrum:
         final_mask = base_mask | chan_mask_full | time_mask_full
 
         # 4. Build a *new* DynamicSpectrum so callers get a fresh object
-        new_power = np.ma.MaskedArray(self.power.data.copy(), mask=final_mask)
+        cleaned_data = self.power.data.copy()
+        if canfar_reference:
+            cleaned_data[channel_mask, :] = 0.0
+        new_power = np.ma.MaskedArray(cleaned_data, mask=final_mask)
         return DynamicSpectrum(new_power, self.frequencies.copy(), self.times.copy())
 
     def subtract_poly_baseline(self, off_pulse_spectrum, poly_order=1):

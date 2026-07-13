@@ -41,7 +41,7 @@ Missing checks remain inconclusive. A smaller off-pulse statistic is not a pass.
 |---|---|---|---|
 | H0 | One robust rank-1 additive time mode per parent CHIME coarse block removes alignment-sheared common mode. | Paired product `freya_chime_coarse_rank1_v1_*`; require both subbands to pass the off-pulse null and low-lag stability. | **FAIL, reproduced 2026-07-12** — builder statistic improved 0.579 to 0.335 but remained correlated. Fresh two-subband adjudication passed provenance and low-lag stability but failed the aggregate off-pulse null. |
 | H1 | The remaining structure is the multiplicative intra-coarse PFB scallop documented by the rescued CANFAR recipe; estimate it only from protected off-pulse data, divide it out, then apply H0. | Seeded multiplicative injection recovery; off-pulse null; comparison of pre/post coarse-phase ACF; unchanged injected Lorentzian width within `max(10%, 0.25 channel)`. | **NO-GO before product generation** — the current builder already estimates a per-channel off-pulse gain, and standardized temporal covariance remains positive at low-band lags 1–3. Static channel scaling cannot remove standardized cross-channel covariance, so this mechanism cannot explain the failed null. This no-go does not count toward the three executed correction hypotheses. |
-| H2 | The residual is a second independent additive block mode rather than a multiplicative scallop; a robust rank-2 block model is required. | Rank-2 known-truth injection with astrophysical burst masking; held-out off-pulse improvement; no loss or bias of injected widths; all fail-closed gates. | **PARTIAL PASS, 2026-07-12** — unit known-truth test passes and the fresh real-data gate clears provenance, both off-pulse nulls, and both low-lag stability tests. Overall correction remains `inconclusive` and science remains `diagnostic_only` until the remaining checks and figure review pass. |
+| H2 | The residual is a second independent additive block mode rather than a multiplicative scallop; a robust rank-2 block model is required. | Rank-2 known-truth injection with astrophysical burst masking; held-out off-pulse improvement; no loss or bias of injected widths; all fail-closed gates. | **FAIL, 2026-07-12** — the initial real-data gate cleared provenance, both off-pulse nulls, and low-lag stability, but the complete battery failed injection recovery, low-band fit-window stability, both split-time checks, high-band comb residual, held-out kernel prediction, and manual figure review. Science remains `diagnostic_only`; H2 does not unlock the fleet. |
 | H3 | The residual is stationary fine-channel covariance from the upchannelization kernel and requires an off-pulse-derived linear whitening transfer function. | Independent kernel cross-check plus width/amplitude injection recovery over resolved and near-resolution scales. If the transfer function biases or erases a permitted signal, terminate as DOCUMENTED-FAIL. | pending |
 
 No parameter sweep counts as a new hypothesis. Within an iteration, parameters
@@ -85,12 +85,28 @@ Full two-subband result: `/tmp/freya-h2-gate.json`.
 | 523.268 MHz | 38.616 kHz | 14.708 kHz (10 fits) | 2.626 | PASS | PASS, minimum ratio 0.803 |
 | 723.076 MHz | 64.989 kHz | 21.582 kHz (10 fits) | 3.011 | PASS | PASS, minimum ratio 1.000 |
 
-Artifact-control status is `measurement`, but the stricter correction status is
-`inconclusive` and therefore the science status remains `diagnostic_only`.
-Pending checks are injection recovery, fit-window stability, split-time
-stability, split-band stability, comb residual, independent kernel cross-check,
-and manual review. The manifest and runner also need to retain the complete
-generation parameters before H2 can be promoted.
+The initial artifact-control status was `measurement`, but the complete
+correction battery is `fail` and the science status remains `diagnostic_only`.
+
+Final fail-closed battery:
+
+| Check | Verdict | Evidence |
+|---|---|---|
+| Manifest and provenance | PASS | Target/hash verified; required mitigations recorded. |
+| Off-pulse null | PASS | Ratios 2.626 and 3.011. |
+| Low-lag stability | PASS | Minimum retained-width ratios 0.803 and 1.000. |
+| Injection recovery | **FAIL** | 24/24 finite fits, maximum fractional bias 34.86, nominal-68% coverage 0.125. |
+| Fit-window stability | **FAIL** | Low band shifts 32.0% across 0.5-1.0 MHz, exceeding the predeclared 30% limit; high band shifts 6.9%. |
+| Split-time stability | **FAIL** | Early-to-late widths collapse 47.1 to 10.4 kHz and 53.4 to 12.1 kHz (3.47 and 4.14 sigma). Late-time modulation fits are also unphysical (`m=2.93`, `1.79`). |
+| Split-band stability | PASS | Both bands independently pass artifact gates and bandwidth increases with frequency; two-point scaling index 1.61. |
+| Comb residual | **FAIL** | High-band harmonic/background residual ratio 2.208 exceeds the fixed 2.0 threshold. |
+| Held-out kernel cross-check | **FAIL** | Maximum discrepancies 3.25 sigma (400-600 MHz) and 4.78 sigma (600-800 MHz), above 3 sigma. |
+| Manual figure review | **FAIL** | All four figures reviewed; structured residuals, recovery failure, retained low-band correlation, and stability/kernel failures recorded as anomalies. |
+
+Machine-readable evidence and the bound visual review live in
+`analysis/chime-recovery-2026-07-12/results/h2/{validation.json,figures.manifest.json,figures.review.json}`.
+This completes H2 as a documented failed hypothesis. H3 remains the next
+bounded hypothesis; it must not reuse rank-2 outputs as measurements.
 
 Software verification at this checkpoint:
 

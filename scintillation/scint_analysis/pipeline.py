@@ -7,6 +7,8 @@ import logging
 import os
 import pickle
 
+import numpy as np
+
 # Make sure to import the new noise module
 from . import analysis, core, noise, plotting
 
@@ -167,6 +169,23 @@ class ScintillationAnalysis:
             self.masked_spectrum = spectrum.mask_rfi(self.config)
 
             if self.config.get("pipeline_options", {}).get("save_intermediate_steps"):
+                preprocessing = self.config.get("analysis", {}).get("preprocessing", {})
+                if preprocessing.get("mode") == "canfar_reference":
+                    mask = np.ma.getmaskarray(self.masked_spectrum.power)
+                    # RECIPE.md:171-175 and scint_funcs.py:158-167 make the
+                    # zero-derived mask an inspectable input to the later ACF.
+                    np.savez_compressed(
+                        os.path.join(
+                            self.cache_dir,
+                            f"{self.config.get('burst_id', 'unknown_burst')}_canfar_clean.npz",
+                        ),
+                        cleaned_spectrum=self.masked_spectrum.power.data,
+                        full_mask=mask,
+                        channel_mask=np.all(mask, axis=1),
+                        time_mask=np.all(mask, axis=0),
+                        frequencies_mhz=self.masked_spectrum.frequencies,
+                        times=self.masked_spectrum.times,
+                    )
                 with open(processed_spec_cache, "wb") as f:
                     pickle.dump(self.masked_spectrum, f)
 
@@ -174,28 +193,34 @@ class ScintillationAnalysis:
         log.info("--- Data Preparation Finished ---")
 
     def _apply_bandpass_normalization(self, off_pulse_lims):
-        """Flag-gated per-channel flat-fielding (analysis.bandpass_normalization).
+        """Apply the selected per-channel normalization.
 
-        Shares implementation and gating with the freya CLI path so a config
-        enabling the flag cannot be silently bypassed by this pipeline (issue
-        #120). Multiplicative, so it must precede any polynomial baseline
-        subtraction; normalize_bandpass fails loudly on an off-pulse window
-        too short to average down noise.
+        The modern mean-only flat-field remains flag-gated.  The opt-in
+        ``canfar_reference`` preprocessing mode instead uses the reference
+        off-mean/off-RMS normalization before additive baseline subtraction.
         """
+        preprocessing = self.config.get("analysis", {}).get("preprocessing", {})
+        canfar_reference = preprocessing.get("mode") == "canfar_reference"
         bandpass_cfg = self.config.get("analysis", {}).get("bandpass_normalization", {})
-        if not bandpass_cfg.get("enable", False):
+        if not canfar_reference and not bandpass_cfg.get("enable", False):
             return
-        from .freya_scintillation import normalize_bandpass
+        from .freya_scintillation import normalize_bandpass, normalize_snr_per_channel
 
-        log.info("Applying per-channel bandpass flat-fielding...")
-        kwargs = {}
-        if "floor_frac" in bandpass_cfg:
-            kwargs["floor_frac"] = float(bandpass_cfg["floor_frac"])
-        self.masked_spectrum = normalize_bandpass(
-            self.masked_spectrum,
-            (int(off_pulse_lims[0]), int(off_pulse_lims[1])),
-            **kwargs,
-        )
+        window = (int(off_pulse_lims[0]), int(off_pulse_lims[1]))
+        if canfar_reference:
+            # kenzie_funcs.py:94-109 and RECIPE.md:147-155 use (I-mu)/sigma.
+            log.info("Applying CANFAR-reference per-channel S/N normalization...")
+            self.masked_spectrum = normalize_snr_per_channel(self.masked_spectrum, window)
+        else:
+            log.info("Applying per-channel bandpass flat-fielding...")
+            kwargs = {}
+            if "floor_frac" in bandpass_cfg:
+                kwargs["floor_frac"] = float(bandpass_cfg["floor_frac"])
+            self.masked_spectrum = normalize_bandpass(
+                self.masked_spectrum,
+                window,
+                **kwargs,
+            )
 
     def run(self):
         """
@@ -373,7 +398,7 @@ class ScintillationAnalysis:
         and provides direct measurement of the scaling index α.
         """
         try:
-            from .fitting_2d import Scintillation2DResult, fit_2d_scintillation
+            from .fitting_2d import fit_2d_scintillation
         except ImportError as e:
             log.warning(f"Could not import fitting_2d module: {e}. Skipping 2D fit.")
             return None

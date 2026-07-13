@@ -60,6 +60,106 @@ def test_result_reports_hwhm_and_fwhm_labels():
     assert np.isclose(out["fwhm_mhz"], 0.5)
 
 
+def test_canfar_reference_snr_normalization():
+    from scint_analysis import freya_scintillation as fs
+
+    rng = np.random.default_rng(3)
+    nchan, nt = 64, 300
+    gain = np.linspace(1.0, 3.0, nchan)[:, None]
+    power = gain * rng.normal(0.0, 1.0, (nchan, nt)) + 10.0 * gain
+    ds = DynamicSpectrum(
+        np.ma.MaskedArray(power, mask=np.zeros_like(power, bool)),
+        np.linspace(600, 800, nchan),
+        np.arange(nt) * 8e-5,
+    )
+    out = fs.normalize_snr_per_channel(ds, off_pulse_lims=(0, 200))
+    off = out.power[:, 0:200]
+    assert np.allclose(np.ma.mean(off, axis=1).filled(0), 0.0, atol=0.15)
+    assert np.allclose(np.ma.std(off, axis=1).filled(1), 1.0, atol=0.15)
+
+
+def test_canfar_reference_mode_masks_lte_band():
+    freqs = np.linspace(600, 800, 400)
+    power = np.ma.MaskedArray(
+        np.ones((400, 100)), mask=np.zeros((400, 100), bool)
+    )
+    ds = DynamicSpectrum(power, freqs, np.arange(100) * 8e-5)
+    cfg = {
+        "analysis": {
+            "preprocessing": {
+                "mode": "canfar_reference",
+                "lte_exclude_mhz": [730.0, 760.0],
+            },
+            "rfi_masking": {
+                "manual_burst_window": [40, 60],
+                "manual_noise_window": [0, 30],
+            },
+        }
+    }
+    out = ds.mask_rfi(cfg)
+    lte = (freqs >= 730.0) & (freqs <= 760.0)
+    assert out.power.mask[lte].all()
+
+
+def test_pipeline_canfar_reference_mode_uses_snr_normalization():
+    from scint_analysis.pipeline import ScintillationAnalysis
+
+    rng = np.random.default_rng(31)
+    gain = np.linspace(1.0, 2.0, 16)[:, None]
+    power = gain * rng.normal(size=(16, 120)) + 8.0 * gain
+    ds = DynamicSpectrum(power, np.linspace(600, 700, 16), np.arange(120))
+    pipeline = ScintillationAnalysis(
+        {"analysis": {"preprocessing": {"mode": "canfar_reference"}}}
+    )
+    pipeline.masked_spectrum = ds
+
+    pipeline._apply_bandpass_normalization((0, 80))
+
+    off = pipeline.masked_spectrum.power[:, :80]
+    assert np.allclose(np.ma.mean(off, axis=1), 0.0, atol=1e-12)
+    assert np.allclose(np.ma.std(off, axis=1), 1.0, atol=1e-12)
+
+
+def test_canfar_reference_writes_inspectable_cleaning_intermediate(
+    tmp_path, monkeypatch
+):
+    from scint_analysis.pipeline import ScintillationAnalysis
+
+    rng = np.random.default_rng(37)
+    freqs = np.linspace(700, 780, 80)
+    ds = DynamicSpectrum(rng.normal(size=(80, 100)), freqs, np.arange(100))
+    monkeypatch.setattr(
+        DynamicSpectrum, "from_numpy_file", staticmethod(lambda _path: ds)
+    )
+    cfg = {
+        "burst_id": "parity-test",
+        "input_data_path": "unused.npy",
+        "pipeline_options": {
+            "cache_directory": str(tmp_path),
+            "save_intermediate_steps": True,
+            "force_recalc": True,
+        },
+        "analysis": {
+            "preprocessing": {"mode": "canfar_reference"},
+            "rfi_masking": {
+                "manual_burst_window": [40, 60],
+                "manual_noise_window": [0, 30],
+                "enable_time_domain_flagging": False,
+            },
+        },
+    }
+
+    ScintillationAnalysis(cfg).prepare_data()
+
+    artifact = tmp_path / "parity-test_canfar_clean.npz"
+    assert artifact.exists()
+    with np.load(artifact) as saved:
+        assert set(saved.files) >= {"cleaned_spectrum", "channel_mask", "time_mask"}
+        assert saved["cleaned_spectrum"].shape == ds.power.shape
+        lte = (freqs >= 730.0) & (freqs <= 760.0)
+        assert saved["channel_mask"][lte].all()
+
+
 class _SeededNoiseDescriptor:
     def __init__(self, nchan, seed=41):
         self.kind = "flux_gauss"

@@ -8,8 +8,9 @@ with explicit inputs (mirrors crossmatching/toa_crossmatch.py). Assembled by
 ``.agents/experiment-chance-coincidence-falsealarm.md``.
 
 Pillar 1 — chance-coincidence probability (analytic Poisson; experiment-validated):
-the expected number of unrelated CHIME FRBs falling in a burst's (position x time x DM)
-window, ``mu = R_sr_s * Omega_win * 2*dt * f_DM``; ``P = 1 - exp(-mu)``.
+the expected number of unrelated CHIME FRBs falling in a burst's position/time
+window is multiplied by ``f_DM`` only when an independent CHIME-side DM is
+available.  Otherwise ``f_DM = 1``.  In either class, ``P = 1 - exp(-mu)``.
 """
 
 from __future__ import annotations
@@ -48,15 +49,22 @@ def f_dm(
 
 
 def chance_mu(
-    dm: float, *, rate_per_day: float, omega_win_deg2: float, dt_s: float, ddm: float
+    dm: float,
+    *,
+    rate_per_day: float,
+    omega_win_deg2: float,
+    dt_s: float,
+    ddm: float,
+    apply_dm_filter: bool = True,
 ) -> float:
-    """Expected number of unrelated CHIME FRBs in the (position x time x DM) window."""
-    return _r_sr_s(rate_per_day) * (omega_win_deg2 / DEG2_PER_SR) * (2.0 * dt_s) * f_dm(dm, ddm)
+    """Expected unrelated events in the applicable association window."""
+    dm_factor = f_dm(dm, ddm) if apply_dm_filter else 1.0
+    return _r_sr_s(rate_per_day) * (omega_win_deg2 / DEG2_PER_SR) * (2.0 * dt_s) * dm_factor
 
 
 def chance_probability(dm: float, **kw) -> float:
     """Poisson P(>=1 chance association) = 1 - exp(-mu)."""
-    return 1.0 - math.exp(-chance_mu(dm, **kw))
+    return -math.expm1(-chance_mu(dm, **kw))
 
 
 def expected_chance_associations(dms, **kw) -> float:
@@ -185,25 +193,38 @@ def build_association_report(
     """
     fx = json.loads(Path(fixture_path).read_text())
     chime = _load_chime_inputs(chime_inputs_path)
-    bursts, dms = [], []
+    bursts = []
     for row in fx["bursts"]:
         dm = row["dm"]
-        dms.append(dm)
         ci = chime.get(str(row["chime_id"]), {})
+        dm_check = dm_agreement(
+            dm_chime=ci.get("dm_chime"),
+            dm_chime_err=ci.get("dm_chime_err"),
+            dm_dsa=dm,
+            dm_dsa_err=row.get("dm_uncertainty"),
+        )
+        apply_dm_filter = dm_check["consistent"] is not None
+        dm_factor = f_dm(dm, ddm) if apply_dm_filter else 1.0
+        mu = chance_mu(
+            dm,
+            rate_per_day=rate_per_day,
+            omega_win_deg2=omega_win_deg2,
+            dt_s=dt_s,
+            ddm=ddm,
+            apply_dm_filter=apply_dm_filter,
+        )
         bursts.append(
             {
                 "name": row["name"],
                 "chime_id": row["chime_id"],
                 "dm": dm,
-                "chance_coincidence_P": chance_probability(
-                    dm, rate_per_day=rate_per_day, omega_win_deg2=omega_win_deg2, dt_s=dt_s, ddm=ddm
+                "chance_coincidence_mu": mu,
+                "chance_coincidence_P": -math.expm1(-mu),
+                "chance_coincidence_f_DM": dm_factor,
+                "chance_coincidence_class": (
+                    "dm_position_time" if apply_dm_filter else "position_time"
                 ),
-                "dm_agreement": dm_agreement(
-                    dm_chime=ci.get("dm_chime"),
-                    dm_chime_err=ci.get("dm_chime_err"),
-                    dm_dsa=dm,
-                    dm_dsa_err=row.get("dm_uncertainty"),
-                ),
+                "dm_agreement": dm_check,
                 "dm_confidence": ci.get("dm_confidence"),  # figure-review: real/marginal/noise
                 "position": position_agreement(
                     row.get("source_coord"),
@@ -220,6 +241,8 @@ def build_association_report(
             "dt_s": dt_s,
             "ddm": ddm,
             "dm_model": "lognormal(500,0.7) [assumption]",
+            "chance_coincidence_policy": "apply f_DM only with an independent CHIME-side DM; "
+            "otherwise use f_DM=1 for a position-and-time-only probability",
             "chime_dm_method": "SUSPENDED pending audit — prior DM-phase extraction had a 1e-3*K_DM "
             "inter-channel unit bug and non-peaking curves; CHIME DMs nulled until rebuilt on library "
             "coherent_dedisp (see .agents/audit-chime-side-dm.md). Pillar 4 (positions) unaffected.",
@@ -227,9 +250,7 @@ def build_association_report(
             "chime_localization_note": "tiedbeam pointing; no multi-beam error ellipse "
             "(Michilli+2021 sub-arcmin assumed)",
         },
-        "expected_chance_associations": expected_chance_associations(
-            dms, rate_per_day=rate_per_day, omega_win_deg2=omega_win_deg2, dt_s=dt_s, ddm=ddm
-        ),
+        "expected_chance_associations": sum(b["chance_coincidence_mu"] for b in bursts),
         "bursts": bursts,
     }
 

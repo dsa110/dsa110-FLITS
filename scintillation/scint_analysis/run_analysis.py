@@ -103,6 +103,7 @@ def main():
             scint_pipeline.acf_results,
             scint_pipeline.all_subband_fits,
             scint_pipeline.all_powerlaw_fits,
+            save_path=f"./{burst_id}_analysis_overview.png",
         )
     else:
         logging.warning("Intermediate results not available, skipping overview plot.")

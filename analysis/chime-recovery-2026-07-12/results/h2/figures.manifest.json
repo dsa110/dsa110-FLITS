@@ -1,0 +1,20 @@
+{
+  "figures": [
+    {
+      "expectation": "Two CHIME subband ACF panels show resolved positive-lag Lorentzian wings and no claim of final measurement status.",
+      "path": "/Users/jakobfaber/Developer/scratch/worktrees/flits-chime-recovery-loop/analysis/chime-recovery-2026-07-12/results/h2/figures/freya_chime_h2_acf_lorentzian_fits.png"
+    },
+    {
+      "expectation": "Recovered widths track the identity line without a width-dependent trend; uncertainty bars are visible.",
+      "path": "/Users/jakobfaber/Developer/scratch/worktrees/flits-chime-recovery-loop/analysis/chime-recovery-2026-07-12/results/h2/figures/freya_h2_injection_recovery.png"
+    },
+    {
+      "expectation": "Rank-2 correction reduces low-band short-lag off-pulse correlation without producing a new narrow spike; high-band behavior remains near zero.",
+      "path": "/Users/jakobfaber/Developer/scratch/worktrees/flits-chime-recovery-loop/analysis/chime-recovery-2026-07-12/results/h2/figures/freya_h2_correction_diagnostic.png"
+    },
+    {
+      "expectation": "Fit-window, split-time, comb, and held-out-kernel panels are legible and agree with the machine verdicts in validation.json.",
+      "path": "/Users/jakobfaber/Developer/scratch/worktrees/flits-chime-recovery-loop/analysis/chime-recovery-2026-07-12/results/h2/figures/freya_h2_validation_battery.png"
+    }
+  ]
+}

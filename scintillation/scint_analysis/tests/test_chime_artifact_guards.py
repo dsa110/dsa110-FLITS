@@ -31,9 +31,9 @@ _test_dir = Path(__file__).parent
 sys.path.insert(0, str(_test_dir.parent.parent.parent))  # FLITS root
 sys.path.insert(0, str(_test_dir.parent.parent))  # scintillation dir
 
-import numpy as np
+import numpy as np  # noqa: E402, I001 -- imports follow the local path bootstrap
 
-from scint_analysis import chime_artifact_guards as guards
+from scint_analysis import chime_artifact_guards as guards  # noqa: E402
 
 
 # --- harmonic mask (rec #1 / the --band chime trap) -------------------------
@@ -72,8 +72,10 @@ def test_harmonic_mask_noop_when_disabled():
 # --- fail-closed provenance gate (rec #2) -----------------------------------
 
 
-def _chime_cfg(grid=True, bandpass=True, harmonic=True):
+def _chime_cfg(correction=True, grid=True, bandpass=True, harmonic=True):
     analysis = {"fitting": {}}
+    if correction:
+        analysis["instrumental_background_correction"] = {"enable": True}
     if grid:
         analysis["grid_regularization"] = {"enable": True}
     if bandpass:

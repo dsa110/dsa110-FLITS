@@ -34,6 +34,7 @@ def main() -> int:
     parser.add_argument("--burst-half-width", type=int, required=True)
     parser.add_argument("--off-pulse", type=int, nargs=2, required=True, metavar=("START", "STOP"))
     parser.add_argument("--rfi-mask", type=Path)
+    parser.add_argument("--rank", type=int, choices=(1, 2), default=1)
     args = parser.parse_args()
 
     target = load_chime_target(args.target)
@@ -71,6 +72,9 @@ def main() -> int:
             dt_s=dt_s,
             off_pulse=tuple(args.off_pulse),
             guard_bins=1,
+            correction_rank=args.rank,
+            aligned_burst_bin=args.aligned_burst_bin,
+            burst_half_width_bins=args.burst_half_width,
         ),
     )
     paths = write_chime_products(

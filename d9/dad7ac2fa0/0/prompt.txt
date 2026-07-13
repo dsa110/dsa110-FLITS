@@ -1,0 +1,1 @@
+Review the current uncommitted diff for correctness, scientific fail-closed behavior, data corruption risk, and missing tests. Focus on P0/P1/P2 actionable findings. Do not edit files. The real Freya rank-1 correction has failed its off-pulse null and must remain diagnostic-only.

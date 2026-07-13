@@ -1,0 +1,31 @@
+{
+  "cli_version": "0.8.42",
+  "checkpoint_id": "d9dad7ac2fa0",
+  "strategy": "manual-commit",
+  "branch": "feat/chime-scint-common-mode-correction",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "analysis/scintillation-dsa-lorentzian-2026-07-07/run_dsa_lorentzian_fits.py",
+    "analysis/scintillation-dsa-lorentzian-2026-07-07/test_driver_guards.py",
+    "pyproject.toml",
+    "scintillation/DATA_PROVENANCE.md",
+    "scintillation/scint_analysis/chime_artifact_guards.py",
+    "scintillation/scint_analysis/tests/test_chime_artifact_guards.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/d9/dad7ac2fa0/0/metadata.json",
+      "transcript": "/d9/dad7ac2fa0/0/full.jsonl",
+      "compact_transcript": "/d9/dad7ac2fa0/0/transcript.jsonl",
+      "content_hash": "/d9/dad7ac2fa0/0/content_hash.txt",
+      "prompt": "/d9/dad7ac2fa0/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 101699,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 890368,
+    "output_tokens": 7481,
+    "api_call_count": 16
+  }
+}

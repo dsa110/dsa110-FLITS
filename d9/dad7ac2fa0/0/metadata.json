@@ -1,0 +1,74 @@
+{
+  "cli_version": "0.8.42",
+  "checkpoint_id": "d9dad7ac2fa0",
+  "session_id": "019f596c-5c2f-7710-9049-c95df5d56dd1",
+  "strategy": "manual-commit",
+  "created_at": "2026-07-13T03:09:54.810855Z",
+  "branch": "feat/chime-scint-common-mode-correction",
+  "checkpoints_count": 1,
+  "save_step_count": 1,
+  "files_touched": [
+    "analysis/scintillation-dsa-lorentzian-2026-07-07/run_dsa_lorentzian_fits.py",
+    "analysis/scintillation-dsa-lorentzian-2026-07-07/test_driver_guards.py",
+    "pyproject.toml",
+    "scintillation/DATA_PROVENANCE.md",
+    "scintillation/scint_analysis/chime_artifact_guards.py",
+    "scintillation/scint_analysis/tests/test_chime_artifact_guards.py"
+  ],
+  "agent": "Codex",
+  "model": "gpt-5.5",
+  "turn_id": "1808ec053a6c",
+  "compact_transcript_start": 0,
+  "token_usage": {
+    "input_tokens": 101699,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 890368,
+    "output_tokens": 7481,
+    "api_call_count": 16
+  },
+  "session_metrics": {
+    "turn_count": 1
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-07-13T03:09:54.775564Z",
+    "agent_lines": 0,
+    "agent_removed": 0,
+    "human_added": 92,
+    "human_modified": 6,
+    "human_removed": 0,
+    "total_committed": 92,
+    "total_lines_changed": 98,
+    "agent_percentage": 0,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 1107,
+      "user_lines_removed": 5,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0,
+      "user_added_per_file": {
+        "analysis/scintillation-dsa-lorentzian-2026-07-07/run_dsa_lorentzian_fits.py": 77,
+        "analysis/scintillation-dsa-lorentzian-2026-07-07/test_driver_guards.py": 20,
+        "pyproject.toml": 1,
+        "scintillation/DATA_PROVENANCE.md": 27,
+        "scintillation/configs/chime_products.yaml": 14,
+        "scintillation/scint_analysis/chime_artifact_guards.py": 9,
+        "scintillation/scint_analysis/chime_correction_validation.py": 123,
+        "scintillation/scint_analysis/chime_product.py": 427,
+        "scintillation/scint_analysis/tests/test_chime_artifact_guards.py": 3,
+        "scintillation/scint_analysis/tests/test_chime_correction_validation.py": 90,
+        "scintillation/scint_analysis/tests/test_chime_product.py": 228,
+        "scintillation/scripts/__init__.py": 1,
+        "scintillation/scripts/build_chime_product.py": 87
+      },
+      "user_removed_per_file": {
+        "analysis/scintillation-dsa-lorentzian-2026-07-07/run_dsa_lorentzian_fits.py": 1,
+        "scintillation/DATA_PROVENANCE.md": 2,
+        "scintillation/scint_analysis/chime_artifact_guards.py": 1,
+        "scintillation/scint_analysis/tests/test_chime_artifact_guards.py": 1
+      }
+    }
+  ]
+}

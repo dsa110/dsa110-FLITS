@@ -36,6 +36,14 @@ def test_chance_mu_scales_linearly_in_small_window():
     assert chance_mu(500.0, **{**BASE, "ddm": 10.0}) == pytest.approx(2 * base, rel=1e-9)
 
 
+def test_chance_mu_omits_dm_filter_when_independent_dm_is_unavailable():
+    mu = chance_mu(500.0, **BASE, apply_dm_filter=False)
+    assert mu == pytest.approx(4.407080725e-7)
+    assert chance_probability(500.0, **BASE, apply_dm_filter=False) == pytest.approx(
+        4.407079754e-7
+    )
+
+
 def test_chance_matches_monte_carlo_in_measurable_regime():
     # analytic must equal a direct background MC where the MC has enough hits (mu ~ 0.046)
     infl = dict(rate_per_day=1000.0, omega_win_deg2=200.0, dt_s=3600.0, ddm=50.0)
@@ -171,8 +179,6 @@ def test_report_pillar2_active_8_of_12_with_floor():
     # genuine non-detections (<3 sub-bands @ S/N>=4). Pillar 4 stays 12/12.
     chime = ROOT / "crossmatching/chime_side_inputs.json"
     if not chime.exists():
-        import pytest
-
         pytest.skip("chime_side_inputs.json not present")
     report = build_association_report(
         ROOT / "crossmatching/notebook_reproduction_fixture.json", chime_inputs_path=chime
@@ -185,11 +191,20 @@ def test_report_pillar2_active_8_of_12_with_floor():
         assert da["consistent"] is True
         assert da["sigma"] >= 1.0  # 1 pc/cm^3 physical floor applied
         assert by[n]["dm_confidence"] == "constrained"
+        assert by[n]["chance_coincidence_class"] == "dm_position_time"
+        assert by[n]["chance_coincidence_f_DM"] < 1.0
+        assert by[n]["chance_coincidence_P"] < 1e-8
     # the other 4 are honest non-detections: nulled, no fabricated value
     for b in report["bursts"]:
         if b["name"] not in constrained:
             assert b["dm_agreement"]["consistent"] is None
             assert b["dm_confidence"] == "unconstrained"
+            assert b["chance_coincidence_class"] == "position_time"
+            assert b["chance_coincidence_f_DM"] == 1.0
+            assert b["chance_coincidence_P"] == pytest.approx(4.407079754e-7)
     assert sum(b["dm_agreement"]["consistent"] is True for b in report["bursts"]) == 8
     # Pillar 4 intact: all 12 CHIME positions still consistent with DSA
     assert all(b["position"]["consistent"] is True for b in report["bursts"])
+    assert report["expected_chance_associations"] == pytest.approx(
+        sum(b["chance_coincidence_mu"] for b in report["bursts"])
+    )

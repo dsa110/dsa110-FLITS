@@ -185,7 +185,16 @@ class ScintillationAnalysis:
         bandpass_cfg = self.config.get("analysis", {}).get("bandpass_normalization", {})
         if not bandpass_cfg.get("enable", False):
             return
-        from .freya_scintillation import normalize_bandpass
+        from .freya_scintillation import _MIN_BANDPASS_OFF_BINS, normalize_bandpass
+
+        start, end = int(off_pulse_lims[0]), int(off_pulse_lims[1])
+        n_off = end - start
+        if n_off < _MIN_BANDPASS_OFF_BINS:
+            raise ValueError(
+                f"bandpass normalization needs >= {_MIN_BANDPASS_OFF_BINS} off-pulse "
+                f"time bins to estimate the per-channel gain, got {n_off} "
+                f"(off-pulse window [{start}, {end}))"
+            )
 
         log.info("Applying per-channel bandpass flat-fielding...")
         kwargs = {}
@@ -193,7 +202,7 @@ class ScintillationAnalysis:
             kwargs["floor_frac"] = float(bandpass_cfg["floor_frac"])
         self.masked_spectrum = normalize_bandpass(
             self.masked_spectrum,
-            (int(off_pulse_lims[0]), int(off_pulse_lims[1])),
+            (start, end),
             **kwargs,
         )
 

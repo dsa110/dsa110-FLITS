@@ -233,6 +233,7 @@ def off_pulse_null_verdict(
             "null_pass": None,
             "on_dnu_mhz": on_dnu_mhz,
             "off_median_dnu_mhz": float(np.median(off)) if off.size else None,
+            "off_dnu_mhz": [float(v) for v in off],
             "off_n_fits": int(off.size),
             "ratio": None,
             "reason": "no valid on-pulse width; null inconclusive",
@@ -248,6 +249,7 @@ def off_pulse_null_verdict(
             "null_pass": None,
             "on_dnu_mhz": float(on_dnu_mhz),
             "off_median_dnu_mhz": float(np.median(off)) if off.size else None,
+            "off_dnu_mhz": [float(v) for v in off],
             "off_n_fits": int(off.size),
             "ratio": None,
             "reason": (
@@ -260,10 +262,28 @@ def off_pulse_null_verdict(
     off_median = float(np.median(off))
     ratio = float(max(on_dnu_mhz / off_median, off_median / on_dnu_mhz))
     null_pass = ratio > bracket_ratio
+    # Supplementary uncertainty-aware statistic (recorded, not gating): the
+    # log-space z-score of the on-pulse width against the off-pulse fit
+    # population (MAD-scaled). Probed 2026-07-13 on the two ratio-marginal
+    # bursts: hamilton z=0.41, chromatica z=0.90 -- the on-pulse widths sit
+    # INSIDE the off-pulse population once its scatter is counted, so the
+    # spread-aware view strengthens the hard-ratio verdict rather than
+    # relaxing it.
+    log_off = np.log(off)
+    log_med = float(np.median(log_off))
+    log_mad_sigma = float(np.median(np.abs(log_off - log_med)) * 1.4826)
+    off_log_z = (
+        float(abs(np.log(on_dnu_mhz) - log_med) / log_mad_sigma)
+        if log_mad_sigma > 0
+        else None
+    )
     return {
         "null_pass": bool(null_pass),
         "on_dnu_mhz": float(on_dnu_mhz),
         "off_median_dnu_mhz": off_median,
+        "off_dnu_mhz": [float(v) for v in off],
+        "off_log_mad_sigma": log_mad_sigma,
+        "off_log_z": off_log_z,
         "off_n_fits": int(off.size),
         "ratio": ratio,
         "reason": (

@@ -32,7 +32,9 @@ os.environ.setdefault("NUMBA_DISABLE_JIT", "1")
 
 from scintillation.scint_analysis import analysis  # noqa: E402
 from scintillation.scint_analysis import chime_artifact_guards as guards  # noqa: E402
+from scintillation.scint_analysis import chime_correction_validation as correction  # noqa: E402
 from scintillation.scint_analysis import config as config_mod  # noqa: E402
+from scintillation.scint_analysis.chime_product import verify_product_manifest  # noqa: E402
 from scintillation.scint_analysis.pipeline import ScintillationAnalysis  # noqa: E402
 from scintillation.scint_analysis.revalidation import (  # noqa: E402
     compare_lorentzian_components,
@@ -236,6 +238,22 @@ def _slice_fit_window(
         mask &= np.isfinite(err) & (err > 0)
     sliced_err = err[mask] if err is not None else None
     return lags[mask], acf[mask], sliced_err
+
+
+def _select_physical_fit_lags(
+    lags: np.ndarray,
+    acf: np.ndarray,
+    err: np.ndarray | None,
+    *,
+    channel_width_mhz: float,
+    telescope: str,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray | None]:
+    """Apply the CHIME lag contract without changing the DSA fit path."""
+    if str(telescope).strip().lower() != "chime":
+        return lags, acf, err
+    keep = lags >= (2.0 * channel_width_mhz - 1e-9)
+    selected_err = None if err is None else err[keep]
+    return lags[keep], acf[keep], selected_err
 
 
 def _plurality_n(per_subband: list[dict[str, Any]]) -> int:
@@ -1066,6 +1084,13 @@ def _fit_prepared_config(
         subband_bw = n_chan * chan_width
         fit_range = min(configured_fit_range, subband_bw / 2.0)
         fit_lags, fit_acf, fit_err = _slice_fit_window(lags, acf_arr, err, fit_range)
+        fit_lags, fit_acf, fit_err = _select_physical_fit_lags(
+            fit_lags,
+            fit_acf,
+            fit_err,
+            channel_width_mhz=chan_width,
+            telescope=str(cfg.get("telescope", "")),
+        )
 
         # --- Harmonic (coarse-channel comb) mask as a first-class fit mask ---
         # Previously the driver ignored analysis.fitting.harmonic_mask entirely
@@ -1245,7 +1270,63 @@ def _fit_prepared_config(
         "downgraded": finalized["downgraded"],
         "failed_checks": finalized["failed_checks"],
     }
-    result["measurement_status"] = finalized["status"]
+    if provenance["is_chime"]:
+        configured_checks = (
+            cfg.get("analysis", {})
+            .get("instrumental_background_correction", {})
+            .get("validation", {})
+        )
+        correction_checks = {
+            name: dict(configured_checks.get(name, {}))
+            for name in correction.REQUIRED_CORRECTION_CHECKS
+        }
+        correction_cfg = cfg.get("analysis", {}).get("instrumental_background_correction", {})
+        manifest_path = correction_cfg.get("manifest_path")
+        if manifest_path:
+            manifest_verification = verify_product_manifest(
+                manifest_path,
+                str(cfg.get("input_data_path", "")),
+                expected_target=burst,
+            )
+        else:
+            manifest_verification = {
+                "valid": False,
+                "reason": "no correction manifest configured",
+            }
+        correction_checks["manifest_verification"] = {
+            "pass": bool(manifest_verification["valid"]),
+            **manifest_verification,
+        }
+        correction_checks["off_pulse_null"] = {"pass": burst_null["null_pass"]}
+        correction_checks["low_lag_stability"] = {"pass": burst_stability["stable"]}
+        fitted_widths = [
+            component.get("dnu_mhz")
+            for subband in subbands
+            for component in subband["selected_components"][:1]
+            if not component.get("quality_flags")
+        ]
+        fitted_dnu = float(np.nanmedian(fitted_widths)) if fitted_widths else None
+        correction_status = correction.adjudicate_chime_result(
+            correction_checks, fitted_dnu_mhz=fitted_dnu
+        )
+        correction_status["science_status"] = correction.combine_science_status(
+            artifact_status=finalized["status"], correction_status=correction_status
+        )
+    else:
+        correction_checks = {}
+        correction_status = {
+            "product_correction_status": "not_applicable",
+            "science_status": finalized["status"],
+            "failed_checks": [],
+            "pending_checks": [],
+        }
+    result["correction_validation"] = {
+        "checks": correction_checks,
+        **correction_status,
+    }
+    result["product_correction_status"] = correction_status["product_correction_status"]
+    result["science_status"] = correction_status["science_status"]
+    result["measurement_status"] = correction_status["science_status"]
     return result, plot_subbands
 
 

@@ -46,7 +46,12 @@ DEFAULT_HARMONIC_HALFWIDTH_MHZ = 0.05
 
 # Mitigations a CHIME scintillation *measurement* must explicitly record. Each
 # maps to the config path whose ``enable`` flag we require to be truthy.
-CHIME_REQUIRED_MITIGATIONS = ("grid_regularization", "bandpass_normalization", "harmonic_mask")
+CHIME_REQUIRED_MITIGATIONS = (
+    "instrumental_background_correction",
+    "grid_regularization",
+    "bandpass_normalization",
+    "harmonic_mask",
+)
 
 MEASUREMENT = "measurement"
 DIAGNOSTIC_ONLY = "diagnostic_only"
@@ -142,6 +147,9 @@ def chime_provenance_status(config: dict | None) -> dict:
     fitting_cfg = analysis_cfg.get("fitting", {}) or {}
 
     records = {
+        "instrumental_background_correction": _enabled(
+            analysis_cfg.get("instrumental_background_correction")
+        ),
         "grid_regularization": _enabled(analysis_cfg.get("grid_regularization")),
         "bandpass_normalization": _enabled(analysis_cfg.get("bandpass_normalization")),
         "harmonic_mask": _enabled(fitting_cfg.get("harmonic_mask")),

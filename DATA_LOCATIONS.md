@@ -108,9 +108,18 @@ Move-only policy; restore one-liners in each host's `_quarantine/README.md`.
 | Host | Quarantine path | Status |
 |------|-----------------|--------|
 | **h23** | `/media/ubuntu/ssd/_quarantine/jfaber-drain-20260625/` | Partial: archive, burstprop_paper, chime_dsa_codetections (~137G). Residual at `jfaber/`: nihari, tools, dsa110-continuum, frb_inventory, scratch |
-| **h23** | `/dataz/dsa110/T3/` | **Not quarantined** — 59T raw pipeline; leave on source |
+| **h23** | `/dataz/dsa110/candidates/<event>/` | Full Level2/Level3 candidate products for the seven 2023+ co-detections; leave on source |
 | **hpcc** | `/home/jfaber/_quarantine/flits-20260625` | Full flits tree quarantined 2026-06-25; JSON artifacts on jakob-mbp |
 | **dsacamera** | — | Decommissioned; no codetection content |
+
+Live h23 verification on 2026-07-12 found the seven newer event trees at
+`230307aaao`, `230325aaag`, `230814aaas`, `230913aaao`, `240122aaag`,
+`240203aacl`, and `240229aaad`. The five 2022 event trees (`220207aabh`,
+`220310aaam`, `220506aabd`, `221113aaao`, and `221203aaaa`) were absent from
+`/dataz/dsa110/candidates/`; their original full-candidate locations remain
+unverified. `/dataz/dsa110/T3/` is not a data store: it is a ~99K collection
+of T3 maintenance scripts and control files and contains no codetection burst
+products.
 
 ## CANFAR arc compute
 

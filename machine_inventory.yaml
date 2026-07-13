@@ -4,6 +4,8 @@
 schema: 3
 generated_utc: "2026-06-26T22:00:00Z"
 generated_by: "GDrive authority decision — iacobus demoted to staging (2026-06-26)"
+updated_utc: "2026-07-13T04:46:19Z"
+updated_by: "Live h23 candidate-tree correction (2026-07-12 PDT)"
 project: CHIME-DSA codetections
 excluded:
   - nihari
@@ -283,14 +285,14 @@ migration_map:
     source_host: h23
     source_path: /media/ubuntu/ssd/jfaber/nihari
     target_host: null
-  - id: h23_raw_t3
+  - id: h23_dsa_candidate_trees
     phase: 0
     status: out_of_scope
     action: leave_on_source
     source_host: h23
-    source_path: /dataz/dsa110/T3
+    source_path: /dataz/dsa110/candidates/<event>
     target_host: null
-    notes: 59T raw pipeline; not in 4-host plan
+    notes: Seven 2023+ codetection Level2/Level3 trees verified live 2026-07-12; five 2022 full-candidate locations remain unverified; /dataz/dsa110/T3 is maintenance scripts only
 
 machines:
   jakob-mbp:
@@ -645,13 +647,15 @@ machines:
             size_human: 916K
           - path: /media/ubuntu/ssd/jfaber/scratch
             size_human: 260K
-      - id: raw_t3
-        path: /dataz/dsa110/T3
-        kind: raw_pipeline
+      - id: dsa_candidate_trees
+        path: /dataz/dsa110/candidates
+        kind: raw_candidate_products
         migration_action: leave_on_source
         migration_target: null
-        size_human: 59T
-        notes: raw T3 pipeline output; keep on server
+        coverage:
+          present_2023_plus: [230307aaao, 230325aaag, 230814aaas, 230913aaao, 240122aaag, 240203aacl, 240229aaad]
+          absent_2022_unverified: [220207aabh, 220310aaam, 220506aabd, 221113aaao, 221203aaaa]
+        notes: Seven newer codetections have Level2/Level3 trees; original full-candidate locations for five 2022 bursts remain unverified. /dataz/dsa110/T3 is ~99K of maintenance scripts and contains no burst data.
 
   hpcc:
     hostname: login.hpc.caltech.edu

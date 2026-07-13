@@ -231,15 +231,21 @@ def off_pulse_null_verdict(
         }
 
     if off.size < min_off_fits:
+        # Too few off fits is ambiguous between "off-pulse genuinely white"
+        # (arm-C evidence FOR a measurement) and "off-pulse re-fits crashed";
+        # the verdict cannot tell them apart, so it must be inconclusive —
+        # the pipeline's fail-closed guard then downgrades rather than
+        # certifying on an unverifiable null.
         return {
-            "null_pass": True,
+            "null_pass": None,
             "on_dnu_mhz": float(on_dnu_mhz),
             "off_median_dnu_mhz": float(np.median(off)) if off.size else None,
             "off_n_fits": int(off.size),
             "ratio": None,
             "reason": (
                 f"only {off.size} off-pulse fits (< {min_off_fits}); "
-                "off-pulse too white to fit a consistent scale -> null passes"
+                "cannot distinguish a white off-pulse from failed re-fits -> "
+                "null inconclusive"
             ),
         }
 

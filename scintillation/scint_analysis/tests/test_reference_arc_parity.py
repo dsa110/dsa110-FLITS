@@ -50,13 +50,9 @@ def test_first_fit_lag_two_matches_reference_pairloop():
     assert first_pos_lag_bins == 2
     assert not np.any(np.isclose(acf.lags, 0.0))
     keep = np.ones(spec.size)
-    _, ref_acf, _ = _mean_normalized_acf(
-        spec.data, keep, cw, max_lag_mhz=64 * cw, first_lag=2
-    )
+    _, ref_acf, _ = _mean_normalized_acf(spec.data, keep, cw, max_lag_mhz=64 * cw, first_lag=2)
     ref_pos = ref_acf[len(ref_acf) // 2 :]
-    np.testing.assert_allclose(
-        acf.acf[pos], ref_pos[: pos.sum()], rtol=1e-6, atol=1e-9
-    )
+    np.testing.assert_allclose(acf.acf[pos], ref_pos[: pos.sum()], rtol=1e-6, atol=1e-9)
 
 
 def test_2d_fitter_excludes_zero_lag():
@@ -107,9 +103,7 @@ def test_canfar_reference_snr_normalization():
 
 def test_canfar_reference_mode_masks_lte_band():
     freqs = np.linspace(600, 800, 400)
-    power = np.ma.MaskedArray(
-        np.ones((400, 100)), mask=np.zeros((400, 100), bool)
-    )
+    power = np.ma.MaskedArray(np.ones((400, 100)), mask=np.zeros((400, 100), bool))
     ds = DynamicSpectrum(power, freqs, np.arange(100) * 8e-5)
     cfg = {
         "analysis": {
@@ -135,9 +129,7 @@ def test_pipeline_canfar_reference_mode_uses_snr_normalization():
     gain = np.linspace(1.0, 2.0, 16)[:, None]
     power = gain * rng.normal(size=(16, 120)) + 8.0 * gain
     ds = DynamicSpectrum(power, np.linspace(600, 700, 16), np.arange(120))
-    pipeline = ScintillationAnalysis(
-        {"analysis": {"preprocessing": {"mode": "canfar_reference"}}}
-    )
+    pipeline = ScintillationAnalysis({"analysis": {"preprocessing": {"mode": "canfar_reference"}}})
     pipeline.masked_spectrum = ds
 
     pipeline._apply_bandpass_normalization((0, 80))
@@ -147,17 +139,13 @@ def test_pipeline_canfar_reference_mode_uses_snr_normalization():
     assert np.allclose(np.ma.std(off, axis=1), 1.0, atol=1e-12)
 
 
-def test_canfar_reference_writes_inspectable_cleaning_intermediate(
-    tmp_path, monkeypatch
-):
+def test_canfar_reference_writes_inspectable_cleaning_intermediate(tmp_path, monkeypatch):
     from scint_analysis.pipeline import ScintillationAnalysis
 
     rng = np.random.default_rng(37)
     freqs = np.linspace(700, 780, 80)
     ds = DynamicSpectrum(rng.normal(size=(80, 100)), freqs, np.arange(100))
-    monkeypatch.setattr(
-        DynamicSpectrum, "from_numpy_file", staticmethod(lambda _path: ds)
-    )
+    monkeypatch.setattr(DynamicSpectrum, "from_numpy_file", staticmethod(lambda _path: ds))
     cfg = {
         "burst_id": "parity-test",
         "input_data_path": "unused.npy",
@@ -243,9 +231,7 @@ def test_noise_template_subband_fit_respects_first_fit_lag(first_fit_lag):
         burst_lims=(8, 16),
         noise_desc=_SeededNoiseDescriptor(nchan),
     )
-    _final, fits, _power_law = analysis.analyze_scintillation_from_acfs(
-        acf_results, config
-    )
+    _final, fits, _power_law = analysis.analyze_scintillation_from_acfs(acf_results, config)
 
     assert len(fits) == 2
     for template, fit in zip(acf_results["noise_template"], fits, strict=True):
@@ -380,9 +366,7 @@ def test_pipeline_attaches_joint_2d_as_third_named_estimator(monkeypatch):
     from scint_analysis import fitting_2d
     from scint_analysis.pipeline import ScintillationAnalysis
 
-    pipeline = ScintillationAnalysis(
-        {"analysis": {"fitting": {"reference_frequency_mhz": 600.0}}}
-    )
+    pipeline = ScintillationAnalysis({"analysis": {"fitting": {"reference_frequency_mhz": 600.0}}})
     pipeline.acf_results = {"subband_acfs": [np.array([0.1])]}
     pipeline.final_results = {
         "components": {
@@ -468,12 +452,8 @@ def test_direct_modulation_over_time_matches_analytic_std_over_mean():
         / np.mean(profile[start : min(start + 3, profile.size)])
         for start in range(profile.size - 1)
     ]
-    assert result["method"] == (
-        "direct std/mean (scinttools_v3.analyze_modulation_over_time)"
-    )
-    assert result["definition"].startswith(
-        "direct m = std/mean of frequency-averaged intensity"
-    )
+    assert result["method"] == ("direct std/mean (scinttools_v3.analyze_modulation_over_time)")
+    assert result["definition"].startswith("direct m = std/mean of frequency-averaged intensity")
     assert result["chunk_bins"] == 3
     assert result["overlap_bins"] == 2
     np.testing.assert_allclose(result["m"], expected, rtol=0, atol=1e-15)
@@ -481,9 +461,7 @@ def test_direct_modulation_over_time_matches_analytic_std_over_mean():
 
 
 def test_modulation_results_keep_frequency_and_time_definitions_separate():
-    assert analysis.lorentzian_component(0.0, gamma=0.25, m=0.4) == pytest.approx(
-        0.4**2
-    )
+    assert analysis.lorentzian_component(0.0, gamma=0.25, m=0.4) == pytest.approx(0.4**2)
     final = {
         "components": {
             "scint_scale": {
@@ -498,9 +476,7 @@ def test_modulation_results_keep_frequency_and_time_definitions_separate():
     analysis.attach_modulation_index_frequency(final)
 
     reported = final["modulation_index_frequency"]["acf_amplitude"]
-    assert reported["definition"].startswith(
-        "ACF-amplitude m = sqrt(fitted Lorentzian amplitude)"
-    )
+    assert reported["definition"].startswith("ACF-amplitude m = sqrt(fitted Lorentzian amplitude)")
     assert reported["components"]["scint_scale"][0]["m"] == pytest.approx(0.4)
     assert "direct_std_mean" not in final["modulation_index_frequency"]
 
@@ -563,9 +539,7 @@ def test_pipeline_reports_all_modulation_branches_side_by_side(monkeypatch):
             {
                 "components": {
                     "scint_scale": {
-                        "subband_measurements": [
-                            {"freq_mhz": 610.0, "mod": 0.6, "mod_err": 0.04}
-                        ]
+                        "subband_measurements": [{"freq_mhz": 610.0, "mod": 0.6, "mod_err": 0.04}]
                     }
                 }
             },
@@ -585,12 +559,8 @@ def test_pipeline_reports_all_modulation_branches_side_by_side(monkeypatch):
     m_t = pipeline.final_results["modulation_index_time"]
     assert m_nu["definition"] == analysis.ACF_AMPLITUDE_MODULATION_DEFINITION
     assert set(m_t) == {"acf_fitted", "direct_std_mean"}
-    assert m_t["acf_fitted"]["definition"] == (
-        analysis.INTRA_PULSE_ACF_MODULATION_DEFINITION
-    )
-    assert m_t["direct_std_mean"]["definition"] == (
-        analysis.DIRECT_MODULATION_DEFINITION
-    )
+    assert m_t["acf_fitted"]["definition"] == (analysis.INTRA_PULSE_ACF_MODULATION_DEFINITION)
+    assert m_t["direct_std_mean"]["definition"] == (analysis.DIRECT_MODULATION_DEFINITION)
 
 
 def test_intra_pulse_plot_writes_figure_manifest(tmp_path):
@@ -622,6 +592,188 @@ def test_intra_pulse_plot_writes_figure_manifest(tmp_path):
     assert "ACF-fitted" in manifest
 
 
+def test_pipeline_gate_fails_closed_when_refit_is_inconclusive(monkeypatch):
+    """A gate whose own re-fits could not run must not certify a measurement."""
+    from scint_analysis.pipeline import ScintillationAnalysis
+
+    ds = DynamicSpectrum(
+        np.ones((32, 20)),
+        np.linspace(600.0, 620.0, 32),
+        np.arange(20) * 0.001,
+    )
+    cfg = {
+        "burst_id": "chime-gate-inconclusive-test",
+        "telescope": "chime",
+        "analysis": {
+            "rfi_masking": {
+                "manual_burst_window": [12, 16],
+                "manual_noise_window": [0, 10],
+            },
+            "acf": {"first_fit_lag": 2},
+            "grid_regularization": {"enable": True},
+            "bandpass_normalization": {"enable": True},
+            "fitting": {
+                "fit_lagrange_mhz": 1.0,
+                "fit_lag_scan_mhz": [1.0, 0.5],
+                "harmonic_mask": {"enable": True},
+            },
+            "noise": {"disable": True},
+            "fit_2d": {"enable": False},
+        },
+    }
+    pipeline = ScintillationAnalysis(cfg)
+
+    def prepare():
+        pipeline.masked_spectrum = ds
+        pipeline.data_prepared = True
+
+    monkeypatch.setattr(pipeline, "prepare_data", prepare)
+    monkeypatch.setattr(pipeline, "_apply_bandpass_normalization", lambda *_args: None)
+    monkeypatch.setattr(
+        analysis,
+        "calculate_acfs_for_subbands",
+        lambda *_args, **_kwargs: {
+            "subband_acfs": [np.array([0.4, 0.2])],
+            "subband_lags_mhz": [np.array([0.02, 0.04])],
+            "subband_center_freqs_mhz": [610.0],
+            "subband_channel_widths_mhz": [0.02],
+            "subband_channel_slices": [(0, 32)],
+        },
+    )
+    monkeypatch.setattr(
+        analysis,
+        "analyze_scintillation_from_acfs",
+        lambda *_args, **_kwargs: (
+            {
+                "reported_dnu_definition": "HWHM",
+                "components": {
+                    "scint_scale": {
+                        "gamma_hwhm_mhz": 0.04,
+                        "subband_measurements": [],
+                    }
+                },
+            },
+            [],
+            {},
+        ),
+    )
+    monkeypatch.setattr(pipeline, "_off_pulse_dnu_slices", lambda *_a, **_k: [])
+    # every gate re-fit "throws" -> swallowed -> None (the fail-open path)
+    monkeypatch.setattr(pipeline, "_fit_acf_width", lambda *_a, **_k: None)
+
+    pipeline.run()
+
+    status = pipeline.final_results["measurement_status"]
+    assert status["status"] == "diagnostic_only"
+    assert status["downgraded"] is True
+    assert any(check.startswith("inconclusive:") for check in status["failed_checks"])
+
+
+def test_pipeline_embeds_failed_chime_measurement_status(monkeypatch):
+    """Optimization success cannot outrank a failed CHIME off-pulse null."""
+    from galaxies.foreground import scintillation_bridge
+    from scint_analysis.pipeline import ScintillationAnalysis
+
+    ds = DynamicSpectrum(
+        np.ones((32, 20)),
+        np.linspace(600.0, 620.0, 32),
+        np.arange(20) * 0.001,
+    )
+    cfg = {
+        "burst_id": "chime-gate-test",
+        "telescope": "chime",
+        "analysis": {
+            "rfi_masking": {
+                "manual_burst_window": [12, 16],
+                "manual_noise_window": [0, 10],
+            },
+            "acf": {"first_fit_lag": 2},
+            "grid_regularization": {"enable": True},
+            "bandpass_normalization": {"enable": True},
+            "fitting": {
+                "fit_lagrange_mhz": 1.0,
+                "fit_lag_scan_mhz": [1.0, 0.5],
+                "harmonic_mask": {"enable": True},
+            },
+            "noise": {"disable": True},
+            "fit_2d": {"enable": False},
+        },
+    }
+    pipeline = ScintillationAnalysis(cfg)
+
+    def prepare():
+        pipeline.masked_spectrum = ds
+        pipeline.data_prepared = True
+
+    monkeypatch.setattr(pipeline, "prepare_data", prepare)
+    monkeypatch.setattr(pipeline, "_apply_bandpass_normalization", lambda *_args: None)
+    monkeypatch.setattr(
+        analysis,
+        "calculate_acfs_for_subbands",
+        lambda *_args, **_kwargs: {
+            "subband_acfs": [np.array([0.4, 0.2])],
+            "subband_lags_mhz": [np.array([0.02, 0.04])],
+            "subband_center_freqs_mhz": [610.0],
+            "subband_channel_widths_mhz": [0.02],
+            "subband_channel_slices": [(0, 32)],
+        },
+    )
+    monkeypatch.setattr(
+        analysis,
+        "analyze_scintillation_from_acfs",
+        lambda *_args, **_kwargs: (
+            {
+                "reported_dnu_definition": "HWHM",
+                "components": {
+                    "scint_scale": {
+                        "gamma_hwhm_mhz": 0.04,
+                        "subband_measurements": [],
+                    }
+                },
+            },
+            [],
+            {},
+        ),
+    )
+    monkeypatch.setattr(
+        pipeline,
+        "_off_pulse_dnu_slices",
+        lambda *_args, **_kwargs: [0.04, 0.041, 0.039],
+    )
+    monkeypatch.setattr(
+        pipeline,
+        "_fit_acf_width",
+        lambda *_args, **kwargs: 0.01 if kwargs.get("excision_bins") == 6 else 0.04,
+    )
+    monkeypatch.setattr(
+        scintillation_bridge,
+        "attach_interpretation_with_bridge",
+        lambda _results, config, **_kwargs: config,
+    )
+
+    pipeline.run()
+
+    result = pipeline.final_results
+    assert result["measurement_status"]["status"] == "diagnostic_only"
+    assert "off_pulse_null" in result["measurement_status"]["failed_checks"]
+    assert "low_lag_stability" in result["measurement_status"]["failed_checks"]
+    assert result["chime_provenance"]["records"] == {
+        "grid_regularization": True,
+        "bandpass_normalization": True,
+        "harmonic_mask": True,
+    }
+    assert result["analysis_windows"] == {
+        "on_pulse_bins": [12, 16],
+        "off_pulse_bins": [0, 10],
+    }
+    assert len(result["systematic_scan"]["fit_windows"]) == 2
+    assert result["fit_lag_policy"] == {
+        "first_fit_lag": 2,
+        "harmonic_mask": {"enable": True},
+        "reported_dnu_definition": "HWHM",
+    }
+
+
 @pytest.mark.slow
 @pytest.mark.xfail(
     reason=(
@@ -651,9 +803,7 @@ def test_freya_chime_gamma_brackets_legacy_recomputation(tmp_path, monkeypatch):
     config_path = repo_root / "scintillation/configs/bursts/freya_chime_hi.yaml"
     cfg = load_config(config_path, workspace_root=repo_root)
     cfg["input_data_path"] = str(data_path)
-    cfg.setdefault("analysis", {}).setdefault("preprocessing", {})["mode"] = (
-        "canfar_reference"
-    )
+    cfg.setdefault("analysis", {}).setdefault("preprocessing", {})["mode"] = "canfar_reference"
     cfg["analysis"].setdefault("fit_2d", {})["enable"] = False
     cfg.setdefault("pipeline_options", {}).update(
         {
@@ -662,11 +812,11 @@ def test_freya_chime_gamma_brackets_legacy_recomputation(tmp_path, monkeypatch):
             "save_intermediate_steps": False,
         }
     )
-    monkeypatch.setattr(ScintillationAnalysis, "_create_diagnostic_plots", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        ScintillationAnalysis, "_create_diagnostic_plots", lambda *args, **kwargs: None
+    )
 
     pipeline = ScintillationAnalysis(cfg)
     pipeline.run()
-    gamma_khz = (
-        pipeline.final_results["components"]["scint_scale"]["gamma_hwhm_mhz"] * 1e3
-    )
+    gamma_khz = pipeline.final_results["components"]["scint_scale"]["gamma_hwhm_mhz"] * 1e3
     assert abs(gamma_khz - FREYA_RECOMPUTED_GAMMA_KHZ) < FREYA_TOL_KHZ

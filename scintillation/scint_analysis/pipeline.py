@@ -223,6 +223,219 @@ class ScintillationAnalysis:
                 **kwargs,
             )
 
+    @staticmethod
+    def _revalidate_dnu(spectrum, channel_width_mhz, **kwargs):
+        from .revalidation import revalidate_dnu
+
+        try:
+            value = revalidate_dnu(spectrum, channel_width_mhz, **kwargs)
+        except Exception as exc:
+            log.debug("CHIME artifact re-fit failed: %s", exc)
+            return None
+        return float(value) if np.isfinite(value) and value > 0 else None
+
+    def _off_pulse_dnu_slices(
+        self,
+        channel_slice,
+        channel_width_mhz,
+        *,
+        first_lag,
+        max_lag_mhz,
+        max_slices=6,
+    ):
+        """Re-fit burst-length off-pulse slices on the reference sub-band.
+
+        max_slices sits above off_pulse_null_verdict's min_off_fits=3 so the
+        null still runs if a couple of slice re-fits fail (a cap of exactly 3
+        made any single failure a trivial null_pass).
+        """
+        if self.burst_lims is None or self.off_pulse_lims is None:
+            return []
+        width = max(self.burst_lims[1] - self.burst_lims[0], 4)
+        lo = self.off_pulse_lims[0] + 2
+        hi = self.off_pulse_lims[1] - width
+        c0, c1 = channel_slice
+        values = []
+        for start in list(range(lo, hi, width + 4))[:max_slices]:
+            spectrum = self.masked_spectrum.get_spectrum((start, start + width))[c0:c1]
+            value = self._revalidate_dnu(
+                spectrum,
+                channel_width_mhz,
+                first_lag=first_lag,
+                max_lag_mhz=max_lag_mhz,
+            )
+            if value is not None:
+                values.append(value)
+        return values
+
+    @staticmethod
+    def _fit_acf_width(
+        lags,
+        acf,
+        err,
+        *,
+        fit_range_mhz,
+        harmonic_cfg,
+        channel_width_mhz,
+        excision_bins=0,
+    ):
+        """Re-fit an existing ACF after fit-window/mask/low-lag selection."""
+        from . import chime_artifact_guards as guards
+        from .revalidation import compare_lorentzian_components
+
+        lags = np.asarray(lags, float)
+        acf = np.asarray(acf, float)
+        err = None if err is None else np.asarray(err, float)
+        keep = np.isfinite(lags) & np.isfinite(acf) & (np.abs(lags) <= fit_range_mhz)
+        if excision_bins:
+            keep &= np.abs(lags) > (int(excision_bins) + 0.5) * channel_width_mhz
+        if err is not None:
+            keep &= np.isfinite(err) & (err > 0)
+        selected_err = None if err is None else err[keep]
+        lags, acf, selected_err, _record = guards.apply_harmonic_mask_to_fit(
+            lags[keep], acf[keep], selected_err, harmonic_cfg
+        )
+        if lags.size < 4:
+            return None
+        try:
+            verdict = compare_lorentzian_components(
+                lags, acf, max_components=1, acf_err=selected_err
+            )
+        except Exception as exc:
+            log.debug("CHIME artifact ACF re-fit failed: %s", exc)
+            return None
+        fit = verdict.get("fits", [{}])[0]
+        components = fit.get("components", []) if fit.get("success") else []
+        return float(components[0]["dnu_mhz"]) if components else None
+
+    def _finalize_chime_status(self):
+        """Run the CHIME-only physical artifact gates and persist their evidence."""
+        if str(self.config.get("telescope", "")).lower() != "chime":
+            return
+
+        from . import chime_artifact_guards as guards
+
+        acf_cfg = self.config.get("analysis", {}).get("acf", {})
+        fit_cfg = self.config.get("analysis", {}).get("fitting", {})
+        first_lag = int(acf_cfg.get("first_fit_lag", 1))
+        fit_range = float(fit_cfg.get("fit_lagrange_mhz", 45.0))
+        centers = np.asarray(self.acf_results.get("subband_center_freqs_mhz", []), float)
+        slices = self.acf_results.get("subband_channel_slices", [])
+        widths = self.acf_results.get("subband_channel_widths_mhz", [])
+        if not centers.size or not slices or not widths:
+            on_dnu = None
+            off_dnu = []
+            excision_widths = {}
+            scan_records = []
+        else:
+            ref_freq = float(fit_cfg.get("reference_frequency_mhz", np.nanmedian(centers)))
+            index = int(np.nanargmin(np.abs(centers - ref_freq)))
+            channel_slice = tuple(slices[index])
+            channel_width = float(widths[index])
+            lags = self.acf_results["subband_lags_mhz"][index]
+            acf = self.acf_results["subband_acfs"][index]
+            err_values = self.acf_results.get("subband_acfs_err", [])
+            err = err_values[index] if len(err_values) > index else None
+            harmonic_cfg = fit_cfg.get("harmonic_mask", {})
+            on_dnu = self._fit_acf_width(
+                lags,
+                acf,
+                err,
+                fit_range_mhz=fit_range,
+                harmonic_cfg=harmonic_cfg,
+                channel_width_mhz=channel_width,
+            )
+            off_dnu = self._off_pulse_dnu_slices(
+                channel_slice,
+                channel_width,
+                first_lag=first_lag,
+                max_lag_mhz=fit_range,
+            )
+            excisions = acf_cfg.get("low_lag_excision_bins", (1, 2, 3, 6))
+            excision_widths = {
+                int(k): self._fit_acf_width(
+                    lags,
+                    acf,
+                    err,
+                    fit_range_mhz=fit_range,
+                    harmonic_cfg=harmonic_cfg,
+                    channel_width_mhz=channel_width,
+                    excision_bins=int(k),
+                )
+                for k in excisions
+            }
+            scan_records = []
+            for window in fit_cfg.get("fit_lag_scan_mhz", []):
+                window = float(window)
+                value = (
+                    on_dnu
+                    if window == fit_range
+                    else self._fit_acf_width(
+                        lags,
+                        acf,
+                        err,
+                        fit_range_mhz=window,
+                        harmonic_cfg=harmonic_cfg,
+                        channel_width_mhz=channel_width,
+                    )
+                )
+                scan_records.append(
+                    {"fit_lag_mhz": window, "dnu_mhz": value, "success": value is not None}
+                )
+
+        provenance = guards.chime_provenance_status(self.config)
+        null = guards.off_pulse_null_verdict(on_dnu, off_dnu)
+        stability = guards.low_lag_stability_verdict(on_dnu, excision_widths)
+        status = guards.finalize_measurement_status(
+            provenance,
+            off_pulse_null=null,
+            low_lag_stability=stability,
+        )
+        # Fail closed: finalize_measurement_status only downgrades on an
+        # explicit False, but a swallowed re-fit exception or missing ACF
+        # metadata leaves on_dnu None and the verdicts inconclusive (None).
+        # A gate that could not run must not certify a measurement.
+        inconclusive = [
+            name
+            for name, ran in (
+                ("on_pulse_refit", on_dnu is not None),
+                ("off_pulse_null", null.get("null_pass") is not None),
+                ("low_lag_stability", stability.get("stable") is not None),
+            )
+            if not ran
+        ]
+        if inconclusive:
+            status = {
+                "status": guards.DIAGNOSTIC_ONLY,
+                "downgraded": True,
+                "failed_checks": status["failed_checks"]
+                + ["inconclusive:" + ",".join(inconclusive)],
+            }
+        scan_widths = [record["dnu_mhz"] for record in scan_records if record["success"]]
+        systematic = max(scan_widths) - min(scan_widths) if len(scan_widths) >= 2 else None
+        self.final_results.update(
+            {
+                "measurement_status": status,
+                "chime_provenance": provenance,
+                "off_pulse_null": null,
+                "low_lag_stability": stability,
+                "systematic_scan": {
+                    "fit_windows": scan_records,
+                    "fit_window_systematic_mhz": systematic,
+                },
+                "analysis_windows": {
+                    "on_pulse_bins": list(self.burst_lims),
+                    "off_pulse_bins": list(self.off_pulse_lims),
+                },
+                "fit_lag_policy": {
+                    "first_fit_lag": first_lag,
+                    "harmonic_mask": fit_cfg.get("harmonic_mask", {}),
+                    "reported_dnu_definition": "HWHM",
+                },
+            }
+        )
+        self.final_results.setdefault("reported_dnu_definition", "HWHM")
+
     def run(self):
         """
         Executes the full scintillation analysis pipeline from start to finish.
@@ -378,6 +591,8 @@ class ScintillationAnalysis:
                 "direct_std_mean": self.modulation_over_time,
             }
 
+        self._finalize_chime_status()
+
         # Attach two-screen / emission-size / consistency interpretation per component
         # (bridge fills config['source'] from tau_consistency + optional multi-scale Δν).
         from galaxies.foreground.scintillation_bridge import attach_interpretation_with_bridge
@@ -460,8 +675,10 @@ class ScintillationAnalysis:
                     "success": result.success,
                     **analysis._bandwidth_fields(result.gamma_0, result.gamma_0_err),
                 }
-                ref_freq = self.config.get("analysis", {}).get("fitting", {}).get(
-                    "reference_frequency_mhz", 600.0
+                ref_freq = (
+                    self.config.get("analysis", {})
+                    .get("fitting", {})
+                    .get("reference_frequency_mhz", 600.0)
                 )
                 joint_estimator = analysis.joint_2d_gamma_scaling(result, ref_freq)
                 for component in self.final_results.get("components", {}).values():

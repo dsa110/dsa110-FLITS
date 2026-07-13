@@ -117,10 +117,13 @@ def test_off_pulse_null_fails_on_freya_numbers():
     assert v["off_n_fits"] == len(off)
 
 
-def test_off_pulse_null_passes_when_off_is_white():
-    # DSA arm C: off-pulse effectively white -> few/no consistent fits.
+def test_off_pulse_null_inconclusive_when_too_few_off_fits():
+    # Few/no off fits is ambiguous (genuinely white off-pulse vs crashed
+    # re-fits), so the verdict is inconclusive and the pipeline's
+    # fail-closed guard decides — never a free pass.
     v = guards.off_pulse_null_verdict(0.448, [])
-    assert v["null_pass"] is True
+    assert v["null_pass"] is None
+    assert "inconclusive" in v["reason"]
 
 
 def test_off_pulse_null_passes_when_scales_differ():

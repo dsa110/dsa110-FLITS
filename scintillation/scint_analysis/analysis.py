@@ -26,6 +26,7 @@ except (
 from collections import defaultdict
 
 from lmfit import Model
+from lmfit.model import ModelResult
 from lmfit.models import ConstantModel
 from scipy.interpolate import interp1d
 from scipy.odr import ODR, RealData
@@ -231,7 +232,32 @@ else:
         return acf_vals
 
 
-def calculate_acf(spectrum_1d, channel_width_mhz, off_burst_spectrum_mean=None, max_lag_bins=None):
+def _bandwidth_fields(gamma_hwhm_mhz, gamma_err_mhz=None):
+    # The reference notebooks report Delta_nu_d = gamma (HWHM), while v3 reports 2*gamma.
+    fields = {
+        "gamma_hwhm_mhz": gamma_hwhm_mhz,
+        "fwhm_mhz": 2.0 * gamma_hwhm_mhz if gamma_hwhm_mhz is not None else None,
+        "reported_dnu_definition": "HWHM",
+    }
+    if gamma_err_mhz is not None:
+        fields["gamma_hwhm_err_mhz"] = gamma_err_mhz
+    return fields
+
+
+def _bandwidth_fields_for_model(model_name, gamma_hwhm_mhz, gamma_err_mhz=None):
+    """Return explicit width fields only for models with a decorrelation width."""
+    if "power" in model_name:
+        return {}
+    return _bandwidth_fields(gamma_hwhm_mhz, gamma_err_mhz)
+
+
+def calculate_acf(
+    spectrum_1d,
+    channel_width_mhz,
+    off_burst_spectrum_mean=None,
+    max_lag_bins=None,
+    first_fit_lag=1,
+):
     """
     Calculates the ACF and its diagonal errors, including statistical and
     finite scintle contributions.
@@ -249,6 +275,8 @@ def calculate_acf(spectrum_1d, channel_width_mhz, off_burst_spectrum_mean=None, 
         The mean of the off-burst spectrum for normalization.
     max_lag_bins : int, optional
         The maximum number of bins for the ACF.
+    first_fit_lag : int, optional
+        The first positive lag bin retained in the returned ACF.
 
     Returns
     -------
@@ -280,7 +308,7 @@ def calculate_acf(spectrum_1d, channel_width_mhz, off_burst_spectrum_mean=None, 
         denom = 1.0
 
     x = spectrum_1d.filled(np.nan) - mean_on
-    lags = np.arange(1, max_lag_bins)
+    lags = np.arange(max(1, int(first_fit_lag)), max_lag_bins)
 
     acf_vals, stat_errs = _acf_with_errs(x, lags, denom)
 
@@ -317,14 +345,14 @@ def calculate_acf(spectrum_1d, channel_width_mhz, off_burst_spectrum_mean=None, 
 
     # --- 3. Symmetrize and Combine ---
     # Create the full, two-sided arrays for ACF, lags, and errors
-    full_acf = np.concatenate((acf_vals[clean_mask][::-1], [1.0], acf_vals[clean_mask]))
+    full_acf = np.concatenate((acf_vals[clean_mask][::-1], acf_vals[clean_mask]))
     full_lags = np.concatenate(
-        (-positive_lags_mhz[clean_mask][::-1], [0.0], positive_lags_mhz[clean_mask])
+        (-positive_lags_mhz[clean_mask][::-1], positive_lags_mhz[clean_mask])
     )
 
-    full_stat_err = np.concatenate((stat_errs[clean_mask][::-1], [1e-9], stat_errs[clean_mask]))
+    full_stat_err = np.concatenate((stat_errs[clean_mask][::-1], stat_errs[clean_mask]))
     full_finite_err = np.concatenate(
-        (finite_scintle_errs[clean_mask][::-1], [0.0], finite_scintle_errs[clean_mask])
+        (finite_scintle_errs[clean_mask][::-1], finite_scintle_errs[clean_mask])
     )
 
     # Combine the two error sources in quadrature to get the total diagonal error
@@ -397,7 +425,14 @@ def clear_noise_acf_cache():
 
 
 def _mean_noise_acf(
-    noise_desc, n_rep, spec_len, channel_width_mhz, *, mask_hash, acf_fn=calculate_acf
+    noise_desc,
+    n_rep,
+    spec_len,
+    channel_width_mhz,
+    *,
+    mask_hash,
+    first_fit_lag=1,
+    acf_fn=calculate_acf,
 ):
     """Monte‑Carlo average spectral ACF of pure noise rows.
 
@@ -408,18 +443,20 @@ def _mean_noise_acf(
     n_rep : int
         Number of synthetic rows to average. ≥100 is recommended for smoothness.
     spec_len : int
-        Number of frequency bins (≥ 1 + 2·max_lag_bins) for which the ACF will be
-        evaluated so that shapes match the real ACF from `calculate_acf`.
+        Length of the centerless, two-sided ACF to match.
     channel_width_mhz : float
         Frequency bin width in MHz for unit conversion.
     mask_hash : int
         Hash of the mask array for cache keying.
+    first_fit_lag : int, optional
+        First positive lag bin retained in the real ACF.
     """
     global _noise_acf_cache
 
     # Use content-based hash instead of id()
     desc_hash = _noise_descriptor_hash(noise_desc)
-    key = (desc_hash, spec_len, round(channel_width_mhz, 6), mask_hash)
+    first_fit_lag = max(1, int(first_fit_lag))
+    key = (desc_hash, spec_len, round(channel_width_mhz, 6), mask_hash, first_fit_lag)
 
     if key in _noise_acf_cache:
         log.debug(f"Using cached noise ACF template (key hash: {hash(key)})")
@@ -439,7 +476,8 @@ def _mean_noise_acf(
             np.ma.masked_invalid(noise_row),
             channel_width_mhz,
             off_burst_spectrum_mean=0.0,
-            max_lag_bins=(spec_len + 1) // 2,
+            max_lag_bins=spec_len // 2 + first_fit_lag,
+            first_fit_lag=first_fit_lag,
         )
         if acf_obj is not None:
             acfs.append(acf_obj.acf)
@@ -453,7 +491,11 @@ def _mean_noise_acf(
 
 
 def calculate_acf_noerrs(
-    spectrum_1d, channel_width_mhz, off_burst_spectrum_mean=None, max_lag_bins=None
+    spectrum_1d,
+    channel_width_mhz,
+    off_burst_spectrum_mean=None,
+    max_lag_bins=None,
+    first_fit_lag=1,
 ):
     """
     Calculates the one-sided autocorrelation function of a spectrum using
@@ -469,6 +511,8 @@ def calculate_acf_noerrs(
         The mean of the off-burst spectrum, used for normalization.
     max_lag_bins : int, optional
         The maximum number of bins to compute the ACF out to.
+    first_fit_lag : int, optional
+        The first positive lag bin retained in the returned ACF.
 
     Returns
     -------
@@ -496,7 +540,7 @@ def calculate_acf_noerrs(
     if max_lag_bins is None:
         max_lag_bins = n_chan
 
-    lags = np.arange(1, max_lag_bins)
+    lags = np.arange(max(1, int(first_fit_lag)), max_lag_bins)
     acf_vals = _acf_noerrs(x, lags, denom)
 
     pos_lags_mhz = lags * channel_width_mhz
@@ -524,6 +568,7 @@ def calculate_acfs_for_subbands(masked_spectrum, config, burst_lims, noise_desc=
     n_sub = acf_cfg.get("num_subbands", 8)
     use_snr = acf_cfg.get("use_snr_subbanding", False)
     max_lag_mhz_global = acf_cfg.get("max_lag_mhz", 45.0)
+    first_fit_lag = acf_cfg.get("first_fit_lag", 1)
 
     # Self‑noise width and optional off‑burst reference
     if config.get("analysis", {}).get("self_noise", {}).get("disable", False):
@@ -610,6 +655,7 @@ def calculate_acfs_for_subbands(masked_spectrum, config, burst_lims, noise_desc=
             chan_width,
             off_burst_spectrum_mean=sub_off_mean,
             max_lag_bins=max_lag_bins_sub,
+            first_fit_lag=first_fit_lag,
         )
         if not acf_obj:
             start_idx = end_idx
@@ -625,12 +671,13 @@ def calculate_acfs_for_subbands(masked_spectrum, config, burst_lims, noise_desc=
                 spec_len=len(acf_obj.acf),
                 channel_width_mhz=chan_width,
                 mask_hash=real_mask_hash,
+                first_fit_lag=first_fit_lag,
             )
             if mean_noise_acf is not None:
                 # normalise so fitted 'amp' really is the radiometer m-value
-                centre = len(mean_noise_acf) // 2
-                if mean_noise_acf[centre] != 0:
-                    mean_noise_acf /= mean_noise_acf[centre]
+                peak = np.max(mean_noise_acf)
+                if peak != 0:
+                    mean_noise_acf /= peak
 
         # Store results
         results["noise_template"].append(mean_noise_acf)
@@ -650,7 +697,7 @@ def calculate_acfs_for_subbands(masked_spectrum, config, burst_lims, noise_desc=
 
 def _make_noise_model(template, lags):
     """Return (Model, Parameters) with one free amp parameter."""
-    shape = template / template[len(template) // 2]  # unity at Δν=0
+    shape = template / np.max(template)
     f = interp1d(lags, shape, kind="linear", bounds_error=False, fill_value=0.0)
 
     def noise_tpl(x, amp):
@@ -694,7 +741,7 @@ def _fit_acf_models(
     """
     Fit every scattering candidate to one ACF.
     """
-    fit_results: dict[str, lmfit.ModelResult | None] = {}
+    fit_results: dict[str, ModelResult | None] = {}
 
     # --- data slice & weights ---
     m = (np.abs(acf_object.lags) <= fit_lagrange_mhz) & (acf_object.lags != 0)
@@ -1704,7 +1751,8 @@ def analyze_scintillation_from_acfs(acf_results, config):
         # Extract results. B[0] is the slope alpha, B[1] is log10(c)
         alpha_fit, log_c_fit = out.beta
         alpha_err, log_c_err = out.sd_beta
-        c_fit = 10**log_c_fit
+        max_log10 = np.log10(np.finfo(float).max)
+        c_fit = 10**log_c_fit if log_c_fit <= max_log10 else np.inf
 
         # Propagate error for bandwidth at reference frequency
         log_ref_freq = np.log10(ref_freq)
@@ -1737,6 +1785,9 @@ def analyze_scintillation_from_acfs(acf_results, config):
                 "mod_err": p_dict.get("mod_err"),
                 "finite_err": p_dict.get("finite_err"),
                 "gof": p_dict.get("gof", {}),
+                **_bandwidth_fields_for_model(
+                    best_model_name, p_dict.get("bw"), p_dict.get("bw_err")
+                ),
             }
             subband_measurements.append(measurement)
 
@@ -1748,6 +1799,7 @@ def analyze_scintillation_from_acfs(acf_results, config):
             "bw_at_ref_mhz_err": b_ref_err,
             "subband_measurements": subband_measurements,
             "scaling_interpretation": interpretation,
+            **_bandwidth_fields_for_model(best_model_name, b_ref, b_ref_err),
         }
 
     return final_results, all_fits, all_powerlaw_fits
@@ -1909,6 +1961,7 @@ def analyze_intra_pulse_scintillation(masked_spectrum, burst_lims, config, noise
             channel_width,
             off_burst_spectrum_mean=sub_off_mean,
             max_lag_bins=max_lag_bins_sub,
+            first_fit_lag=acf_config.get("first_fit_lag", 1),
         )
         if not acf_obj:
             continue

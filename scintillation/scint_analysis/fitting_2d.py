@@ -303,7 +303,7 @@ class Scintillation2DModel:
         # Build fit masks
         self.masks = []
         for lags in self.lags_list:
-            mask = np.abs(lags) <= self.fit_range_mhz
+            mask = (np.abs(lags) <= self.fit_range_mhz) & (lags != 0.0)
             self.masks.append(mask)
         
         # Count data points

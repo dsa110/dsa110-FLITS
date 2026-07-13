@@ -335,7 +335,7 @@ def test_gamma_scaling_recovers_seeded_injection_with_three_named_estimators():
     freqs = np.array([450.0, 550.0, 650.0, 750.0, 850.0, 950.0])
     alpha_true = 4.0
     gammas = 0.05 * (freqs / 600.0) ** alpha_true
-    gammas *= 10 ** rng.normal(0.0, 0.01, freqs.size)
+    gammas *= 10 ** rng.normal(0.0, 0.05, freqs.size)
 
     out = analysis.estimate_gamma_scaling(
         freqs,
@@ -412,6 +412,214 @@ def test_pipeline_attaches_joint_2d_as_third_named_estimator(monkeypatch):
     assert set(scaling) == {"odr_logspace", "loglog_unweighted", "joint_2d"}
     assert scaling["joint_2d"]["status"] == "ok"
     assert scaling["joint_2d"]["alpha"] == pytest.approx(4.1)
+
+
+def test_intra_pulse_runs_with_single_lorentzian(monkeypatch):
+    """The registry's fit_lor/l_gamma/l_m contract drives each time slice."""
+    rng = np.random.default_rng(43)
+    nchan, nt = 64, 16
+    ds = DynamicSpectrum(
+        10.0 + rng.normal(size=(nchan, nt)),
+        np.linspace(600.0, 620.0, nchan),
+        np.arange(nt) * 0.001,
+    )
+    cfg = {
+        "analysis": {
+            "acf": {"intra_pulse_time_bins": 4, "max_lag_mhz": 2.0},
+            "fitting": {"fit_lagrange_mhz": 1.0},
+            "self_noise": {"disable": True},
+        }
+    }
+
+    def fake_fit(acf_obj, **_kwargs):
+        fit_mask = np.abs(acf_obj.lags) <= 1.0
+        return {
+            "fit_lor": SimpleNamespace(
+                success=True,
+                params={
+                    "l_gamma": SimpleNamespace(value=0.25, stderr=0.02),
+                    "l_m": SimpleNamespace(value=0.7, stderr=0.05),
+                },
+                best_fit=np.zeros(np.count_nonzero(fit_mask)),
+            )
+        }
+
+    monkeypatch.setattr(analysis, "_fit_acf_models", fake_fit)
+    result = analysis.analyze_intra_pulse_scintillation(ds, (0, nt), cfg, None)
+
+    assert isinstance(result, list) and len(result) == 4
+    assert all(item["bw"] == pytest.approx(0.25) for item in result)
+    assert all(item["mod"] == pytest.approx(0.7) for item in result)
+    assert all(item["gamma_hwhm_mhz"] == pytest.approx(0.25) for item in result)
+
+
+def test_direct_modulation_over_time_matches_analytic_std_over_mean():
+    """RECIPE section 4: direct m is std/mean after frequency averaging."""
+    profile = np.array([1.0, 3.0, 1.0, 3.0, 1.0])
+    power = np.ma.MaskedArray(
+        np.repeat(profile[None, :], 32, axis=0),
+        mask=np.zeros((32, profile.size), dtype=bool),
+    )
+
+    result = analysis.modulation_index_over_time(power, (0, profile.size))
+
+    expected = [
+        np.std(profile[start : min(start + 3, profile.size)])
+        / np.mean(profile[start : min(start + 3, profile.size)])
+        for start in range(profile.size - 1)
+    ]
+    assert result["method"] == (
+        "direct std/mean (scinttools_v3.analyze_modulation_over_time)"
+    )
+    assert result["definition"].startswith(
+        "direct m = std/mean of frequency-averaged intensity"
+    )
+    assert result["chunk_bins"] == 3
+    assert result["overlap_bins"] == 2
+    np.testing.assert_allclose(result["m"], expected, rtol=0, atol=1e-15)
+    np.testing.assert_allclose(result["time_idx"], [1.0, 2.0, 3.0, 3.5])
+
+
+def test_modulation_results_keep_frequency_and_time_definitions_separate():
+    assert analysis.lorentzian_component(0.0, gamma=0.25, m=0.4) == pytest.approx(
+        0.4**2
+    )
+    final = {
+        "components": {
+            "scint_scale": {
+                "subband_measurements": [
+                    {"freq_mhz": 500.0, "mod": 0.4, "mod_err": 0.05},
+                    {"freq_mhz": 700.0, "mod": 0.8, "mod_err": 0.06},
+                ]
+            }
+        }
+    }
+
+    analysis.attach_modulation_index_frequency(final)
+
+    reported = final["modulation_index_frequency"]["acf_amplitude"]
+    assert reported["definition"].startswith(
+        "ACF-amplitude m = sqrt(fitted Lorentzian amplitude)"
+    )
+    assert reported["components"]["scint_scale"][0]["m"] == pytest.approx(0.4)
+    assert "direct_std_mean" not in final["modulation_index_frequency"]
+
+
+def test_pipeline_reports_all_modulation_branches_side_by_side(monkeypatch):
+    from galaxies.foreground import scintillation_bridge
+    from scint_analysis.pipeline import ScintillationAnalysis
+
+    ds = DynamicSpectrum(
+        np.repeat(np.array([[1.0, 3.0, 1.0, 3.0]]), 16, axis=0),
+        np.linspace(600.0, 620.0, 16),
+        np.arange(4) * 0.001,
+    )
+    cfg = {
+        "burst_id": "modulation-test",
+        "analysis": {
+            "rfi_masking": {
+                "manual_burst_window": [0, 4],
+                "manual_noise_window": [0, 0],
+            },
+            "acf": {
+                "enable_intra_pulse_analysis": True,
+                "time_chunk_size_bins": 3,
+                "time_overlap_bins": 2,
+            },
+            "noise": {"disable": True},
+            "fit_2d": {"enable": False},
+        },
+    }
+    pipeline = ScintillationAnalysis(cfg)
+
+    def prepare():
+        pipeline.masked_spectrum = ds
+        pipeline.data_prepared = True
+
+    monkeypatch.setattr(pipeline, "prepare_data", prepare)
+    monkeypatch.setattr(
+        analysis,
+        "calculate_acfs_for_subbands",
+        lambda *_args, **_kwargs: {"subband_acfs": [np.array([0.2])]},
+    )
+    monkeypatch.setattr(
+        analysis,
+        "analyze_intra_pulse_scintillation",
+        lambda *_args, **_kwargs: [
+            {
+                "time_s": 0.0015,
+                "bw": 0.25,
+                "bw_err": 0.02,
+                "mod": 0.7,
+                "mod_err": 0.05,
+                "fit_success": True,
+            }
+        ],
+    )
+    monkeypatch.setattr(
+        analysis,
+        "analyze_scintillation_from_acfs",
+        lambda *_args, **_kwargs: (
+            {
+                "components": {
+                    "scint_scale": {
+                        "subband_measurements": [
+                            {"freq_mhz": 610.0, "mod": 0.6, "mod_err": 0.04}
+                        ]
+                    }
+                }
+            },
+            [],
+            {},
+        ),
+    )
+    monkeypatch.setattr(
+        scintillation_bridge,
+        "attach_interpretation_with_bridge",
+        lambda _results, config, **_kwargs: config,
+    )
+
+    pipeline.run()
+
+    m_nu = pipeline.final_results["modulation_index_frequency"]["acf_amplitude"]
+    m_t = pipeline.final_results["modulation_index_time"]
+    assert m_nu["definition"] == analysis.ACF_AMPLITUDE_MODULATION_DEFINITION
+    assert set(m_t) == {"acf_fitted", "direct_std_mean"}
+    assert m_t["acf_fitted"]["definition"] == (
+        analysis.INTRA_PULSE_ACF_MODULATION_DEFINITION
+    )
+    assert m_t["direct_std_mean"]["definition"] == (
+        analysis.DIRECT_MODULATION_DEFINITION
+    )
+
+
+def test_intra_pulse_plot_writes_figure_manifest(tmp_path):
+    from scint_analysis import plotting
+
+    result = {
+        "time_s": 0.001,
+        "bw": 0.25,
+        "bw_err": 0.02,
+        "mod": 0.7,
+        "mod_err": 0.05,
+        "acf_lags": np.array([-1.0, -0.5, 0.5, 1.0]),
+        "acf_data": np.array([0.1, 0.4, 0.4, 0.1]),
+        "fit_success": True,
+    }
+    save_path = tmp_path / "intra_pulse.png"
+
+    later = {**result, "time_s": 0.002}
+    plotting.plot_intra_pulse_evolution(
+        [result, later],
+        np.array([1.0, 2.0]),
+        np.array([0.0, 0.001]),
+        save_path=save_path,
+    )
+
+    assert save_path.exists()
+    manifest = (tmp_path / "figures.manifest.json").read_text()
+    assert "intra_pulse.png" in manifest
+    assert "ACF-fitted" in manifest
 
 
 @pytest.mark.slow

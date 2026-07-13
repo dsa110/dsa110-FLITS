@@ -1962,6 +1962,7 @@ def analyze_scintillation_from_acfs(acf_results, config):
             **_bandwidth_fields(b_ref, b_ref_err),
         }
 
+    attach_modulation_index_frequency(final_results)
     return final_results, all_fits, all_powerlaw_fits
 
 
@@ -2039,6 +2040,108 @@ def attach_scintillation_interpretation(final_results, config):
     return final_results
 
 
+ACF_AMPLITUDE_MODULATION_DEFINITION = (
+    "ACF-amplitude m = sqrt(fitted Lorentzian amplitude) per sub-band "
+    "(scinttools_v3.py:317)"
+)
+DIRECT_MODULATION_DEFINITION = (
+    "direct m = std/mean of frequency-averaged intensity in sliding time chunks "
+    "(scinttools_v3.py:611-735)"
+)
+INTRA_PULSE_ACF_MODULATION_DEFINITION = (
+    "ACF-fitted m and HWHM dnu per time slice "
+    "(analysis-Copy1.analyze_intra_pulse_scintillation:915-1033)"
+)
+
+
+def attach_modulation_index_frequency(final_results):
+    """Report fitted ACF-amplitude m(nu) without mixing in direct m(t)."""
+    components = {}
+    for name, component in final_results.get("components", {}).items():
+        measurements = component.get("subband_measurements", [])
+        components[name] = [
+            {
+                "freq_mhz": measurement.get("freq_mhz"),
+                "m": measurement.get("mod"),
+                "m_err": measurement.get("mod_err"),
+            }
+            for measurement in measurements
+        ]
+    final_results["modulation_index_frequency"] = {
+        "acf_amplitude": {
+            "definition": ACF_AMPLITUDE_MODULATION_DEFINITION,
+            "components": components,
+        }
+    }
+    return final_results
+
+
+def modulation_index_over_time(
+    power, burst_lims, chunk_bins=3, overlap_bins=2, times=None
+):
+    """Direct sliding-window m(t), matching RECIPE section 4/scinttools_v3."""
+    power = np.ma.asarray(power)
+    if power.ndim != 2:
+        raise ValueError("power must have shape (frequency, time)")
+    chunk_bins = int(chunk_bins)
+    overlap_bins = int(overlap_bins)
+    if chunk_bins <= 1:
+        raise ValueError("chunk_bins must be greater than 1")
+    if overlap_bins < 0 or overlap_bins >= chunk_bins:
+        raise ValueError("overlap_bins must satisfy 0 <= overlap_bins < chunk_bins")
+
+    start, end = (int(value) for value in burst_lims)
+    start = max(0, start)
+    end = min(end, power.shape[1])
+    step = chunk_bins - overlap_bins
+    time_idx = []
+    time_s = []
+    modulation = []
+    means = []
+    stds = []
+    counts = []
+    for chunk_start in range(start, end, step):
+        chunk_end = min(chunk_start + chunk_bins, end)
+        if chunk_end - chunk_start < 2:
+            continue
+        profile = np.ma.mean(power[:, chunk_start:chunk_end], axis=0)
+        mean = np.ma.mean(profile)
+        std = np.ma.std(profile)
+        count = int(profile.count())
+        center = 0.5 * (chunk_start + chunk_end - 1)
+        valid = (
+            count >= 2
+            and not np.ma.is_masked(mean)
+            and not np.ma.is_masked(std)
+            and np.isfinite(mean)
+            and np.isfinite(std)
+            and mean != 0
+        )
+        m = float(std / mean) if valid else np.nan
+        time_idx.append(center)
+        if times is not None:
+            time_s.append(float(np.mean(np.asarray(times)[chunk_start:chunk_end])))
+        modulation.append(m)
+        means.append(float(mean) if not np.ma.is_masked(mean) else np.nan)
+        stds.append(float(std) if not np.ma.is_masked(std) else np.nan)
+        counts.append(count)
+
+    result = {
+        "definition": DIRECT_MODULATION_DEFINITION,
+        "method": "direct std/mean (scinttools_v3.analyze_modulation_over_time)",
+        "chunk_bins": chunk_bins,
+        "overlap_bins": overlap_bins,
+        "time_idx": np.asarray(time_idx),
+        "m": np.asarray(modulation),
+        "mean": np.asarray(means),
+        "std": np.asarray(stds),
+        "num_points": np.asarray(counts),
+    }
+    if times is not None:
+        result["time_s"] = np.asarray(time_s)
+    return result
+
+
 def analyze_intra_pulse_scintillation(masked_spectrum, burst_lims, config, noise_desc):
     """
     Analyzes the evolution of scintillation parameters across the burst profile.
@@ -2071,17 +2174,18 @@ def analyze_intra_pulse_scintillation(masked_spectrum, burst_lims, config, noise
     noise_template = None  # always None for temporal analysis
 
     num_time_bins = acf_config.get("intra_pulse_time_bins", 10)
-    model_to_fit = fit_config.get("intra_pulse_fit_model", "lorentzian_component")
+    model_to_fit = fit_config.get("intra_pulse_fit_model", "fit_lor")
     max_lag_mhz = acf_config.get("max_lag_mhz", 45.0)
 
     # NEW: Calculate the center frequency of the entire band once.
     band_center_freq = np.mean(masked_spectrum.frequencies)
 
-    if "1c" not in model_to_fit:
-        log.error(
-            f"Model '{model_to_fit}' is not a 1-component model. Intra-pulse analysis requires a simple model to track evolution. Aborting."
+    if not model_to_fit.endswith(("lor", "gauss")):
+        log.warning(
+            "Model '%s' is not a single Lorentzian/Gaussian; falling back to fit_lor.",
+            model_to_fit,
         )
-        return []
+        model_to_fit = "fit_lor"
 
     results = []
 
@@ -2150,9 +2254,11 @@ def analyze_intra_pulse_scintillation(masked_spectrum, burst_lims, config, noise
         prefix = "g_" if is_gauss else "l_"
         p_root = "sigma" if is_gauss else "gamma"
 
-        bw_val = p[f"{prefix}{p_root}1"].value
+        bw_val = p[f"{prefix}{p_root}"].value
         bw_err = (
-            p[f"{prefix}{p_root}1"].stderr if p[f"{prefix}{p_root}1"].stderr is not None else np.nan
+            p[f"{prefix}{p_root}"].stderr
+            if p[f"{prefix}{p_root}"].stderr is not None
+            else np.nan
         )
 
         # Convert Gaussian sigma to HWHM if necessary
@@ -2162,8 +2268,8 @@ def analyze_intra_pulse_scintillation(masked_spectrum, burst_lims, config, noise
             if bw_err:
                 bw_err *= hwhm_factor
 
-        mod_val = p[f"{prefix}m1"].value
-        mod_err = p[f"{prefix}m1"].stderr if p[f"{prefix}m1"].stderr is not None else np.nan
+        mod_val = p[f"{prefix}m"].value
+        mod_err = p[f"{prefix}m"].stderr if p[f"{prefix}m"].stderr is not None else np.nan
 
         # Calculate the central time of the bin
         center_time = np.mean(masked_spectrum.times[start_bin:end_bin])
@@ -2180,6 +2286,7 @@ def analyze_intra_pulse_scintillation(masked_spectrum, burst_lims, config, noise
                 "acf_fit_lags": fit_lags,  # Lags corresponding to the fit
                 "acf_fit_best": fit_obj.best_fit,  # The best-fit line
                 "fit_success": fit_obj.success,
+                **_bandwidth_fields(bw_val, bw_err),
             }
         )
 

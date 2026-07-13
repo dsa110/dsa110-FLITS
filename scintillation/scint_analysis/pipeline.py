@@ -34,6 +34,7 @@ class ScintillationAnalysis:
         self.final_results = None
         self.all_powerlaw_fits = None
         self.intra_pulse_results = None
+        self.modulation_over_time = None
         self.data_prepared = False
 
         self.cache_dir = self.config.get("pipeline_options", {}).get("cache_directory", "./cache")
@@ -337,16 +338,17 @@ class ScintillationAnalysis:
         # --- Run the intra-pulse analysis ---
         acf_config = self.config.get("analysis", {}).get("acf", {})
         if acf_config.get("enable_intra_pulse_analysis", False):
-            ### FIX: Log message moved inside the conditional check ###
             log.info("Running intra-pulse analysis...")
-            if self.noise_descriptor:
-                self.intra_pulse_results = analysis.analyze_intra_pulse_scintillation(
-                    self.masked_spectrum, burst_lims, self.config, self.noise_descriptor
-                )
-            else:
-                log.warning(
-                    "Cannot run intra-pulse analysis without a valid noise descriptor. Skipping."
-                )
+            self.intra_pulse_results = analysis.analyze_intra_pulse_scintillation(
+                self.masked_spectrum, burst_lims, self.config, self.noise_descriptor
+            )
+            self.modulation_over_time = analysis.modulation_index_over_time(
+                self.masked_spectrum.power,
+                burst_lims,
+                chunk_bins=acf_config.get("time_chunk_size_bins", 3),
+                overlap_bins=acf_config.get("time_overlap_bins", 2),
+                times=self.masked_spectrum.times,
+            )
 
         # --- Stage 4: Fit Models and Derive Parameters ---
         if not self.acf_results or not self.acf_results["subband_acfs"]:
@@ -357,6 +359,24 @@ class ScintillationAnalysis:
         self.final_results, self.all_subband_fits, self.all_powerlaw_fits = (
             analysis.analyze_scintillation_from_acfs(self.acf_results, self.config)
         )
+        analysis.attach_modulation_index_frequency(self.final_results)
+        if acf_config.get("enable_intra_pulse_analysis", False):
+            acf_measurements = [
+                {
+                    "time_s": result.get("time_s"),
+                    "m": result.get("mod"),
+                    "m_err": result.get("mod_err"),
+                    **analysis._bandwidth_fields(result.get("bw"), result.get("bw_err")),
+                }
+                for result in (self.intra_pulse_results or [])
+            ]
+            self.final_results["modulation_index_time"] = {
+                "acf_fitted": {
+                    "definition": analysis.INTRA_PULSE_ACF_MODULATION_DEFINITION,
+                    "measurements": acf_measurements,
+                },
+                "direct_std_mean": self.modulation_over_time,
+            }
 
         # Attach two-screen / emission-size / consistency interpretation per component
         # (bridge fills config['source'] from tau_consistency + optional multi-scale Δν).

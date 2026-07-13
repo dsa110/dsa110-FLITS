@@ -581,6 +581,19 @@ def plot_intra_pulse_evolution(
             os.makedirs(os.path.dirname(save_path), exist_ok=True)
             plt.savefig(save_path, dpi=200, bbox_inches='tight')
             log.info(f"Intra-pulse evolution plot saved to: {save_path}")
+            from tools.figure_manifest import write_manifest
+
+            out_dir = os.path.dirname(os.path.abspath(save_path))
+            write_manifest(
+                out_dir,
+                [
+                    (
+                        os.path.basename(save_path),
+                        "Intra-pulse panels show the ACF-fitted HWHM dnu(t) and m(t) "
+                        "beside the burst profile, with no failed slices plotted as fits.",
+                    )
+                ],
+            )
         except Exception as e:
             log.error(f"Failed to save plot to {save_path}: {e}")
             

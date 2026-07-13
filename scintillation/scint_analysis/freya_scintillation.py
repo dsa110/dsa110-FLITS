@@ -483,6 +483,49 @@ def normalize_bandpass(
     return DynamicSpectrum(new_power, spectrum.frequencies.copy(), spectrum.times.copy())
 
 
+def normalize_snr_per_channel(
+    spectrum: DynamicSpectrum,
+    off_pulse_lims: tuple[int, int],
+    *,
+    min_off_bins: int = _MIN_BANDPASS_OFF_BINS,
+    floor_frac: float = _BANDPASS_FLOOR_FRAC,
+) -> DynamicSpectrum:
+    """Reference per-channel S/N normalization: ``(I - mu_off) / sigma_off``.
+
+    This reproduces ``reference_arc/.../kenzie_funcs.py:94-109`` and
+    ``reference_arc/RECIPE.md:147-155``.  It is deliberately separate from
+    :func:`normalize_bandpass`, which divides by the off-pulse mean only.
+    """
+    start, end = (int(value) for value in off_pulse_lims)
+    if end - start < min_off_bins:
+        raise ValueError(
+            f"S/N normalization needs >= {min_off_bins} off-pulse time bins, "
+            f"got {end - start} (off-pulse window [{start}, {end}))"
+        )
+
+    off = spectrum.power[:, start:end]
+    off_mean = np.ma.filled(np.ma.mean(off, axis=1), np.nan)
+    off_std = np.ma.filled(np.ma.std(off, axis=1), np.nan)
+    finite_positive = off_std[np.isfinite(off_std) & (off_std > 0.0)]
+    if finite_positive.size == 0:
+        raise ValueError(
+            "S/N normalization: off-pulse window has no finite, positive "
+            "channel standard deviations"
+        )
+    floor = float(floor_frac) * float(np.median(finite_positive))
+    bad_channel = ~(np.isfinite(off_mean) & np.isfinite(off_std) & (off_std > floor))
+    safe_std = np.where(bad_channel, 1.0, off_std)
+    normalised = (spectrum.power.data - off_mean[:, None]) / safe_std[:, None]
+
+    base_mask = np.ma.getmaskarray(spectrum.power).copy()
+    final_mask = base_mask | np.broadcast_to(bad_channel[:, None], spectrum.power.shape)
+    return DynamicSpectrum(
+        np.ma.MaskedArray(normalised, mask=final_mask),
+        spectrum.frequencies.copy(),
+        spectrum.times.copy(),
+    )
+
+
 def _grid_stretch_ratio(frequencies: np.ndarray) -> tuple[float, float, float]:
     """Return (native step, mean step, mean/native ratio) for a frequency axis.
 

@@ -1,12 +1,16 @@
 from __future__ import annotations
 
+import warnings
+
 import numpy as np
 
 
 def robust_profile_snr(waterfall: np.ndarray) -> float:
     """Peak band-summed S/N using an off-peak MAD noise estimate."""
     wf = np.asarray(waterfall, dtype=float)
-    profile = np.nansum(wf - np.nanmedian(wf, axis=1)[:, None], axis=0)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", RuntimeWarning)
+        profile = np.nansum(wf - np.nanmedian(wf, axis=1)[:, None], axis=0)
     if profile.size >= 9:
         profile = np.convolve(profile, np.ones(9) / 9.0, mode="same")
     peak = int(np.nanargmax(profile))
@@ -30,6 +34,22 @@ def peak_z_score(score: np.ndarray) -> float:
     median = float(np.nanmedian(baseline))
     sigma = 1.4826 * float(np.nanmedian(np.abs(baseline - median)))
     return float((values[peak] - median) / sigma) if sigma > 0 else float("inf")
+
+
+def bootstrap_central_fraction(
+    peaks: np.ndarray,
+    point_peak: float,
+    sigma: float,
+    *,
+    minimum_radius: float = 0.04,
+) -> float:
+    """Fraction of bootstrap peaks in the point estimate's central mode."""
+    values = np.asarray(peaks, dtype=float)
+    values = values[np.isfinite(values)]
+    if values.size == 0 or not np.isfinite(sigma):
+        return 0.0
+    radius = max(float(minimum_radius), 2.0 * float(sigma))
+    return float(np.mean(np.abs(values - float(point_peak)) <= radius))
 
 
 def eligibility_reasons(

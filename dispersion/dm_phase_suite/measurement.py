@@ -4,6 +4,7 @@ import csv
 import hashlib
 import json
 import subprocess
+import warnings
 from dataclasses import asdict, replace
 from pathlib import Path
 
@@ -19,7 +20,12 @@ from dispersion.dm_power_analysis import (
 
 from .cutoff import estimate_fwhm_s, width_derived_cutoffs
 from .model import ResolutionEvaluation
-from .quality import eligibility_reasons, peak_z_score, robust_profile_snr
+from .quality import (
+    bootstrap_central_fraction,
+    eligibility_reasons,
+    peak_z_score,
+    robust_profile_snr,
+)
 from .resolution import block_average, resolution_factors, select_resolution
 from .search import search_dm
 from .shifts import dedisperse_residual
@@ -48,9 +54,11 @@ def _crop_aligned(waterfall: np.ndarray, dt_s: float) -> tuple[np.ndarray, tuple
 
 def _valid_channels(waterfall: np.ndarray) -> np.ndarray:
     finite = np.isfinite(waterfall).mean(axis=1)
-    mad = np.nanmedian(
-        np.abs(waterfall - np.nanmedian(waterfall, axis=1)[:, None]), axis=1
-    )
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", RuntimeWarning)
+        mad = np.nanmedian(
+            np.abs(waterfall - np.nanmedian(waterfall, axis=1)[:, None]), axis=1
+        )
     return (finite >= 0.9) & np.isfinite(mad) & (mad > 0)
 
 
@@ -213,6 +221,7 @@ def measure_manifest_row(
         if selected is not None and len([item for item in evaluations if item.eligible]) >= 2:
             break
     bootstrap = None
+    central_fraction = None
     if selected is not None:
         selected_waterfall, selected_frequency = block_average(
             cropped,
@@ -233,22 +242,32 @@ def measure_manifest_row(
             n_bootstrap=n_bootstrap,
             random_seed=sum(ord(char) for char in f"{row['burst']}:{telescope}"),
         )
+        central_fraction = bootstrap_central_fraction(
+            bootstrap.peaks,
+            selected.residual_dm - preliminary.residual_dm,
+            bootstrap.sigma,
+        )
+        bootstrap_ok = bool(
+            bootstrap.success_fraction >= 0.90
+            and np.isfinite(bootstrap.sigma)
+            and bootstrap.sigma > 0
+            and central_fraction >= 0.90
+        )
         selected = replace(
             selected,
             sigma=max(selected.sigma or 0.0, bootstrap.sigma)
             if np.isfinite(bootstrap.sigma)
             else selected.sigma,
             bootstrap_success_fraction=bootstrap.success_fraction,
-            eligible=bool(
-                selected.eligible
-                and bootstrap.success_fraction >= 0.90
-                and np.isfinite(bootstrap.sigma)
-                and bootstrap.sigma > 0
-            ),
+            eligible=bool(selected.eligible and bootstrap_ok),
             failure_reasons=(
                 selected.failure_reasons
-                if bootstrap.success_fraction >= 0.90 and np.isfinite(bootstrap.sigma)
-                else tuple((*selected.failure_reasons, "bootstrap_success"))
+                if bootstrap_ok
+                else tuple(
+                    (*selected.failure_reasons, "bootstrap_multimodal")
+                    if central_fraction < 0.90
+                    else (*selected.failure_reasons, "bootstrap_success")
+                )
             ),
         )
     status = "PASS" if selected is not None and selected.eligible else "UNCONSTRAINED"
@@ -272,6 +291,7 @@ def measure_manifest_row(
         "crop": list(crop),
         "selected": None if selected is None else asdict(selected),
         "bootstrap_peaks": None if bootstrap is None else bootstrap.peaks.tolist(),
+        "bootstrap_central_fraction": central_fraction,
         "resolutions": [asdict(item) for item in evaluations],
         "resolution_details": details,
     }

@@ -7,6 +7,7 @@ from scipy.ndimage import shift as nd_shift
 from dispersion.dm_phase_suite.coherence import coherence_curve
 from dispersion.dm_phase_suite.cutoff import width_derived_cutoffs
 from dispersion.dm_phase_suite.model import ResolutionEvaluation
+from dispersion.dm_phase_suite.quality import bootstrap_central_fraction
 from dispersion.dm_phase_suite.resolution import (
     block_average,
     resolution_factors,
@@ -131,3 +132,10 @@ def test_width_derived_cutoff_is_lower_for_broader_pulse() -> None:
     broad_cut = width_derived_cutoffs(broad, 1e-4)[1][1]
     assert broad_cut < narrow_cut
     assert broad_cut >= 100.0
+
+
+def test_bootstrap_central_fraction_rejects_split_modes() -> None:
+    clean = np.array([-0.11, -0.10, -0.09, -0.105, -0.095])
+    split = np.array([-0.11, -0.10, -0.09, 0.0, 0.01])
+    assert bootstrap_central_fraction(clean, -0.10, 0.01) == 1.0
+    assert bootstrap_central_fraction(split, -0.10, 0.01) == pytest.approx(0.6)

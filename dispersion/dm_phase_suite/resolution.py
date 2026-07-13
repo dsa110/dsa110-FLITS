@@ -42,7 +42,16 @@ def block_average(
     nf, nt = (wf.shape[0] // ff) * ff, (wf.shape[1] // tf) * tf
     if nf == 0 or nt == 0:
         raise ValueError("resolution factors exceed waterfall dimensions")
-    reduced = np.nanmean(wf[:nf, :nt].reshape(nf // ff, ff, nt // tf, tf), axis=(1, 3))
+    blocks = wf[:nf, :nt].reshape(nf // ff, ff, nt // tf, tf)
+    finite = np.isfinite(blocks)
+    count = finite.sum(axis=(1, 3))
+    total = np.where(finite, blocks, 0.0).sum(axis=(1, 3))
+    reduced = np.divide(
+        total,
+        count,
+        out=np.full(total.shape, np.nan, dtype=float),
+        where=count > 0,
+    )
     reduced_freq = np.nanmean(freq[:nf].reshape(nf // ff, ff), axis=1)
     return reduced, reduced_freq
 

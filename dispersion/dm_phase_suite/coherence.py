@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import warnings
+
 import numpy as np
 
 from .model import CoherenceCurve
@@ -11,8 +13,10 @@ def _normalise_channels(waterfall: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     if wf.ndim != 2 or min(wf.shape) < 2:
         raise ValueError("waterfall must be a non-empty (frequency,time) array")
     finite = np.isfinite(wf)
-    med = np.nanmedian(wf, axis=1)
-    mad = np.nanmedian(np.abs(wf - med[:, None]), axis=1)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", RuntimeWarning)
+        med = np.nanmedian(wf, axis=1)
+        mad = np.nanmedian(np.abs(wf - med[:, None]), axis=1)
     sigma = 1.4826 * mad
     valid = (finite.mean(axis=1) >= 0.9) & np.isfinite(sigma) & (sigma > 0)
     out = np.zeros_like(wf, dtype=float)

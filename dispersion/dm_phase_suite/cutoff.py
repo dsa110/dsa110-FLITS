@@ -1,12 +1,16 @@
 from __future__ import annotations
 
+import warnings
+
 import numpy as np
 
 
 def estimate_fwhm_s(waterfall: np.ndarray, sample_time_s: float) -> float:
     """Estimate the contiguous half-maximum width of the band-summed pulse."""
     wf = np.asarray(waterfall, dtype=float)
-    profile = np.nansum(wf - np.nanmedian(wf, axis=1)[:, None], axis=0)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", RuntimeWarning)
+        profile = np.nansum(wf - np.nanmedian(wf, axis=1)[:, None], axis=0)
     smooth_bins = max(1, int(round(1e-4 / sample_time_s)))
     if smooth_bins > 1:
         profile = np.convolve(profile, np.ones(smooth_bins) / smooth_bins, mode="same")

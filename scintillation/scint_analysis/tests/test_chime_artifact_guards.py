@@ -31,9 +31,9 @@ _test_dir = Path(__file__).parent
 sys.path.insert(0, str(_test_dir.parent.parent.parent))  # FLITS root
 sys.path.insert(0, str(_test_dir.parent.parent))  # scintillation dir
 
-import numpy as np
+import numpy as np  # noqa: E402, I001 -- imports follow the local path bootstrap
 
-from scint_analysis import chime_artifact_guards as guards
+from scint_analysis import chime_artifact_guards as guards  # noqa: E402
 
 
 # --- harmonic mask (rec #1 / the --band chime trap) -------------------------

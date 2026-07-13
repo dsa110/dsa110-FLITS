@@ -72,8 +72,10 @@ def test_harmonic_mask_noop_when_disabled():
 # --- fail-closed provenance gate (rec #2) -----------------------------------
 
 
-def _chime_cfg(grid=True, bandpass=True, harmonic=True):
+def _chime_cfg(correction=True, grid=True, bandpass=True, harmonic=True):
     analysis = {"fitting": {}}
+    if correction:
+        analysis["instrumental_background_correction"] = {"enable": True}
     if grid:
         analysis["grid_regularization"] = {"enable": True}
     if bandpass:

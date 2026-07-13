@@ -87,7 +87,7 @@ def test_pbf_loader_follows_locked_roster_and_excludes_gate_failures():
     )
 
 
-def test_gamma_power_law_uses_narrowest_clean_component_per_subband():
+def test_component_tracks_sort_widths_within_each_subband():
     rows = [
         {
             "subband": subband,
@@ -102,10 +102,32 @@ def test_gamma_power_law_uses_narrowest_clean_component_per_subband():
             (1, 1465.0, 1.6),
         )
     ]
-    fit = drv._fit_gamma_power_law(rows)
+    tracked = drv._assign_gamma_tracks(rows)
+    assert [row["gamma_track"] for row in tracked if row["subband"] == 0] == [1, 2]
+    assert [row["dnu_mhz"] for row in tracked if row["subband"] == 0] == [1.0, 8.0]
+
+
+def test_gamma_power_law_uses_gamma_1_only():
+    rows = [
+        {
+            "subband": subband,
+            "center_freq_mhz": frequency,
+            "dnu_mhz": gamma,
+            "dnu_err_mhz": 0.05,
+            "usable": True,
+        }
+        for subband, frequency, gamma in (
+            (0, 1325.0, 1.0),
+            (0, 1325.0, 8.0),
+            (1, 1465.0, 1.6),
+            (1, 1465.0, 12.0),
+        )
+    ]
+    fit = drv._fit_gamma_power_law(drv._assign_gamma_tracks(rows))
     assert fit is not None
-    assert fit["selection_policy"] == "narrowest_clean_lorentzian_per_subband"
+    assert fit["selection_policy"] == "gamma_1_only"
     assert fit["n_fit_components"] == 2
+    assert fit["included_tracks"] == [1]
 
 
 def test_low_lag_excision_keeps_resolved_wing():
@@ -187,6 +209,10 @@ def test_public_diagnostic_plot_uses_experiment_style_contract(tmp_path):
             **component,
             "dnu_mhz": 0.2 * (center_freq_mhz / 1400.0) ** 4.2,
         }
+        broad_component = {
+            **component,
+            "dnu_mhz": 1.5 * (center_freq_mhz / 1400.0) ** 2.0,
+        }
         payloads.append(
             {
                 "lags": lags,
@@ -198,9 +224,12 @@ def test_public_diagnostic_plot_uses_experiment_style_contract(tmp_path):
                     "channel_width_mhz": 0.01,
                     "fit_range_mhz": 0.8,
                     "selected_redchi": 1.05,
-                    "selected_components": [scaled_component],
+                    "selected_components": [broad_component, scaled_component],
                 },
-                "fit": {"constant": 0.0, "components": [scaled_component]},
+                "fit": {
+                    "constant": 0.0,
+                    "components": [broad_component, scaled_component],
+                },
             }
         )
 
@@ -216,13 +245,15 @@ def test_public_diagnostic_plot_uses_experiment_style_contract(tmp_path):
     )
 
     svg = Path(outputs["figure_svg"]).read_text()
-    assert "ACF primary-scale fit" in svg
+    assert "scaling fit" in svg
+    assert "excluded from scaling fit" in svg
     assert "PBF-derived" in svg
     assert "C_1=1.16" in svg
     assert "Frequency Lag" in svg
     assert "Validation context" not in svg
     assert "Positive frequency lag" not in svg
     assert outputs["gamma_power_law_fit"]["alpha"] == pytest.approx(4.2, abs=0.05)
+    assert outputs["gamma_power_law_fit"]["included_tracks"] == [1]
     assert outputs["pbf_overlay"]["alpha"] == pytest.approx(4.3)
     assert outputs["pbf_overlay"]["tau_1ghz_ms"] == pytest.approx(0.12)
     assert outputs["pbf_overlay"]["c1"] == pytest.approx(1.16)

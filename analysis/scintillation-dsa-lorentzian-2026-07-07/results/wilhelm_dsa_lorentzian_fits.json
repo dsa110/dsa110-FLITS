@@ -37,9 +37,9 @@
     "2": 14.714516442916421
   },
   "config_path": "scintillation/configs/bursts/wilhelm_dsa.yaml",
-  "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/wilhelm_dsa_acf_lorentzian_fits.pdf",
-  "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/wilhelm_dsa_acf_lorentzian_fits.png",
-  "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/wilhelm_dsa_acf_lorentzian_fits.svg",
+  "figure_pdf": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/wilhelm_dsa_acf_lorentzian_fits.pdf",
+  "figure_png": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/wilhelm_dsa_acf_lorentzian_fits.png",
+  "figure_svg": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/wilhelm_dsa_acf_lorentzian_fits.svg",
   "fit_lagrange_mhz": 25.0,
   "gamma_power_law_fit": {
     "alpha": 18.354500126069603,
@@ -54,9 +54,12 @@
       ]
     ],
     "gamma_ref_mhz": 1.4738261648926376,
+    "included_tracks": [
+      1
+    ],
     "n_fit_components": 4,
     "nu_ref_mhz": 1400.0,
-    "selection_policy": "narrowest_clean_lorentzian_per_subband"
+    "selection_policy": "gamma_1_only"
   },
   "input_data_path": "/Users/jakobfaber/Data/Faber2026/dsa110/scintillation/data/wilhelm.npz",
   "max_components": 3,
@@ -77,8 +80,8 @@
     "roster_gate_final": "MARGINAL",
     "roster_locked_utc": "2026-07-07",
     "roster_rail_class": "railed-hi",
-    "roster_source": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scattering-refit-2026-06/citable_alpha_roster.json",
-    "source": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/beta_campaign/fits/wilhelm_joint_fit_sharedzeta.json",
+    "roster_source": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scattering-refit-2026-06/citable_alpha_roster.json",
+    "source": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/beta_campaign/fits/wilhelm_joint_fit_sharedzeta.json",
     "tau_1ghz_err_minus_ms": 0.00562605499231017,
     "tau_1ghz_err_plus_ms": 0.005751036761634354,
     "tau_1ghz_ms": 0.26930674993199494,

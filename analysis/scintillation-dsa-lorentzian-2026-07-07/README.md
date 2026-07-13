@@ -52,14 +52,18 @@ captured output, figures, and scratch products from a historical worktree. It is
 not the canonical producer and must not be copied forward as live analysis code.
 
 This tracked driver is the canonical producer. Per-burst figures use the
-experiment's publication summary format: a full-height bandwidth-versus-
-frequency panel beside stacked, symmetric-lag sub-band ACFs. The bandwidth
-panel fits a free power law to clean ACF components and overlays the prediction
+experiment's publication summary format: separated bandwidth-versus-frequency
+panels beside stacked, symmetric-lag sub-band ACFs. Within each sub-band,
+positive Lorentzian widths are sorted deterministically: the narrowest is
+`gamma_1`, the next broader is `gamma_2`, and so on. The upper-left panel shows
+only `gamma_1`; a separate lower-left panel shows broader components and labels
+them as excluded from the scaling fit. The `gamma_1` panel fits a free power law
+to clean `gamma_1` measurements and overlays the prediction
 from the tracked beta-coherent time-frequency joint PBF fit via
 `Delta nu_d = C1 / (2 pi tau)`, with the adopted thin-screen convention
-`C1 = 1.16` stated in the legend. The free bandwidth law uses the narrowest
-clean Lorentzian component in each sub-band as the explicit primary diffractive-
-scale policy; broader components remain visible but do not enter that fit. The
+`C1 = 1.16` stated in the legend. The free bandwidth law's result record uses
+`selection_policy: gamma_1_only` and `included_tracks: [1]`; broader components
+are structurally excluded rather than distinguished only by styling. The
 PBF uncertainty band is explicitly an approximate propagation
 of marginal summaries until joint tau-alpha posterior samples are connected.
 The ACF panels use colored data traces,

@@ -39,9 +39,9 @@
         "2": 18.387156820715035
       },
       "config_path": "scintillation/configs/bursts/casey_dsa.yaml",
-      "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/casey_dsa_acf_lorentzian_fits.pdf",
-      "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/casey_dsa_acf_lorentzian_fits.png",
-      "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/casey_dsa_acf_lorentzian_fits.svg",
+      "figure_pdf": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/casey_dsa_acf_lorentzian_fits.pdf",
+      "figure_png": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/casey_dsa_acf_lorentzian_fits.png",
+      "figure_svg": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/casey_dsa_acf_lorentzian_fits.svg",
       "fit_lagrange_mhz": 25.0,
       "gamma_power_law_fit": {
         "alpha": 5.890745552473065,
@@ -56,9 +56,12 @@
           ]
         ],
         "gamma_ref_mhz": 2.878757814801567,
+        "included_tracks": [
+          1
+        ],
         "n_fit_components": 4,
         "nu_ref_mhz": 1400.0,
-        "selection_policy": "narrowest_clean_lorentzian_per_subband"
+        "selection_policy": "gamma_1_only"
       },
       "input_data_path": "/Users/jakobfaber/Data/Faber2026/dsa110/scintillation/data/casey.npz",
       "max_components": 3,
@@ -79,8 +82,8 @@
         "roster_gate_final": "MARGINAL",
         "roster_locked_utc": "2026-07-07",
         "roster_rail_class": "railed-hi",
-        "roster_source": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scattering-refit-2026-06/citable_alpha_roster.json",
-        "source": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/beta_campaign/fits/casey_joint_fit_sharedzeta.json",
+        "roster_source": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scattering-refit-2026-06/citable_alpha_roster.json",
+        "source": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/beta_campaign/fits/casey_joint_fit_sharedzeta.json",
         "tau_1ghz_err_minus_ms": 4.826336246226484e-05,
         "tau_1ghz_err_plus_ms": 5.125047211357661e-05,
         "tau_1ghz_ms": 0.018589939827674748,
@@ -771,9 +774,9 @@
         "1": 1.0588192575583122
       },
       "config_path": "scintillation/configs/bursts/chromatica_dsa.yaml",
-      "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/chromatica_dsa_acf_lorentzian_fits.pdf",
-      "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/chromatica_dsa_acf_lorentzian_fits.png",
-      "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/chromatica_dsa_acf_lorentzian_fits.svg",
+      "figure_pdf": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/chromatica_dsa_acf_lorentzian_fits.pdf",
+      "figure_png": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/chromatica_dsa_acf_lorentzian_fits.png",
+      "figure_svg": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/chromatica_dsa_acf_lorentzian_fits.svg",
       "fit_lagrange_mhz": 25.0,
       "gamma_power_law_fit": {
         "alpha": 6.477752916489201,
@@ -788,9 +791,12 @@
           ]
         ],
         "gamma_ref_mhz": 1.3006221835024827,
+        "included_tracks": [
+          1
+        ],
         "n_fit_components": 4,
         "nu_ref_mhz": 1400.0,
-        "selection_policy": "narrowest_clean_lorentzian_per_subband"
+        "selection_policy": "gamma_1_only"
       },
       "input_data_path": "/Users/jakobfaber/Data/Faber2026/dsa110/scintillation/data/chromatica.npz",
       "max_components": 3,
@@ -1207,26 +1213,26 @@
               "chi2": 1441.6683808964742,
               "components": [
                 {
-                  "dnu_err": 0.8230874880773036,
+                  "dnu_err": 0.8230874880780343,
                   "dnu_mhz": 0.5454498852724676,
                   "m": 0.60041575438934,
-                  "m_err": 0.5062527584737142
+                  "m_err": 0.5062527584743758
                 },
                 {
-                  "dnu_err": 3252559.5797741073,
+                  "dnu_err": 3252559.579773016,
                   "dnu_mhz": 2.564765546850102,
                   "m": 0.731098224194245,
-                  "m_err": 1552982535.5121746
+                  "m_err": 1552982535.5116553
                 },
                 {
-                  "dnu_err": 7501905.825404431,
+                  "dnu_err": 7501905.825401935,
                   "dnu_mhz": 2.564942065403833,
                   "m": 0.48141131411928173,
-                  "m_err": 2358297316.6059885
+                  "m_err": 2358297316.6052003
                 }
               ],
               "constant": -0.1858249324274648,
-              "constant_err": 0.0182237915996669,
+              "constant_err": 0.018223791599656716,
               "n": 3,
               "n_params": 7,
               "ndata": 799,
@@ -1493,9 +1499,9 @@
         "1": 11.914664957701838
       },
       "config_path": "scintillation/configs/bursts/freya_dsa.yaml",
-      "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/freya_dsa_acf_lorentzian_fits.pdf",
-      "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/freya_dsa_acf_lorentzian_fits.png",
-      "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/freya_dsa_acf_lorentzian_fits.svg",
+      "figure_pdf": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/freya_dsa_acf_lorentzian_fits.pdf",
+      "figure_png": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/freya_dsa_acf_lorentzian_fits.png",
+      "figure_svg": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/freya_dsa_acf_lorentzian_fits.svg",
       "fit_lagrange_mhz": 25.0,
       "gamma_power_law_fit": null,
       "input_data_path": "/Users/jakobfaber/Data/Faber2026/dsa110/scintillation/data/freya.npz",
@@ -1515,8 +1521,8 @@
         "roster_gate_final": "MARGINAL",
         "roster_locked_utc": "2026-07-07",
         "roster_rail_class": "interior",
-        "roster_source": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scattering-refit-2026-06/citable_alpha_roster.json",
-        "source": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/beta_campaign/fits/freya_joint_fit_sharedzeta.json",
+        "roster_source": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scattering-refit-2026-06/citable_alpha_roster.json",
+        "source": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/beta_campaign/fits/freya_joint_fit_sharedzeta.json",
         "tau_1ghz_err_minus_ms": 0.0011814983612511432,
         "tau_1ghz_err_plus_ms": 0.001217165093037445,
         "tau_1ghz_ms": 0.1193849491889905,
@@ -1914,9 +1920,9 @@
         "2": 17.395904923741575
       },
       "config_path": "scintillation/configs/bursts/hamilton_dsa.yaml",
-      "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/hamilton_dsa_acf_lorentzian_fits.pdf",
-      "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/hamilton_dsa_acf_lorentzian_fits.png",
-      "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/hamilton_dsa_acf_lorentzian_fits.svg",
+      "figure_pdf": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/hamilton_dsa_acf_lorentzian_fits.pdf",
+      "figure_png": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/hamilton_dsa_acf_lorentzian_fits.png",
+      "figure_svg": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/hamilton_dsa_acf_lorentzian_fits.svg",
       "fit_lagrange_mhz": 25.0,
       "gamma_power_law_fit": {
         "alpha": -7.179786513165298,
@@ -1931,9 +1937,12 @@
           ]
         ],
         "gamma_ref_mhz": 0.29068269386211926,
+        "included_tracks": [
+          1
+        ],
         "n_fit_components": 4,
         "nu_ref_mhz": 1400.0,
-        "selection_policy": "narrowest_clean_lorentzian_per_subband"
+        "selection_policy": "gamma_1_only"
       },
       "input_data_path": "/Users/jakobfaber/Data/Faber2026/dsa110/scintillation/data/hamilton.npz",
       "max_components": 3,
@@ -1954,8 +1963,8 @@
         "roster_gate_final": "MARGINAL",
         "roster_locked_utc": "2026-07-07",
         "roster_rail_class": "railed-hi",
-        "roster_source": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scattering-refit-2026-06/citable_alpha_roster.json",
-        "source": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/beta_campaign/fits/hamilton_joint_fit_sharedzeta.json",
+        "roster_source": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scattering-refit-2026-06/citable_alpha_roster.json",
+        "source": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/beta_campaign/fits/hamilton_joint_fit_sharedzeta.json",
         "tau_1ghz_err_minus_ms": 0.0003119758311984633,
         "tau_1ghz_err_plus_ms": 0.0003357962355388759,
         "tau_1ghz_ms": 0.024470729413943397,
@@ -2649,9 +2658,9 @@
         "1": 0.6716347741480599
       },
       "config_path": "scintillation/configs/bursts/isha_dsa.yaml",
-      "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/isha_dsa_acf_lorentzian_fits.pdf",
-      "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/isha_dsa_acf_lorentzian_fits.png",
-      "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/isha_dsa_acf_lorentzian_fits.svg",
+      "figure_pdf": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/isha_dsa_acf_lorentzian_fits.pdf",
+      "figure_png": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/isha_dsa_acf_lorentzian_fits.png",
+      "figure_svg": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/isha_dsa_acf_lorentzian_fits.svg",
       "fit_lagrange_mhz": 25.0,
       "gamma_power_law_fit": null,
       "input_data_path": "/Users/jakobfaber/Data/Faber2026/dsa110/scintillation/data/isha.npz",
@@ -2671,8 +2680,8 @@
         "roster_gate_final": "MARGINAL",
         "roster_locked_utc": "2026-07-07",
         "roster_rail_class": "railed-hi",
-        "roster_source": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scattering-refit-2026-06/citable_alpha_roster.json",
-        "source": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/beta_campaign/fits/isha_joint_fit_C2D1.json",
+        "roster_source": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scattering-refit-2026-06/citable_alpha_roster.json",
+        "source": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/beta_campaign/fits/isha_joint_fit_C2D1.json",
         "tau_1ghz_err_minus_ms": 0.023256003103859002,
         "tau_1ghz_err_plus_ms": 0.019053553732729767,
         "tau_1ghz_ms": 0.31384875520730254,
@@ -3066,9 +3075,9 @@
         "1": 1.8770112402283923
       },
       "config_path": "scintillation/configs/bursts/johndoeII_dsa.yaml",
-      "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/johndoeII_dsa_acf_lorentzian_fits.pdf",
-      "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/johndoeII_dsa_acf_lorentzian_fits.png",
-      "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/johndoeII_dsa_acf_lorentzian_fits.svg",
+      "figure_pdf": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/johndoeII_dsa_acf_lorentzian_fits.pdf",
+      "figure_png": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/johndoeII_dsa_acf_lorentzian_fits.png",
+      "figure_svg": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/johndoeII_dsa_acf_lorentzian_fits.svg",
       "fit_lagrange_mhz": 25.0,
       "gamma_power_law_fit": {
         "alpha": -32.00547269843165,
@@ -3083,9 +3092,12 @@
           ]
         ],
         "gamma_ref_mhz": 3.068197323300275,
+        "included_tracks": [
+          1
+        ],
         "n_fit_components": 3,
         "nu_ref_mhz": 1400.0,
-        "selection_policy": "narrowest_clean_lorentzian_per_subband"
+        "selection_policy": "gamma_1_only"
       },
       "input_data_path": "/Users/jakobfaber/Data/Faber2026/dsa110/scintillation/data/johndoeII.npz",
       "max_components": 3,
@@ -3105,8 +3117,8 @@
         "roster_gate_final": "MARGINAL",
         "roster_locked_utc": "2026-07-07",
         "roster_rail_class": "railed-hi",
-        "roster_source": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scattering-refit-2026-06/citable_alpha_roster.json",
-        "source": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/beta_campaign/fits/johndoeII_joint_fit_C2D2.json",
+        "roster_source": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scattering-refit-2026-06/citable_alpha_roster.json",
+        "source": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/beta_campaign/fits/johndoeII_joint_fit_C2D2.json",
         "tau_1ghz_err_minus_ms": 0.07694040419266823,
         "tau_1ghz_err_plus_ms": 0.07321053947946243,
         "tau_1ghz_ms": 2.219292440306282,
@@ -3357,35 +3369,35 @@
               "success": false
             },
             {
-              "aic": 126.52636441617592,
-              "bic": 154.62237050847554,
-              "chi2": 538.5286730967463,
+              "aic": 126.52636787014107,
+              "bic": 154.6223739624407,
+              "chi2": 538.5286776445685,
               "components": [
                 {
-                  "dnu_err": 1298679.7596730057,
-                  "dnu_mhz": 0.06429754386728781,
-                  "m": 0.10934322625540682,
-                  "m_err": 118633902.04141656
+                  "dnu_err": 1297180.4099757997,
+                  "dnu_mhz": 0.06432592968159734,
+                  "m": 0.10934227190967905,
+                  "m_err": 119621608.29911512
                 },
                 {
-                  "dnu_err": 96186.34077365142,
-                  "dnu_mhz": 0.06437077299086169,
-                  "m": 0.39514912922427525,
-                  "m_err": 32830760.34741005
+                  "dnu_err": 96138.46978591621,
+                  "dnu_mhz": 0.06439477198904398,
+                  "m": 0.39506625793883154,
+                  "m_err": 33110815.99689148
                 },
                 {
-                  "dnu_err": 1.0362500120274984,
-                  "dnu_mhz": 0.6005783436265705,
-                  "m": 0.3789025204110794,
-                  "m_err": 0.7151390981636165
+                  "dnu_err": 1.0133570187031504,
+                  "dnu_mhz": 0.6005832724977843,
+                  "m": 0.3788981961275131,
+                  "m_err": 0.6987882074538702
                 }
               ],
-              "constant": -0.004695136646084155,
-              "constant_err": 0.0034975994422465845,
+              "constant": -0.0046951277615955135,
+              "constant_err": 0.0034925057067040164,
               "n": 3,
               "n_params": 7,
               "ndata": 409,
-              "redchi": 1.3396235649172792,
+              "redchi": 1.3396235762302697,
               "success": true
             }
           ],
@@ -3626,9 +3638,9 @@
         "1": 1.8345250637657164
       },
       "config_path": "scintillation/configs/bursts/mahi_dsa.yaml",
-      "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/mahi_dsa_acf_lorentzian_fits.pdf",
-      "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/mahi_dsa_acf_lorentzian_fits.png",
-      "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/mahi_dsa_acf_lorentzian_fits.svg",
+      "figure_pdf": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/mahi_dsa_acf_lorentzian_fits.pdf",
+      "figure_png": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/mahi_dsa_acf_lorentzian_fits.png",
+      "figure_svg": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/mahi_dsa_acf_lorentzian_fits.svg",
       "fit_lagrange_mhz": 25.0,
       "gamma_power_law_fit": {
         "alpha": 21.998779867244707,
@@ -3643,9 +3655,12 @@
           ]
         ],
         "gamma_ref_mhz": 4.352801503339817,
+        "included_tracks": [
+          1
+        ],
         "n_fit_components": 3,
         "nu_ref_mhz": 1400.0,
-        "selection_policy": "narrowest_clean_lorentzian_per_subband"
+        "selection_policy": "gamma_1_only"
       },
       "input_data_path": "/Users/jakobfaber/Data/Faber2026/dsa110/scintillation/data/mahi.npz",
       "max_components": 3,
@@ -3665,8 +3680,8 @@
         "roster_gate_final": "MARGINAL",
         "roster_locked_utc": "2026-07-07",
         "roster_rail_class": "railed-hi",
-        "roster_source": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scattering-refit-2026-06/citable_alpha_roster.json",
-        "source": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/beta_campaign/fits/mahi_joint_fit_C1D1.json",
+        "roster_source": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scattering-refit-2026-06/citable_alpha_roster.json",
+        "source": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/beta_campaign/fits/mahi_joint_fit_C1D1.json",
         "tau_1ghz_err_minus_ms": 0.027226586598568636,
         "tau_1ghz_err_plus_ms": 0.025048562007195102,
         "tau_1ghz_ms": 0.21930274316476195,
@@ -4191,9 +4206,9 @@
         "1": 1.0246885177316212
       },
       "config_path": "scintillation/configs/bursts/oran_dsa.yaml",
-      "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/oran_dsa_acf_lorentzian_fits.pdf",
-      "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/oran_dsa_acf_lorentzian_fits.png",
-      "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/oran_dsa_acf_lorentzian_fits.svg",
+      "figure_pdf": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/oran_dsa_acf_lorentzian_fits.pdf",
+      "figure_png": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/oran_dsa_acf_lorentzian_fits.png",
+      "figure_svg": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/oran_dsa_acf_lorentzian_fits.svg",
       "fit_lagrange_mhz": 25.0,
       "gamma_power_law_fit": {
         "alpha": -24.13345738378931,
@@ -4208,9 +4223,12 @@
           ]
         ],
         "gamma_ref_mhz": 1.998226675993927,
+        "included_tracks": [
+          1
+        ],
         "n_fit_components": 4,
         "nu_ref_mhz": 1400.0,
-        "selection_policy": "narrowest_clean_lorentzian_per_subband"
+        "selection_policy": "gamma_1_only"
       },
       "input_data_path": "/Users/jakobfaber/Data/Faber2026/dsa110/scintillation/data/oran.npz",
       "max_components": 3,
@@ -4231,8 +4249,8 @@
         "roster_gate_final": "MARGINAL",
         "roster_locked_utc": "2026-07-07",
         "roster_rail_class": "railed-hi",
-        "roster_source": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scattering-refit-2026-06/citable_alpha_roster.json",
-        "source": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/beta_campaign/fits/oran_joint_fit_C2D1.json",
+        "roster_source": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scattering-refit-2026-06/citable_alpha_roster.json",
+        "source": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/beta_campaign/fits/oran_joint_fit_C2D1.json",
         "tau_1ghz_err_minus_ms": 0.07780094390058334,
         "tau_1ghz_err_plus_ms": 0.07339722011626404,
         "tau_1ghz_ms": 0.8428116817186169,
@@ -4916,9 +4934,9 @@
         "1": 7.044478935425509
       },
       "config_path": "scintillation/configs/bursts/phineas_dsa.yaml",
-      "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/phineas_dsa_acf_lorentzian_fits.pdf",
-      "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/phineas_dsa_acf_lorentzian_fits.png",
-      "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/phineas_dsa_acf_lorentzian_fits.svg",
+      "figure_pdf": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/phineas_dsa_acf_lorentzian_fits.pdf",
+      "figure_png": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/phineas_dsa_acf_lorentzian_fits.png",
+      "figure_svg": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/phineas_dsa_acf_lorentzian_fits.svg",
       "fit_lagrange_mhz": 25.0,
       "gamma_power_law_fit": {
         "alpha": -5.850248527675372,
@@ -4933,9 +4951,12 @@
           ]
         ],
         "gamma_ref_mhz": 5.345005276264919,
+        "included_tracks": [
+          1
+        ],
         "n_fit_components": 3,
         "nu_ref_mhz": 1400.0,
-        "selection_policy": "narrowest_clean_lorentzian_per_subband"
+        "selection_policy": "gamma_1_only"
       },
       "input_data_path": "/Users/jakobfaber/Data/Faber2026/dsa110/scintillation/data/phineas.npz",
       "max_components": 3,
@@ -4955,8 +4976,8 @@
         "roster_gate_final": "MARGINAL",
         "roster_locked_utc": "2026-07-07",
         "roster_rail_class": "interior",
-        "roster_source": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scattering-refit-2026-06/citable_alpha_roster.json",
-        "source": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/beta_campaign/fits/phineas_joint_fit_C3D3.json",
+        "roster_source": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scattering-refit-2026-06/citable_alpha_roster.json",
+        "source": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/beta_campaign/fits/phineas_joint_fit_C3D3.json",
         "tau_1ghz_err_minus_ms": 0.00806329562235969,
         "tau_1ghz_err_plus_ms": 0.008111762238103115,
         "tau_1ghz_ms": 0.4693716400435134,
@@ -5480,9 +5501,9 @@
         "1": 23.365065914836734
       },
       "config_path": "scintillation/configs/bursts/whitney_dsa.yaml",
-      "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/whitney_dsa_acf_lorentzian_fits.pdf",
-      "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/whitney_dsa_acf_lorentzian_fits.png",
-      "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/whitney_dsa_acf_lorentzian_fits.svg",
+      "figure_pdf": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/whitney_dsa_acf_lorentzian_fits.pdf",
+      "figure_png": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/whitney_dsa_acf_lorentzian_fits.png",
+      "figure_svg": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/whitney_dsa_acf_lorentzian_fits.svg",
       "fit_lagrange_mhz": 25.0,
       "gamma_power_law_fit": null,
       "input_data_path": "/Users/jakobfaber/Data/Faber2026/dsa110/scintillation/data/whitney.npz",
@@ -5502,8 +5523,8 @@
         "roster_gate_final": "MARGINAL",
         "roster_locked_utc": "2026-07-07",
         "roster_rail_class": "railed-hi",
-        "roster_source": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scattering-refit-2026-06/citable_alpha_roster.json",
-        "source": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/beta_campaign/fits/whitney_fine_joint_fit_C2D2.json",
+        "roster_source": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scattering-refit-2026-06/citable_alpha_roster.json",
+        "source": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/beta_campaign/fits/whitney_fine_joint_fit_C2D2.json",
         "tau_1ghz_err_minus_ms": 0.022648994821091284,
         "tau_1ghz_err_plus_ms": 0.02642643742397488,
         "tau_1ghz_ms": 1.1821129548071687,
@@ -5762,35 +5783,35 @@
               "success": true
             },
             {
-              "aic": -120.2366766542377,
-              "bic": -87.2800880672662,
-              "chi2": 695.1870442372065,
+              "aic": -120.23667665219241,
+              "bic": -87.28008806522092,
+              "chi2": 695.1870442389425,
               "components": [
                 {
-                  "dnu_err": 0.06453525046657473,
-                  "dnu_mhz": 0.00305225683632937,
-                  "m": 1.5227827177209088,
-                  "m_err": 536.3118153554057
+                  "dnu_err": 0.06288259213436095,
+                  "dnu_mhz": 0.003052256713347079,
+                  "m": 1.522782316180173,
+                  "m_err": 536.3276465277609
                 },
                 {
-                  "dnu_err": 9447746.676728735,
-                  "dnu_mhz": 23.411501056634435,
-                  "m": 0.5960002757379486,
-                  "m_err": 437983347.10990316
+                  "dnu_err": 9091659.401387878,
+                  "dnu_mhz": 23.41149592209353,
+                  "m": 0.596000274649727,
+                  "m_err": 421946084.1570222
                 },
                 {
-                  "dnu_err": 9825803.401034215,
-                  "dnu_mhz": 23.417099408852906,
-                  "m": 0.573715567070384,
-                  "m_err": 454995849.83626
+                  "dnu_err": 9455027.416895797,
+                  "dnu_mhz": 23.417104852436502,
+                  "m": 0.5737155656931627,
+                  "m_err": 438335654.7979776
                 }
               ],
-              "constant": -0.5054338943835024,
-              "constant_err": 0.20279208712341237,
+              "constant": -0.5054338918517841,
+              "constant_err": 0.2007602658492274,
               "n": 3,
               "n_params": 7,
               "ndata": 819,
-              "redchi": 0.8561416800950818,
+              "redchi": 0.8561416800972198,
               "success": true
             }
           ],
@@ -5895,9 +5916,9 @@
         "2": 14.714516442916421
       },
       "config_path": "scintillation/configs/bursts/wilhelm_dsa.yaml",
-      "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/wilhelm_dsa_acf_lorentzian_fits.pdf",
-      "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/wilhelm_dsa_acf_lorentzian_fits.png",
-      "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/wilhelm_dsa_acf_lorentzian_fits.svg",
+      "figure_pdf": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/wilhelm_dsa_acf_lorentzian_fits.pdf",
+      "figure_png": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/wilhelm_dsa_acf_lorentzian_fits.png",
+      "figure_svg": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/wilhelm_dsa_acf_lorentzian_fits.svg",
       "fit_lagrange_mhz": 25.0,
       "gamma_power_law_fit": {
         "alpha": 18.354500126069603,
@@ -5912,9 +5933,12 @@
           ]
         ],
         "gamma_ref_mhz": 1.4738261648926376,
+        "included_tracks": [
+          1
+        ],
         "n_fit_components": 4,
         "nu_ref_mhz": 1400.0,
-        "selection_policy": "narrowest_clean_lorentzian_per_subband"
+        "selection_policy": "gamma_1_only"
       },
       "input_data_path": "/Users/jakobfaber/Data/Faber2026/dsa110/scintillation/data/wilhelm.npz",
       "max_components": 3,
@@ -5935,8 +5959,8 @@
         "roster_gate_final": "MARGINAL",
         "roster_locked_utc": "2026-07-07",
         "roster_rail_class": "railed-hi",
-        "roster_source": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scattering-refit-2026-06/citable_alpha_roster.json",
-        "source": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/beta_campaign/fits/wilhelm_joint_fit_sharedzeta.json",
+        "roster_source": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scattering-refit-2026-06/citable_alpha_roster.json",
+        "source": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/beta_campaign/fits/wilhelm_joint_fit_sharedzeta.json",
         "tau_1ghz_err_minus_ms": 0.00562605499231017,
         "tau_1ghz_err_plus_ms": 0.005751036761634354,
         "tau_1ghz_ms": 0.26930674993199494,
@@ -6612,9 +6636,9 @@
         "2": 18.676829485608298
       },
       "config_path": "scintillation/configs/bursts/zach_dsa.yaml",
-      "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/zach_dsa_acf_lorentzian_fits.pdf",
-      "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/zach_dsa_acf_lorentzian_fits.png",
-      "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/zach_dsa_acf_lorentzian_fits.svg",
+      "figure_pdf": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/zach_dsa_acf_lorentzian_fits.pdf",
+      "figure_png": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/zach_dsa_acf_lorentzian_fits.png",
+      "figure_svg": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/zach_dsa_acf_lorentzian_fits.svg",
       "fit_lagrange_mhz": 25.0,
       "gamma_power_law_fit": {
         "alpha": 2.0304981813271974,
@@ -6629,9 +6653,12 @@
           ]
         ],
         "gamma_ref_mhz": 0.6610609708217403,
+        "included_tracks": [
+          1
+        ],
         "n_fit_components": 4,
         "nu_ref_mhz": 1400.0,
-        "selection_policy": "narrowest_clean_lorentzian_per_subband"
+        "selection_policy": "gamma_1_only"
       },
       "input_data_path": "/Users/jakobfaber/Data/Faber2026/dsa110/scintillation/data/zach.npz",
       "max_components": 3,
@@ -6652,8 +6679,8 @@
         "roster_gate_final": "MARGINAL",
         "roster_locked_utc": "2026-07-07",
         "roster_rail_class": "railed-hi",
-        "roster_source": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scattering-refit-2026-06/citable_alpha_roster.json",
-        "source": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/beta_campaign/fits/zach_joint_fit_C2D4_cwin.json",
+        "roster_source": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scattering-refit-2026-06/citable_alpha_roster.json",
+        "source": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/beta_campaign/fits/zach_joint_fit_C2D4_cwin.json",
         "tau_1ghz_err_minus_ms": 0.0009861337238163126,
         "tau_1ghz_err_plus_ms": 0.0009474110740741726,
         "tau_1ghz_ms": 0.1864021408460393,
@@ -7335,15 +7362,15 @@
       "zach"
     ],
     "failures": [],
-    "figure_directory": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures",
+    "figure_directory": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures",
     "figures_enabled": true,
     "flits_root": "/Users/jakobfaber/Data/Faber2026/dsa110",
     "max_components": 3,
     "n_failure": 0,
     "n_success": 12,
     "notes": "Fresh DSA ACFs from npz; YAML stored_fits and pkl ACF products are not read. Pipeline caches, diagnostic plots, MC noise templates, and 2D fits are disabled. When enabled, figures show a sample-level summary plus manuscript-style per-burst bandwidth-scaling and stacked ACF diagnostics.",
-    "summary_figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/dsa_lorentzian_summary.pdf",
-    "summary_figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/dsa_lorentzian_summary.png",
-    "summary_figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/dsa_lorentzian_summary.svg"
+    "summary_figure_pdf": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/dsa_lorentzian_summary.pdf",
+    "summary_figure_png": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/dsa_lorentzian_summary.png",
+    "summary_figure_svg": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/dsa_lorentzian_summary.svg"
   }
 }

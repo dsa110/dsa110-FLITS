@@ -35,9 +35,9 @@
     "1": 23.365065914836734
   },
   "config_path": "scintillation/configs/bursts/whitney_dsa.yaml",
-  "figure_pdf": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/whitney_dsa_acf_lorentzian_fits.pdf",
-  "figure_png": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/whitney_dsa_acf_lorentzian_fits.png",
-  "figure_svg": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/whitney_dsa_acf_lorentzian_fits.svg",
+  "figure_pdf": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/whitney_dsa_acf_lorentzian_fits.pdf",
+  "figure_png": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/whitney_dsa_acf_lorentzian_fits.png",
+  "figure_svg": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/whitney_dsa_acf_lorentzian_fits.svg",
   "fit_lagrange_mhz": 25.0,
   "gamma_power_law_fit": null,
   "input_data_path": "/Users/jakobfaber/Data/Faber2026/dsa110/scintillation/data/whitney.npz",
@@ -57,8 +57,8 @@
     "roster_gate_final": "MARGINAL",
     "roster_locked_utc": "2026-07-07",
     "roster_rail_class": "railed-hi",
-    "roster_source": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/scattering-refit-2026-06/citable_alpha_roster.json",
-    "source": "/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS-scint-revalidation/analysis/beta_campaign/fits/whitney_fine_joint_fit_C2D2.json",
+    "roster_source": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scattering-refit-2026-06/citable_alpha_roster.json",
+    "source": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/beta_campaign/fits/whitney_fine_joint_fit_C2D2.json",
     "tau_1ghz_err_minus_ms": 0.022648994821091284,
     "tau_1ghz_err_plus_ms": 0.02642643742397488,
     "tau_1ghz_ms": 1.1821129548071687,
@@ -317,35 +317,35 @@
           "success": true
         },
         {
-          "aic": -120.2366766542377,
-          "bic": -87.2800880672662,
-          "chi2": 695.1870442372065,
+          "aic": -120.23667665219241,
+          "bic": -87.28008806522092,
+          "chi2": 695.1870442389425,
           "components": [
             {
-              "dnu_err": 0.06453525046657473,
-              "dnu_mhz": 0.00305225683632937,
-              "m": 1.5227827177209088,
-              "m_err": 536.3118153554057
+              "dnu_err": 0.06288259213436095,
+              "dnu_mhz": 0.003052256713347079,
+              "m": 1.522782316180173,
+              "m_err": 536.3276465277609
             },
             {
-              "dnu_err": 9447746.676728735,
-              "dnu_mhz": 23.411501056634435,
-              "m": 0.5960002757379486,
-              "m_err": 437983347.10990316
+              "dnu_err": 9091659.401387878,
+              "dnu_mhz": 23.41149592209353,
+              "m": 0.596000274649727,
+              "m_err": 421946084.1570222
             },
             {
-              "dnu_err": 9825803.401034215,
-              "dnu_mhz": 23.417099408852906,
-              "m": 0.573715567070384,
-              "m_err": 454995849.83626
+              "dnu_err": 9455027.416895797,
+              "dnu_mhz": 23.417104852436502,
+              "m": 0.5737155656931627,
+              "m_err": 438335654.7979776
             }
           ],
-          "constant": -0.5054338943835024,
-          "constant_err": 0.20279208712341237,
+          "constant": -0.5054338918517841,
+          "constant_err": 0.2007602658492274,
           "n": 3,
           "n_params": 7,
           "ndata": 819,
-          "redchi": 0.8561416800950818,
+          "redchi": 0.8561416800972198,
           "success": true
         }
       ],

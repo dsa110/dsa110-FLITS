@@ -388,6 +388,23 @@ MANUSCRIPT_GUIDE = "gray"
 MANUSCRIPT_GRID = "#d9d9d9"
 
 
+def _assign_gamma_tracks(component_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Label Lorentzian scales by increasing width within each sub-band.
+
+    ``gamma_1`` is always the narrowest fitted scale, ``gamma_2`` the next
+    broader scale, and so on.  This deterministic ordering makes component
+    membership explicit before either plotting or fitting the frequency law.
+    """
+    tracked = []
+    for subband in sorted({int(row["subband"]) for row in component_rows}):
+        rows = [row for row in component_rows if int(row["subband"]) == subband]
+        for gamma_track, row in enumerate(
+            sorted(rows, key=lambda item: float(item["dnu_mhz"])), start=1
+        ):
+            tracked.append({**row, "gamma_track": gamma_track})
+    return tracked
+
+
 def _fit_gamma_power_law(
     component_rows: list[dict[str, Any]], *, nu_ref_mhz: float = 1400.0
 ) -> dict[str, Any] | None:
@@ -395,20 +412,17 @@ def _fit_gamma_power_law(
     usable = [
         row
         for row in component_rows
-        if row["usable"]
+        if row.get("gamma_track") == 1
+        and row["usable"]
         and np.isfinite(row["dnu_err_mhz"])
         and row["dnu_err_mhz"] > 0
         and row["dnu_mhz"] > 0
     ]
-    primary = []
-    for subband in sorted({row["subband"] for row in usable}):
-        candidates = [row for row in usable if row["subband"] == subband]
-        primary.append(min(candidates, key=lambda row: row["dnu_mhz"]))
-    if len(primary) < 2:
+    if len(usable) < 2:
         return None
-    nu = np.asarray([row["center_freq_mhz"] for row in primary], dtype=float)
-    gamma = np.asarray([row["dnu_mhz"] for row in primary], dtype=float)
-    gamma_err = np.asarray([row["dnu_err_mhz"] for row in primary], dtype=float)
+    nu = np.asarray([row["center_freq_mhz"] for row in usable], dtype=float)
+    gamma = np.asarray([row["dnu_mhz"] for row in usable], dtype=float)
+    gamma_err = np.asarray([row["dnu_err_mhz"] for row in usable], dtype=float)
     x = np.log(nu / nu_ref_mhz)
     y = np.log(gamma)
     sigma_y = gamma_err / gamma
@@ -425,8 +439,9 @@ def _fit_gamma_power_law(
         "gamma_ref_mhz": float(np.exp(coefficients[0])),
         "alpha": float(coefficients[1]),
         "covariance": covariance,
-        "n_fit_components": len(primary),
-        "selection_policy": "narrowest_clean_lorentzian_per_subband",
+        "n_fit_components": len(usable),
+        "selection_policy": "gamma_1_only",
+        "included_tracks": [1],
     }
 
 
@@ -552,7 +567,9 @@ def plot_burst_acf_diagnostic(
         hspace=0.24,
         wspace=0.25,
     )
-    ax_bw = fig.add_subplot(gs[:, 0])
+    left = gs[:, 0].subgridspec(2, 1, height_ratios=[2.0, 1.0], hspace=0.10)
+    ax_gamma1 = fig.add_subplot(left[0])
+    ax_broad = fig.add_subplot(left[1], sharex=ax_gamma1)
     acf_colors = plt.get_cmap("plasma")(np.linspace(0.15, 0.75, max(n_subbands, 1)))
 
     component_rows = []
@@ -573,21 +590,13 @@ def plot_burst_acf_diagnostic(
                 }
             )
 
-    clean_rows = [row for row in component_rows if row["usable"]]
-    flagged_rows = [row for row in component_rows if not row["usable"]]
-    for rows, marker, color, edge, alpha, label in (
-        (
-            clean_rows,
-            "o",
-            MANUSCRIPT_PURPLE,
-            MANUSCRIPT_PURPLE,
-            0.95,
-            r"Lorentzian Component ($\gamma$)",
-        ),
-        (flagged_rows, "^", "0.65", "0.35", 0.7, "flagged component"),
-    ):
+    component_rows = _assign_gamma_tracks(component_rows)
+    gamma1_rows = [row for row in component_rows if row["gamma_track"] == 1]
+    broad_rows = [row for row in component_rows if row["gamma_track"] > 1]
+
+    def plot_track_rows(ax, rows, *, marker, color, label):
         if not rows:
-            continue
+            return
         x = [row["center_freq_mhz"] for row in rows]
         y = [row["dnu_mhz"] for row in rows]
         yerr = [
@@ -597,7 +606,7 @@ def plot_burst_acf_diagnostic(
             for row in rows
         ]
         if any(err > 0 for err in yerr):
-            ax_bw.errorbar(
+            ax.errorbar(
                 x,
                 y,
                 yerr=yerr,
@@ -606,20 +615,38 @@ def plot_burst_acf_diagnostic(
                 elinewidth=1.0,
                 capsize=2.5,
                 capthick=1.0,
-                alpha=alpha,
+                alpha=0.9,
                 zorder=1,
             )
-        ax_bw.scatter(
+        ax.scatter(
             x,
             y,
             marker=marker,
             s=24,
             color=color,
-            edgecolors=edge,
+            edgecolors=[color if row["usable"] else "0.35" for row in rows],
             linewidths=0.7,
-            alpha=alpha,
+            alpha=[0.95 if row["usable"] else 0.45 for row in rows],
             label=label,
             zorder=3,
+        )
+
+    plot_track_rows(
+        ax_gamma1,
+        gamma1_rows,
+        marker="o",
+        color=MANUSCRIPT_PURPLE,
+        label=r"$\gamma_1$ (narrow component; scaling-fit input)",
+    )
+    track_styles = {2: ("s", "#D55E00"), 3: ("D", "#0072B2")}
+    for track in sorted({row["gamma_track"] for row in broad_rows}):
+        marker, color = track_styles.get(track, ("P", "0.35"))
+        plot_track_rows(
+            ax_broad,
+            [row for row in broad_rows if row["gamma_track"] == track],
+            marker=marker,
+            color=color,
+            label=rf"$\gamma_{track}$ (excluded from scaling fit)",
         )
 
     freq_rows = component_rows
@@ -642,7 +669,7 @@ def plot_burst_acf_diagnostic(
             np.exp(log_gamma - log_sigma),
             np.exp(log_gamma + log_sigma),
         )
-        ax_bw.fill_between(
+        ax_gamma1.fill_between(
             nu,
             gamma_envelope[0],
             gamma_envelope[1],
@@ -651,20 +678,20 @@ def plot_burst_acf_diagnostic(
             linewidth=0,
             zorder=1,
         )
-        ax_bw.plot(
+        ax_gamma1.plot(
             nu,
             gamma_curve,
             color=MANUSCRIPT_PURPLE,
             lw=1.7,
-            label=rf"ACF primary-scale fit: $\alpha_\gamma={gamma_fit['alpha']:.2f}$",
+            label=rf"$\gamma_1$ scaling fit: $\alpha_1={gamma_fit['alpha']:.2f}$",
             zorder=2,
         )
     elif component_rows:
-        ax_bw.text(
+        ax_gamma1.text(
             0.97,
             0.97,
             r"ACF bandwidth fit unavailable ($<2$ usable primary components)",
-            transform=ax_bw.transAxes,
+            transform=ax_gamma1.transAxes,
             fontsize=8.0,
             color="0.35",
             ha="right",
@@ -698,7 +725,7 @@ def plot_burst_acf_diagnostic(
         )
         pbf_lo, pbf_hi = np.nanpercentile(sample_curves, [16.0, 84.0], axis=0)
         pbf_envelope = (pbf_lo, pbf_hi)
-        ax_bw.fill_between(
+        ax_gamma1.fill_between(
             nu,
             pbf_lo,
             pbf_hi,
@@ -707,7 +734,7 @@ def plot_burst_acf_diagnostic(
             linewidth=0,
             zorder=1,
         )
-        ax_bw.plot(
+        ax_gamma1.plot(
             nu,
             pbf_curve,
             "-.",
@@ -717,15 +744,15 @@ def plot_burst_acf_diagnostic(
             zorder=2,
         )
 
-    if component_rows:
-        ax_bw.set_yscale("log")
+    for ax, rows in ((ax_gamma1, gamma1_rows), (ax_broad, broad_rows)):
+        ax.set_yscale("log")
         scale_values = []
-        for row in clean_rows or flagged_rows:
+        for row in rows:
             scale_values.append(row["dnu_mhz"])
             if np.isfinite(row["dnu_err_mhz"]) and row["dnu_err_mhz"] > 0:
                 scale_values.append(max(row["dnu_mhz"] - row["dnu_err_mhz"], 0.0))
                 scale_values.append(row["dnu_mhz"] + row["dnu_err_mhz"])
-        for envelope in (gamma_envelope, pbf_envelope):
+        for envelope in ((gamma_envelope, pbf_envelope) if ax is ax_gamma1 else ()):
             if envelope is not None:
                 scale_values.extend((float(np.nanmin(envelope[0])), float(np.nanmax(envelope[1]))))
         finite_positive = np.asarray(
@@ -734,36 +761,50 @@ def plot_burst_acf_diagnostic(
         if finite_positive.size:
             y_lower = float(np.nanmin(finite_positive)) / 1.6
             y_upper = float(np.nanmax(finite_positive)) * 1.8
-            ax_bw.set_ylim(y_lower, y_upper)
-            off_scale = [row for row in flagged_rows if row["dnu_mhz"] > y_upper]
+            ax.set_ylim(y_lower, y_upper)
+            off_scale = [row for row in rows if not row["usable"] and row["dnu_mhz"] > y_upper]
             if off_scale:
                 label = "; ".join(
                     f"SB {row['subband'] + 1}: {row['dnu_mhz']:.2g} MHz"
                     for row in off_scale
                 )
-                ax_bw.text(
+                ax.text(
                     0.97,
                     0.88,
                     f"flagged, off scale: {label}",
-                    transform=ax_bw.transAxes,
+                    transform=ax.transAxes,
                     ha="right",
                     va="top",
                     fontsize=7.5,
                     color="0.4",
                 )
-        ax_bw.yaxis.set_major_formatter(FuncFormatter(lambda value, _: f"{value:g}"))
-        ax_bw.yaxis.set_minor_formatter(NullFormatter())
-    ax_bw.set_xlabel("Center Frequency (MHz)")
-    ax_bw.set_ylabel(r"Decorrelation Bandwidth, $\gamma$ (MHz)")
-    ax_bw.grid(axis="y", color=MANUSCRIPT_GRID, alpha=0.55, lw=0.45)
-    ax_bw.tick_params(top=True, right=True, which="both", direction="in")
-    ax_bw.legend(
-        loc="upper left",
-        frameon=True,
-        framealpha=0.9,
-        borderpad=0.3,
-        handlelength=1.35,
-    )
+        ax.yaxis.set_major_formatter(FuncFormatter(lambda value, _: f"{value:g}"))
+        ax.yaxis.set_minor_formatter(NullFormatter())
+        ax.grid(axis="y", color=MANUSCRIPT_GRID, alpha=0.55, lw=0.45)
+        ax.tick_params(top=True, right=True, which="both", direction="in")
+        handles, labels = ax.get_legend_handles_labels()
+        if handles:
+            ax.legend(
+                loc="upper left",
+                frameon=True,
+                framealpha=0.9,
+                borderpad=0.3,
+                handlelength=1.35,
+            )
+    if not broad_rows:
+        ax_broad.text(
+            0.5,
+            0.5,
+            r"No broader Lorentzian component selected",
+            transform=ax_broad.transAxes,
+            ha="center",
+            va="center",
+            color="0.4",
+        )
+    ax_gamma1.tick_params(labelbottom=False)
+    ax_broad.set_xlabel("Center Frequency (MHz)")
+    ax_gamma1.set_ylabel(r"Primary bandwidth, $\gamma_1$ (MHz)")
+    ax_broad.set_ylabel(r"Broader scales (MHz)")
 
     for row_idx, payload in enumerate(plot_subbands):
         ax_acf = fig.add_subplot(gs[row_idx, 1])
@@ -861,6 +902,7 @@ def plot_burst_acf_diagnostic(
             "covariance": np.asarray(gamma_fit["covariance"], dtype=float).tolist(),
             "n_fit_components": gamma_fit["n_fit_components"],
             "selection_policy": gamma_fit["selection_policy"],
+            "included_tracks": gamma_fit["included_tracks"],
         }
     pbf_overlay = None
     if tau_summary is not None and alpha_summary is not None:

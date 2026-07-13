@@ -159,4 +159,24 @@ def render_campaign(config_path: Path, *, pilot: bool) -> list[str]:
         from .measurement import PILOT_BURSTS
 
         paths = [path for path in paths if path.parent.parent.name in PILOT_BURSTS]
-    return [str(render_product(path)) for path in paths]
+    rendered = [render_product(path) for path in paths]
+    contact_dir = Path(config["output_dir"]) / "contact_sheets"
+    contact_dir.mkdir(parents=True, exist_ok=True)
+    for telescope in ("chime", "dsa"):
+        selected = [path for path in rendered if path.parent.name == telescope]
+        if not selected:
+            continue
+        columns = 3
+        rows = int(np.ceil(len(selected) / columns))
+        fig, axes = plt.subplots(rows, columns, figsize=(15, 5 * rows), constrained_layout=True)
+        axes_array = np.atleast_1d(axes).ravel()
+        for axis, path in zip(axes_array, selected, strict=False):
+            axis.imshow(plt.imread(path))
+            axis.set_title(path.parent.parent.name)
+            axis.axis("off")
+        for axis in axes_array[len(selected) :]:
+            axis.axis("off")
+        fig.suptitle(f"Controlled DM-phase {telescope.upper()} diagnostics")
+        fig.savefig(contact_dir / f"{telescope}_contact_sheet.png", dpi=120)
+        plt.close(fig)
+    return [str(path) for path in rendered]

@@ -19,6 +19,7 @@ from .diagnostics import render_campaign
 from .injection import run_full_injections, run_quick_injections
 from .measurement import run_measurements
 from .oracle import build_oracle_report
+from .synthesis import synthesize
 
 
 def _sha256(path: Path) -> str:
@@ -114,6 +115,8 @@ def main() -> int:
     render_parser = commands.add_parser("render")
     render_parser.add_argument("--config", type=Path, required=True)
     render_parser.add_argument("--pilot", action="store_true")
+    synthesize_parser = commands.add_parser("synthesize")
+    synthesize_parser.add_argument("--config", type=Path, required=True)
     args = parser.parse_args()
     if args.command == "preflight":
         return preflight(args.config)
@@ -142,6 +145,10 @@ def main() -> int:
     if args.command == "render":
         paths = render_campaign(args.config, pilot=args.pilot)
         print(json.dumps({"rendered": len(paths), "paths": paths}, indent=2))
+        return 0
+    if args.command == "synthesize":
+        report = synthesize(args.config)
+        print(json.dumps(report, indent=2))
         return 0
     raise AssertionError(args.command)
 

@@ -147,6 +147,10 @@ def plot_analysis_overview(
     num_components = 1
     if '2c' in best_model_name: num_components = 2
     if '3c' in best_model_name: num_components = 3
+    # the power-law panels iterate the components dict, which can carry more
+    # entries than the best-model name implies (e.g. auxiliary 'scint_scale');
+    # size the grid from whichever is larger or the subplot index overruns
+    num_components = max(num_components, len(analysis_results.get('components', {})))
 
     fig = plt.figure(figsize=kwargs.get('figsize', (12, 8 + 5 * num_components)))
     gs = fig.add_gridspec(3 + num_components, 2)

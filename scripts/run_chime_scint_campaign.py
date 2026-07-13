@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 """P4d campaign runner: all-12 CHIME scintillation analysis, uniform methodology.
 
-Per burst: patch the shipped <nick>_chime_hi.yaml with the local npz path,
-run scint_analysis.run_analysis in an isolated output dir (results JSON +
-figures + figures.manifest.json land there), bounded local parallelism.
-Freya factor-isolation sweep (canfar_reference on/off x first_fit_lag 1-3)
-runs as extra jobs tagged freya_sweep_*.
+Per burst: patch the shipped <nick>_chime.yaml (full-band uniform tier) with
+the local npz path, run scint_analysis.run_analysis in an isolated output dir
+(results JSON + figures + figures.manifest.json land there), bounded local
+parallelism. Where a <nick>_chime_hi.yaml exists (band-restricted tier derived
+from prior per-burst diagnostics; same time axis, upper-band channel cut) it
+runs as a supplementary <nick>_hi job. Freya factor-isolation sweep
+(canfar_reference on/off x first_fit_lag 1-3) runs as extra jobs tagged
+freya_sweep_*.
 """
 import argparse
 import copy
@@ -82,22 +85,30 @@ def main():
     data_dir = Path(args.data_dir)
     out_root = Path(args.out_root)
 
+    # uniform modern-default methodology for the science pass:
+    # full CHIME mitigation stack + intra-pulse m(t), same for all bursts
+    science_overrides = {
+        "analysis.grid_regularization.enable": True,
+        "analysis.bandpass_normalization.enable": True,
+        "analysis.acf.enable_intra_pulse_analysis": True,
+    }
+
     jobs = []
+    missing = []
     for n in args.bursts:
-        cfg_path = cfg_dir / f"{n}_chime_hi.yaml"
-        data = data_dir / f"{n}_chime_hi.npz"
+        cfg_path = cfg_dir / f"{n}_chime.yaml"
+        data = data_dir / f"{n}_chime.npz"
         if not cfg_path.exists() or not data.exists():
+            missing.append((n, "config" if not cfg_path.exists() else "data"))
             print(f"SKIP {n}: missing {'config' if not cfg_path.exists() else 'data'}",
                   file=sys.stderr)
             continue
-        # uniform modern-default methodology for the science pass:
-        # full CHIME mitigation stack + intra-pulse m(t), same for all bursts
-        science_overrides = {
-            "analysis.grid_regularization.enable": True,
-            "analysis.bandpass_normalization.enable": True,
-            "analysis.acf.enable_intra_pulse_analysis": True,
-        }
         jobs.append((n, patch_config(cfg_path, data, dict(science_overrides)), out_root / n))
+        hi_cfg = cfg_dir / f"{n}_chime_hi.yaml"
+        hi_data = data_dir / f"{n}_chime_hi.npz"
+        if hi_cfg.exists() and hi_data.exists():
+            jobs.append((f"{n}_hi", patch_config(hi_cfg, hi_data, dict(science_overrides)),
+                         out_root / f"{n}_hi"))
 
     if not args.skip_sweep and "freya" in args.bursts:
         base = cfg_dir / "freya_chime_hi.yaml"
@@ -123,6 +134,7 @@ def main():
 
     (out_root / "campaign_summary.json").write_text(json.dumps(
         {"jobs": sorted(summary, key=lambda r: r["job"]),
+         "skipped": [{"burst": n, "missing": what} for n, what in missing],
          "n_ok": sum(1 for r in summary if r["returncode"] == 0),
          "n_total": len(summary)}, indent=2))
     print(json.dumps({"n_ok": sum(1 for r in summary if r["returncode"] == 0),

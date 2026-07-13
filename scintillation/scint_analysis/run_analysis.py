@@ -103,9 +103,20 @@ def main():
             scint_pipeline.acf_results,
             scint_pipeline.all_subband_fits,
             scint_pipeline.all_powerlaw_fits,
+            save_path=f"./{burst_id}_analysis_overview.png",
         )
     else:
         logging.warning("Intermediate results not available, skipping overview plot.")
+
+    if scint_pipeline.intra_pulse_results:
+        logging.info("Generating intra-pulse evolution plot...")
+        start, end = scint_pipeline.burst_lims
+        plotting.plot_intra_pulse_evolution(
+            scint_pipeline.intra_pulse_results,
+            np.ma.mean(scint_pipeline.masked_spectrum.power[:, start:end], axis=0),
+            scint_pipeline.masked_spectrum.times[start:end],
+            save_path=f"./{burst_id}_intra_pulse_evolution.png",
+        )
 
 
 if __name__ == "__main__":

@@ -169,6 +169,7 @@ __pycache__/
 # NumPy binary dumps
 *.npy
 *.npz
+!scintillation/scint_analysis/tests/fixtures/zach_acf_codetections_fftsize64_downfreq1.npz
 
 # netCDF
 *.nc
@@ -396,6 +397,8 @@ test_output/
 
 # Generated analysis artifacts. Keep source, configs, and docs in git.
 *.ipynb
+# Verbatim arc-rescue capture (evidence, not generated) — see its ORIGIN.md
+!/scintillation/scint_analysis/reference_arc/**/*.ipynb
 /analysis/scattering-refit-2026-06/**/*.json
 /analysis/scattering-refit-2026-06/**/*.png
 /analysis/scattering-refit-2026-06/**/*.svg

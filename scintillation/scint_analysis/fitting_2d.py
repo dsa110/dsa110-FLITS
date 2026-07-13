@@ -680,12 +680,15 @@ def fit_2d_mcmc(
             return -np.inf
         return lp + log_likelihood(theta)
     
-    # Initialize walkers
+    # Initialize walkers (seeded: unseeded init + sampler state made the
+    # joint-2D alpha non-reproducible between identical runs)
     ndim = len(param_names)
-    pos = p0_center + 0.1 * np.random.randn(nwalkers, ndim) * np.array(p0_center)
-    
+    rng = np.random.default_rng(0)
+    pos = p0_center + 0.1 * rng.standard_normal((nwalkers, ndim)) * np.array(p0_center)
+
     # Run MCMC
     sampler = emcee.EnsembleSampler(nwalkers, ndim, log_prob)
+    sampler.random_state = np.random.RandomState(0).get_state()
     sampler.run_mcmc(pos, nsteps, progress=progress)
     
     # Extract chains after burn-in

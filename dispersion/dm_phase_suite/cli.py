@@ -37,6 +37,19 @@ def _atomic_json(path: Path, value: object) -> None:
     temporary.replace(path)
 
 
+def _source_dirty_lines(root: Path, output: Path) -> list[str]:
+    """Return Git porcelain entries outside the campaign output directory."""
+    command = ["git", "status", "--porcelain", "--untracked-files=all", "--", "."]
+    try:
+        output_relative = output.relative_to(root)
+    except ValueError:
+        output_relative = None
+    if output_relative is not None:
+        command.append(f":(exclude){output_relative.as_posix()}/**")
+    status = subprocess.check_output(command, cwd=root, text=True)
+    return [line for line in status.splitlines() if line]
+
+
 def preflight(config_path: Path) -> int:
     root = Path.cwd()
     config = yaml.safe_load(config_path.read_text())
@@ -70,11 +83,17 @@ def preflight(config_path: Path) -> int:
                 failures.append(f"bad shape {path}: {array.shape} != {expected_shape}")
         records.append(record)
     commit = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
-    dirty = subprocess.check_output(["git", "status", "--porcelain"], text=True)
+    source_dirty = _source_dirty_lines(root, output)
+    try:
+        excluded_output_dir = output.relative_to(root).as_posix()
+    except ValueError:
+        excluded_output_dir = None
     run_manifest = {
         "created_utc": datetime.now(UTC).isoformat(),
         "code_commit": commit,
-        "dirty": bool(dirty),
+        "dirty": bool(source_dirty),
+        "dirty_paths": source_dirty,
+        "excluded_output_dir": excluded_output_dir,
         "python": sys.version,
         "platform": platform.platform(),
         "numpy": np.__version__,

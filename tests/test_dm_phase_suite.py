@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+import subprocess
+from pathlib import Path
+
 import numpy as np
 import pytest
 from scipy.ndimage import shift as nd_shift
 
+from dispersion.dm_phase_suite.cli import _source_dirty_lines
 from dispersion.dm_phase_suite.coherence import coherence_curve
 from dispersion.dm_phase_suite.cutoff import width_derived_cutoffs
 from dispersion.dm_phase_suite.model import ResolutionEvaluation
@@ -148,3 +152,23 @@ def test_injection_sigma_uses_supported_snr_floor() -> None:
     assert np.isnan(calibrated_injection_sigma("dsa", 49.9))
     assert calibrated_injection_sigma("dsa", 50.0) == pytest.approx(0.11162548245)
     assert calibrated_injection_sigma("chime", 30.0) == pytest.approx(0.00369433530)
+
+
+def test_source_dirty_lines_excludes_only_declared_output(tmp_path: Path) -> None:
+    subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
+    subprocess.run(["git", "config", "user.email", "test@example.invalid"], cwd=tmp_path, check=True)
+    subprocess.run(["git", "config", "user.name", "Test"], cwd=tmp_path, check=True)
+    source = tmp_path / "source.py"
+    source.write_text("value = 1\n")
+    subprocess.run(["git", "add", "source.py"], cwd=tmp_path, check=True)
+    subprocess.run(["git", "commit", "-qm", "fixture"], cwd=tmp_path, check=True)
+
+    output = tmp_path / "results" / "campaign"
+    output.mkdir(parents=True)
+    (output / "generated.json").write_text("{}\n")
+    assert _source_dirty_lines(tmp_path, output) == []
+
+    source.write_text("value = 2\n")
+    dirty = _source_dirty_lines(tmp_path, output)
+    assert len(dirty) == 1
+    assert dirty[0].endswith("source.py")

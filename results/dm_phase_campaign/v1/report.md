@@ -2,7 +2,9 @@
 
 ## Status
 
-- Implementation: validated at FLITS commit `2a08f697e1398bec88cc8d5554cca6425790b540`.
+- Implementation: artifacts were generated at FLITS commit `2a08f697e1398bec88cc8d5554cca6425790b540`.
+- Publication provenance: after an unpushed rebase onto `upstream/pin/faber2026`, the byte-identical
+  controlled-suite implementation is commit `ee0c25d`; the original hash is retained in every result.
 - Published oracle: passed on deterministic CHIME and DSA bright fixtures.
 - Known-truth validation: passed on the untouched final seed block.
 - Measurements: 24/24 terminal; 2 PASS and 22 UNCONSTRAINED.

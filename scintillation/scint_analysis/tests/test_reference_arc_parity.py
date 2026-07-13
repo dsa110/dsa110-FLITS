@@ -1,9 +1,35 @@
+import hashlib
+from pathlib import Path
+
 import numpy as np
 import pytest
 
 from scint_analysis import analysis
 from scint_analysis.core import DynamicSpectrum
 from scint_analysis.revalidation import _mean_normalized_acf
+
+FIXTURES = Path(__file__).parent / "fixtures"
+ZACH_ACF_FIXTURE = FIXTURES / "zach_acf_codetections_fftsize64_downfreq1.npz"
+ZACH_ACF_SHA256 = "6965c50d40d1ba67671f4537fab983a8f4af30f609feaf253b38a22aef29c667"
+ZACH_FCENTS_MHZ = np.array(
+    [
+        766.8635050688563,
+        700.1998902065691,
+        633.5362753442816,
+        566.8726604819944,
+        500.209045619707,
+        433.5454307574197,
+    ]
+)
+ZACH_FIRST_ACF_VALUES = np.array(
+    [0.08595040, 0.06366222, 0.07017246, 0.13167876, 0.09638528, 0.06162758]
+)
+ZACH_FIRST_POSITIVE_LAG_MHZ = 0.012207217517470781
+ZACH_RECOMPUTED_GAMMA_HWHM_MHZ = np.array(
+    [0.21456356, 0.08414576, 0.05479846, 0.09827691, 0.02422339, 0.02155347]
+)
+FREYA_RECOMPUTED_GAMMA_KHZ = 35.19
+FREYA_TOL_KHZ = 15.0
 
 
 def _clean_spectrum(seed=7, n=512, scale_chan=10):
@@ -226,3 +252,127 @@ def test_noise_template_subband_fit_respects_first_fit_lag(first_fit_lag):
         result = fit["fit_tpl_lor"]
         assert result is not None and result.success
         assert np.all(np.isfinite([param.value for param in result.params.values()]))
+
+
+def test_zach_executed_notebook_acf_fixture_is_unchanged():
+    """The rescued executed-notebook ACF artifact is byte-for-byte unchanged."""
+    assert hashlib.sha256(ZACH_ACF_FIXTURE.read_bytes()).hexdigest() == ZACH_ACF_SHA256
+    with np.load(ZACH_ACF_FIXTURE, allow_pickle=False) as saved:
+        assert saved["sub_acfs"].shape == (6, 3274)
+        assert saved["sub_lags"].shape == (6, 3274)
+        assert saved["sub_fcents"].shape == (6,)
+        np.testing.assert_allclose(saved["sub_fcents"], ZACH_FCENTS_MHZ, rtol=0, atol=1e-12)
+
+        mid = saved["sub_lags"].shape[1] // 2
+        first_positive_lags = saved["sub_lags"][:, mid]
+        np.testing.assert_allclose(
+            first_positive_lags, ZACH_FIRST_POSITIVE_LAG_MHZ, rtol=0, atol=2e-13
+        )
+        np.testing.assert_allclose(
+            saved["sub_acfs"][:, mid], ZACH_FIRST_ACF_VALUES, rtol=1e-7, atol=1e-9
+        )
+        np.testing.assert_allclose(
+            saved["sub_lags"][:, :mid],
+            -saved["sub_lags"][:, mid:][:, ::-1],
+            rtol=0,
+            atol=1e-12,
+        )
+        np.testing.assert_allclose(
+            saved["sub_acfs"][:, :mid],
+            saved["sub_acfs"][:, mid:][:, ::-1],
+            rtol=0,
+            atol=0,
+        )
+
+
+def _fit_zach_subband_gammas(sub_acfs, sub_lags):
+    """Recompute γ with the rescued single-Lorentzian, default ±1 MHz fit."""
+    from lmfit import Model
+
+    from scint_analysis.revalidation import _lorentz_w_c
+
+    gammas = []
+    for acf, lags in zip(sub_acfs, sub_lags, strict=True):
+        fit_mask = (lags > 0) & (lags <= 1.0)
+        x = np.asarray(lags[fit_mask], dtype=float)
+        y = np.asarray(acf[fit_mask], dtype=float)
+        below_half = np.flatnonzero(y < y[0] / 2.0)
+        gamma_init = float(x[below_half[0]]) if below_half.size else float(x[1])
+
+        model = Model(_lorentz_w_c)
+        model.set_param_hint("gamma", min=1e-5, max=100.0)
+        model.set_param_hint("m", min=-100.0, max=100.0)
+        model.set_param_hint("c", min=-100.0, max=100.0)
+        result = model.fit(
+            y,
+            x=x,
+            gamma=gamma_init,
+            m=float(np.sqrt(max(y[0], 1e-3))),
+            c=0.0,
+        )
+        assert result.success
+        gammas.append(abs(float(result.params["gamma"].value)))
+    return np.asarray(gammas)
+
+
+def test_zach_subband_gamma_recompute_from_notebook_acfs():
+    """Recomputed HWHM γ values retain the Zach notebook's positive γ(ν) trend."""
+    with np.load(ZACH_ACF_FIXTURE, allow_pickle=False) as saved:
+        gammas = _fit_zach_subband_gammas(saved["sub_acfs"], saved["sub_lags"])
+        fcents = saved["sub_fcents"]
+
+    assert gammas.shape == (6,)
+    assert np.all(gammas > 0)
+    np.testing.assert_allclose(gammas, ZACH_RECOMPUTED_GAMMA_HWHM_MHZ, rtol=0.20)
+    alpha = np.polyfit(np.log10(fcents), np.log10(gammas), 1)[0]
+    assert alpha > 0.0
+
+
+@pytest.mark.slow
+@pytest.mark.xfail(
+    reason=(
+        "freya CHIME dnu_d is instrument-dominated/unconstrained: the 35.19 kHz "
+        "target is the documented instrumental-artifact value "
+        "(chime_artifact_guards.py:7) and the rescued notebook's own fit is "
+        "unconstrained (scint_freya.ipynb cell 13: 3836 +/- 2132 kHz); point "
+        "parity is not expected. Real driver TBD via factor-isolation sweep "
+        "(canfar_reference on/off, first_fit_lag 1-3, f_res grid check)."
+    ),
+    strict=True,
+)
+def test_freya_chime_gamma_brackets_legacy_recomputation(tmp_path, monkeypatch):
+    """The current parity path should recover the legacy Freya HWHM recomputation."""
+    from scint_analysis.config import load_config
+    from scint_analysis.pipeline import ScintillationAnalysis
+
+    repo_root = Path(__file__).parents[3]
+    data_candidates = (
+        repo_root / "scintillation/data/freya_chime_hi.npz",
+        Path.home() / "Data/Faber2026/dsa110/scintillation/data/freya_chime_hi.npz",
+    )
+    data_path = next((path for path in data_candidates if path.exists()), None)
+    if data_path is None:
+        pytest.skip("freya_chime_hi.npz is not available")
+
+    config_path = repo_root / "scintillation/configs/bursts/freya_chime_hi.yaml"
+    cfg = load_config(config_path, workspace_root=repo_root)
+    cfg["input_data_path"] = str(data_path)
+    cfg.setdefault("analysis", {}).setdefault("preprocessing", {})["mode"] = (
+        "canfar_reference"
+    )
+    cfg["analysis"].setdefault("fit_2d", {})["enable"] = False
+    cfg.setdefault("pipeline_options", {}).update(
+        {
+            "cache_directory": str(tmp_path),
+            "force_recalc": True,
+            "save_intermediate_steps": False,
+        }
+    )
+    monkeypatch.setattr(ScintillationAnalysis, "_create_diagnostic_plots", lambda *args, **kwargs: None)
+
+    pipeline = ScintillationAnalysis(cfg)
+    pipeline.run()
+    gamma_khz = (
+        pipeline.final_results["components"]["scint_scale"]["gamma_hwhm_mhz"] * 1e3
+    )
+    assert abs(gamma_khz - FREYA_RECOMPUTED_GAMMA_KHZ) < FREYA_TOL_KHZ

@@ -1,5 +1,6 @@
 import hashlib
 from pathlib import Path
+from types import SimpleNamespace
 
 import numpy as np
 import pytest
@@ -326,6 +327,91 @@ def test_zach_subband_gamma_recompute_from_notebook_acfs():
     np.testing.assert_allclose(gammas, ZACH_RECOMPUTED_GAMMA_HWHM_MHZ, rtol=0.20)
     alpha = np.polyfit(np.log10(fcents), np.log10(gammas), 1)[0]
     assert alpha > 0.0
+
+
+def test_gamma_scaling_recovers_seeded_injection_with_three_named_estimators():
+    """Analytic power-law injection anchors both 1D estimators; 2D stays distinct."""
+    rng = np.random.default_rng(20260713)
+    freqs = np.array([450.0, 550.0, 650.0, 750.0, 850.0, 950.0])
+    alpha_true = 4.0
+    gammas = 0.05 * (freqs / 600.0) ** alpha_true
+    gammas *= 10 ** rng.normal(0.0, 0.01, freqs.size)
+
+    out = analysis.estimate_gamma_scaling(
+        freqs,
+        gammas,
+        gamma_errs=0.05 * gammas,
+        ref_freq=600.0,
+        joint_2d={
+            "alpha": 4.05,
+            "alpha_err": 0.12,
+            "gamma_0": 0.051,
+            "gamma_0_err": 0.004,
+            "nu_ref": 600.0,
+            "success": True,
+        },
+    )
+
+    assert set(out) == {"odr_logspace", "loglog_unweighted", "joint_2d"}
+    assert abs(out["odr_logspace"]["alpha"] - alpha_true) < 0.3
+    assert abs(out["loglog_unweighted"]["alpha"] - alpha_true) < 0.3
+    assert out["odr_logspace"]["method"] == "log-space ODR (analysis-Copy1.py:844)"
+    assert out["loglog_unweighted"]["method"].startswith("unweighted log-log")
+    assert out["joint_2d"]["method"] == "joint 2D ACF fit (fitting_2d.py)"
+    assert all(np.isfinite(method["bw_at_ref_mhz"]) for method in out.values())
+
+
+def test_gamma_scaling_ill_conditioned_two_subbands_never_returns_inf():
+    """Nearly coincident frequencies may fail explicitly, but never overflow to inf."""
+    out = analysis.estimate_gamma_scaling(
+        np.array([600.0, 600.0 + 1e-9]),
+        np.array([1e-250, 1e250]),
+        gamma_errs=np.array([1e-251, 1e249]),
+        ref_freq=600.0,
+    )
+
+    for result in out.values():
+        numeric = [value for value in result.values() if isinstance(value, (int, float))]
+        assert not any(np.isinf(value) for value in numeric)
+        assert result["status"] != "ok" or np.isfinite(result["bw_at_ref_mhz"])
+
+
+def test_pipeline_attaches_joint_2d_as_third_named_estimator(monkeypatch):
+    from scint_analysis import fitting_2d
+    from scint_analysis.pipeline import ScintillationAnalysis
+
+    pipeline = ScintillationAnalysis(
+        {"analysis": {"fitting": {"reference_frequency_mhz": 600.0}}}
+    )
+    pipeline.acf_results = {"subband_acfs": [np.array([0.1])]}
+    pipeline.final_results = {
+        "components": {
+            "scint_scale": {
+                "gamma_scaling": analysis.estimate_gamma_scaling(
+                    [500.0, 700.0], [0.02, 0.08], ref_freq=600.0
+                )
+            }
+        }
+    }
+    result = SimpleNamespace(
+        gamma_0=0.05,
+        gamma_0_err=0.005,
+        alpha=4.1,
+        alpha_err=0.2,
+        m_0=0.9,
+        m_0_err=0.1,
+        nu_ref=600.0,
+        redchi=1.1,
+        success=True,
+    )
+    monkeypatch.setattr(fitting_2d, "fit_2d_scintillation", lambda *args, **kwargs: result)
+
+    pipeline._run_2d_scintillation_fit({})
+
+    scaling = pipeline.final_results["components"]["scint_scale"]["gamma_scaling"]
+    assert set(scaling) == {"odr_logspace", "loglog_unweighted", "joint_2d"}
+    assert scaling["joint_2d"]["status"] == "ok"
+    assert scaling["joint_2d"]["alpha"] == pytest.approx(4.1)
 
 
 @pytest.mark.slow

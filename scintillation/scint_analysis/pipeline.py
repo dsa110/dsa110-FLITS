@@ -440,6 +440,14 @@ class ScintillationAnalysis:
                     "success": result.success,
                     **analysis._bandwidth_fields(result.gamma_0, result.gamma_0_err),
                 }
+                ref_freq = self.config.get("analysis", {}).get("fitting", {}).get(
+                    "reference_frequency_mhz", 600.0
+                )
+                joint_estimator = analysis.joint_2d_gamma_scaling(result, ref_freq)
+                for component in self.final_results.get("components", {}).values():
+                    scaling = component.get("gamma_scaling")
+                    if scaling is not None:
+                        scaling["joint_2d"] = joint_estimator.copy()
 
             return result
 

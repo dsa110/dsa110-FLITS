@@ -355,12 +355,31 @@ def plot_analysis_overview(
         ax_plaw.errorbar(freqs, bws, yerr=total_errs, fmt='none', ecolor='gray', capsize=5, zorder=5)
         fig.colorbar(sc, ax=ax_plaw, label='$\\chi^2_\\nu$ of ACF Fit')
 
-        fit_output = all_powerlaw_fits.get(name)
-        if fit_output:
-            c, n = fit_output.beta
-            freq_model = np.linspace(min(freqs), max(freqs), 100)
-            scint_model = c * (freq_model ** n)
-            ax_plaw.plot(freq_model, scint_model, 'k--', label=f'Power-Law Fit ($\\alpha={n:.2f}$)')
+        freq_model = np.linspace(min(freqs), max(freqs), 100)
+        line_styles = {
+            "odr_logspace": ("k", "--"),
+            "loglog_unweighted": ("C2", ":"),
+            "joint_2d": ("C3", "-."),
+        }
+        for method_name, estimator in component_data.get("gamma_scaling", {}).items():
+            if estimator.get("status") != "ok":
+                continue
+            alpha = estimator["alpha"]
+            log10_c = estimator["log10_c"]
+            with np.errstate(over="ignore", under="ignore", invalid="ignore"):
+                scint_model = np.power(10.0, alpha * np.log10(freq_model) + log10_c)
+            finite = np.isfinite(scint_model)
+            if not np.any(finite):
+                continue
+            color, linestyle = line_styles[method_name]
+            label = f"{method_name} ($\\alpha={alpha:.2f}$)"
+            ax_plaw.plot(
+                freq_model[finite],
+                scint_model[finite],
+                color=color,
+                linestyle=linestyle,
+                label=label,
+            )
 
         interpretation_text = component_data.get('scaling_interpretation', '')
         ax_plaw.set_title(f"Power-Law Fit: {name.replace('_', ' ').title()}\n{interpretation_text}")
@@ -376,6 +395,19 @@ def plot_analysis_overview(
         try:
             plt.savefig(save_path, dpi=300, bbox_inches='tight')
             log.info(f"Analysis overview plot saved to: {save_path}")
+            from tools.figure_manifest import write_manifest
+
+            out_dir = os.path.dirname(os.path.abspath(save_path))
+            write_manifest(
+                out_dir,
+                [
+                    (
+                        os.path.basename(save_path),
+                        "Gamma-frequency panel shows separately labeled odr_logspace, "
+                        "loglog_unweighted, and joint_2d estimator lines.",
+                    )
+                ],
+            )
         except Exception as e:
             log.error(f"Failed to save plot to {save_path}: {e}")
             

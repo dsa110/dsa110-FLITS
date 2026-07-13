@@ -892,6 +892,193 @@ def _interpret_scaling_index(alpha: float, alpha_err: float) -> str:
 
 
 # =============================================================================
+# Gamma(nu) scaling estimators
+# =============================================================================
+
+
+def _linear_from_log10(log_value):
+    """Convert a log10 value without ever returning an infinite float."""
+    if not np.isfinite(log_value):
+        return None
+    with np.errstate(over="ignore", under="ignore", invalid="ignore"):
+        value = np.power(10.0, float(log_value))
+    return float(value) if np.isfinite(value) and value > 0 else None
+
+
+def _gamma_scaling_failure(method, reason, status="failed"):
+    return {
+        "alpha": None,
+        "alpha_err": None,
+        "log10_c": None,
+        "c": None,
+        "bw_at_ref_mhz": None,
+        "bw_at_ref_mhz_err": None,
+        "method": method,
+        "status": status,
+        "reason": reason,
+    }
+
+
+def joint_2d_gamma_scaling(result, ref_freq=600.0):
+    """Normalize a joint-2D fit to the named gamma-scaling estimator contract."""
+    method = "joint 2D ACF fit (fitting_2d.py)"
+    if result is None:
+        return _gamma_scaling_failure(method, "joint 2D fit not run", status="not_run")
+
+    get = result.get if isinstance(result, dict) else lambda key, default=None: getattr(
+        result, key, default
+    )
+    alpha = get("alpha")
+    alpha_err = get("alpha_err")
+    gamma_0 = get("gamma_0")
+    gamma_0_err = get("gamma_0_err")
+    nu_ref = get("nu_ref")
+    success = get("success", True)
+    if (
+        not success
+        or not np.isfinite(ref_freq)
+        or ref_freq <= 0
+        or gamma_0 is None
+        or not np.isfinite(gamma_0)
+        or gamma_0 <= 0
+        or nu_ref is None
+        or not np.isfinite(nu_ref)
+        or nu_ref <= 0
+        or alpha is None
+        or not np.isfinite(alpha)
+    ):
+        return _gamma_scaling_failure(method, "joint 2D fit unsuccessful or non-finite")
+
+    log10_c = np.log10(gamma_0) - alpha * np.log10(nu_ref)
+    log_bw_ref = log10_c + alpha * np.log10(ref_freq)
+    bw_at_ref = _linear_from_log10(log_bw_ref)
+    if bw_at_ref is None:
+        return _gamma_scaling_failure(method, "reference bandwidth is not representable")
+    assert np.isfinite(bw_at_ref)
+
+    bw_err = None
+    if gamma_0_err is not None and np.isfinite(gamma_0_err) and gamma_0_err >= 0:
+        bw_err = float(bw_at_ref * gamma_0_err / gamma_0)
+    return {
+        "alpha": float(alpha),
+        "alpha_err": float(alpha_err) if alpha_err is not None and np.isfinite(alpha_err) else None,
+        "log10_c": float(log10_c),
+        "c": _linear_from_log10(log10_c),
+        "bw_at_ref_mhz": bw_at_ref,
+        "bw_at_ref_mhz_err": bw_err,
+        "method": method,
+        "status": "ok",
+        "reason": None,
+    }
+
+
+def estimate_gamma_scaling(
+    freqs, gammas, gamma_errs=None, ref_freq=600.0, joint_2d=None
+):
+    """Report the reference ODR, notebook regression, and joint-2D estimators.
+
+    The primary estimator follows ``analysis-Copy1.py:844-891``. Its intercept
+    remains ``log10_c`` throughout fitting and reference-bandwidth evaluation;
+    linear ``c`` is only a guarded convenience field. The notebook-style
+    unweighted regression and modern joint-2D fit remain separately named.
+    """
+    odr_method = "log-space ODR (analysis-Copy1.py:844)"
+    loglog_method = "unweighted log-log polyfit (scint_wilhelm.ipynb:240)"
+    outputs = {
+        "odr_logspace": _gamma_scaling_failure(odr_method, "fit not attempted"),
+        "loglog_unweighted": _gamma_scaling_failure(loglog_method, "fit not attempted"),
+        "joint_2d": joint_2d_gamma_scaling(joint_2d, ref_freq),
+    }
+
+    freqs = np.asarray(freqs, dtype=float)
+    gammas = np.asarray(gammas, dtype=float)
+    if freqs.shape != gammas.shape or freqs.ndim != 1 or freqs.size < 2:
+        reason = "at least two paired sub-band measurements are required"
+    elif not np.isfinite(ref_freq) or ref_freq <= 0:
+        reason = "reference frequency must be finite and positive"
+    elif not np.all(np.isfinite(freqs)) or not np.all(np.isfinite(gammas)):
+        reason = "sub-band measurements contain non-finite values"
+    elif np.any(freqs <= 0) or np.any(gammas <= 0):
+        reason = "sub-band frequencies and bandwidths must be positive"
+    else:
+        log_freqs = np.log10(freqs)
+        log_bws = np.log10(gammas)
+        threshold = np.sqrt(np.finfo(float).eps) * max(
+            1.0, float(np.max(np.abs(log_freqs)))
+        )
+        reason = (
+            "frequency grid is ill-conditioned for a two-parameter power law"
+            if np.ptp(log_freqs) <= threshold
+            else None
+        )
+
+    if reason is not None:
+        outputs["odr_logspace"] = _gamma_scaling_failure(odr_method, reason)
+        outputs["loglog_unweighted"] = _gamma_scaling_failure(loglog_method, reason)
+        return outputs
+
+    sy = None
+    if gamma_errs is not None:
+        gamma_errs = np.asarray(gamma_errs, dtype=float)
+        if gamma_errs.shape == gammas.shape:
+            candidate_sy = gamma_errs / (gammas * np.log(10.0))
+            if np.all(np.isfinite(candidate_sy)) and np.all(candidate_sy > 0):
+                sy = candidate_sy
+
+    linear_model = ModelODR(lambda beta, x: beta[0] * x + beta[1])
+    odr_output = ODR(
+        RealData(log_freqs, log_bws, sy=sy), linear_model, beta0=[4.0, 0.0]
+    ).run()
+    alpha, log10_c = (float(value) for value in odr_output.beta)
+    log_bw_ref = alpha * np.log10(ref_freq) + log10_c
+    bw_at_ref = _linear_from_log10(log_bw_ref)
+    if np.isfinite(alpha) and np.isfinite(log10_c) and bw_at_ref is not None:
+        assert np.isfinite(bw_at_ref)
+        alpha_err = float(odr_output.sd_beta[0])
+        grad = np.array([np.log10(ref_freq), 1.0])
+        var_log_bw_ref = float(grad @ odr_output.cov_beta @ grad)
+        with np.errstate(over="ignore", invalid="ignore"):
+            bw_err = bw_at_ref * np.sqrt(var_log_bw_ref) * np.log(10.0)
+        outputs["odr_logspace"] = {
+            "alpha": alpha,
+            "alpha_err": alpha_err if np.isfinite(alpha_err) else None,
+            "log10_c": log10_c,
+            "c": _linear_from_log10(log10_c),
+            "bw_at_ref_mhz": bw_at_ref,
+            "bw_at_ref_mhz_err": float(bw_err) if np.isfinite(bw_err) else None,
+            "method": odr_method,
+            "status": "ok",
+            "reason": None,
+        }
+    else:
+        outputs["odr_logspace"] = _gamma_scaling_failure(
+            odr_method, "ODR returned a non-finite or unrepresentable fit"
+        )
+
+    alpha_ll, log10_c_ll = (float(value) for value in np.polyfit(log_freqs, log_bws, 1))
+    log_bw_ref_ll = alpha_ll * np.log10(ref_freq) + log10_c_ll
+    bw_at_ref_ll = _linear_from_log10(log_bw_ref_ll)
+    if np.isfinite(alpha_ll) and np.isfinite(log10_c_ll) and bw_at_ref_ll is not None:
+        assert np.isfinite(bw_at_ref_ll)
+        outputs["loglog_unweighted"] = {
+            "alpha": alpha_ll,
+            "alpha_err": None,
+            "log10_c": log10_c_ll,
+            "c": _linear_from_log10(log10_c_ll),
+            "bw_at_ref_mhz": bw_at_ref_ll,
+            "bw_at_ref_mhz_err": None,
+            "method": loglog_method,
+            "status": "ok",
+            "reason": None,
+        }
+    else:
+        outputs["loglog_unweighted"] = _gamma_scaling_failure(
+            loglog_method, "log-log regression returned a non-finite or unrepresentable fit"
+        )
+    return outputs
+
+
+# =============================================================================
 # Modulation Index & Emission Region Diagnostics
 # (Pradeep et al. 2025 screen-count framework, primary; Nimmo et al. 2025
 #  source-resolution reading, complementary in the sub-unity regime)
@@ -1722,41 +1909,24 @@ def analyze_scintillation_from_acfs(acf_results, config):
         finite_errs = np.array([p.get("finite_err") for p in measurements])
         total_errs = np.sqrt(np.nan_to_num(bw_errs) ** 2 + np.nan_to_num(finite_errs) ** 2)
 
-        # Log-transform the data and errors
-        log_freqs = np.log10(freqs)
-        log_bws = np.log10(bws)
-        # Error propagation: err(log10(y)) = err(y) / (y * ln(10))
-        log_bw_errs = total_errs / (bws * np.log(10))
+        gamma_scaling = estimate_gamma_scaling(
+            freqs, bws, gamma_errs=total_errs, ref_freq=ref_freq
+        )
+        primary = gamma_scaling["odr_logspace"]
+        all_powerlaw_fits[name] = gamma_scaling
+        if primary["status"] != "ok":
+            log.warning("Power-law fit for %s failed: %s", name, primary["reason"])
+            final_results["components"][name] = {
+                "power_law_fit_report": f"Fit failed: {primary['reason']}",
+                "gamma_scaling": gamma_scaling,
+            }
+            continue
 
-        # Fall back to unweighted ODR when uncertainties are missing or zero
-        # (np.nan_to_num converts NaN→0, giving spurious infinite weight).
-        use_weights = bool(np.all(np.isfinite(log_bw_errs)) and np.all(log_bw_errs > 0))
-
-        # Define a linear model: f(x) = slope*x + intercept
-        linear_model = ModelODR(lambda B, x: B[0] * x + B[1])
-        data = RealData(log_freqs, log_bws, sy=log_bw_errs if use_weights else None)
-
-        # Initial guess: slope (alpha) = 4, intercept can be 0
-        odr = ODR(data, linear_model, beta0=[4.0, 0.0])
-        out = odr.run()
-
-        # Extract results. B[0] is the slope alpha, B[1] is log10(c)
-        alpha_fit, log_c_fit = out.beta
-        alpha_err, log_c_err = out.sd_beta
-        c_fit = 10**log_c_fit
-
-        # Propagate error for bandwidth at reference frequency
-        log_ref_freq = np.log10(ref_freq)
-        log_b_ref = alpha_fit * log_ref_freq + log_c_fit
-        b_ref = 10**log_b_ref
-
-        # Gradient for error propagation in log space
-        grad = np.array([log_ref_freq, 1.0])
-        var_log_b_ref = grad @ out.cov_beta @ grad
-        # Convert error from log-space back to linear space
-        b_ref_err = b_ref * np.sqrt(var_log_b_ref) * np.log(10)
-
-        all_powerlaw_fits[name] = out
+        alpha_fit = primary["alpha"]
+        alpha_err = primary["alpha_err"]
+        c_fit = primary["c"]
+        b_ref = primary["bw_at_ref_mhz"]
+        b_ref_err = primary["bw_at_ref_mhz_err"]
 
         # ================================================================= #
         # Use the fitted alpha and its error to suggest a
@@ -1786,6 +1956,7 @@ def analyze_scintillation_from_acfs(acf_results, config):
             "scaling_index_err": alpha_err,
             "bw_at_ref_mhz": b_ref,
             "bw_at_ref_mhz_err": b_ref_err,
+            "gamma_scaling": gamma_scaling,
             "subband_measurements": subband_measurements,
             "scaling_interpretation": interpretation,
             **_bandwidth_fields(b_ref, b_ref_err),

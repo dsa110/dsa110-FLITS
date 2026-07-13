@@ -759,6 +759,7 @@ def test_pipeline_embeds_failed_chime_measurement_status(monkeypatch):
     assert "off_pulse_null" in result["measurement_status"]["failed_checks"]
     assert "low_lag_stability" in result["measurement_status"]["failed_checks"]
     assert result["chime_provenance"]["records"] == {
+        "instrumental_background_correction": False,
         "grid_regularization": True,
         "bandpass_normalization": True,
         "harmonic_mask": True,

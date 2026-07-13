@@ -22,6 +22,7 @@ from .cutoff import estimate_fwhm_s, width_derived_cutoffs
 from .model import ResolutionEvaluation
 from .quality import (
     bootstrap_central_fraction,
+    calibrated_injection_sigma,
     eligibility_reasons,
     peak_z_score,
     robust_profile_snr,
@@ -271,6 +272,17 @@ def measure_manifest_row(
             ),
         )
     status = "PASS" if selected is not None and selected.eligible else "UNCONSTRAINED"
+    injection_sigma = (
+        None
+        if status != "PASS"
+        else calibrated_injection_sigma(telescope, selected.profile_snr)
+    )
+    method_sigma = None if status != "PASS" else selected.sigma
+    total_sigma = (
+        None
+        if method_sigma is None or injection_sigma is None
+        else float(np.hypot(method_sigma, injection_sigma))
+    )
     return {
         "burst": row["burst"],
         "telescope": telescope,
@@ -285,7 +297,9 @@ def measure_manifest_row(
             if status != "PASS"
             else float(row["dm_pc_cm3"]) + selected.residual_dm
         ),
-        "sigma_method": None if status != "PASS" else selected.sigma,
+        "sigma_method": method_sigma,
+        "sigma_injection": injection_sigma,
+        "sigma_total": total_sigma,
         "native_shape": list(raw.shape),
         "valid_channels": int(valid.sum()),
         "crop": list(crop),

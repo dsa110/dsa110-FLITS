@@ -119,6 +119,8 @@ def render_product(result_path: Path) -> Path:
         f"DM ref: {result['dm_reference']:.6g}\n"
         f"DM: {result.get('dm_absolute')}\n"
         f"sigma_method: {result.get('sigma_method')}\n"
+        f"sigma_injection: {result.get('sigma_injection')}\n"
+        f"sigma_total: {result.get('sigma_total')}\n"
         f"selected factors: f={frequency_factor}, t={time_factor}\n"
         f"native shape: {tuple(result['native_shape'])}\n"
         f"valid channels: {result['valid_channels']}\n"

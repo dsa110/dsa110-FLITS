@@ -4,6 +4,20 @@ import warnings
 
 import numpy as np
 
+INJECTION_SIGMA68 = {
+    "chime": ((12.0, 0.008121986545538374), (25.0, 0.003694335302605563), (50.0, 0.0018114759909541658)),
+    "dsa": ((50.0, 0.11162548245180161),),
+}
+
+
+def calibrated_injection_sigma(telescope: str, profile_snr: float) -> float:
+    """Frozen held-out 68% error scale at the nearest supported S/N floor."""
+    surface = INJECTION_SIGMA68[telescope]
+    eligible = [sigma for floor, sigma in surface if profile_snr >= floor]
+    if not eligible:
+        return float("nan")
+    return float(eligible[-1])
+
 
 def robust_profile_snr(waterfall: np.ndarray) -> float:
     """Peak band-summed S/N using an off-peak MAD noise estimate."""

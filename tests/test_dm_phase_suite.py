@@ -7,7 +7,10 @@ from scipy.ndimage import shift as nd_shift
 from dispersion.dm_phase_suite.coherence import coherence_curve
 from dispersion.dm_phase_suite.cutoff import width_derived_cutoffs
 from dispersion.dm_phase_suite.model import ResolutionEvaluation
-from dispersion.dm_phase_suite.quality import bootstrap_central_fraction
+from dispersion.dm_phase_suite.quality import (
+    bootstrap_central_fraction,
+    calibrated_injection_sigma,
+)
 from dispersion.dm_phase_suite.resolution import (
     block_average,
     resolution_factors,
@@ -139,3 +142,9 @@ def test_bootstrap_central_fraction_rejects_split_modes() -> None:
     split = np.array([-0.11, -0.10, -0.09, 0.0, 0.01])
     assert bootstrap_central_fraction(clean, -0.10, 0.01) == 1.0
     assert bootstrap_central_fraction(split, -0.10, 0.01) == pytest.approx(0.6)
+
+
+def test_injection_sigma_uses_supported_snr_floor() -> None:
+    assert np.isnan(calibrated_injection_sigma("dsa", 49.9))
+    assert calibrated_injection_sigma("dsa", 50.0) == pytest.approx(0.11162548245)
+    assert calibrated_injection_sigma("chime", 30.0) == pytest.approx(0.00369433530)

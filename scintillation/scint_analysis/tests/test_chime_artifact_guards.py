@@ -163,6 +163,27 @@ def test_low_lag_inconclusive_without_full_width():
     assert v["stable"] is None
 
 
+def test_low_lag_runaway_growth_is_unstable():
+    # P4e audit false-pass: casey full-band grew 99 -> 446/748/793 kHz (8x)
+    # under excision yet passed the collapse-only test. Growth past
+    # 1/collapse_ratio (2x default) must fail: the width was carried by the
+    # excised low lags, not a resolved wing.
+    v = guards.low_lag_stability_verdict(
+        0.099, {2: 0.446, 3: 0.748, 6: 0.793}
+    )
+    assert v["stable"] is False
+    assert v["failed_ks"] == [2, 3, 6]
+    assert v["max_ratio"] > 2.0
+    assert "grows" in v["reason"]
+
+
+def test_low_lag_mild_growth_still_stable():
+    # 25%-level drift either way is the DSA-like healthy band.
+    v = guards.low_lag_stability_verdict(0.713, {2: 0.80, 3: 0.85, 6: 0.60})
+    assert v["stable"] is True
+    assert v["failed_ks"] == []
+
+
 # --- harmonic-mask systematic (rec #5) --------------------------------------
 
 

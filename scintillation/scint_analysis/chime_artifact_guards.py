@@ -274,6 +274,7 @@ def low_lag_stability_verdict(
     dnu_by_excision: dict[int, float | None] | None,
     *,
     collapse_ratio: float = 0.5,
+    growth_ratio: float | None = None,
 ) -> dict:
     """Low-lag excision stability test (experiment arm B1; ChatGPT rec #4).
 
@@ -283,6 +284,12 @@ def low_lag_stability_verdict(
     the fit fail), the "Lorentzian" had no wing and is a low-lag artifact --
     exactly the freya CHIME failure (35.19 -> 23.4 kHz by N=3, degenerate by
     N=6). Contrast DSA (arm C): gamma stable within ~25% out to N=8.
+
+    The test is two-sided: runaway *growth* under excision is equally fatal --
+    it means the width was set by the excised low lags and the refit is
+    chasing a broad baseline, not a wing (P4e audit: casey full-band grew
+    99 -> 793 kHz, 8x, yet passed the collapse-only test). ``growth_ratio``
+    defaults to ``1 / collapse_ratio`` (2x for the default 0.5).
 
     Parameters
     ----------
@@ -331,22 +338,34 @@ def low_lag_stability_verdict(
             continue
         ratios[int(k)] = float(dnu) / float(dnu_full_mhz)
 
+    if growth_ratio is None:
+        growth_ratio = 1.0 / collapse_ratio
     collapsed = [k for k, r in ratios.items() if r < collapse_ratio]
-    failed_ks = sorted(set(failed_ks) | set(collapsed))
+    grown = [k for k, r in ratios.items() if r > growth_ratio]
+    failed_ks = sorted(set(failed_ks) | set(collapsed) | set(grown))
     min_ratio = min(ratios.values()) if ratios else None
+    max_ratio = max(ratios.values()) if ratios else None
     stable = len(failed_ks) == 0
+    if stable:
+        reason = "width survives low-lag excision (no collapse or runaway growth) -> wing is resolved"
+    elif grown and not collapsed:
+        reason = (
+            f"width grows past {growth_ratio:g}x at excision k={sorted(grown)} "
+            "-> width was carried by the excised low lags, not a resolved wing"
+        )
+    else:
+        reason = (
+            f"width collapses/fails at excision k={failed_ks} "
+            "-> no resolved wing, low-lag artifact"
+        )
     return {
         "stable": bool(stable),
         "dnu_full_mhz": float(dnu_full_mhz),
         "dnu_by_excision": {str(k): (float(v) if v is not None else None) for k, v in by_k.items()},
         "min_ratio": min_ratio,
+        "max_ratio": max_ratio,
         "failed_ks": failed_ks,
-        "reason": (
-            "width survives low-lag excision (no collapse) -> wing is resolved"
-            if stable
-            else f"width collapses/fails at excision k={failed_ks} "
-            "-> no resolved wing, low-lag artifact"
-        ),
+        "reason": reason,
     }
 
 

@@ -1,0 +1,19 @@
+version: 1
+data_dir: ~/Data/Faber2026/dsa110/DSA_bursts
+manifest: data-manifest.csv
+output_dir: results/dm_phase_campaign/v1
+seed: 20260712
+search:
+  windows: {chime: 4.0, dsa: 5.0}
+  coarse_step: 0.25
+  fine_step: 0.02
+  f_cut_hz: [50.0, 1500.0]
+quality:
+  minimum_profile_snr: 8.0
+  maximum_familywise_false_positive: 0.01
+  minimum_bootstrap_success_fraction: 0.90
+resolution:
+  chime_frequency_factors: [1, 2, 4, 8, 16]
+  chime_time_factors: [1, 2, 4, 8, 16, 32, 64, 128, 256]
+  dsa_frequency_factors: [1, 2, 4, 8, 16, 32, 64]
+  dsa_time_factors: [1, 2, 4, 8, 16]

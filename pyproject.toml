@@ -60,6 +60,7 @@ flits-scint-freya = "scintillation.scint_analysis.freya_scintillation:main"
 flits-batch = "flits.batch.cli:main"
 flits-configs = "flits.batch.config_generator:main"
 flits-halos = "galaxies.foreground.vo.cli:main"
+flits-dm-phase = "dispersion.dm_phase_suite.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["."]

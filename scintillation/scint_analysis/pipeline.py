@@ -205,23 +205,55 @@ class ScintillationAnalysis:
         bandpass_cfg = self.config.get("analysis", {}).get("bandpass_normalization", {})
         if not canfar_reference and not bandpass_cfg.get("enable", False):
             return
-        from .freya_scintillation import normalize_bandpass, normalize_snr_per_channel
+        from .freya_scintillation import (
+            _MIN_BANDPASS_OFF_BINS,
+            normalize_bandpass,
+            normalize_snr_per_channel,
+        )
 
-        window = (int(off_pulse_lims[0]), int(off_pulse_lims[1]))
+        # The per-channel gain is static in time, so any off-pulse bins are
+        # valid gain samples. Short captures (mahi: 55 bins total) can't reach
+        # the floor from the pre-burst window alone; augment with the
+        # post-burst region, keeping a small guard band past the configured
+        # burst window for any residual scattering tail.
+        segments = [(int(off_pulse_lims[0]), int(off_pulse_lims[1]))]
+        n_off = segments[0][1] - segments[0][0]
+        if n_off < _MIN_BANDPASS_OFF_BINS and self.burst_lims is not None:
+            n_time = self.masked_spectrum.power.shape[1]
+            burst_start, burst_end = self.burst_lims
+            pad = max(3, (burst_end - burst_start) // 10)
+            post = (min(burst_end + pad, n_time), n_time)
+            if post[1] > post[0]:
+                segments.append(post)
+                log.warning(
+                    "Off-pulse window %s has %d bins (< %d); augmenting with "
+                    "post-burst segment %s.",
+                    off_pulse_lims, n_off, _MIN_BANDPASS_OFF_BINS, post,
+                )
         if canfar_reference:
             # kenzie_funcs.py:94-109 and RECIPE.md:147-155 use (I-mu)/sigma.
             log.info("Applying CANFAR-reference per-channel S/N normalization...")
-            self.masked_spectrum = normalize_snr_per_channel(self.masked_spectrum, window)
+            self.masked_spectrum = normalize_snr_per_channel(self.masked_spectrum, segments)
         else:
             log.info("Applying per-channel bandpass flat-fielding...")
             kwargs = {}
             if "floor_frac" in bandpass_cfg:
                 kwargs["floor_frac"] = float(bandpass_cfg["floor_frac"])
-            self.masked_spectrum = normalize_bandpass(
-                self.masked_spectrum,
-                window,
-                **kwargs,
-            )
+            try:
+                self.masked_spectrum = normalize_bandpass(
+                    self.masked_spectrum,
+                    segments,
+                    **kwargs,
+                )
+            except ValueError as exc:
+                # Not enough off-pulse data anywhere in the capture: skip the
+                # flat-field rather than kill the run, and clear the enable
+                # flag so chime_provenance_status demotes the result to
+                # diagnostic_only (missing required mitigation) instead of
+                # certifying an un-flat-fielded measurement.
+                log.warning("Bandpass flat-fielding skipped: %s", exc)
+                bandpass_cfg["enable"] = False
+                bandpass_cfg["skipped_reason"] = str(exc)
 
     @staticmethod
     def _revalidate_dnu(spectrum, channel_width_mhz, **kwargs):

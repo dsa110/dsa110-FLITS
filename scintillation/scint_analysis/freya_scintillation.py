@@ -423,9 +423,27 @@ def determine_windows(
     return burst_lims, off_lims
 
 
+def _off_pulse_segments(off_pulse_lims) -> list[tuple[int, int]]:
+    """Normalize a single ``(start, end)`` window or a list of them."""
+    if len(off_pulse_lims) == 2 and np.isscalar(off_pulse_lims[0]):
+        off_pulse_lims = [off_pulse_lims]
+    segments = []
+    for start, end in off_pulse_lims:
+        start, end = int(start), int(end)
+        if end > start:
+            segments.append((start, end))
+    return segments
+
+
+def _off_pulse_columns(spectrum: DynamicSpectrum, segments) -> np.ma.MaskedArray:
+    return np.ma.concatenate(
+        [spectrum.power[:, start:end] for start, end in segments], axis=1
+    )
+
+
 def normalize_bandpass(
     spectrum: DynamicSpectrum,
-    off_pulse_lims: tuple[int, int],
+    off_pulse_lims,
     *,
     floor_frac: float = _BANDPASS_FLOOR_FRAC,
 ) -> DynamicSpectrum:
@@ -446,16 +464,16 @@ def normalize_bandpass(
     by) channels whose off-pulse mean is non-positive, non-finite, or gain-
     starved relative to the median.
     """
-    start, end = int(off_pulse_lims[0]), int(off_pulse_lims[1])
-    n_off = end - start
+    segments = _off_pulse_segments(off_pulse_lims)
+    n_off = sum(end - start for start, end in segments)
     if n_off < _MIN_BANDPASS_OFF_BINS:
         raise ValueError(
             f"bandpass normalization needs >= {_MIN_BANDPASS_OFF_BINS} off-pulse "
             f"time bins to estimate the per-channel gain, got {n_off} "
-            f"(off-pulse window [{start}, {end}))"
+            f"(off-pulse segments {segments})"
         )
 
-    off_mean = np.ma.filled(np.ma.mean(spectrum.power[:, start:end], axis=1), np.nan)
+    off_mean = np.ma.filled(np.ma.mean(_off_pulse_columns(spectrum, segments), axis=1), np.nan)
     finite_positive = off_mean[np.isfinite(off_mean) & (off_mean > 0.0)]
     if finite_positive.size == 0:
         raise ValueError(
@@ -485,7 +503,7 @@ def normalize_bandpass(
 
 def normalize_snr_per_channel(
     spectrum: DynamicSpectrum,
-    off_pulse_lims: tuple[int, int],
+    off_pulse_lims,
     *,
     min_off_bins: int = _MIN_BANDPASS_OFF_BINS,
     floor_frac: float = _BANDPASS_FLOOR_FRAC,
@@ -496,14 +514,15 @@ def normalize_snr_per_channel(
     ``reference_arc/RECIPE.md:147-155``.  It is deliberately separate from
     :func:`normalize_bandpass`, which divides by the off-pulse mean only.
     """
-    start, end = (int(value) for value in off_pulse_lims)
-    if end - start < min_off_bins:
+    segments = _off_pulse_segments(off_pulse_lims)
+    n_off = sum(end - start for start, end in segments)
+    if n_off < min_off_bins:
         raise ValueError(
             f"S/N normalization needs >= {min_off_bins} off-pulse time bins, "
-            f"got {end - start} (off-pulse window [{start}, {end}))"
+            f"got {n_off} (off-pulse segments {segments})"
         )
 
-    off = spectrum.power[:, start:end]
+    off = _off_pulse_columns(spectrum, segments)
     off_mean = np.ma.filled(np.ma.mean(off, axis=1), np.nan)
     off_std = np.ma.filled(np.ma.std(off, axis=1), np.nan)
     finite_positive = off_std[np.isfinite(off_std) & (off_std > 0.0)]

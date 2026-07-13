@@ -40,6 +40,58 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _verify_replay_provenance(
+    h5: Path,
+    provenance_path: Path,
+    canonical_waterfall: Path,
+    canonical_frequency: Path,
+    replay_waterfall: Path,
+    replay_frequency: Path,
+) -> dict:
+    """Bind the baseline replay to the exact voltage input and expected products."""
+    provenance = json.loads(provenance_path.read_text())
+    expected_input = provenance["input_h5"]["sha256"]
+    expected_replay = provenance["baseline_replay"]
+    input_h5_sha256 = _sha256(h5)
+    canonical_waterfall_sha256 = _sha256(canonical_waterfall)
+    replay_waterfall_sha256 = _sha256(replay_waterfall)
+    canonical_frequency_sha256 = _sha256(canonical_frequency)
+    replay_frequency_sha256 = _sha256(replay_frequency)
+    replay = {
+        "input_h5_match": input_h5_sha256 == expected_input,
+        "input_h5_sha256": input_h5_sha256,
+        "expected_input_h5_sha256": expected_input,
+        "waterfall_match": canonical_waterfall_sha256 == replay_waterfall_sha256,
+        "frequency_match": canonical_frequency_sha256 == replay_frequency_sha256,
+        "canonical_waterfall_sha256": canonical_waterfall_sha256,
+        "replay_waterfall_sha256": replay_waterfall_sha256,
+        "canonical_frequency_sha256": canonical_frequency_sha256,
+        "replay_frequency_sha256": replay_frequency_sha256,
+    }
+    replay["provenance_waterfall_match"] = (
+        replay["canonical_waterfall_sha256"] == expected_replay["waterfall_sha256"]
+    )
+    replay["provenance_frequency_match"] = (
+        replay["canonical_frequency_sha256"] == expected_replay["frequency_sha256"]
+    )
+    required = (
+        "input_h5_match",
+        "waterfall_match",
+        "frequency_match",
+        "provenance_waterfall_match",
+        "provenance_frequency_match",
+    )
+    replay["pass"] = all(replay[name] for name in required)
+    if not replay["pass"]:
+        raise ValueError("input HDF5 or baseline replay does not match frozen provenance")
+    return replay
+
+
+def _qualification_pass(checks: dict) -> bool:
+    """Require every gate, including manual review, to pass explicitly."""
+    return all(check["pass"] is True for check in checks.values())
+
+
 def _alignment_offsets(data) -> np.ndarray:
     coarse = np.asarray(data.index_map["freq"]["centre"], dtype=float)
     fpga = np.asarray(data["time0"]["fpga_count"], dtype=float)
@@ -279,6 +331,7 @@ def _plot(records: list[dict], output: Path) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--h5", type=Path, required=True)
+    parser.add_argument("--provenance", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--canonical-waterfall", type=Path, required=True)
     parser.add_argument("--canonical-frequency", type=Path, required=True)
@@ -291,16 +344,14 @@ def main() -> int:
     from baseband_analysis.core.sampling import _upchannel  # noqa: PLC0415
 
     args.output.mkdir(parents=True, exist_ok=True)
-    replay = {
-        "waterfall_match": _sha256(args.canonical_waterfall) == _sha256(args.replay_waterfall),
-        "frequency_match": _sha256(args.canonical_frequency) == _sha256(args.replay_frequency),
-        "canonical_waterfall_sha256": _sha256(args.canonical_waterfall),
-        "replay_waterfall_sha256": _sha256(args.replay_waterfall),
-        "canonical_frequency_sha256": _sha256(args.canonical_frequency),
-        "replay_frequency_sha256": _sha256(args.replay_frequency),
-    }
-    if not all((replay["waterfall_match"], replay["frequency_match"])):
-        raise SystemExit("baseline replay hash mismatch")
+    replay = _verify_replay_provenance(
+        args.h5,
+        args.provenance,
+        args.canonical_waterfall,
+        args.canonical_frequency,
+        args.replay_waterfall,
+        args.replay_frequency,
+    )
 
     data = BBData.from_file(str(args.h5))
     coarse_offsets = _alignment_offsets(data)
@@ -356,17 +407,24 @@ def main() -> int:
         power_pass.append(abs(item["power_recovery_ratio"] - 1.0) <= tolerance)
 
     checks = {
-        "baseline_replay": {"pass": all((replay["waterfall_match"], replay["frequency_match"])), **replay},
+        "baseline_replay": replay,
         "all_fits_finite": {"pass": len(finite) == 48, "n_finite": len(finite), "n_trials": 48},
         "target_generator": {"pass": len(nominal_pass) == 48 and all(nominal_pass)},
         "width_recovery": {"pass": len(width_pass) == 48 and all(width_pass), "n_pass": sum(width_pass)},
         "power_recovery": {"pass": len(power_pass) == 48 and all(power_pass), "n_pass": sum(power_pass)},
         "manual_review": {"pass": None, "reason": "pending visual inspection"},
     }
-    machine_pass = all(check["pass"] is True for name, check in checks.items() if name != "manual_review")
+    automated_checks_pass = all(
+        check["pass"] is True for name, check in checks.items() if name != "manual_review"
+    )
+    qualification_pass = _qualification_pass(checks)
     payload = {
         "experiment": "B1 pre-upchannelization complex-voltage calibration",
-        "qualification_status": "inconclusive" if checks["manual_review"]["pass"] is None else ("pass" if machine_pass else "fail"),
+        "qualification_status": (
+            "inconclusive"
+            if checks["manual_review"]["pass"] is None
+            else ("pass" if qualification_pass else "fail")
+        ),
         "science_status": "diagnostic_only",
         "on_pulse_fit_performed": False,
         "container_image_digest": "sha256:f510909d892d0d5224c982c590cbe80967a49a59b79c396ab72bb710105c4c41",
@@ -376,8 +434,18 @@ def main() -> int:
     }
     (args.output / "validation.json").write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
     _plot(records, args.output)
-    print(json.dumps({"checks": checks, "machine_pass": machine_pass}, indent=2, sort_keys=True))
-    return 0 if machine_pass else 2
+    print(
+        json.dumps(
+            {
+                "checks": checks,
+                "automated_checks_pass": automated_checks_pass,
+                "qualification_pass": qualification_pass,
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+    return 0 if qualification_pass else 2
 
 
 if __name__ == "__main__":

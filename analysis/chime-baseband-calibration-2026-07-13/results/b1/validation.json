@@ -17,6 +17,7 @@
     "manual_review": {
       "overall_verdict": "anomaly",
       "pass": false,
+      "qualification_authorized": false,
       "reason": "B1 DOCUMENTED-FAIL; the exact voltage-to-waterfall path conserves injected power but does not preserve the injected correlation width on real Freya voltage noise, so no response correction or on-pulse fit is authorized",
       "review_file": "/Users/jakobfaber/Developer/scratch/worktrees/flits-chime-endtoend-calibration/analysis/chime-baseband-calibration-2026-07-13/results/b1/figures.review.json"
     },

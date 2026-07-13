@@ -5,6 +5,10 @@
     "path": "/data/research/astrophysics/frbs/chime-dsa-codetections/chime_singlebeam/singlebeam_278720455.h5",
     "sha256": "676a9033c10926c213603939bee78c44d6d1a011c01e4279b41bccc97127df52"
   },
+  "baseline_replay": {
+    "waterfall_sha256": "f7ce42985a99eeb70565abb1b8458ec888fa2e65396cef2e2bf9b367941f62b9",
+    "frequency_sha256": "b686f99e71ad37a0b9014aae8ea480865b7eda8c94f0eb6c1d82e11d6a800255"
+  },
   "producer": {
     "path": "/data/research/astrophysics/frbs/chime-dsa-codetections/scripts/upchannelize_chime.py",
     "sha256": "45761458bde9085dbb6ce0c662f48678ee38b4417902718c9ef67088a3332a0d"
@@ -16,7 +20,7 @@
   },
   "executed_runner": {
     "sha256": "c37a0962c8018a867cb532c68f85ebb97965c7fdf5cc439c198b5d1d9bea85d3",
-    "note": "Scientific computation version. The committed runner differs only by marker-separated band labels in _plot; no injection, fitting, or gate code changed."
+    "note": "Scientific computation version. The committed runner adds marker-separated band labels plus pre-run input-provenance and final qualification-gate hardening; injection and fitting computations are unchanged."
   },
   "raw_validation": {
     "path": "/data/research/astrophysics/frbs/chime-dsa-codetections/experiments/freya_endtoend_calibration_v1/results/validation.json",

@@ -20,6 +20,18 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _manual_review_pass(manifest: dict, review: dict) -> bool:
+    expected = {item["path"] for item in manifest["figures"]}
+    reviewed = {item["path"] for item in review["figures"]}
+    if expected != reviewed:
+        raise ValueError("figure review does not cover the complete manifest")
+    return (
+        all(item["verdict"] == "match" for item in review["figures"])
+        and review["overall_verdict"] == "match"
+        and review.get("qualification_authorized") is True
+    )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--raw", type=Path, required=True)
@@ -28,10 +40,7 @@ def main() -> int:
     validation = json.loads(args.raw.read_text())
     manifest = json.loads((RESULT_DIR / "figures.manifest.json").read_text())
     review = json.loads((RESULT_DIR / "figures.review.json").read_text())
-    expected = {item["path"] for item in manifest["figures"]}
-    reviewed = {item["path"] for item in review["figures"]}
-    if expected != reviewed:
-        raise ValueError("figure review does not cover the complete manifest")
+    manual_pass = _manual_review_pass(manifest, review)
 
     for record in validation["records"]:
         record.pop("target_spectrum", None)
@@ -41,10 +50,10 @@ def main() -> int:
         "sha256": _sha256(args.raw),
         "retention": "full spectra retained on h17; compact record committed",
     }
-    manual_pass = all(item["verdict"] == "match" for item in review["figures"])
     validation["checks"]["manual_review"] = {
         "pass": manual_pass,
         "overall_verdict": review["overall_verdict"],
+        "qualification_authorized": review.get("qualification_authorized") is True,
         "review_file": str((RESULT_DIR / "figures.review.json").resolve()),
         "reason": review["science_disposition"],
     }

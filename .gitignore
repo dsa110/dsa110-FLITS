@@ -169,6 +169,7 @@ __pycache__/
 # NumPy binary dumps
 *.npy
 *.npz
+!scintillation/scint_analysis/tests/fixtures/zach_acf_codetections_fftsize64_downfreq1.npz
 
 # netCDF
 *.nc

@@ -19,6 +19,7 @@ analysis:
     - 20
     - 175
   acf:
+    first_fit_lag: 2
     num_subbands: 4
     max_lag_mhz: 5.0
     use_snr_subbanding: true

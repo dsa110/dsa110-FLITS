@@ -94,6 +94,60 @@ terminates as DOCUMENTED-FAIL. Fleet propagation remains locked; changing the
 observable or accepting an unvalidated transfer would require a separate
 science decision.
 
+## Post-loop bounded inference experiment A1
+
+The owner authorized a separate science decision on 2026-07-13: test whether
+the unmodified on-pulse ACF can be fit with an additive off-pulse covariance
+term in the likelihood. A1 is not a fourth correction hypothesis and does not
+reopen the terminated whitening loop.
+
+The rank-1 product is the fixed input. In each of two CHIME subbands, twelve
+non-overlapping off-pulse spectra use the same duration and channel boundaries
+as the burst. The first six estimate the additive frequency-covariance kernel
+and its full sample covariance; the final six are held out. The likelihood is
+`ACF_on = Lorentzian(dnu, m) + kernel_off + constant`, with the off-kernel mean
+covariance added to the on-ACF statistical covariance. The spectrum itself is
+never whitened or kernel-subtracted.
+
+Before fitting Freya's on-pulse ACF, both gates must pass:
+
+- every held-out off-pulse ACF has maximum marginal residual no more than 3
+  standard deviations and reduced predictive chi-square between 0.5 and 2.0;
+- 48 deterministic injections span HWHM values of 2, 4, 8, and 16 native
+  channels, modulation indices 0.3 and 1.0, both subbands, and real held-out
+  off-pulse backgrounds. Every width must satisfy
+  `abs(recovered-injected) < max(10%, 0.25 channel)`, nominal-68% coverage must
+  be within 0.15 of 0.68, and every modulation index must satisfy
+  `abs(recovered-injected) < max(10%, 0.05 absolute)`.
+
+Failure forbids the Freya on-pulse fit and closes A1 as DOCUMENTED-FAIL without
+changing the CHIME science status. Passing both gates permits the on-pulse fit,
+after which the existing fit-window, split-time, split-band, comb-residual, and
+manual-figure gates still apply before any measurement can be promoted.
+
+### A1 final evidence
+
+A1 closed as **DOCUMENTED-FAIL**. The held-out covariance test is
+frequency-dependent: only 3/6 low-band slices pass (maximum absolute z 3.020;
+reduced predictive chi-square range 0.842--3.358), while all 6/6 high-band
+slices pass (maximum absolute z 2.160; reduced predictive chi-square range
+0.790--1.416). The off-pulse region therefore supplies a usable additive-noise
+model in the high band, but not a stationary model that transfers across all
+of Freya's CHIME band.
+
+All 48 real-background injection fits were finite, but the predeclared
+recovery gates failed: maximum fractional width bias was 31.77, nominal-68%
+coverage was 0.25, and maximum absolute modulation-index bias was 0.956. The
+worst low-band, two-channel-width injections reached both width bounds,
+including a 0.400 MHz recovery for an injected 0.0122 MHz signal. This is an
+identifiability failure between near-resolution scintillation and the measured
+low-band kernel, not merely a numerical crash.
+
+The corrected likelihood passed a clean no-background synthetic recovery
+test, and the figure review agreed with the machine-readable failures. The
+Freya on-pulse fit was not performed. CHIME remains `diagnostic_only`; no
+measurement or fleet propagation is permitted from A1.
+
 ### H0 reproduction evidence
 
 Command: the runner below with `--subbands 2`; full machine-readable result was

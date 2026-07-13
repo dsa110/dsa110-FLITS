@@ -313,6 +313,19 @@ Takeaways:
 - The main notebook's historical all-12 loop is **DSA-band**; do not mistake it for
   CHIME-band coverage.
 
+## 7d. Rescued analysis originals (captured in-repo 2026-07-12)
+
+The CANFAR-era collaborator scripts and worked notebooks behind the CHIME
+recipe (up-channelize -> clean -> ACF -> Lorentzian fit; Nimmo-method
+lineage) are captured **verbatim** in
+[`scint_analysis/reference_arc/`](scint_analysis/reference_arc/) with a
+sha256 manifest and full hunt log in its `ORIGIN.md`. Sources: the h17/iacobus
+`arc_trash_2026-06` rescue (`code/*.py`, `notebooks/scint_*.ipynb`) plus two
+live `arc:home/jfaber` notebooks (`scint_freya_trash.ipynb`,
+`scint_chromatica_trash.ipynb`) not present in the trash rescue. This is the
+preprocessing-provenance reconstruction path required by section 7c before any
+historical CHIME product may be promoted.
+
 ## 7c. Open / pending (data-provenance gaps)
 
 - If historical CHIME pickle products are rediscovered, treat them as retired

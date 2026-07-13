@@ -145,20 +145,16 @@ class TestACFCalculation:
         """Test that ACF is symmetric."""
         result = calculate_acf(correlated_spectrum, channel_width_mhz=0.39)
         
-        # ACF should be symmetric around lag=0
+        # ACF should have equal centerless negative and positive halves.
         n = len(result.lags)
         mid = n // 2
-        assert_allclose(result.acf[:mid], result.acf[mid+1:][::-1], rtol=0.1)
+        assert_allclose(result.acf[:mid], result.acf[mid:][::-1], rtol=0.1)
 
-    def test_acf_peak_at_zero_lag(self, correlated_spectrum):
-        """Test that ACF has maximum at zero lag."""
+    def test_acf_excludes_zero_lag(self, correlated_spectrum):
+        """Test that the synthetic zero-lag point is absent."""
         result = calculate_acf(correlated_spectrum, channel_width_mhz=0.39)
-        
-        # Find zero lag
-        zero_idx = np.argmin(np.abs(result.lags))
-        max_idx = np.argmax(result.acf)
-        
-        assert zero_idx == max_idx
+
+        assert not np.any(np.isclose(result.lags, 0.0))
 
     def test_acf_includes_errors(self, correlated_spectrum):
         """Test that ACF includes error estimates."""
@@ -347,4 +343,3 @@ class TestACFIntegration:
         
         assert result is not None
         assert not np.any(np.isnan(result.acf))
-

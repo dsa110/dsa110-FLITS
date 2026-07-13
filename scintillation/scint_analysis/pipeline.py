@@ -413,6 +413,7 @@ class ScintillationAnalysis:
                     "nu_ref": result.nu_ref,
                     "redchi": result.redchi,
                     "success": result.success,
+                    **analysis._bandwidth_fields(result.gamma_0, result.gamma_0_err),
                 }
 
             return result

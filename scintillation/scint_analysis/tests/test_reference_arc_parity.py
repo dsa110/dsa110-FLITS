@@ -75,12 +75,13 @@ def test_2d_fitter_excludes_zero_lag():
 
 
 def test_result_reports_hwhm_and_fwhm_labels():
-    from scint_analysis.analysis import _bandwidth_fields
+    from scint_analysis.analysis import _bandwidth_fields, _bandwidth_fields_for_model
 
     out = _bandwidth_fields(gamma_hwhm_mhz=0.25)
     assert out["reported_dnu_definition"] == "HWHM"
     assert out["gamma_hwhm_mhz"] == 0.25
     assert np.isclose(out["fwhm_mhz"], 0.5)
+    assert _bandwidth_fields_for_model("fit_power", 0.25) == {}
 
 
 def test_canfar_reference_snr_normalization():

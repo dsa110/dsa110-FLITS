@@ -22,6 +22,12 @@ from flits.plotting import use_flits_style
 use_flits_style()
 mpl.rcParams.update(
     {
+        "text.usetex": False,
+        "font.family": "serif",
+        "font.serif": ["cmr10", "Computer Modern Roman", "DejaVu Serif"],
+        "mathtext.fontset": "cm",
+        "axes.formatter.use_mathtext": True,
+        "axes.unicode_minus": False,
         "font.size": 8,
         "axes.titlesize": 9,
         "axes.labelsize": 8,
@@ -61,6 +67,19 @@ def _tns_label(nickname: str) -> str:
         return load_tns_name(nickname)
     except Exception:
         return nickname.capitalize()
+
+
+def _pcc_label(row: dict) -> str:
+    """Compact probability and association-class label for an audit card."""
+    mantissa, exponent = f"{float(row['chance_coincidence_P']):.1e}".split("e")
+    association_class = row.get("chance_coincidence_class")
+    if association_class == "dm_position_time":
+        class_label = "DM + position + timing"
+    elif association_class == "position_time":
+        class_label = "position + timing"
+    else:
+        class_label = "association"
+    return rf"$P_{{\rm cc}}={mantissa}\times10^{{{int(exponent)}}}$ ({class_label})"
 
 
 def _coord_from_fixture(row: dict) -> SkyCoord:
@@ -198,7 +217,7 @@ def _plot_position_panel(
     ax.text(
         0.03,
         0.04,
-        f"separation = {sep_arcmin:.2f} arcmin",
+        f"separation = {sep_arcmin:.2f} arcmin\n{_pcc_label(assoc_row)}",
         transform=ax.transAxes,
         fontsize=7,
         bbox={

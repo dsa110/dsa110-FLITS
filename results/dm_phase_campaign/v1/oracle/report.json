@@ -1,0 +1,39 @@
+{
+  "intentional_deviations": [
+    "ADR-001",
+    "ADR-002",
+    "ADR-003",
+    "ADR-004",
+    "ADR-005"
+  ],
+  "oracle": "external/DM_phase at b7cf5fd61436",
+  "pass": true,
+  "rows": [
+    {
+      "controlled_dm": 500.6997018007379,
+      "controlled_edge_peak": false,
+      "controlled_error": -0.0002981992620902929,
+      "controlled_minus_published": 0.0004958518181297222,
+      "fixture": "standard_bright_chime",
+      "instrument": "chime",
+      "pass": true,
+      "published_dm": 500.69920594891977,
+      "published_error": -0.0007940510802200151,
+      "published_sigma": 0.0031520491912109686,
+      "truth_dm": 500.7
+    },
+    {
+      "controlled_dm": 500.7804333786115,
+      "controlled_edge_peak": false,
+      "controlled_error": 0.08043337861153077,
+      "controlled_minus_published": 0.26074103982892893,
+      "fixture": "standard_bright_dsa",
+      "instrument": "dsa",
+      "pass": true,
+      "published_dm": 500.5196923387826,
+      "published_error": -0.18030766121739816,
+      "published_sigma": 0.254099894133785,
+      "truth_dm": 500.7
+    }
+  ]
+}

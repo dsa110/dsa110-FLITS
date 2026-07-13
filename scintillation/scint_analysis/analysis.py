@@ -26,6 +26,7 @@ except (
 from collections import defaultdict
 
 from lmfit import Model
+from lmfit.model import ModelResult
 from lmfit.models import ConstantModel
 from scipy.interpolate import interp1d
 from scipy.odr import ODR, RealData
@@ -241,6 +242,13 @@ def _bandwidth_fields(gamma_hwhm_mhz, gamma_err_mhz=None):
     if gamma_err_mhz is not None:
         fields["gamma_hwhm_err_mhz"] = gamma_err_mhz
     return fields
+
+
+def _bandwidth_fields_for_model(model_name, gamma_hwhm_mhz, gamma_err_mhz=None):
+    """Return explicit width fields only for models with a decorrelation width."""
+    if "power" in model_name:
+        return {}
+    return _bandwidth_fields(gamma_hwhm_mhz, gamma_err_mhz)
 
 
 def calculate_acf(
@@ -733,7 +741,7 @@ def _fit_acf_models(
     """
     Fit every scattering candidate to one ACF.
     """
-    fit_results: dict[str, lmfit.ModelResult | None] = {}
+    fit_results: dict[str, ModelResult | None] = {}
 
     # --- data slice & weights ---
     m = (np.abs(acf_object.lags) <= fit_lagrange_mhz) & (acf_object.lags != 0)
@@ -1743,7 +1751,8 @@ def analyze_scintillation_from_acfs(acf_results, config):
         # Extract results. B[0] is the slope alpha, B[1] is log10(c)
         alpha_fit, log_c_fit = out.beta
         alpha_err, log_c_err = out.sd_beta
-        c_fit = 10**log_c_fit
+        max_log10 = np.log10(np.finfo(float).max)
+        c_fit = 10**log_c_fit if log_c_fit <= max_log10 else np.inf
 
         # Propagate error for bandwidth at reference frequency
         log_ref_freq = np.log10(ref_freq)
@@ -1776,7 +1785,9 @@ def analyze_scintillation_from_acfs(acf_results, config):
                 "mod_err": p_dict.get("mod_err"),
                 "finite_err": p_dict.get("finite_err"),
                 "gof": p_dict.get("gof", {}),
-                **_bandwidth_fields(p_dict.get("bw"), p_dict.get("bw_err")),
+                **_bandwidth_fields_for_model(
+                    best_model_name, p_dict.get("bw"), p_dict.get("bw_err")
+                ),
             }
             subband_measurements.append(measurement)
 
@@ -1788,7 +1799,7 @@ def analyze_scintillation_from_acfs(acf_results, config):
             "bw_at_ref_mhz_err": b_ref_err,
             "subband_measurements": subband_measurements,
             "scaling_interpretation": interpretation,
-            **_bandwidth_fields(b_ref, b_ref_err),
+            **_bandwidth_fields_for_model(best_model_name, b_ref, b_ref_err),
         }
 
     return final_results, all_fits, all_powerlaw_fits

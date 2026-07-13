@@ -18,7 +18,10 @@ import numpy as np
 import yaml
 
 K_DM_S_MHZ2 = 1.0 / 2.41e-4
-CORRECTION_ALGORITHM = "robust_coarse_rank1_v1"
+SUPPORTED_CORRECTION_ALGORITHMS = {
+    1: "robust_coarse_rank1_v1",
+    2: "robust_coarse_rank2_v1",
+}
 
 
 @dataclass(frozen=True)
@@ -30,6 +33,9 @@ class ChimeProductConfig:
     off_pulse: tuple[int, int]
     guard_bins: int = 0
     reference_frequency_mhz: float = 400.0
+    correction_rank: int = 1
+    aligned_burst_bin: int | None = None
+    burst_half_width_bins: int | None = None
 
 
 @dataclass
@@ -44,7 +50,9 @@ class ChimeProductResult:
 
 def load_chime_target(target: str | None = None, path: str | Path | None = None):
     """Load the versioned 12-target CHIME product registry."""
-    registry_path = Path(path) if path else Path(__file__).parents[1] / "configs/chime_products.yaml"
+    registry_path = (
+        Path(path) if path else Path(__file__).parents[1] / "configs/chime_products.yaml"
+    )
     payload = yaml.safe_load(registry_path.read_text())
     if payload.get("schema_version") != 1 or not isinstance(payload.get("targets"), dict):
         raise ValueError("unsupported or malformed CHIME product registry")
@@ -67,7 +75,9 @@ def burst_track_mask(
     """Map a protected aligned burst window onto the pre-alignment array."""
     offsets = np.asarray(channel_offsets, dtype=int)
     if offsets.shape != (n_channels,) or half_width_bins < 0:
-        raise ValueError("channel_offsets must match channels and half_width_bins must be non-negative")
+        raise ValueError(
+            "channel_offsets must match channels and half_width_bins must be non-negative"
+        )
     mask = np.zeros((n_channels, n_times), dtype=bool)
     for channel, offset in enumerate(offsets):
         center = int(aligned_center_bin) - int(offset)
@@ -153,23 +163,31 @@ def _rank1_background(
     return spectral[:, None] * temporal[None, :], spectral, temporal
 
 
-def _coarse_rank1_background(
+def _coarse_low_rank_background(
     normalized: np.ndarray,
     valid: np.ndarray,
     parent_coarse: np.ndarray,
+    rank: int,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """Fit one deterministic rank-1 mode within each CHIME coarse block."""
+    """Fit deterministic sequential rank-1 modes within each coarse block."""
     model = np.zeros_like(normalized, dtype=float)
     spectral = np.zeros(normalized.shape[0], dtype=float)
     temporal_modes = []
     for parent in np.unique(parent_coarse):
         channels = parent_coarse == parent
-        block_model, block_spectral, block_temporal = _rank1_background(
-            normalized[channels], valid[channels]
-        )
+        block_model = np.zeros_like(normalized[channels], dtype=float)
+        block_spectral_modes = []
+        block_temporal_modes = []
+        for _ in range(rank):
+            component, component_spectral, component_temporal = _rank1_background(
+                normalized[channels] - block_model, valid[channels]
+            )
+            block_model += component
+            block_spectral_modes.append(component_spectral)
+            block_temporal_modes.append(component_temporal)
         model[channels] = block_model
-        spectral[channels] = block_spectral
-        temporal_modes.append(block_temporal)
+        spectral[channels] = np.sqrt(np.sum(np.square(block_spectral_modes), axis=0))
+        temporal_modes.append(block_temporal_modes)
     return model, spectral, np.asarray(temporal_modes)
 
 
@@ -199,6 +217,8 @@ def build_chime_products(
         raise ValueError("positive finite dm is required")
     if config.upchannel_factor < 1 or config.dt_s <= 0:
         raise ValueError("positive upchannel_factor and dt_s are required")
+    if config.correction_rank not in SUPPORTED_CORRECTION_ALGORITHMS:
+        raise ValueError("correction_rank must be 1 or 2")
 
     power = np.asarray(power, dtype=float)
     frequencies = np.asarray(frequencies_mhz, dtype=float)
@@ -232,7 +252,9 @@ def build_chime_products(
             raise ValueError("rfi_mask must match power")
         excluded |= np.asarray(rfi_mask, dtype=bool)
     valid = np.isfinite(normalized) & ~excluded
-    model, spectral, temporal = _coarse_rank1_background(normalized, valid, parent)
+    model, spectral, temporal = _coarse_low_rank_background(
+        normalized, valid, parent, config.correction_rank
+    )
     corrected = power - channel_gain[:, None] * model
     corrected[~np.isfinite(power)] = np.nan
 
@@ -265,8 +287,14 @@ def build_chime_products(
             "excluded_samples": int(excluded.sum()),
             "excluded_mask_sha256": _array_sha256(excluded),
         },
+        "windows": {
+            "off_pulse_input_bins": [int(start), int(stop)],
+            "aligned_burst_bin": config.aligned_burst_bin,
+            "burst_half_width_bins": config.burst_half_width_bins,
+        },
         "correction": {
-            "algorithm": CORRECTION_ALGORITHM,
+            "algorithm": SUPPORTED_CORRECTION_ALGORITHMS[config.correction_rank],
+            "rank": config.correction_rank,
             "iterations": 12,
             "retained_fraction": retained / total_finite if total_finite else 0.0,
             "model_rms_fractional": model_rms,
@@ -354,7 +382,8 @@ def verify_product_manifest(
         return {"valid": False, "reason": "manifest is unreadable or invalid JSON"}
     if manifest.get("schema_version") != 1:
         return {"valid": False, "reason": "unsupported manifest schema"}
-    if manifest.get("correction", {}).get("algorithm") != CORRECTION_ALGORITHM:
+    algorithm = manifest.get("correction", {}).get("algorithm")
+    if algorithm not in SUPPORTED_CORRECTION_ALGORITHMS.values():
         return {"valid": False, "reason": "unsupported correction algorithm"}
     if expected_target is not None and manifest.get("target") != expected_target:
         return {
@@ -370,7 +399,7 @@ def verify_product_manifest(
         "valid": True,
         "reason": "corrected product and manifest verified",
         "target": manifest.get("target"),
-        "algorithm": CORRECTION_ALGORITHM,
+        "algorithm": algorithm,
         "manifest": manifest,
     }
 

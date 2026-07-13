@@ -26,9 +26,7 @@ def _fixture():
     channel_gain = np.linspace(8.0, 12.0, nchan)
     spectral_mode = np.linspace(0.7, 1.3, nchan)
     temporal_mode = np.sin(np.linspace(0, 4 * np.pi, ntime))
-    power = channel_gain[:, None] * (
-        1.0 + 0.16 * spectral_mode[:, None] * temporal_mode[None, :]
-    )
+    power = channel_gain[:, None] * (1.0 + 0.16 * spectral_mode[:, None] * temporal_mode[None, :])
     power += rng.normal(0.0, 0.015, power.shape) * channel_gain[:, None]
 
     burst_mask = np.zeros_like(power, dtype=bool)
@@ -138,6 +136,7 @@ def test_writer_preserves_both_products_and_deterministic_manifest(tmp_path):
     assert manifest["schema_version"] == 1
     assert manifest["target"] == "freya"
     assert manifest["products"]["corrected_sha256"]
+    assert manifest["windows"]["off_pulse_input_bins"] == [0, 18]
 
     second = write_chime_products(result, tmp_path / "repeat", input_paths=[])
     second_manifest = json.loads(second["manifest"].read_text())
@@ -272,3 +271,65 @@ def test_builder_removes_independent_common_mode_per_coarse_block():
     )
     for channel, offset in enumerate([0] * 4 + [2] * 4):
         assert np.nanstd(result.corrected[channel, offset : offset + ntime]) < 1e-6
+
+
+def test_rank2_removes_second_mode_and_preserves_masked_burst():
+    rng = np.random.default_rng(20260712)
+    nchan, ntime = 12, 80
+    t = np.linspace(0, 4 * np.pi, ntime)
+    spectral_1 = np.linspace(0.5, 1.4, nchan)
+    spectral_2 = np.cos(np.linspace(0, 2 * np.pi, nchan))
+    background = 0.18 * spectral_1[:, None] * np.sin(t)[None, :]
+    background += 0.12 * spectral_2[:, None] * np.cos(2.3 * t)[None, :]
+    power = 10.0 * (1.0 + background + rng.normal(0, 0.003, (nchan, ntime)))
+    burst_mask = np.zeros_like(power, dtype=bool)
+    burst_mask[:, 51] = True
+    power[:, 51] += 30.0
+    common = dict(
+        frequencies_mhz=np.linspace(600.0, 600.38, nchan),
+        coarse_frequencies_mhz=np.array([600.19]),
+        coarse_offsets=np.array([0]),
+        burst_mask=burst_mask,
+    )
+    rank1 = build_chime_products(
+        power,
+        **common,
+        config=ChimeProductConfig(
+            target="two-mode",
+            dm=100.0,
+            upchannel_factor=nchan,
+            dt_s=1.0,
+            off_pulse=(0, 40),
+        ),
+    )
+    rank2 = build_chime_products(
+        power,
+        **common,
+        config=ChimeProductConfig(
+            target="two-mode",
+            dm=100.0,
+            upchannel_factor=nchan,
+            dt_s=1.0,
+            off_pulse=(0, 40),
+            correction_rank=2,
+        ),
+    )
+    no_burst = power.copy()
+    no_burst[:, 51] -= 30.0
+    rank2_control = build_chime_products(
+        no_burst,
+        **common,
+        config=ChimeProductConfig(
+            target="two-mode",
+            dm=100.0,
+            upchannel_factor=nchan,
+            dt_s=1.0,
+            off_pulse=(0, 40),
+            correction_rank=2,
+        ),
+    )
+    rank1_rms = np.nanstd(rank1.corrected[:, :40] / rank1.channel_gain[:, None])
+    rank2_rms = np.nanstd(rank2.corrected[:, :40] / rank2.channel_gain[:, None])
+    assert rank2_rms < 0.25 * rank1_rms
+    assert np.allclose(rank2.corrected[:, 51] - rank2_control.corrected[:, 51], 30.0)
+    assert rank2.manifest["correction"]["algorithm"] == "robust_coarse_rank2_v1"

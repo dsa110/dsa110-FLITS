@@ -1,6 +1,6 @@
 # Plan — bounded Freya CHIME recovery loop
 
-**Status:** active, fail-closed  
+**Status:** DOCUMENTED-FAIL, bounded loop terminated
 **Branch:** `scint/chime-recovery-loop` from `origin/pin/faber2026`  
 **Qualification target:** Freya (`FRB 20230325A`) only
 
@@ -42,11 +42,57 @@ Missing checks remain inconclusive. A smaller off-pulse statistic is not a pass.
 | H0 | One robust rank-1 additive time mode per parent CHIME coarse block removes alignment-sheared common mode. | Paired product `freya_chime_coarse_rank1_v1_*`; require both subbands to pass the off-pulse null and low-lag stability. | **FAIL, reproduced 2026-07-12** — builder statistic improved 0.579 to 0.335 but remained correlated. Fresh two-subband adjudication passed provenance and low-lag stability but failed the aggregate off-pulse null. |
 | H1 | The remaining structure is the multiplicative intra-coarse PFB scallop documented by the rescued CANFAR recipe; estimate it only from protected off-pulse data, divide it out, then apply H0. | Seeded multiplicative injection recovery; off-pulse null; comparison of pre/post coarse-phase ACF; unchanged injected Lorentzian width within `max(10%, 0.25 channel)`. | **NO-GO before product generation** — the current builder already estimates a per-channel off-pulse gain, and standardized temporal covariance remains positive at low-band lags 1–3. Static channel scaling cannot remove standardized cross-channel covariance, so this mechanism cannot explain the failed null. This no-go does not count toward the three executed correction hypotheses. |
 | H2 | The residual is a second independent additive block mode rather than a multiplicative scallop; a robust rank-2 block model is required. | Rank-2 known-truth injection with astrophysical burst masking; held-out off-pulse improvement; no loss or bias of injected widths; all fail-closed gates. | **FAIL, 2026-07-12** — the initial real-data gate cleared provenance, both off-pulse nulls, and low-lag stability, but the complete battery failed injection recovery, low-band fit-window stability, both split-time checks, high-band comb residual, held-out kernel prediction, and manual figure review. Science remains `diagnostic_only`; H2 does not unlock the fleet. |
-| H3 | The residual is stationary fine-channel covariance from the upchannelization kernel and requires an off-pulse-derived linear whitening transfer function. | Independent kernel cross-check plus width/amplitude injection recovery over resolved and near-resolution scales. If the transfer function biases or erases a permitted signal, terminate as DOCUMENTED-FAIL. | pending |
+| H3 | The residual is stationary fine-channel covariance from the upchannelization kernel and requires an off-pulse-derived linear whitening transfer function. | Independent kernel cross-check plus width/amplitude injection recovery over resolved and near-resolution scales. If the transfer function biases or erases a permitted signal, terminate as DOCUMENTED-FAIL. | **DOCUMENTED-FAIL, 2026-07-12** — both held-out half-band checks exceed 3 standard errors; 48/48 finite injections show catastrophic width bias, failed coverage, and systematic amplitude suppression. Manual review confirms the transfer erases permitted signal. It was not applied to Freya's burst. |
 
 No parameter sweep counts as a new hypothesis. Within an iteration, parameters
 are fixed from off-pulse or known instrument structure before examining the
 on-pulse width.
+
+### H3 predeclared transfer-function gate
+
+H3 uses the rank-1 product as its additive-common-mode baseline; rank-2 output
+is not reused. A single zero-phase inverse-square-root covariance transfer is
+estimated per 200 MHz half-band from bins 10:105 and applied independently
+inside each native 64-channel upchannelization block. The Toeplitz covariance
+is projected positive definite with an eigenvalue floor fixed at 10% of its
+median eigenvalue. No filter parameter is chosen from the burst spectrum.
+
+Before any corrected Freya burst product is written, all of the following must
+pass:
+
+- held-out bins 105:200 have maximum residual fine-channel covariance no more
+  than 3 standard errors from zero over lags 1--12;
+- 48 seeded Lorentzian injections span HWHM values of 2, 4, 8, and 16 native
+  channels, modulation indices 0.3 and 1.0, and both 200 MHz transfer functions;
+- every recovered HWHM differs from known truth by less than
+  `max(10%, 0.25 channel)`, with nominal-68% coverage within 0.15 of 0.68;
+- every recovered modulation index differs from known truth by less than
+  `max(10%, 0.05 absolute)`; and
+- manual review confirms that the transfer, held-out covariance, and injection
+  plots agree with the machine verdicts.
+
+A failed injection gate forbids applying the transfer to the on-pulse Freya
+spectrum and closes H3 as DOCUMENTED-FAIL rather than tuning the filter.
+
+### H3 final evidence and loop disposition
+
+The predeclared transfer was estimated from the rank-1 product only. Both
+held-out kernel checks failed: maximum residual discrepancies were 3.90
+standard errors at 400--600 MHz and 4.44 at 600--800 MHz, above the fixed 3.0
+limit. All 48 injection fits were finite, but maximum fractional HWHM bias was
+37.28 and nominal-68% coverage was 0.021. Direct modulation recovery also
+failed, with maximum absolute bias 0.496; visual review shows systematic
+suppression from injected `m=0.3` to roughly 0.15--0.25 and from `m=1.0` to
+roughly 0.50--0.84.
+
+The transfer was therefore never applied to the on-pulse Freya spectrum and no
+H3 corrected burst product was written. The serialized transfer, metrics,
+figure manifest, and bound review live under
+`analysis/chime-recovery-2026-07-12/results/h3/`. H0, H2, and H3 are three
+materially distinct executed correction failures, so the bounded recovery loop
+terminates as DOCUMENTED-FAIL. Fleet propagation remains locked; changing the
+observable or accepting an unvalidated transfer would require a separate
+science decision.
 
 ### H0 reproduction evidence
 

@@ -1,7 +1,7 @@
 # Plan — bounded Freya CHIME recovery loop
 
 **Status:** DOCUMENTED-FAIL, bounded loop terminated
-**Branch:** `scint/chime-recovery-loop` from `origin/pin/faber2026`  
+**Branch:** `scint/chime-recovery-loop` from `origin/pin/faber2026`
 **Qualification target:** Freya (`FRB 20230325A`) only
 
 ## Purpose and stop condition

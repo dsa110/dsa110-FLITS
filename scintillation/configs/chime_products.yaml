@@ -1,0 +1,14 @@
+schema_version: 1
+targets:
+  casey: {dm: 491.207, upchannel_factor: 16, fwhm_ms: 0.1798, hi_band_mhz: [711, 799], measurement_eligibility: candidate}
+  chromatica: {dm: 272.664, upchannel_factor: 64, fwhm_ms: 0.821, hi_band_mhz: [600, 800], measurement_eligibility: candidate}
+  freya: {dm: 912.4, upchannel_factor: 64, fwhm_ms: 0.40066, hi_band_mhz: [600, 800], measurement_eligibility: qualification}
+  hamilton: {dm: 518.799, upchannel_factor: 64, fwhm_ms: 0.2018, hi_band_mhz: [600, 800], measurement_eligibility: candidate}
+  isha: {dm: 411.568, upchannel_factor: 256, fwhm_ms: 1.8053, hi_band_mhz: [600, 800], measurement_eligibility: upper_limit_only}
+  johndoeII: {dm: 696.506, upchannel_factor: 512, fwhm_ms: 0.6957, hi_band_mhz: [600, 800], measurement_eligibility: upper_limit_only}
+  mahi: {dm: 960.128, upchannel_factor: 512, fwhm_ms: 24.286, hi_band_mhz: [600, 800], measurement_eligibility: candidate}
+  oran: {dm: 396.882, upchannel_factor: 128, fwhm_ms: 74.2, hi_band_mhz: [600, 800], measurement_eligibility: candidate}
+  phineas: {dm: 610.274, upchannel_factor: 16, fwhm_ms: 2.9886, hi_band_mhz: [600, 800], measurement_eligibility: candidate}
+  whitney: {dm: 462.174, upchannel_factor: 16, fwhm_ms: 0.4865, hi_band_mhz: [600, 800], measurement_eligibility: candidate}
+  wilhelm: {dm: 602.346, upchannel_factor: 64, fwhm_ms: 0.3887, hi_band_mhz: [600, 800], measurement_eligibility: candidate}
+  zach: {dm: 262.368, upchannel_factor: 64, fwhm_ms: 0.964, hi_band_mhz: [600, 800], measurement_eligibility: candidate}

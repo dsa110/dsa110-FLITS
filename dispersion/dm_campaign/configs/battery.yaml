@@ -1,0 +1,31 @@
+# Phase-1 uniform battery config -- ONE config for every burst and adapter
+# (uniform-methodology constraint: no per-burst or per-instrument tuning).
+data_dir: ~/Data/Faber2026/dsa110/DSA_bursts
+out_dir: results/dm_campaign/battery
+# Downsampling matches the injection-validation geometry (256 ch, ~1k samples)
+# so Phase-0 verdicts transfer to the battery runs.
+max_channels: 256
+max_time: 1024
+# Physical search windows (82 ms CHIME cutout bounds the sweep; see plan).
+windows:
+  dsa: 5.0
+  chime: 4.0
+adapters:
+  - arrival_regression
+  - dmphase_variant_intree
+  - dmpower_variant_intree
+  - dm_phase_published
+  - dm_power_published
+workers: 3
+
+# Phase-2 adaptive arrival-regression grid. The policy, grid, stability radius,
+# and science precision ceiling are uniform across all 24 products; the selected
+# resolution may differ because pulse width and S/N differ.
+adaptive:
+  max_channels: [128, 256, 512]
+  max_time: [256, 512, 1024, 2048]
+  n_subbands: [3, 4, 6, 8]
+  dm_step: 0.25
+  sigma_max: 0.5
+  stability_dm: 0.25
+  out_dir: results/dm_campaign/adaptive_arrival

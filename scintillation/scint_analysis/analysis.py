@@ -231,7 +231,25 @@ else:
         return acf_vals
 
 
-def calculate_acf(spectrum_1d, channel_width_mhz, off_burst_spectrum_mean=None, max_lag_bins=None):
+def _bandwidth_fields(gamma_hwhm_mhz, gamma_err_mhz=None):
+    # The reference notebooks report Delta_nu_d = gamma (HWHM), while v3 reports 2*gamma.
+    fields = {
+        "gamma_hwhm_mhz": gamma_hwhm_mhz,
+        "fwhm_mhz": 2.0 * gamma_hwhm_mhz if gamma_hwhm_mhz is not None else None,
+        "reported_dnu_definition": "HWHM",
+    }
+    if gamma_err_mhz is not None:
+        fields["gamma_hwhm_err_mhz"] = gamma_err_mhz
+    return fields
+
+
+def calculate_acf(
+    spectrum_1d,
+    channel_width_mhz,
+    off_burst_spectrum_mean=None,
+    max_lag_bins=None,
+    first_fit_lag=1,
+):
     """
     Calculates the ACF and its diagonal errors, including statistical and
     finite scintle contributions.
@@ -249,6 +267,8 @@ def calculate_acf(spectrum_1d, channel_width_mhz, off_burst_spectrum_mean=None, 
         The mean of the off-burst spectrum for normalization.
     max_lag_bins : int, optional
         The maximum number of bins for the ACF.
+    first_fit_lag : int, optional
+        The first positive lag bin retained in the returned ACF.
 
     Returns
     -------
@@ -280,7 +300,7 @@ def calculate_acf(spectrum_1d, channel_width_mhz, off_burst_spectrum_mean=None, 
         denom = 1.0
 
     x = spectrum_1d.filled(np.nan) - mean_on
-    lags = np.arange(1, max_lag_bins)
+    lags = np.arange(max(1, int(first_fit_lag)), max_lag_bins)
 
     acf_vals, stat_errs = _acf_with_errs(x, lags, denom)
 
@@ -317,14 +337,14 @@ def calculate_acf(spectrum_1d, channel_width_mhz, off_burst_spectrum_mean=None, 
 
     # --- 3. Symmetrize and Combine ---
     # Create the full, two-sided arrays for ACF, lags, and errors
-    full_acf = np.concatenate((acf_vals[clean_mask][::-1], [1.0], acf_vals[clean_mask]))
+    full_acf = np.concatenate((acf_vals[clean_mask][::-1], acf_vals[clean_mask]))
     full_lags = np.concatenate(
-        (-positive_lags_mhz[clean_mask][::-1], [0.0], positive_lags_mhz[clean_mask])
+        (-positive_lags_mhz[clean_mask][::-1], positive_lags_mhz[clean_mask])
     )
 
-    full_stat_err = np.concatenate((stat_errs[clean_mask][::-1], [1e-9], stat_errs[clean_mask]))
+    full_stat_err = np.concatenate((stat_errs[clean_mask][::-1], stat_errs[clean_mask]))
     full_finite_err = np.concatenate(
-        (finite_scintle_errs[clean_mask][::-1], [0.0], finite_scintle_errs[clean_mask])
+        (finite_scintle_errs[clean_mask][::-1], finite_scintle_errs[clean_mask])
     )
 
     # Combine the two error sources in quadrature to get the total diagonal error
@@ -397,7 +417,14 @@ def clear_noise_acf_cache():
 
 
 def _mean_noise_acf(
-    noise_desc, n_rep, spec_len, channel_width_mhz, *, mask_hash, acf_fn=calculate_acf
+    noise_desc,
+    n_rep,
+    spec_len,
+    channel_width_mhz,
+    *,
+    mask_hash,
+    first_fit_lag=1,
+    acf_fn=calculate_acf,
 ):
     """Monte‑Carlo average spectral ACF of pure noise rows.
 
@@ -408,18 +435,20 @@ def _mean_noise_acf(
     n_rep : int
         Number of synthetic rows to average. ≥100 is recommended for smoothness.
     spec_len : int
-        Number of frequency bins (≥ 1 + 2·max_lag_bins) for which the ACF will be
-        evaluated so that shapes match the real ACF from `calculate_acf`.
+        Length of the centerless, two-sided ACF to match.
     channel_width_mhz : float
         Frequency bin width in MHz for unit conversion.
     mask_hash : int
         Hash of the mask array for cache keying.
+    first_fit_lag : int, optional
+        First positive lag bin retained in the real ACF.
     """
     global _noise_acf_cache
 
     # Use content-based hash instead of id()
     desc_hash = _noise_descriptor_hash(noise_desc)
-    key = (desc_hash, spec_len, round(channel_width_mhz, 6), mask_hash)
+    first_fit_lag = max(1, int(first_fit_lag))
+    key = (desc_hash, spec_len, round(channel_width_mhz, 6), mask_hash, first_fit_lag)
 
     if key in _noise_acf_cache:
         log.debug(f"Using cached noise ACF template (key hash: {hash(key)})")
@@ -433,13 +462,24 @@ def _mean_noise_acf(
         log.debug("Evicted oldest entry from noise ACF cache")
 
     acfs = []
-    for _ in range(n_rep):
-        noise_row = noise_desc.sample()[0]  # (nchan,) synthetic row
+    # Deterministic per-draw seeds keyed to the descriptor: unseeded draws
+    # made the sub-band widths (and hence the fitted alpha) drift between
+    # identical runs — casey's odr alpha flipped sign run-to-run. Python's
+    # hash() is salted per process (PYTHONHASHSEED), so use a stable digest.
+    import zlib
+
+    base_seed = zlib.crc32(
+        repr((noise_desc.kind, noise_desc.nt, noise_desc.nchan,
+              round(noise_desc.mu, 8), round(noise_desc.sigma, 8))).encode()
+    ) % (2**31)
+    for i in range(n_rep):
+        noise_row = noise_desc.sample(seed=base_seed + i)[0]  # (nchan,) synthetic row
         acf_obj = acf_fn(
             np.ma.masked_invalid(noise_row),
             channel_width_mhz,
             off_burst_spectrum_mean=0.0,
-            max_lag_bins=(spec_len + 1) // 2,
+            max_lag_bins=spec_len // 2 + first_fit_lag,
+            first_fit_lag=first_fit_lag,
         )
         if acf_obj is not None:
             acfs.append(acf_obj.acf)
@@ -453,7 +493,11 @@ def _mean_noise_acf(
 
 
 def calculate_acf_noerrs(
-    spectrum_1d, channel_width_mhz, off_burst_spectrum_mean=None, max_lag_bins=None
+    spectrum_1d,
+    channel_width_mhz,
+    off_burst_spectrum_mean=None,
+    max_lag_bins=None,
+    first_fit_lag=1,
 ):
     """
     Calculates the one-sided autocorrelation function of a spectrum using
@@ -469,6 +513,8 @@ def calculate_acf_noerrs(
         The mean of the off-burst spectrum, used for normalization.
     max_lag_bins : int, optional
         The maximum number of bins to compute the ACF out to.
+    first_fit_lag : int, optional
+        The first positive lag bin retained in the returned ACF.
 
     Returns
     -------
@@ -496,7 +542,7 @@ def calculate_acf_noerrs(
     if max_lag_bins is None:
         max_lag_bins = n_chan
 
-    lags = np.arange(1, max_lag_bins)
+    lags = np.arange(max(1, int(first_fit_lag)), max_lag_bins)
     acf_vals = _acf_noerrs(x, lags, denom)
 
     pos_lags_mhz = lags * channel_width_mhz
@@ -524,6 +570,7 @@ def calculate_acfs_for_subbands(masked_spectrum, config, burst_lims, noise_desc=
     n_sub = acf_cfg.get("num_subbands", 8)
     use_snr = acf_cfg.get("use_snr_subbanding", False)
     max_lag_mhz_global = acf_cfg.get("max_lag_mhz", 45.0)
+    first_fit_lag = acf_cfg.get("first_fit_lag", 1)
 
     # Self‑noise width and optional off‑burst reference
     if config.get("analysis", {}).get("self_noise", {}).get("disable", False):
@@ -610,6 +657,7 @@ def calculate_acfs_for_subbands(masked_spectrum, config, burst_lims, noise_desc=
             chan_width,
             off_burst_spectrum_mean=sub_off_mean,
             max_lag_bins=max_lag_bins_sub,
+            first_fit_lag=first_fit_lag,
         )
         if not acf_obj:
             start_idx = end_idx
@@ -625,12 +673,13 @@ def calculate_acfs_for_subbands(masked_spectrum, config, burst_lims, noise_desc=
                 spec_len=len(acf_obj.acf),
                 channel_width_mhz=chan_width,
                 mask_hash=real_mask_hash,
+                first_fit_lag=first_fit_lag,
             )
             if mean_noise_acf is not None:
                 # normalise so fitted 'amp' really is the radiometer m-value
-                centre = len(mean_noise_acf) // 2
-                if mean_noise_acf[centre] != 0:
-                    mean_noise_acf /= mean_noise_acf[centre]
+                peak = np.max(mean_noise_acf)
+                if peak != 0:
+                    mean_noise_acf /= peak
 
         # Store results
         results["noise_template"].append(mean_noise_acf)
@@ -650,7 +699,7 @@ def calculate_acfs_for_subbands(masked_spectrum, config, burst_lims, noise_desc=
 
 def _make_noise_model(template, lags):
     """Return (Model, Parameters) with one free amp parameter."""
-    shape = template / template[len(template) // 2]  # unity at Δν=0
+    shape = template / np.max(template)
     f = interp1d(lags, shape, kind="linear", bounds_error=False, fill_value=0.0)
 
     def noise_tpl(x, amp):
@@ -767,9 +816,27 @@ def _fit_acf_models(
         # Run the fit
         label = f"fit_{'sn_tpl_' if has_sn and has_tpl else 'sn_' if has_sn else 'tpl_' if has_tpl else ''}{key}"
         try:
-            fit_results[label] = model.fit(
+            result = model.fit(
                 y, params, x=x, weights=w, method="nelder", max_nfev=4000
             )
+            # Nelder-Mead carries no covariance, so every param.stderr is
+            # None and the sub-band bw_err/mod_err serialize as NaN (P4e
+            # audit B3) — which downstream nan_to_num turned into an
+            # all-zero error vector for the gamma scaling fit. Refine at
+            # the Nelder optimum with leastsq to populate stderr; keep the
+            # Nelder result if the refinement fails or wanders.
+            try:
+                refined = model.fit(
+                    y, result.params.copy(), x=x, weights=w,
+                    method="leastsq", max_nfev=2000
+                )
+                if refined.success and np.isfinite(refined.chisqr) and (
+                    refined.chisqr <= result.chisqr * 1.05
+                ):
+                    result = refined
+            except Exception as refine_exc:
+                log.debug(f"{label} leastsq refinement failed ({refine_exc})")
+            fit_results[label] = result
         except Exception as e:
             log.debug(f"{label} failed ({e})")
             fit_results[label] = None
@@ -850,6 +917,193 @@ def _interpret_scaling_index(alpha: float, alpha_err: float) -> str:
         return f"Steep scaling (α = {alpha:.2f}) - may indicate scattering-dominated regime"
     else:
         return f"Intermediate regime (α = {alpha:.2f} ± {alpha_err:.2f})"
+
+
+# =============================================================================
+# Gamma(nu) scaling estimators
+# =============================================================================
+
+
+def _linear_from_log10(log_value):
+    """Convert a log10 value without ever returning an infinite float."""
+    if not np.isfinite(log_value):
+        return None
+    with np.errstate(over="ignore", under="ignore", invalid="ignore"):
+        value = np.power(10.0, float(log_value))
+    return float(value) if np.isfinite(value) and value > 0 else None
+
+
+def _gamma_scaling_failure(method, reason, status="failed"):
+    return {
+        "alpha": None,
+        "alpha_err": None,
+        "log10_c": None,
+        "c": None,
+        "bw_at_ref_mhz": None,
+        "bw_at_ref_mhz_err": None,
+        "method": method,
+        "status": status,
+        "reason": reason,
+    }
+
+
+def joint_2d_gamma_scaling(result, ref_freq=600.0):
+    """Normalize a joint-2D fit to the named gamma-scaling estimator contract."""
+    method = "joint 2D ACF fit (fitting_2d.py)"
+    if result is None:
+        return _gamma_scaling_failure(method, "joint 2D fit not run", status="not_run")
+
+    get = result.get if isinstance(result, dict) else lambda key, default=None: getattr(
+        result, key, default
+    )
+    alpha = get("alpha")
+    alpha_err = get("alpha_err")
+    gamma_0 = get("gamma_0")
+    gamma_0_err = get("gamma_0_err")
+    nu_ref = get("nu_ref")
+    success = get("success", True)
+    if (
+        not success
+        or not np.isfinite(ref_freq)
+        or ref_freq <= 0
+        or gamma_0 is None
+        or not np.isfinite(gamma_0)
+        or gamma_0 <= 0
+        or nu_ref is None
+        or not np.isfinite(nu_ref)
+        or nu_ref <= 0
+        or alpha is None
+        or not np.isfinite(alpha)
+    ):
+        return _gamma_scaling_failure(method, "joint 2D fit unsuccessful or non-finite")
+
+    log10_c = np.log10(gamma_0) - alpha * np.log10(nu_ref)
+    log_bw_ref = log10_c + alpha * np.log10(ref_freq)
+    bw_at_ref = _linear_from_log10(log_bw_ref)
+    if bw_at_ref is None:
+        return _gamma_scaling_failure(method, "reference bandwidth is not representable")
+    assert np.isfinite(bw_at_ref)
+
+    bw_err = None
+    if gamma_0_err is not None and np.isfinite(gamma_0_err) and gamma_0_err >= 0:
+        bw_err = float(bw_at_ref * gamma_0_err / gamma_0)
+    return {
+        "alpha": float(alpha),
+        "alpha_err": float(alpha_err) if alpha_err is not None and np.isfinite(alpha_err) else None,
+        "log10_c": float(log10_c),
+        "c": _linear_from_log10(log10_c),
+        "bw_at_ref_mhz": bw_at_ref,
+        "bw_at_ref_mhz_err": bw_err,
+        "method": method,
+        "status": "ok",
+        "reason": None,
+    }
+
+
+def estimate_gamma_scaling(
+    freqs, gammas, gamma_errs=None, ref_freq=600.0, joint_2d=None
+):
+    """Report the reference ODR, notebook regression, and joint-2D estimators.
+
+    The primary estimator follows ``analysis-Copy1.py:844-891``. Its intercept
+    remains ``log10_c`` throughout fitting and reference-bandwidth evaluation;
+    linear ``c`` is only a guarded convenience field. The notebook-style
+    unweighted regression and modern joint-2D fit remain separately named.
+    """
+    odr_method = "log-space ODR (analysis-Copy1.py:844)"
+    loglog_method = "unweighted log-log polyfit (scint_wilhelm.ipynb:240)"
+    outputs = {
+        "odr_logspace": _gamma_scaling_failure(odr_method, "fit not attempted"),
+        "loglog_unweighted": _gamma_scaling_failure(loglog_method, "fit not attempted"),
+        "joint_2d": joint_2d_gamma_scaling(joint_2d, ref_freq),
+    }
+
+    freqs = np.asarray(freqs, dtype=float)
+    gammas = np.asarray(gammas, dtype=float)
+    if freqs.shape != gammas.shape or freqs.ndim != 1 or freqs.size < 2:
+        reason = "at least two paired sub-band measurements are required"
+    elif not np.isfinite(ref_freq) or ref_freq <= 0:
+        reason = "reference frequency must be finite and positive"
+    elif not np.all(np.isfinite(freqs)) or not np.all(np.isfinite(gammas)):
+        reason = "sub-band measurements contain non-finite values"
+    elif np.any(freqs <= 0) or np.any(gammas <= 0):
+        reason = "sub-band frequencies and bandwidths must be positive"
+    else:
+        log_freqs = np.log10(freqs)
+        log_bws = np.log10(gammas)
+        threshold = np.sqrt(np.finfo(float).eps) * max(
+            1.0, float(np.max(np.abs(log_freqs)))
+        )
+        reason = (
+            "frequency grid is ill-conditioned for a two-parameter power law"
+            if np.ptp(log_freqs) <= threshold
+            else None
+        )
+
+    if reason is not None:
+        outputs["odr_logspace"] = _gamma_scaling_failure(odr_method, reason)
+        outputs["loglog_unweighted"] = _gamma_scaling_failure(loglog_method, reason)
+        return outputs
+
+    sy = None
+    if gamma_errs is not None:
+        gamma_errs = np.asarray(gamma_errs, dtype=float)
+        if gamma_errs.shape == gammas.shape:
+            candidate_sy = gamma_errs / (gammas * np.log(10.0))
+            if np.all(np.isfinite(candidate_sy)) and np.all(candidate_sy > 0):
+                sy = candidate_sy
+
+    linear_model = ModelODR(lambda beta, x: beta[0] * x + beta[1])
+    odr_output = ODR(
+        RealData(log_freqs, log_bws, sy=sy), linear_model, beta0=[4.0, 0.0]
+    ).run()
+    alpha, log10_c = (float(value) for value in odr_output.beta)
+    log_bw_ref = alpha * np.log10(ref_freq) + log10_c
+    bw_at_ref = _linear_from_log10(log_bw_ref)
+    if np.isfinite(alpha) and np.isfinite(log10_c) and bw_at_ref is not None:
+        assert np.isfinite(bw_at_ref)
+        alpha_err = float(odr_output.sd_beta[0])
+        grad = np.array([np.log10(ref_freq), 1.0])
+        var_log_bw_ref = float(grad @ odr_output.cov_beta @ grad)
+        with np.errstate(over="ignore", invalid="ignore"):
+            bw_err = bw_at_ref * np.sqrt(var_log_bw_ref) * np.log(10.0)
+        outputs["odr_logspace"] = {
+            "alpha": alpha,
+            "alpha_err": alpha_err if np.isfinite(alpha_err) else None,
+            "log10_c": log10_c,
+            "c": _linear_from_log10(log10_c),
+            "bw_at_ref_mhz": bw_at_ref,
+            "bw_at_ref_mhz_err": float(bw_err) if np.isfinite(bw_err) else None,
+            "method": odr_method,
+            "status": "ok",
+            "reason": None,
+        }
+    else:
+        outputs["odr_logspace"] = _gamma_scaling_failure(
+            odr_method, "ODR returned a non-finite or unrepresentable fit"
+        )
+
+    alpha_ll, log10_c_ll = (float(value) for value in np.polyfit(log_freqs, log_bws, 1))
+    log_bw_ref_ll = alpha_ll * np.log10(ref_freq) + log10_c_ll
+    bw_at_ref_ll = _linear_from_log10(log_bw_ref_ll)
+    if np.isfinite(alpha_ll) and np.isfinite(log10_c_ll) and bw_at_ref_ll is not None:
+        assert np.isfinite(bw_at_ref_ll)
+        outputs["loglog_unweighted"] = {
+            "alpha": alpha_ll,
+            "alpha_err": None,
+            "log10_c": log10_c_ll,
+            "c": _linear_from_log10(log10_c_ll),
+            "bw_at_ref_mhz": bw_at_ref_ll,
+            "bw_at_ref_mhz_err": None,
+            "method": loglog_method,
+            "status": "ok",
+            "reason": None,
+        }
+    else:
+        outputs["loglog_unweighted"] = _gamma_scaling_failure(
+            loglog_method, "log-log regression returned a non-finite or unrepresentable fit"
+        )
+    return outputs
 
 
 # =============================================================================
@@ -1679,45 +1933,37 @@ def analyze_scintillation_from_acfs(acf_results, config):
             ]
         )
         bws = np.array([p.get("bw") for p in measurements])
-        bw_errs = np.array([p.get("bw_err") for p in measurements])
-        finite_errs = np.array([p.get("finite_err") for p in measurements])
+        bw_errs = np.array([p.get("bw_err") for p in measurements], dtype=float)
+        finite_errs = np.array([p.get("finite_err") for p in measurements], dtype=float)
         total_errs = np.sqrt(np.nan_to_num(bw_errs) ** 2 + np.nan_to_num(finite_errs) ** 2)
+        # A zeroed error (both components NaN -> nan_to_num) silently turns
+        # the weighted gamma fit into garbage; treat missing errors honestly
+        # by falling back to the unweighted estimator downstream.
+        if not np.all(total_errs > 0):
+            log.warning(
+                "Component %s: %d/%d sub-band widths carry no usable error; "
+                "gamma scaling errors are unreliable.",
+                name, int(np.sum(~(total_errs > 0))), total_errs.size,
+            )
 
-        # Log-transform the data and errors
-        log_freqs = np.log10(freqs)
-        log_bws = np.log10(bws)
-        # Error propagation: err(log10(y)) = err(y) / (y * ln(10))
-        log_bw_errs = total_errs / (bws * np.log(10))
+        gamma_scaling = estimate_gamma_scaling(
+            freqs, bws, gamma_errs=total_errs, ref_freq=ref_freq
+        )
+        primary = gamma_scaling["odr_logspace"]
+        all_powerlaw_fits[name] = gamma_scaling
+        if primary["status"] != "ok":
+            log.warning("Power-law fit for %s failed: %s", name, primary["reason"])
+            final_results["components"][name] = {
+                "power_law_fit_report": f"Fit failed: {primary['reason']}",
+                "gamma_scaling": gamma_scaling,
+            }
+            continue
 
-        # Fall back to unweighted ODR when uncertainties are missing or zero
-        # (np.nan_to_num converts NaN→0, giving spurious infinite weight).
-        use_weights = bool(np.all(np.isfinite(log_bw_errs)) and np.all(log_bw_errs > 0))
-
-        # Define a linear model: f(x) = slope*x + intercept
-        linear_model = ModelODR(lambda B, x: B[0] * x + B[1])
-        data = RealData(log_freqs, log_bws, sy=log_bw_errs if use_weights else None)
-
-        # Initial guess: slope (alpha) = 4, intercept can be 0
-        odr = ODR(data, linear_model, beta0=[4.0, 0.0])
-        out = odr.run()
-
-        # Extract results. B[0] is the slope alpha, B[1] is log10(c)
-        alpha_fit, log_c_fit = out.beta
-        alpha_err, log_c_err = out.sd_beta
-        c_fit = 10**log_c_fit
-
-        # Propagate error for bandwidth at reference frequency
-        log_ref_freq = np.log10(ref_freq)
-        log_b_ref = alpha_fit * log_ref_freq + log_c_fit
-        b_ref = 10**log_b_ref
-
-        # Gradient for error propagation in log space
-        grad = np.array([log_ref_freq, 1.0])
-        var_log_b_ref = grad @ out.cov_beta @ grad
-        # Convert error from log-space back to linear space
-        b_ref_err = b_ref * np.sqrt(var_log_b_ref) * np.log(10)
-
-        all_powerlaw_fits[name] = out
+        alpha_fit = primary["alpha"]
+        alpha_err = primary["alpha_err"]
+        c_fit = primary["c"]
+        b_ref = primary["bw_at_ref_mhz"]
+        b_ref_err = primary["bw_at_ref_mhz_err"]
 
         # ================================================================= #
         # Use the fitted alpha and its error to suggest a
@@ -1737,6 +1983,7 @@ def analyze_scintillation_from_acfs(acf_results, config):
                 "mod_err": p_dict.get("mod_err"),
                 "finite_err": p_dict.get("finite_err"),
                 "gof": p_dict.get("gof", {}),
+                **_bandwidth_fields(p_dict.get("bw"), p_dict.get("bw_err")),
             }
             subband_measurements.append(measurement)
 
@@ -1746,10 +1993,13 @@ def analyze_scintillation_from_acfs(acf_results, config):
             "scaling_index_err": alpha_err,
             "bw_at_ref_mhz": b_ref,
             "bw_at_ref_mhz_err": b_ref_err,
+            "gamma_scaling": gamma_scaling,
             "subband_measurements": subband_measurements,
             "scaling_interpretation": interpretation,
+            **_bandwidth_fields(b_ref, b_ref_err),
         }
 
+    attach_modulation_index_frequency(final_results)
     return final_results, all_fits, all_powerlaw_fits
 
 
@@ -1827,6 +2077,108 @@ def attach_scintillation_interpretation(final_results, config):
     return final_results
 
 
+ACF_AMPLITUDE_MODULATION_DEFINITION = (
+    "ACF-amplitude m = sqrt(fitted Lorentzian amplitude) per sub-band "
+    "(scinttools_v3.py:317)"
+)
+DIRECT_MODULATION_DEFINITION = (
+    "direct m = std/mean of frequency-averaged intensity in sliding time chunks "
+    "(scinttools_v3.py:611-735)"
+)
+INTRA_PULSE_ACF_MODULATION_DEFINITION = (
+    "ACF-fitted m and HWHM dnu per time slice "
+    "(analysis-Copy1.analyze_intra_pulse_scintillation:915-1033)"
+)
+
+
+def attach_modulation_index_frequency(final_results):
+    """Report fitted ACF-amplitude m(nu) without mixing in direct m(t)."""
+    components = {}
+    for name, component in final_results.get("components", {}).items():
+        measurements = component.get("subband_measurements", [])
+        components[name] = [
+            {
+                "freq_mhz": measurement.get("freq_mhz"),
+                "m": measurement.get("mod"),
+                "m_err": measurement.get("mod_err"),
+            }
+            for measurement in measurements
+        ]
+    final_results["modulation_index_frequency"] = {
+        "acf_amplitude": {
+            "definition": ACF_AMPLITUDE_MODULATION_DEFINITION,
+            "components": components,
+        }
+    }
+    return final_results
+
+
+def modulation_index_over_time(
+    power, burst_lims, chunk_bins=3, overlap_bins=2, times=None
+):
+    """Direct sliding-window m(t), matching RECIPE section 4/scinttools_v3."""
+    power = np.ma.asarray(power)
+    if power.ndim != 2:
+        raise ValueError("power must have shape (frequency, time)")
+    chunk_bins = int(chunk_bins)
+    overlap_bins = int(overlap_bins)
+    if chunk_bins <= 1:
+        raise ValueError("chunk_bins must be greater than 1")
+    if overlap_bins < 0 or overlap_bins >= chunk_bins:
+        raise ValueError("overlap_bins must satisfy 0 <= overlap_bins < chunk_bins")
+
+    start, end = (int(value) for value in burst_lims)
+    start = max(0, start)
+    end = min(end, power.shape[1])
+    step = chunk_bins - overlap_bins
+    time_idx = []
+    time_s = []
+    modulation = []
+    means = []
+    stds = []
+    counts = []
+    for chunk_start in range(start, end, step):
+        chunk_end = min(chunk_start + chunk_bins, end)
+        if chunk_end - chunk_start < 2:
+            continue
+        profile = np.ma.mean(power[:, chunk_start:chunk_end], axis=0)
+        mean = np.ma.mean(profile)
+        std = np.ma.std(profile)
+        count = int(profile.count())
+        center = 0.5 * (chunk_start + chunk_end - 1)
+        valid = (
+            count >= 2
+            and not np.ma.is_masked(mean)
+            and not np.ma.is_masked(std)
+            and np.isfinite(mean)
+            and np.isfinite(std)
+            and mean != 0
+        )
+        m = float(std / mean) if valid else np.nan
+        time_idx.append(center)
+        if times is not None:
+            time_s.append(float(np.mean(np.asarray(times)[chunk_start:chunk_end])))
+        modulation.append(m)
+        means.append(float(mean) if not np.ma.is_masked(mean) else np.nan)
+        stds.append(float(std) if not np.ma.is_masked(std) else np.nan)
+        counts.append(count)
+
+    result = {
+        "definition": DIRECT_MODULATION_DEFINITION,
+        "method": "direct std/mean (scinttools_v3.analyze_modulation_over_time)",
+        "chunk_bins": chunk_bins,
+        "overlap_bins": overlap_bins,
+        "time_idx": np.asarray(time_idx),
+        "m": np.asarray(modulation),
+        "mean": np.asarray(means),
+        "std": np.asarray(stds),
+        "num_points": np.asarray(counts),
+    }
+    if times is not None:
+        result["time_s"] = np.asarray(time_s)
+    return result
+
+
 def analyze_intra_pulse_scintillation(masked_spectrum, burst_lims, config, noise_desc):
     """
     Analyzes the evolution of scintillation parameters across the burst profile.
@@ -1859,17 +2211,18 @@ def analyze_intra_pulse_scintillation(masked_spectrum, burst_lims, config, noise
     noise_template = None  # always None for temporal analysis
 
     num_time_bins = acf_config.get("intra_pulse_time_bins", 10)
-    model_to_fit = fit_config.get("intra_pulse_fit_model", "lorentzian_component")
+    model_to_fit = fit_config.get("intra_pulse_fit_model", "fit_lor")
     max_lag_mhz = acf_config.get("max_lag_mhz", 45.0)
 
     # NEW: Calculate the center frequency of the entire band once.
     band_center_freq = np.mean(masked_spectrum.frequencies)
 
-    if "1c" not in model_to_fit:
-        log.error(
-            f"Model '{model_to_fit}' is not a 1-component model. Intra-pulse analysis requires a simple model to track evolution. Aborting."
+    if not model_to_fit.endswith(("lor", "gauss")):
+        log.warning(
+            "Model '%s' is not a single Lorentzian/Gaussian; falling back to fit_lor.",
+            model_to_fit,
         )
-        return []
+        model_to_fit = "fit_lor"
 
     results = []
 
@@ -1909,6 +2262,7 @@ def analyze_intra_pulse_scintillation(masked_spectrum, burst_lims, config, noise
             channel_width,
             off_burst_spectrum_mean=sub_off_mean,
             max_lag_bins=max_lag_bins_sub,
+            first_fit_lag=acf_config.get("first_fit_lag", 1),
         )
         if not acf_obj:
             continue
@@ -1937,9 +2291,11 @@ def analyze_intra_pulse_scintillation(masked_spectrum, burst_lims, config, noise
         prefix = "g_" if is_gauss else "l_"
         p_root = "sigma" if is_gauss else "gamma"
 
-        bw_val = p[f"{prefix}{p_root}1"].value
+        bw_val = p[f"{prefix}{p_root}"].value
         bw_err = (
-            p[f"{prefix}{p_root}1"].stderr if p[f"{prefix}{p_root}1"].stderr is not None else np.nan
+            p[f"{prefix}{p_root}"].stderr
+            if p[f"{prefix}{p_root}"].stderr is not None
+            else np.nan
         )
 
         # Convert Gaussian sigma to HWHM if necessary
@@ -1949,8 +2305,8 @@ def analyze_intra_pulse_scintillation(masked_spectrum, burst_lims, config, noise
             if bw_err:
                 bw_err *= hwhm_factor
 
-        mod_val = p[f"{prefix}m1"].value
-        mod_err = p[f"{prefix}m1"].stderr if p[f"{prefix}m1"].stderr is not None else np.nan
+        mod_val = p[f"{prefix}m"].value
+        mod_err = p[f"{prefix}m"].stderr if p[f"{prefix}m"].stderr is not None else np.nan
 
         # Calculate the central time of the bin
         center_time = np.mean(masked_spectrum.times[start_bin:end_bin])
@@ -1967,6 +2323,7 @@ def analyze_intra_pulse_scintillation(masked_spectrum, burst_lims, config, noise
                 "acf_fit_lags": fit_lags,  # Lags corresponding to the fit
                 "acf_fit_best": fit_obj.best_fit,  # The best-fit line
                 "fit_success": fit_obj.success,
+                **_bandwidth_fields(bw_val, bw_err),
             }
         )
 

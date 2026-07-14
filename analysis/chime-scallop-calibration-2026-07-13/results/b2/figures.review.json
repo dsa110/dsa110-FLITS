@@ -1,0 +1,19 @@
+{
+  "experiment": "freya_b2_folded_scallop_calibration",
+  "figures": [
+    {
+      "path": "analysis/chime-scallop-calibration-2026-07-13/results/b2/freya_b2_scallop_recovery.png",
+      "verdict": "match",
+      "review": "Matched noise-free and phase-cycled widths lie on the identity relation; matched phase-cycled recovered power lies on unity. The unmatched control departs strongly, as required. Labels, legend, axes, routes, and reference lines are present and legible; no matched failures are hidden by clipping."
+    },
+    {
+      "path": "analysis/chime-scallop-calibration-2026-07-13/results/b2/freya_b2_scallop_recovery.svg",
+      "verdict": "match",
+      "review": "Vector figure represents the same complete diagnostic and agrees with the raster rendering and machine record."
+    }
+  ],
+  "overall_verdict": "match",
+  "qualification_authorized": true,
+  "reviewed_at": "2026-07-13",
+  "science_disposition": "B2 calibration PASS: the matched scalar folded-scallop operator restores injected width and power transfer. This is calibration-only evidence; no real Freya on-pulse ACF was fit."
+}

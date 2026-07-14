@@ -1,0 +1,44 @@
+# Fit-generation inventory (P0.3, plan-trust-reset-revalidation.md).
+# Maps every fit-derived manuscript artifact to the generation of fits that
+# produced it. Both generations are trust-revoked pending the V1 contract
+# rungs (trust reset, 2026-07-06).
+generations:
+  - name: mixed-legacy-2026-06
+    description: >-
+      June 2026 scattering refit era: per-burst joint fits and gate verdicts
+      committed under analysis/scattering-refit-2026-06/. Heterogeneous
+      provenance (some fits predate the pipeline refactor); the generation
+      is inventoried as a unit and replayed under Phase 3.
+    trust: revoked-2026-07-06
+    artifact_globs:
+      - "analysis/scattering-refit-2026-06/joint_json/*_joint_fit.json"
+      - "analysis/scattering-refit-2026-06/joint_json/*_joint_ppc.json"
+      - "analysis/scattering-refit-2026-06/joint_json/*_joint_gate.json"
+      - "analysis/scattering-refit-2026-06/_a1_fits/*.json"
+  - name: beta-campaign-2026-07
+    description: >-
+      July 2026 beta campaign: shared-zeta joint fits and campaign verdicts.
+      Run posteriors live outside the repo (see runs_store).
+    trust: revoked-2026-07-06
+    artifact_globs:
+      - "analysis/beta_campaign/fits/*.json"
+      - "analysis/beta_campaign/beta_campaign_verdicts.json"
+    runs_store: >-
+      Full run posteriors under $FLITS_RUNS (default
+      ~/Developer/scratch/flits-local-runs; grade_beta_campaign.py:35), not
+      committed and not globbed here.
+consumers:
+  - {artifact: "tab:burst-energies", generation: mixed-legacy-2026-06}
+  - {artifact: "tab:beta", generation: beta-campaign-2026-07}
+  - {artifact: "fig:jointmodel_montage", generation: mixed-legacy-2026-06}
+  - {artifact: "fig:scint_screens", generation: mixed-legacy-2026-06}
+  - {artifact: "tab:budget", generation: mixed-legacy-2026-06}
+  - {artifact: "tab:foreground", generation: mixed-legacy-2026-06}
+  - {artifact: "fig:budget", generation: beta-campaign-2026-07}
+known_conflicts:
+  - name: chromatica-three-way-gate
+    detail: >-
+      Committed gate verdict MARGINAL with chi2=null vs manuscript prose
+      gate-FAIL with 11.6/9.3; three records disagree. Resolution assigned
+      to P5.3 (plan-trust-reset-revalidation.md).
+    resolution: P5.3

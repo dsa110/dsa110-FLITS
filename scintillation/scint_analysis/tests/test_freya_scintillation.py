@@ -726,7 +726,7 @@ def test_pipeline_applies_bandpass_normalization():
     assert sa_off.masked_spectrum is ds
 
 
-def test_pipeline_bandpass_normalization_fails_closed_on_short_off_window():
+def test_pipeline_bandpass_normalization_demotes_short_off_window():
     from scint_analysis.pipeline import ScintillationAnalysis
 
     ds, _channel_width_mhz, _ripple = _synthetic_rippled_dynamic_spectrum()
@@ -738,8 +738,13 @@ def test_pipeline_bandpass_normalization_fails_closed_on_short_off_window():
         }
     )
     sa.masked_spectrum = ds
-    with pytest.raises(ValueError, match="off-pulse time bins"):
-        sa._apply_bandpass_normalization((0, 40))
+
+    sa._apply_bandpass_normalization((0, 40))
+
+    bandpass = sa.config["analysis"]["bandpass_normalization"]
+    assert bandpass["enable"] is False
+    assert "off-pulse time bins" in bandpass["skipped_reason"]
+    assert sa.masked_spectrum is ds
 
 
 def test_pipeline_cache_key_tracks_preprocessing_config(tmp_path):

@@ -143,7 +143,7 @@ def measure_dm(
     wf_dd = _dedisperse(wf, freqs, dt, ddm_c, nu_ref)  # align at coarse DM -> small residual
 
     edges = np.linspace(0, wf_dd.shape[0], n_subband + 1, dtype=int)
-    sub_nu, sub_t0, sub_err, sub_snr = [], [], [], []
+    sub_nu, sub_t0, sub_err, sub_snr, dropped = [], [], [], [], []
     for a, b in zip(edges[:-1], edges[1:], strict=True):
         if b - a < 1:
             continue
@@ -151,6 +151,12 @@ def measure_dm(
             np.nansum(np.nan_to_num(wf_dd[a:b]), axis=0), dt, min_snr=min_snr
         )
         if fit is None:
+            dropped.append(
+                {
+                    "freq_mhz": float(freqs[a:b].mean()),
+                    "reason": f"no arrival fit (below S/N {min_snr} or EMG fit failed)",
+                }
+            )
             continue
         sub_nu.append(float(freqs[a:b].mean()))
         sub_t0.append(fit[0])
@@ -161,8 +167,10 @@ def measure_dm(
     base = {
         "dm_ref": float(dm_ref),
         "coarse_dm": coarse_dm,
+        "nu_ref_mhz": nu_ref,
         "peak_snr": peak_snr,
         "n_good_subbands": n_good,
+        "subbands_dropped": dropped,
         "snr": float(np.sqrt(np.sum(np.square(sub_snr)))) if sub_snr else 0.0,
         "subbands": [
             {"freq_mhz": f, "t0_s": t, "t0_err_s": e, "snr": s}
@@ -202,4 +210,12 @@ def measure_dm(
         reason = "coarse DM railed at search-grid edge"
     elif not constrains:
         reason = f"sigma_DM={dm_err:.1f} >= {dm_err_max} pc/cm^3"
-    return {**base, "dm": dm, "dm_err": dm_err, "constrains_dm": constrains, "reason": reason}
+    return {
+        **base,
+        "dm": dm,
+        "dm_err": dm_err,
+        "chi2_red": chi2_red,
+        "intercept_s": float(beta[1]),
+        "constrains_dm": constrains,
+        "reason": reason,
+    }

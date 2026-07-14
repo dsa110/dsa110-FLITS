@@ -28,6 +28,7 @@ analysis:
     - 10
     - 200
   acf:
+    first_fit_lag: 2
     # Measurement band: 600-800 MHz resolves the expected NE2025 MW floor, ~38.8 kHz
     # at 600 MHz scaling as nu^4.4 to ~138 kHz at 800 MHz. The 400 MHz scale is near
     # one 6.1 kHz fine channel and is effectively unresolved.

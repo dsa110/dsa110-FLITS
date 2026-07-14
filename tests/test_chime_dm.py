@@ -72,6 +72,22 @@ def test_recovers_known_dm(band, dm_ref, dm_off, tau_ref_ms):
     )
 
 
+def test_returns_fit_quality_fields():
+    # the regression stage must be auditable: chi2_red + intercept reconstruct
+    # the fit line over the returned subband arrivals, and dropped subbands are
+    # recorded so a diagnostic can show WHY the gate passed or failed.
+    res = _run(CHIME, 500.0, 5.0, 0.0, snr=4.0)
+    assert res["constrains_dm"]
+    assert res["nu_ref_mhz"] == pytest.approx(800.0)
+    assert np.isfinite(res["chi2_red"]) and res["chi2_red"] > 0
+    assert np.isfinite(res["intercept_s"])
+    assert res["n_good_subbands"] + len(res["subbands_dropped"]) == 8
+    lo = _run(CHIME, 500.0, 10.0, 0.0, snr=0.7, seed=1)
+    assert not lo["constrains_dm"]
+    assert lo["n_good_subbands"] + len(lo["subbands_dropped"]) == 8
+    assert all("freq_mhz" in d and "reason" in d for d in lo["subbands_dropped"])
+
+
 def test_wide_search_finds_large_offset_decircularizes():
     # a +30 pc/cm^3 offset from the reference must be FOUND, not pinned at dm_ref -> the agreement
     # test is a real exclusion, not a circular delta~0.

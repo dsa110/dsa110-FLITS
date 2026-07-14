@@ -57,6 +57,7 @@ lint = [
 flits-scat = "scattering.run_scat_analysis:main"
 flits-scint = "scintillation.scint_analysis.run_analysis:main"
 flits-scint-freya = "scintillation.scint_analysis.freya_scintillation:main"
+flits-chime-product = "scintillation.scripts.build_chime_product:main"
 flits-batch = "flits.batch.cli:main"
 flits-configs = "flits.batch.config_generator:main"
 flits-halos = "galaxies.foreground.vo.cli:main"
@@ -74,7 +75,7 @@ xfail_strict = true
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
 ]
-testpaths = ["tests", "scattering/scripts", "scattering/scat_analysis/tests", "scintillation/scint_analysis/tests", "flits/batch/tests", "analysis/scattering-refit-2026-06/test_gate_joint_committed.py", "analysis/scattering-refit-2026-06/test_posterior_compare.py", "analysis/scattering-refit-2026-06/test_tail_coverage.py", "analysis/scattering-refit-2026-06/test_likelihood_equivalence.py", "analysis/beta_poc/test_compare_routes.py", "analysis/beta_poc/test_build_verdict.py"]
+testpaths = ["tests", "scattering/scripts", "scattering/scat_analysis/tests", "scintillation/scint_analysis/tests", "flits/batch/tests", "analysis/scattering-refit-2026-06/test_gate_joint_committed.py", "analysis/scattering-refit-2026-06/test_posterior_compare.py", "analysis/scattering-refit-2026-06/test_tail_coverage.py", "analysis/scattering-refit-2026-06/test_likelihood_equivalence.py", "analysis/beta_poc/test_compare_routes.py", "analysis/beta_poc/test_build_verdict.py", "analysis/chime-scallop-calibration-2026-07-13/test_scallop_injections.py"]
 filterwarnings = [
     "ignore::DeprecationWarning",
 ]

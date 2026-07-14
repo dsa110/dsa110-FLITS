@@ -74,9 +74,10 @@ def test_pbf_bandwidth_conversion_has_correct_millisecond_to_megahertz_units():
 
 def test_pbf_loader_follows_locked_roster_and_excludes_gate_failures():
     assert drv._load_pbf_fit_for_burst("mahi")["_source"].endswith(
-        "mahi_joint_fit_C1D1.json"
+        "mahi_joint_fit_C1D2.json"
     )
-    assert drv._load_pbf_fit_for_burst("chromatica") is None
+    for excluded in ("zach", "wilhelm", "hamilton", "chromatica", "casey"):
+        assert drv._load_pbf_fit_for_burst(excluded) is None
     assert not drv._pbf_roster_entry_is_eligible(
         {
             "nickname": "synthetic",

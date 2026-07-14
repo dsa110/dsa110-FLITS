@@ -40,6 +40,15 @@ The campaign is complete only when every roster row has a fit result, PPC
 metrics, a data/model/residual diagnostic, and a recorded PASS/MARGINAL/FAIL
 plus visual-review verdict.
 
+The frozen campaign products live under `results/`. `fit_adjudication.csv`
+records the selected morphology variant, fixed adopted DM, numerical PPC
+metrics, and the independent visual-residual decision. Only rows marked
+`accepted_physical` are eligible for pulse-broadening/scintillation overlays;
+`morphology_only` rows remain useful and are shown in the manuscript audit
+gallery, but their fitted scattering parameters are not promoted. A numerical
+reduced-chi-square pass never overrides coherent structure in the residual
+dynamic spectrum.
+
 Each morphology variant writes to `variants/<variant>/`. This isolation is
 required when component-count alternatives for the same burst run
 concurrently because the fitter's native output names are burst-based.

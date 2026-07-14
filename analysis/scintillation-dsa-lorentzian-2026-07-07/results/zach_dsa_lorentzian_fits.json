@@ -20,7 +20,8 @@
       "records": {
         "bandpass_normalization": false,
         "grid_regularization": false,
-        "harmonic_mask": false
+        "harmonic_mask": false,
+        "instrumental_background_correction": false
       },
       "status": "measurement",
       "telescope": "dsa"
@@ -37,9 +38,9 @@
     "2": 18.676829485608298
   },
   "config_path": "scintillation/configs/bursts/zach_dsa.yaml",
-  "figure_pdf": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/zach_dsa_acf_lorentzian_fits.pdf",
-  "figure_png": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/zach_dsa_acf_lorentzian_fits.png",
-  "figure_svg": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/zach_dsa_acf_lorentzian_fits.svg",
+  "figure_pdf": "analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/zach_dsa_acf_lorentzian_fits.pdf",
+  "figure_png": "analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/zach_dsa_acf_lorentzian_fits.png",
+  "figure_svg": "analysis/scintillation-dsa-lorentzian-2026-07-07/results/figures/zach_dsa_acf_lorentzian_fits.svg",
   "fit_lagrange_mhz": 25.0,
   "gamma_power_law_fit": {
     "alpha": 2.0304981813271974,
@@ -71,22 +72,7 @@
     2
   ],
   "num_subbands": 4,
-  "pbf_overlay": {
-    "alpha": 4.0,
-    "alpha_err_minus": 0.0,
-    "alpha_err_plus": 0.0,
-    "c1": 1.16,
-    "relation": "delta_nu_mhz = C1 / (2 pi tau_ms 1e3)",
-    "roster_gate_final": "MARGINAL",
-    "roster_locked_utc": "2026-07-07",
-    "roster_rail_class": "railed-hi",
-    "roster_source": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/scattering-refit-2026-06/citable_alpha_roster.json",
-    "source": "/Users/jakobfaber/Developer/scratch/worktrees/flits-scint-component-track/analysis/beta_campaign/fits/zach_joint_fit_C2D4_cwin.json",
-    "tau_1ghz_err_minus_ms": 0.0009861337238163126,
-    "tau_1ghz_err_plus_ms": 0.0009474110740741726,
-    "tau_1ghz_ms": 0.1864021408460393,
-    "uncertainty_method": "approximate independent Gaussian draws from marginal 16th-84th percentile summaries; tau-alpha covariance unavailable"
-  },
+  "pbf_overlay": null,
   "requested_num_subbands": 4,
   "subband_selection": {
     "candidate_counts": [
@@ -227,13 +213,13 @@
         "2": -12.993549959911888
       },
       "f_test_p": {
-        "2": 0.9999999898472393
+        "2": 0.9999999898472488
       },
       "fit_range_mhz": 20.25170926257525,
       "harmonic_mask": {
         "enabled": false,
         "halfwidth_mhz": null,
-        "n_bins_kept": 1327,
+        "n_bins_kept": 1326,
         "n_bins_removed": 0,
         "spacing_mhz": null
       },
@@ -253,8 +239,9 @@
         },
         "dnu_full_mhz": 0.2035424784801494,
         "failed_ks": [],
+        "max_ratio": 0.9850525276198171,
         "min_ratio": 0.9356278110174678,
-        "reason": "width survives low-lag excision (no collapse) -> wing is resolved",
+        "reason": "width survives low-lag excision (no collapse or runaway growth) -> wing is resolved",
         "stable": true
       },
       "n_fit_points": 663,
@@ -375,14 +362,14 @@
         "3": -12.227356747210024
       },
       "f_test_p": {
-        "2": 3.633637899835289e-29,
-        "3": 0.9999962527257888
+        "2": 3.6336378998351856e-29,
+        "3": 0.9999962527257922
       },
       "fit_range_mhz": 13.811452059254407,
       "harmonic_mask": {
         "enabled": false,
         "halfwidth_mhz": null,
-        "n_bins_kept": 905,
+        "n_bins_kept": 904,
         "n_bins_removed": 0,
         "spacing_mhz": null
       },
@@ -402,8 +389,9 @@
         },
         "dnu_full_mhz": 0.7657953984182979,
         "failed_ks": [],
+        "max_ratio": 0.9934979945113982,
         "min_ratio": 0.98039475592808,
-        "reason": "width survives low-lag excision (no collapse) -> wing is resolved",
+        "reason": "width survives low-lag excision (no collapse or runaway growth) -> wing is resolved",
         "stable": true
       },
       "n_fit_points": 452,
@@ -531,14 +519,14 @@
         "3": -4.73715304195332
       },
       "f_test_p": {
-        "2": 4.83881579987613e-37,
-        "3": 0.01353579319141894
+        "2": 4.83881579987785e-37,
+        "3": 0.013535793191413084
       },
       "fit_range_mhz": 25.0,
       "harmonic_mask": {
         "enabled": false,
         "halfwidth_mhz": null,
-        "n_bins_kept": 1639,
+        "n_bins_kept": 1638,
         "n_bins_removed": 0,
         "spacing_mhz": null
       },
@@ -558,8 +546,9 @@
         },
         "dnu_full_mhz": 0.6637029357026827,
         "failed_ks": [],
+        "max_ratio": 1.0952941042337736,
         "min_ratio": 1.0458303311120754,
-        "reason": "width survives low-lag excision (no collapse) -> wing is resolved",
+        "reason": "width survives low-lag excision (no collapse or runaway growth) -> wing is resolved",
         "stable": true
       },
       "n_fit_points": 819,
@@ -683,14 +672,14 @@
         "3": -13.418456844024377
       },
       "f_test_p": {
-        "2": 6.394809262399156e-24,
+        "2": 6.3948092624013374e-24,
         "3": 1.0
       },
       "fit_range_mhz": 25.0,
       "harmonic_mask": {
         "enabled": false,
         "halfwidth_mhz": null,
-        "n_bins_kept": 1639,
+        "n_bins_kept": 1638,
         "n_bins_removed": 0,
         "spacing_mhz": null
       },
@@ -710,8 +699,9 @@
         },
         "dnu_full_mhz": 0.6722223525432387,
         "failed_ks": [],
+        "max_ratio": 0.9914038925547828,
         "min_ratio": 0.972712729973249,
-        "reason": "width survives low-lag excision (no collapse) -> wing is resolved",
+        "reason": "width survives low-lag excision (no collapse or runaway growth) -> wing is resolved",
         "stable": true
       },
       "n_fit_points": 819,

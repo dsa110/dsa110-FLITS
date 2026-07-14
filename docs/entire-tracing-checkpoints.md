@@ -5374,3 +5374,34 @@ preserving for future agents.
 - `origin` `entire/*` refs:
   - entire/checkpoints/v1 -> a90492d
 - note: `.entire/` remains host-local runtime state; only this ledger is tracked.
+
+## 2026-07-14T05:13:53-07:00 — jakob
+- repo: `/Users/jakobfaber/Developer/scratch/worktrees/flits-dm-locked-joint-v2`
+- branch: `fix/dm-locked-joint-figures-v2`
+- head: `ef5a558d`
+- origin/main: `0cf513b5`
+- worktree: clean
+- note: watched path changed: analysis/scattering-dm-locked-2026-07-14/README.md
+- tracked status: clean
+- local `entire/*` refs:
+  - entire/565ccf0-bcad3a -> 525751f0
+  - entire/checkpoints/v1 -> a90492d7
+- `origin` `entire/*` refs:
+  - entire/checkpoints/v1 -> a90492d
+- note: `.entire/` remains host-local runtime state; only this ledger is tracked.
+
+## 2026-07-14T05:49:27-07:00 — jakob
+- repo: `/Users/jakobfaber/Developer/scratch/worktrees/flits-dm-locked-joint-v2`
+- branch: `fix/dm-locked-joint-figures-v2`
+- head: `8dcd95ab`
+- origin/main: `0cf513b5`
+- worktree: dirty
+- note: watched path changed: analysis/scattering-dm-locked-2026-07-14/README.md
+- tracked status:
+  - M docs/entire-tracing-checkpoints.md
+- local `entire/*` refs:
+  - entire/565ccf0-bcad3a -> 525751f0
+  - entire/checkpoints/v1 -> a90492d7
+- `origin` `entire/*` refs:
+  - entire/checkpoints/v1 -> a90492d
+- note: `.entire/` remains host-local runtime state; only this ledger is tracked.

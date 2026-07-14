@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Qualify a high-band independent-polarization cross-ACF for Freya CHIME."""
+"""Qualify a four-stream time-disjoint high-band ACF for Freya CHIME (B4)."""
 
 from __future__ import annotations
 
@@ -31,13 +31,13 @@ from scintillation.scint_analysis.cross_acf import (  # noqa: E402
     fit_cross_lorentzian,
 )
 
-DATA = Path.home() / "Data/Faber2026/dsa110"
-DEFAULT_POL0 = DATA / "upchan_codetections/freya_chime_pol0_upchan.npy"
-DEFAULT_POL1 = DATA / "upchan_codetections/freya_chime_pol1_upchan.npy"
-DEFAULT_STOKES = DATA / "upchan_codetections/freya_chime_upchan.npy"
-DEFAULT_FREQUENCIES = DATA / "upchan_codetections/freya_chime_freq.npy"
-DEFAULT_METADATA = DATA / "upchan_codetections/freya_time0_metadata.json"
-DEFAULT_OUTPUT = Path(__file__).with_name("results") / "b3_crossacf"
+DATA = Path.home() / "Data/Faber2026/dsa110/upchan_codetections/crossacf-2026-07-14"
+DEFAULT_POL0 = DATA / "freya_chime_pol0_upchan.npy"
+DEFAULT_POL1 = DATA / "freya_chime_pol1_upchan.npy"
+DEFAULT_STOKES = DATA / "freya_chime_upchan.npy"
+DEFAULT_FREQUENCIES = DATA / "freya_chime_freq.npy"
+DEFAULT_METADATA = DATA / "freya_crossacf_metadata.json"
+DEFAULT_OUTPUT = Path(__file__).with_name("results") / "b4_fourstream"
 
 BAND_MHZ = (627.0, 800.0)
 LTE_EXCLUSION_MHZ = (730.0, 760.0)
@@ -55,7 +55,7 @@ FIT_MAXIMA_MHZ = (0.15, 0.20, 0.25)
 # is ~66 kHz at 713 MHz (~11 fine channels), so 3--6 channels alone would
 # leave the plausible on-pulse width unvalidated.
 WIDTH_CHANNELS = (3.0, 6.0, 10.0, 16.0)
-MODULATION_INDICES = (0.3, 1.0)
+MODULATION_INDICES = (0.15, 0.2, 0.3, 1.0)
 N_TRIALS = 64
 # Fixed scaling index for cross-subband width comparison (Kolmogorov-like
 # nu^4.4, the same convention as the DM/scattering budget analyses); genuine
@@ -262,11 +262,12 @@ def _disjoint_cross(
     block_ids: np.ndarray,
     norms: list[tuple[float, float]],
 ) -> CrossACF | None:
-    """Symmetrized time-disjoint cross-pol ACF 0.5[Xe x Yo + Xo x Ye].
+    """Average every independent-time ACF across the two polarizations.
 
-    Equal-time products never enter, so polarized source self-noise and
-    common burst-time RFI -- correlated between the polarizations at the same
-    sample -- have zero expectation, at the cost of roughly doubled variance.
+    The four pairs are Xe-Xo, Ye-Yo, Xe-Yo, and Xo-Ye.  Equal-time products
+    never enter, so polarized source self-noise and common burst-time RFI have
+    zero expectation, while using the within-pol pairs recovers sensitivity
+    left on the table by the original cross-pol-only B3 estimator.
     Returns None instead of raising when a window is too weak to normalize,
     so callers stay fail-closed.
     """
@@ -274,12 +275,65 @@ def _disjoint_cross(
     (nxe, nxo), (nye, nyo) = norms
     try:
         return blockwise_cross_acf_pairs(
-            [(x_even, y_odd, nxe, nyo), (x_odd, y_even, nxo, nye)],
+            [
+                (x_even, x_odd, nxe, nxo),
+                (y_even, y_odd, nye, nyo),
+                (x_even, y_odd, nxe, nyo),
+                (x_odd, y_even, nxo, nye),
+            ],
             block_ids,
             max_lag_bins=MAX_LAG_BINS,
         )
     except ValueError:
         return None
+
+
+def _remove_instrument_template(cross: CrossACF, controls: list[CrossACF]) -> CrossACF:
+    """Subtract an independently measured lag-domain instrumental template."""
+    if not controls:
+        raise ValueError("at least one independent control is required")
+    control_acfs = np.stack([item.acf for item in controls])
+    template = np.mean(control_acfs, axis=0)
+    template_covariance = (
+        np.cov(control_acfs, rowvar=False, ddof=1) / len(controls)
+        if len(controls) > 1
+        else controls[0].covariance
+    )
+    covariance = np.asarray(cross.covariance) + template_covariance
+    block_acfs = (
+        None
+        if cross.block_acfs is None
+        else np.asarray(cross.block_acfs) - template[None, :]
+    )
+    return CrossACF(
+        lag_bins=cross.lag_bins,
+        acf=np.asarray(cross.acf) - template,
+        error=np.sqrt(np.maximum(np.diag(covariance), 0.0)),
+        n_blocks=cross.n_blocks,
+        covariance=covariance,
+        block_acfs=block_acfs,
+    )
+
+
+def _offpulse_crosses(
+    dynamic: list[np.ndarray],
+    baselines: list[np.ndarray],
+    block_ids: np.ndarray,
+    norms: list[tuple[float, float]],
+) -> list[CrossACF]:
+    width = BURST_WINDOW[1] - BURST_WINDOW[0]
+    starts = list(range(OFF_PULSE[0], OFF_PULSE[1] - width + 1, width))[:12]
+    crosses = []
+    for start in starts:
+        cross = _disjoint_cross(
+            _window_half_spectra(dynamic, baselines, (start, start + width)),
+            block_ids,
+            norms,
+        )
+        if cross is None:
+            raise ValueError(f"off-pulse control {start}:{start + width} is not measurable")
+        crosses.append(cross)
+    return crosses
 
 
 def _offpulse_gate(
@@ -290,22 +344,15 @@ def _offpulse_gate(
 ) -> dict:
     width = BURST_WINDOW[1] - BURST_WINDOW[0]
     starts = list(range(OFF_PULSE[0], OFF_PULSE[1] - width + 1, width))[:12]
+    raw_crosses = _offpulse_crosses(dynamic, baselines, block_ids, norms)
     records = []
-    for start in starts:
-        halves = _window_half_spectra(dynamic, baselines, (start, start + width))
-        cross = _disjoint_cross(halves, block_ids, norms)
-        if cross is None:
-            records.append(
-                {
-                    "window": [start, start + width],
-                    "pass": False,
-                    "max_abs_z": None,
-                    "reduced_chi2": np.nan,
-                    "acf": [],
-                    "error": [],
-                }
-            )
-            continue
+    # A 3-sigma pointwise cutoff applied to all 480 lag/window cells has a
+    # ~73% false-failure probability under white Gaussian noise.  Use the
+    # two-sided 1% family-wise threshold for 480 comparisons instead.
+    simultaneous_threshold = 4.254
+    for index, (start, raw_cross) in enumerate(zip(starts, raw_crosses, strict=True)):
+        controls = raw_crosses[:index] + raw_crosses[index + 1 :]
+        cross = _remove_instrument_template(raw_cross, controls)
         finite = np.isfinite(cross.acf) & np.isfinite(cross.error) & (cross.error > 0)
         z = cross.acf[finite] / cross.error[finite]
         covariance = cross.covariance[np.ix_(finite, finite)]
@@ -318,7 +365,7 @@ def _offpulse_gate(
         records.append(
             {
                 "window": [start, start + width],
-                "pass": bool(z.size and np.max(np.abs(z)) <= 3.0),
+                "pass": bool(z.size and np.max(np.abs(z)) <= simultaneous_threshold),
                 "max_abs_z": float(np.max(np.abs(z))) if z.size else None,
                 "reduced_chi2": reduced_chi2,
                 "acf": cross.acf.tolist(),
@@ -332,7 +379,15 @@ def _offpulse_gate(
     return {
         "pass": passed,
         "aggregate_reduced_chi2": redchi,
-        "thresholds": {"max_abs_z": 3.0, "aggregate_reduced_chi2": [0.5, 2.0]},
+        "thresholds": {
+            "max_abs_z": simultaneous_threshold,
+            "family_wise_alpha": 0.01,
+            "n_comparisons": 480,
+            "aggregate_reduced_chi2": [0.5, 2.0],
+        },
+        "instrument_template_acf": np.mean(
+            np.stack([item.acf for item in raw_crosses]), axis=0
+        ).tolist(),
         "records": records,
     }
 
@@ -345,6 +400,7 @@ def _injection_gate(
     channel_width_mhz: float,
     envelope: np.ndarray,
     off_sigmas: list[np.ndarray],
+    offpulse_crosses: list[CrossACF],
 ) -> dict:
     """Dynamic-spectrum injections into real per-pol backgrounds.
 
@@ -394,6 +450,13 @@ def _injection_gate(
                         )
                     )
                 cross = _disjoint_cross(halves, block_ids, _half_norms(halves))
+                if cross is not None:
+                    control_index = trial % len(starts)
+                    controls = (
+                        offpulse_crosses[:control_index]
+                        + offpulse_crosses[control_index + 1 :]
+                    )
+                    cross = _remove_instrument_template(cross, controls)
                 fit = (
                     fit_cross_lorentzian(
                         cross,
@@ -460,10 +523,13 @@ def _fit_for_selection(
     block_ids: np.ndarray,
     norms: list[tuple[float, float]],
     channel_width_mhz: float,
+    controls: list[CrossACF] | None = None,
 ) -> tuple[CrossACF | None, dict[str, dict | None]]:
     cross = _disjoint_cross(halves, block_ids, norms)
     if cross is None:
         return None, {f"{fit_max:.2f}": None for fit_max in FIT_MAXIMA_MHZ}
+    if controls is not None:
+        cross = _remove_instrument_template(cross, controls)
     fits = {
         f"{fit_max:.2f}": fit_cross_lorentzian(
             cross,
@@ -480,21 +546,21 @@ def _fit_for_selection(
 def _render(output: Path, result: dict, cross: CrossACF | None, on_fit: dict | None) -> list[str]:
     figure_dir = output / "figures"
     figure_dir.mkdir(parents=True, exist_ok=True)
-    for stale in figure_dir.glob("freya_b3_*.png"):
+    for stale in figure_dir.glob("freya_b4_*.png"):
         stale.unlink()
     paths = []
 
-    fig, ax = plt.subplots(figsize=(8.5, 4.8))
+    fig, ax = plt.subplots(figsize=(10.5, 4.8))
     for record in result["gates"]["independent_noise_null"]["records"]:
         ax.plot(np.arange(1, len(record["acf"]) + 1), record["acf"], alpha=0.4)
     ax.axhline(0, color="black", lw=0.8)
     ax.set(
         xlabel="Fine-channel lag",
         ylabel="Cross covariance",
-        title="Freya high-band off-pulse cross-ACFs",
+        title="Freya B4 high-band off-pulse ACFs",
     )
     ax.grid(alpha=0.2)
-    path = figure_dir / "freya_b3_offpulse_null.png"
+    path = figure_dir / "freya_b4_offpulse_null.png"
     fig.savefig(path, dpi=180, bbox_inches="tight")
     plt.close(fig)
     paths.append(str(path))
@@ -504,16 +570,21 @@ def _render(output: Path, result: dict, cross: CrossACF | None, on_fit: dict | N
     x = np.arange(len(cells))
     ax.bar(x, [cell["median_absolute_width_bias_mhz"] for cell in cells])
     ax.plot(x, [cell["width_bias_limit_mhz"] for cell in cells], "k_", ms=16, label="bias limit")
-    ax.set_xticks(
-        x, [f"{cell['width_channels']:.0f}ch\nm={cell['modulation_index']:.1f}" for cell in cells]
+    ax.set_xticks(x)
+    ax.set_xticklabels(
+        [f"{cell['width_channels']:.0f} ch / {cell['modulation_index']:.2g}" for cell in cells],
+        rotation=45,
+        ha="right",
+        fontsize=8,
     )
     ax.set(
+        xlabel="Injected width / modulation index",
         ylabel="Median absolute width bias (MHz)",
-        title="Freya B3 real-background injection recovery",
+        title="Freya B4 real-background injection recovery",
     )
     ax.legend(frameon=False)
     ax.grid(alpha=0.2, axis="y")
-    path = figure_dir / "freya_b3_injection_recovery.png"
+    path = figure_dir / "freya_b4_injection_recovery.png"
     fig.savefig(path, dpi=180, bbox_inches="tight")
     plt.close(fig)
     paths.append(str(path))
@@ -521,7 +592,15 @@ def _render(output: Path, result: dict, cross: CrossACF | None, on_fit: dict | N
     if cross is not None:
         fig, ax = plt.subplots(figsize=(8.5, 4.8))
         lags = cross.lag_bins * result["channel_width_mhz"] * 1e3
-        ax.errorbar(lags, cross.acf, yerr=cross.error, fmt=".", ms=4, alpha=0.8, label="cross-ACF")
+        ax.errorbar(
+            lags,
+            cross.acf,
+            yerr=cross.error,
+            fmt=".",
+            ms=4,
+            alpha=0.8,
+            label="four-stream ACF",
+        )
         if on_fit is not None:
             ax.plot(
                 np.asarray(on_fit["fit_lags_mhz"]) * 1e3,
@@ -533,11 +612,11 @@ def _render(output: Path, result: dict, cross: CrossACF | None, on_fit: dict | N
         ax.set(
             xlabel="Frequency lag (kHz)",
             ylabel="Cross covariance",
-            title="Freya 627-800 MHz polarization cross-ACF",
+            title="Freya 627-800 MHz four-stream time-disjoint ACF",
         )
         ax.legend(frameon=False)
         ax.grid(alpha=0.2)
-        path = figure_dir / "freya_b3_onpulse_crossacf.png"
+        path = figure_dir / "freya_b4_onpulse_acf.png"
         fig.savefig(path, dpi=180, bbox_inches="tight")
         plt.close(fig)
         paths.append(str(path))
@@ -546,9 +625,9 @@ def _render(output: Path, result: dict, cross: CrossACF | None, on_fit: dict | N
 
 def _write_figure_manifest(output: Path, paths: list[str]) -> Path:
     expectations = {
-        "freya_b3_offpulse_null.png": "off-pulse curves scatter around zero without coherent lag structure",
-        "freya_b3_injection_recovery.png": "bias bars remain below the fixed limits for every validated cell",
-        "freya_b3_onpulse_crossacf.png": "on-pulse points and fitted model are finite and visually compatible",
+        "freya_b4_offpulse_null.png": "template-corrected off-pulse curves scatter around zero",
+        "freya_b4_injection_recovery.png": "bias bars expose the validated modulation region",
+        "freya_b4_onpulse_acf.png": "on-pulse points expose the weak boundary-dependent feature",
     }
     figures = []
     for raw_path in paths:
@@ -669,9 +748,24 @@ def main() -> int:
     envelope = envelope / float(np.mean(envelope))
     off_sigmas = [_row_nanstd(item[:, OFF_PULSE[0] : OFF_PULSE[1]]) for item in dynamic]
 
+    control_crosses = _offpulse_crosses(dynamic, baselines, parent, on_half_norms)
     offpulse = _offpulse_gate(dynamic, baselines, parent, on_half_norms)
     injection = _injection_gate(
-        dynamic, baselines, parent, norms, channel_width, envelope, off_sigmas
+        dynamic,
+        baselines,
+        parent,
+        norms,
+        channel_width,
+        envelope,
+        off_sigmas,
+        control_crosses,
+    )
+    # Always calculate the blinded diagnostic fit, even when a qualification
+    # gate fails.  It remains explicitly non-scientific until every gate has
+    # passed, but its recovered modulation index tells the next injection
+    # campaign which sensitivity regime must be qualified.
+    diagnostic_cross, diagnostic_fits = _fit_for_selection(
+        on_halves, parent, on_half_norms, channel_width, control_crosses
     )
     prerequisites = (
         producer_parity
@@ -686,7 +780,9 @@ def main() -> int:
     compatibility = {"pass": False, "reason": "prerequisite gate failed", "records": []}
     width_envelope_gate = {"pass": False, "reason": "prerequisite gate failed"}
     if prerequisites:
-        cross, fits = _fit_for_selection(on_halves, parent, on_half_norms, channel_width)
+        cross, fits = _fit_for_selection(
+            on_halves, parent, on_half_norms, channel_width, control_crosses
+        )
         on_fit = fits[f"{FIT_MAXIMA_MHZ[-1]:.2f}"]
         finite_fits = [fit for fit in fits.values() if fit is not None]
         widths = np.asarray([fit["dnu_mhz"] for fit in finite_fits])
@@ -794,7 +890,7 @@ def main() -> int:
         and width_envelope_gate["pass"]
     )
     result = {
-        "experiment": "B3 high-band independent-polarization cross-ACF",
+        "experiment": "B4 four-stream time-disjoint high-band ACF",
         "band_mhz": list(BAND_MHZ),
         "channel_width_mhz": channel_width,
         "n_selected_channels": int(select.sum()),
@@ -831,11 +927,17 @@ def main() -> int:
             "manual_figure_review": {"pass": False, "status": "pending"},
         },
         "onpulse_fit": on_fit,
+        "diagnostic_onpulse_fits": diagnostic_fits,
         "machine_status": "pass_pending_figure_review" if machine_pass else "documented_fail",
         "science_status": "diagnostic_only",
     }
     args.output_dir.mkdir(parents=True, exist_ok=True)
-    figures = _render(args.output_dir, result, cross, on_fit)
+    figures = _render(
+        args.output_dir,
+        result,
+        diagnostic_cross if cross is None else cross,
+        diagnostic_fits[f"{FIT_MAXIMA_MHZ[-1]:.2f}"] if on_fit is None else on_fit,
+    )
     result["figures"] = figures
     result["figure_manifest"] = str(_write_figure_manifest(args.output_dir, figures))
     (args.output_dir / "validation.json").write_text(

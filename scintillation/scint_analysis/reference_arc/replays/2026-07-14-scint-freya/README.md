@@ -100,6 +100,7 @@ helper was found in the local or h17 recovery archives.
 - **Archived 3.8 MHz fit:** remains a failure-quality, broad instrumental-shape
   fit.
 - **Replayed 190 kHz fit:** numerically well determined for the surviving input,
-  but not yet a confident scintillation measurement. It still needs an
-  independent off-pulse/instrumental null and the normal CHIME high-band
-  validation battery before scientific use.
+  but the follow-up matched-window battery has now **falsified** it as a
+  scintillation measurement. The hard-coded `725:875` integration is off-pulse
+  in the surviving capture, and all 24 matched off-pulse ACFs are non-white and
+  reproduce the same scale family. See [`FALSIFICATION.md`](FALSIFICATION.md).

@@ -5420,3 +5420,18 @@ preserving for future agents.
 - `origin` `entire/*` refs:
   - entire/checkpoints/v1 -> a90492d
 - note: `.entire/` remains host-local runtime state; only this ledger is tracked.
+
+## 2026-07-14T07:33:08-07:00 — jakob
+- repo: `/Users/jakobfaber/Developer/scratch/worktrees/flits-dm-locked-joint-v2`
+- branch: `fix/dm-locked-joint-figures-v2`
+- head: `92f73298`
+- origin/main: `0cf513b5`
+- worktree: clean
+- note: watched path changed: analysis/scattering-dm-locked-2026-07-14/results/fit_adjudication.csv
+- tracked status: clean
+- local `entire/*` refs:
+  - entire/565ccf0-bcad3a -> 525751f0
+  - entire/checkpoints/v1 -> a90492d7
+- `origin` `entire/*` refs:
+  - entire/checkpoints/v1 -> a90492d
+- note: `.entire/` remains host-local runtime state; only this ledger is tracked.

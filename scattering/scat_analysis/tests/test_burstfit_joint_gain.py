@@ -142,3 +142,38 @@ def test_single_component_gain_marginal_path_stays_legacy_without_proper_prior(m
 
     assert result["param_names"] == list(JOINT_PARAM_NAMES_GAIN)
     assert captured["ndim"] == 8
+
+
+def test_fixed_delta_dms_are_removed_from_sampling_and_injected_into_likelihood(monkeypatch):
+    captured = _install_fake_dynesty(monkeypatch)
+
+    model_C, params_C = _toy_model()
+    model_D, params_D = _toy_model()
+    result = fit_joint_scattering(
+        model_C=model_C,
+        init_C=params_C[0],
+        model_D=model_D,
+        init_D=params_D[0],
+        marginalize_gain=True,
+        components_C=2,
+        components_D=2,
+        fixed_delta_dm_C=0.125,
+        fixed_delta_dm_D=-0.375,
+        nlive=10,
+        verbose=False,
+    )
+
+    assert "delta_dm_C" not in result["param_names"]
+    assert "delta_dm_D" not in result["param_names"]
+    assert captured["ndim"] == len(JOINT_PARAM_NAMES_GAIN_MULTI(2, 2)) - 2
+    assert result["fixed_parameters"] == {
+        "delta_dm_C": 0.125,
+        "delta_dm_D": -0.375,
+    }
+    assert result["percentiles"]["delta_dm_C"]["median"] == 0.125
+    assert result["percentiles"]["delta_dm_D"]["median"] == -0.375
+
+    # The reduced midpoint vector must be accepted by the wrapped likelihood;
+    # internally it is expanded back to the original multi-component layout.
+    theta = captured["prior_transform"](np.full(captured["ndim"], 0.5))
+    assert np.isfinite(captured["loglike"](theta))

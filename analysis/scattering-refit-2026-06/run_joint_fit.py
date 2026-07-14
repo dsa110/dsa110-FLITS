@@ -113,6 +113,18 @@ def main():
         help="run the multi-component likelihood even at C1D1, so its lnZ "
         "is normalization-matched to C2/D2 runs (model-selection baseline)",
     )
+    ap.add_argument(
+        "--fixed-delta-dm-C",
+        type=float,
+        default=None,
+        help="hold the CHIME residual DM fixed at this value instead of sampling it",
+    )
+    ap.add_argument(
+        "--fixed-delta-dm-D",
+        type=float,
+        default=None,
+        help="hold the DSA residual DM fixed at this value instead of sampling it",
+    )
     # Shared zeta is the DEFAULT: ONE frequency-evolving intrinsic width
     # zeta(nu)=zeta_1ghz*nu^x_zeta across both bands models a single coherent
     # burst over the full CHIME+DSA band, which is the physically motivated
@@ -170,6 +182,8 @@ def main():
         components_C=a.components_C,
         components_D=a.components_D,
         force_multi=a.force_multi,
+        fixed_delta_dm_C=a.fixed_delta_dm_C,
+        fixed_delta_dm_D=a.fixed_delta_dm_D,
     )
 
     pct = res["percentiles"]
@@ -198,7 +212,8 @@ def main():
         "alpha_bounds": list(res["alpha_bounds"]),
         "components_C": a.components_C,
         "components_D": a.components_D,
-        "percentiles": {n: pct[n] for n in names},
+        "fixed_parameters": res.get("fixed_parameters", {}),
+        "percentiles": pct,
         "ncall": res["ncall"],
     }
 

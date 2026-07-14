@@ -23,9 +23,9 @@ Do not develop on hpcc, arc checkout, or h23 trees. h17 may hold an optional clo
 | **rclone** | `gdrive-jakob:Research/CHIME_DSA_Codetections/` |
 | **Drive for Desktop** | mount after adding jakobtfaber@gmail.com — expected `~/Library/CloudStorage/GoogleDrive-jakobtfaber@gmail.com/My Drive/Research/CHIME_DSA_Codetections/` |
 
-**Staging source (iacobus):** `iacobus:~/Research/CHIME_DSA_Codetections/` (~223 GiB as of 2026-06-26; excludes `CHIME_Morphologies/`). Bytes upload via `scripts/migration/iacobus_to_gdrive.sh` (direct iacobus→Drive; jakob-mbp orchestrates only).
+**Staging source (iacobus) — DRAINED 2026-07-13:** upload complete and verified (`rclone check --size-only`: 0 differences, 5437 matching files; 244.815 GiB / 5438 objects on Drive). The tree was moved (move-only, never `rm`) to `iacobus:~/Research/_quarantine/CHIME_DSA_Codetections-drained-20260713/` with a `PROVENANCE.md`. Upload script remains `scripts/migration/iacobus_to_gdrive.sh` (direct iacobus→Drive; jakob-mbp orchestrates only); closeout in [`docs/infrastructure/HANDOFF_mbp_tailscale_ssh_iacobus.md`](docs/infrastructure/HANDOFF_mbp_tailscale_ssh_iacobus.md).
 
-**Legacy iCloud mirror:** `~/Library/Mobile Documents/com~apple~CloudDocs/Research/CHIME_DSA_Codetections/` — demoted; jakob-mbp shows placeholders only. iacobus CloudDocs clone retained until gdrive upload verified.
+**Legacy iCloud mirror:** `~/Library/Mobile Documents/com~apple~CloudDocs/Research/CHIME_DSA_Codetections/` — demoted; jakob-mbp shows placeholders only. The gdrive upload is now verified (2026-07-13), so the iacobus CloudDocs clone's retention condition is met — disposal is an owner decision.
 
 | Subdir | Role |
 |--------|------|

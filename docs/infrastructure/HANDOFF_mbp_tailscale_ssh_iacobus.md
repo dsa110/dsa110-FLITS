@@ -5,6 +5,42 @@
 **Date:** 2026-07-14  
 **Owner:** Jakob Faber (`jakobtfaber`)
 
+## ✅ CLOSED — 2026-07-13 (mbp session)
+
+All goals met. What actually happened, for the record:
+
+1. **Root cause of the SSH timeout was NOT the Mac.** `sshd` was already
+   listening on `*:22`, ALF allowed `sshd-auth`/`sshd-keygen-wrapper`,
+   shields-up off. The tailnet **ACL** sent `jakob-mbp` an **empty inbound
+   `PacketFilter` (`[]`)** — disco `tailscale ping` pongs while every
+   data-plane packet (ICMP, tcp/22/445/5000) is dropped. Diagnostic that
+   settles it in seconds: `Tailscale debug netmap` → `PacketFilter: []`.
+   Phase A's System-Settings iteration was unnecessary; skip it if this
+   recurs and check the netmap first.
+2. **Fix:** owner added an ACL grant (`tag:hpc` → `tag:work-laptop`,
+   `tcp:22`) in the admin console. Verified with nonce round-trips, not
+   relayed echoes: h17 → mbp session shows
+   `SSH_CONNECTION=100.85.172.12 → 100.121.73.103:22`; h17 → iacobus runs
+   `ProxyCommand ssh -W '[100.93.229.114]:22' jakob-mbp` and lands on
+   iacobus with client `100.121.73.103`. Note h17's `iacobus` entry now
+   targets the **Tailscale IP** (100.93.229.114) through the mbp jump, not
+   `iacobus.local` as drafted above.
+3. **Drain complete and verified.** `gdrive-jakob` on iacobus confirmed by
+   live handshake; metadata sentinel SHA-256 **PASS**; parallel bulk run
+   found `burst_pickles` (59.1 GiB) and `burst_npys` (60.8 GiB) already
+   100% uploaded by the 2026-06-26 run; `archive` + `rest` completed
+   2026-07-13. Final `rclone check --size-only` (excl. `burstprop_paper/**`):
+   **0 differences, 5437 matching files**; remote
+   `gdrive-jakob:Research/CHIME_DSA_Codetections` = 244.815 GiB / 5438
+   objects. The 4 ERROR lines in the archive log are June temp-file races,
+   retried successfully 2026-07-02.
+4. **Quarantine done (move-only):** source tree now at
+   `iacobus:~/Research/_quarantine/CHIME_DSA_Codetections-drained-20260713/`
+   with a `PROVENANCE.md` recording evidence and disposal conditions.
+   `CHIME_Morphologies`/`burstprop_paper` untouched throughout.
+5. **Phase E (h17 compute slice) not started** — optional; pull from the
+   quarantine tree or Drive before any disposal of the quarantine.
+
 ## Goal
 
 1. Make **SSH from h17 to jakob-mbp over Tailscale** work (TCP port 22).

@@ -4,7 +4,7 @@
 **Root:** `/data/research/astrophysics/frbs/chime-dsa-codetections`  
 **Role:** CHIME/DSA co-detection **compute + artifact cache**. Not a third source of truth.
 
-Canonical code lives in GitHub (`jakobtfaber/dsa110-FLITS`, developed on `jakob-mbp`). The manuscript pin is `jakobtfaber/Faber2026` → submodule `pipeline/` → this fork. Data authority remains Google Drive / iacobus staging (see [`DATA_LOCATIONS.md`](../../DATA_LOCATIONS.md)).
+Canonical code lives in GitHub (`jakobtfaber/dsa110-FLITS`, developed on `jakob-mbp`). The manuscript pin is `jakobtfaber/Faber2026` → submodule `pipeline/` → this fork. Data authority is **Google Drive** (`gdrive-jakob:Research/CHIME_DSA_Codetections`, verified drained 2026-07-13); the iacobus staging tree is quarantined move-only at `iacobus:~/Research/_quarantine/CHIME_DSA_Codetections-drained-20260713/` (see [`DATA_LOCATIONS.md`](../../DATA_LOCATIONS.md)).
 
 ## Layout
 
@@ -58,6 +58,16 @@ Workers default to absolute h17 roots:
 Burst catalog / VOS URIs: workspace `metadata/notebook_reproduction_fixture.json` (mirrors FLITS `crossmatching/notebook_reproduction_fixture.json`). Prefer the FLITS copy when editing; sync to h17 `metadata/` for download scripts that still read the local path.
 
 Docker entrypoint on this host: workspace `bin/baseband_analysis_python.sh` → image `chimefrb/baseband-analysis:latest`.
+
+## SSH topology (verified 2026-07-13)
+
+h17 → jakob-mbp → iacobus works end-to-end: tailnet ACL grant
+`tag:hpc → tag:work-laptop` (`tcp:22`) added 2026-07-13 (before that,
+jakob-mbp's inbound `PacketFilter` was empty — every data-plane packet
+dropped; check `Tailscale debug netmap` first if this recurs). h17's
+`ssh iacobus` ProxyJumps through `jakob-mbp` to iacobus's Tailscale IP
+(`100.93.229.114`). Drain closeout details:
+[`HANDOFF_mbp_tailscale_ssh_iacobus.md`](HANDOFF_mbp_tailscale_ssh_iacobus.md).
 
 ## History note (2026-07-13)
 

@@ -21,6 +21,8 @@ repository's Level 1--3 fit gates and visual review of every diagnostic panel.
 The review-triggered remediation rows retain Mahi C1D2 and Chromatica C2D1/C2D2
 as explicit alternatives after their minimal models failed the residual gate;
 Wilhelm C1D3 tests the remaining visible DSA morphology after C1D2 also failed.
+Wilhelm C1D4 is the final residual-driven alternative after C1D3 improved the
+evidence but retained a DSA reduced chi-square above four.
 
 ## HPCC execution
 

@@ -12,12 +12,13 @@ import numpy as np
 import pandas as pd
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-REPO = os.path.dirname(os.path.dirname(HERE))
+REPO = os.path.dirname(os.path.dirname(os.path.dirname(HERE)))
+FROZEN = os.path.join(os.path.dirname(HERE), "data", "frozen_census")
 
-fin = pd.read_csv(os.path.join(HERE, "foreground_final.csv"))
-fgr = pd.read_csv(os.path.join(HERE, "foreground.csv"))
-val = pd.read_csv(os.path.join(HERE, "foreground_validated.csv"))
-bur = pd.read_csv(os.path.join(HERE, "bursts.csv"))
+fin = pd.read_csv(os.path.join(FROZEN, "foreground_final.csv"))
+fgr = pd.read_csv(os.path.join(FROZEN, "foreground.csv"))
+val = pd.read_csv(os.path.join(FROZEN, "foreground_validated.csv"))
+bur = pd.read_csv(os.path.join(FROZEN, "bursts.csv"))
 for d in (fin, fgr, val):
     d["obj"] = d["obj"].astype(str)
 tns = dict(zip(bur.nickname, bur.tns))

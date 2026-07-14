@@ -59,6 +59,7 @@ Thumbs.db
 !/notebooks/codetections/data/*.csv
 # ...and the validated intervening census / attribution matrix SSOT (generated, small)
 !galaxies/foreground/data/*.csv
+!galaxies/foreground/data/frozen_census/*.csv
 # FITS (astronomy images)
 *.fits
 *.fit

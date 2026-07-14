@@ -21,3 +21,12 @@ def test_generation_paths_exist():
     for g in inv["generations"]:
         for p in g["artifact_globs"]:
             assert list(ROOT.glob(p)), f"{g['name']}: no match for {p}"
+
+
+def test_mixed_legacy_inventory_includes_gate_inputs():
+    inv = yaml.safe_load(INV.read_text())
+    mixed = next(g for g in inv["generations"]
+                 if g["name"] == "mixed-legacy-2026-06")
+    assert "analysis/scattering-refit-2026-06/joint_json/*_joint_ppc.json" in (
+        mixed["artifact_globs"]
+    )

@@ -36,7 +36,8 @@ from astropy import units as u
 from astropy.coordinates import SkyCoord
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-fg = pd.read_csv(os.path.join(HERE, "foreground.csv"))
+FROZEN = os.path.join(os.path.dirname(HERE), "data", "frozen_census")
+fg = pd.read_csv(os.path.join(FROZEN, "foreground.csv"))
 
 TAP = pyvo.dal.TAPService("https://datalab.noirlab.edu/tap")
 GAL_RADIUS_AS = 5.0  # galaxy positional match (STRM/PS1 vs Legacy astrometry slack)

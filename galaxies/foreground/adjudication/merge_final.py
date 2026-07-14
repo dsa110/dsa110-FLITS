@@ -13,7 +13,8 @@ import numpy as np
 import pandas as pd
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-val = pd.read_csv(os.path.join(HERE, "foreground_validated.csv"))
+FROZEN = os.path.join(os.path.dirname(HERE), "data", "frozen_census")
+val = pd.read_csv(os.path.join(FROZEN, "foreground_validated.csv"))
 strm = pd.read_csv(os.path.join(HERE, "ps1_strm_resolution.csv"))
 val["obj"] = val.obj.astype(str)
 strm["obj"] = strm.obj.astype(str)

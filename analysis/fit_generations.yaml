@@ -12,6 +12,7 @@ generations:
     trust: revoked-2026-07-06
     artifact_globs:
       - "analysis/scattering-refit-2026-06/joint_json/*_joint_fit.json"
+      - "analysis/scattering-refit-2026-06/joint_json/*_joint_ppc.json"
       - "analysis/scattering-refit-2026-06/joint_json/*_joint_gate.json"
   - name: beta-campaign-2026-07
     description: >-

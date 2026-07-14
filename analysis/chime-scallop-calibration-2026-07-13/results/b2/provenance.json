@@ -1,0 +1,16 @@
+{
+  "experiment": "freya_b2_folded_scallop_calibration",
+  "execution_host": "lxd110h17",
+  "execution_root": "/data/research/astrophysics/frbs/chime-dsa-codetections/experiments/freya_scallop_calibration_v1",
+  "container_image": "chimefrb/baseband-analysis@sha256:f510909d892d0d5224c982c590cbe80967a49a59b79c396ab72bb710105c4c41",
+  "input_h5": "/data/research/astrophysics/frbs/chime-dsa-codetections/chime_singlebeam/singlebeam_278720455.h5",
+  "input_h5_sha256": "676a9033c10926c213603939bee78c44d6d1a011c01e4279b41bccc97127df52",
+  "executed_runner_sha256": "13f1552746abea596962adec59d977823833b06f4b1eb8bcf2b8b7c593366d70",
+  "committed_runner_sha256": "2f9efa19115087bd2a0e2b46de221625d5db3dd24ff3e9b8ffec739e8ad82892",
+  "baseline_helper_sha256": "5e89d2fcd0fce1ce169d6c14fd36e97502787e0baf45c59597fb428f76ec787c",
+  "raw_validation_sha256": "7f9454d8b00984fabfb1b0989a3fcb3ef3cc058bbe4c3594abb58803d909c4be",
+  "remote_exit_code": 2,
+  "remote_exit_interpretation": "All machine gates passed; exit 2 represented the predeclared pending manual figure review.",
+  "source_identity": "The h17 source copies were hash-matched before launch. The committed runner adds post-run failure-record handling only; the successful executed path and recorded result are unchanged.",
+  "on_pulse_fit_performed": false
+}

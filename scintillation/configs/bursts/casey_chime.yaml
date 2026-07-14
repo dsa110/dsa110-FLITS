@@ -18,6 +18,7 @@ analysis:
     - 0
     - 860
   acf:
+    first_fit_lag: 2
     # CHIME spans 400-800 MHz where Dnu_d ~ nu^4.4 varies ~21x across the band -> sub-band so the
     # scintle is ~constant within each ACF.
     num_subbands: 4

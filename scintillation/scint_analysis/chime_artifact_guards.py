@@ -46,7 +46,12 @@ DEFAULT_HARMONIC_HALFWIDTH_MHZ = 0.05
 
 # Mitigations a CHIME scintillation *measurement* must explicitly record. Each
 # maps to the config path whose ``enable`` flag we require to be truthy.
-CHIME_REQUIRED_MITIGATIONS = ("grid_regularization", "bandpass_normalization", "harmonic_mask")
+CHIME_REQUIRED_MITIGATIONS = (
+    "instrumental_background_correction",
+    "grid_regularization",
+    "bandpass_normalization",
+    "harmonic_mask",
+)
 
 MEASUREMENT = "measurement"
 DIAGNOSTIC_ONLY = "diagnostic_only"
@@ -142,6 +147,9 @@ def chime_provenance_status(config: dict | None) -> dict:
     fitting_cfg = analysis_cfg.get("fitting", {}) or {}
 
     records = {
+        "instrumental_background_correction": _enabled(
+            analysis_cfg.get("instrumental_background_correction")
+        ),
         "grid_regularization": _enabled(analysis_cfg.get("grid_regularization")),
         "bandpass_normalization": _enabled(analysis_cfg.get("bandpass_normalization")),
         "harmonic_mask": _enabled(fitting_cfg.get("harmonic_mask")),
@@ -231,15 +239,21 @@ def off_pulse_null_verdict(
         }
 
     if off.size < min_off_fits:
+        # Too few off fits is ambiguous between "off-pulse genuinely white"
+        # (arm-C evidence FOR a measurement) and "off-pulse re-fits crashed";
+        # the verdict cannot tell them apart, so it must be inconclusive —
+        # the pipeline's fail-closed guard then downgrades rather than
+        # certifying on an unverifiable null.
         return {
-            "null_pass": True,
+            "null_pass": None,
             "on_dnu_mhz": float(on_dnu_mhz),
             "off_median_dnu_mhz": float(np.median(off)) if off.size else None,
             "off_n_fits": int(off.size),
             "ratio": None,
             "reason": (
                 f"only {off.size} off-pulse fits (< {min_off_fits}); "
-                "off-pulse too white to fit a consistent scale -> null passes"
+                "cannot distinguish a white off-pulse from failed re-fits -> "
+                "null inconclusive"
             ),
         }
 
@@ -268,6 +282,7 @@ def low_lag_stability_verdict(
     dnu_by_excision: dict[int, float | None] | None,
     *,
     collapse_ratio: float = 0.5,
+    growth_ratio: float | None = None,
 ) -> dict:
     """Low-lag excision stability test (experiment arm B1; ChatGPT rec #4).
 
@@ -277,6 +292,12 @@ def low_lag_stability_verdict(
     the fit fail), the "Lorentzian" had no wing and is a low-lag artifact --
     exactly the freya CHIME failure (35.19 -> 23.4 kHz by N=3, degenerate by
     N=6). Contrast DSA (arm C): gamma stable within ~25% out to N=8.
+
+    The test is two-sided: runaway *growth* under excision is equally fatal --
+    it means the width was set by the excised low lags and the refit is
+    chasing a broad baseline, not a wing (P4e audit: casey full-band grew
+    99 -> 793 kHz, 8x, yet passed the collapse-only test). ``growth_ratio``
+    defaults to ``1 / collapse_ratio`` (2x for the default 0.5).
 
     Parameters
     ----------
@@ -325,22 +346,34 @@ def low_lag_stability_verdict(
             continue
         ratios[int(k)] = float(dnu) / float(dnu_full_mhz)
 
+    if growth_ratio is None:
+        growth_ratio = 1.0 / collapse_ratio
     collapsed = [k for k, r in ratios.items() if r < collapse_ratio]
-    failed_ks = sorted(set(failed_ks) | set(collapsed))
+    grown = [k for k, r in ratios.items() if r > growth_ratio]
+    failed_ks = sorted(set(failed_ks) | set(collapsed) | set(grown))
     min_ratio = min(ratios.values()) if ratios else None
+    max_ratio = max(ratios.values()) if ratios else None
     stable = len(failed_ks) == 0
+    if stable:
+        reason = "width survives low-lag excision (no collapse or runaway growth) -> wing is resolved"
+    elif grown and not collapsed:
+        reason = (
+            f"width grows past {growth_ratio:g}x at excision k={sorted(grown)} "
+            "-> width was carried by the excised low lags, not a resolved wing"
+        )
+    else:
+        reason = (
+            f"width collapses/fails at excision k={failed_ks} "
+            "-> no resolved wing, low-lag artifact"
+        )
     return {
         "stable": bool(stable),
         "dnu_full_mhz": float(dnu_full_mhz),
         "dnu_by_excision": {str(k): (float(v) if v is not None else None) for k, v in by_k.items()},
         "min_ratio": min_ratio,
+        "max_ratio": max_ratio,
         "failed_ks": failed_ks,
-        "reason": (
-            "width survives low-lag excision (no collapse) -> wing is resolved"
-            if stable
-            else f"width collapses/fails at excision k={failed_ks} "
-            "-> no resolved wing, low-lag artifact"
-        ),
+        "reason": reason,
     }
 
 
@@ -382,11 +415,75 @@ def harmonic_mask_systematic(
     }
 
 
+def modulation_index_verdict(
+    mods,
+    *,
+    max_m: float = 1.5,
+) -> dict:
+    """Physicality check on the fitted per-sub-band modulation indices.
+
+    Diffractive scintillation of a point source saturates at m = 1; modest
+    excursions above 1 happen in noisy fits, but m >> 1 means the fitted ACF
+    zero-lag amplitude is not scintillation (P4e audit: whitney reached
+    m = 3.53 and still certified as a measurement). Values above ``max_m``
+    fail the verdict; no finite values -> inconclusive (None).
+    """
+    finite = [float(m) for m in (mods or []) if m is not None and np.isfinite(m)]
+    if not finite:
+        return {
+            "physical": None,
+            "m_values": [],
+            "m_max": None,
+            "reason": "no finite modulation indices; physicality inconclusive",
+        }
+    m_max = max(finite)
+    physical = m_max <= max_m
+    return {
+        "physical": bool(physical),
+        "m_values": finite,
+        "m_max": m_max,
+        "reason": (
+            f"all sub-band m <= {max_m:g} -> amplitude physical"
+            if physical
+            else f"max sub-band m = {m_max:.3g} > {max_m:g} -> fitted ACF amplitude "
+            "is not scintillation (unphysical modulation)"
+        ),
+    }
+
+
+def subband_support_verdict(
+    n_valid: int,
+    *,
+    min_subbands: int = 3,
+) -> dict:
+    """Require enough independent sub-bands to call the width a measurement.
+
+    Two sub-bands make any scaling fit an exact zero-dof solution (P4e audit:
+    casey_hi alpha = 9.25 +/- 1e-12 from 2 points) and give no internal
+    consistency check on the width itself.
+    """
+    n_valid = int(n_valid)
+    sufficient = n_valid >= int(min_subbands)
+    return {
+        "sufficient": bool(sufficient),
+        "n_valid_subbands": n_valid,
+        "min_subbands": int(min_subbands),
+        "reason": (
+            f"{n_valid} valid sub-bands >= {min_subbands}"
+            if sufficient
+            else f"only {n_valid} valid sub-band(s) < {min_subbands} -> no "
+            "cross-band consistency; diagnostic only"
+        ),
+    }
+
+
 def finalize_measurement_status(
     provenance: dict,
     *,
     off_pulse_null: dict | None = None,
     low_lag_stability: dict | None = None,
+    modulation_index: dict | None = None,
+    subband_support: dict | None = None,
 ) -> dict:
     """Combine the provenance gate with the physical null/stability verdicts.
 
@@ -412,6 +509,10 @@ def finalize_measurement_status(
         failed.append("off_pulse_null")
     if low_lag_stability is not None and low_lag_stability.get("stable") is False:
         failed.append("low_lag_stability")
+    if modulation_index is not None and modulation_index.get("physical") is False:
+        failed.append("modulation_index")
+    if subband_support is not None and subband_support.get("sufficient") is False:
+        failed.append("subband_support")
 
     status = MEASUREMENT if not failed else DIAGNOSTIC_ONLY
     return {"status": status, "downgraded": bool(failed), "failed_checks": failed}

@@ -1,0 +1,14 @@
+{
+  "reviewed_at": "2026-07-13T01:59:30-07:00",
+  "reviewer": "Codex",
+  "figures": [
+    {
+      "path": "/Users/jakobfaber/Developer/scratch/worktrees/flits-chime-endtoend-calibration/analysis/chime-baseband-calibration-2026-07-13/results/b1/freya_b1_voltage_recovery.svg",
+      "verdict": "anomaly",
+      "notes": "Power recovery is tightly centered on unity for both bands and both signal levels, but width recovery is independent of injected truth. Every low-band circle lies at the 350 kHz fit ceiling, while every high-band square lies near 54-68 kHz for target widths spanning roughly 11-101 kHz. The marker-separated pattern agrees with validation.json and is not a plotting ambiguity."
+    }
+  ],
+  "overall_verdict": "anomaly",
+  "qualification_authorized": false,
+  "science_disposition": "B1 DOCUMENTED-FAIL; the exact voltage-to-waterfall path conserves injected power but does not preserve the injected correlation width on real Freya voltage noise, so no response correction or on-pulse fit is authorized"
+}

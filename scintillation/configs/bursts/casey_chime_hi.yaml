@@ -18,6 +18,7 @@ analysis:
     - 0
     - 860
   acf:
+    first_fit_lag: 2
     # High-band focus: full band 400-800 fails (only the top ~80 MHz resolves a clean Lorentzian; the
     # 462-715 MHz subbands are lag-0/noise-dominated). Restrict to 711-799 MHz where the per-subband
     # diagnostic gave R2=0.94, gamma~117 kHz. Across 711-799 Dnu_d ~ nu^4.4 varies only ~1.7x -> 2 subbands.

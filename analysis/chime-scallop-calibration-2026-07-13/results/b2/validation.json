@@ -1,0 +1,3732 @@
+{
+  "checks": {
+    "all_fits_finite": {
+      "n_finite": 144,
+      "n_trials": 144,
+      "pass": true
+    },
+    "baseline_replay": {
+      "canonical_frequency_sha256": "b686f99e71ad37a0b9014aae8ea480865b7eda8c94f0eb6c1d82e11d6a800255",
+      "canonical_waterfall_sha256": "f7ce42985a99eeb70565abb1b8458ec888fa2e65396cef2e2bf9b367941f62b9",
+      "expected_input_h5_sha256": "676a9033c10926c213603939bee78c44d6d1a011c01e4279b41bccc97127df52",
+      "frequency_match": true,
+      "input_h5_match": true,
+      "input_h5_sha256": "676a9033c10926c213603939bee78c44d6d1a011c01e4279b41bccc97127df52",
+      "pass": true,
+      "provenance_frequency_match": true,
+      "provenance_waterfall_match": true,
+      "replay_frequency_sha256": "b686f99e71ad37a0b9014aae8ea480865b7eda8c94f0eb6c1d82e11d6a800255",
+      "replay_waterfall_sha256": "f7ce42985a99eeb70565abb1b8458ec888fa2e65396cef2e2bf9b367941f62b9",
+      "waterfall_match": true
+    },
+    "gain_positive_finite": {
+      "pass": true
+    },
+    "manual_review": {
+      "overall_verdict": "match",
+      "pass": true,
+      "qualification_authorized": true,
+      "reason": "B2 calibration PASS: the matched scalar folded-scallop operator restores injected width and power transfer. This is calibration-only evidence; no real Freya on-pulse ACF was fit.",
+      "review_file": "/Users/jakobfaber/Developer/scratch/worktrees/flits-chime-scallop-calibration/analysis/chime-scallop-calibration-2026-07-13/results/b2/figures.review.json"
+    },
+    "matched_improves_over_unmatched": {
+      "matched_median_abs_fractional_error": 9.632609320835069e-09,
+      "pass": true,
+      "unmatched_median_abs_fractional_error": 2.7576439414764797
+    },
+    "matched_noise_free_width": {
+      "n_pass": 48,
+      "pass": true
+    },
+    "matched_phase_cycled_power": {
+      "n_pass": 48,
+      "pass": true
+    },
+    "matched_phase_cycled_width": {
+      "n_pass": 48,
+      "pass": true
+    },
+    "scallop_split_half": {
+      "pass": true,
+      "rms_fractional_difference": 0.010966455336140296,
+      "threshold": 0.05
+    },
+    "target_generator": {
+      "pass": true
+    }
+  },
+  "container_image_digest": "sha256:f510909d892d0d5224c982c590cbe80967a49a59b79c396ab72bb710105c4c41",
+  "experiment": "B2 matched folded-scallop phase-cycled voltage calibration",
+  "experiment_status": "pass",
+  "failed_checks": [],
+  "injection_boundary": "after coherent_dedisp; before _upchannel; synthetic sky voltage forward-folded by sqrt(separable scalar gain)",
+  "on_pulse_fit_performed": false,
+  "pending_checks": [],
+  "qualification_pass": true,
+  "qualification_status": "pass",
+  "raw_validation": {
+    "path": "/data/research/astrophysics/frbs/chime-dsa-codetections/experiments/freya_scallop_calibration_v1/results/validation.json",
+    "retention": "full fit arrays retained on h17; compact record committed",
+    "sha256": "7f9454d8b00984fabfb1b0989a3fcb3ef3cc058bbe4c3594abb58803d909c4be"
+  },
+  "records": [
+    {
+      "aligned_center": 18,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 2.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 0.9999999589006224,
+      "recovered_fit": {
+        "amplitude": 0.04184391644076561,
+        "constant": -5.2599720710203535e-05,
+        "dnu_mhz": 0.01177397539069051
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_noise_free",
+      "seed": 20262813,
+      "truth_fit": {
+        "amplitude": 0.04184391785522692,
+        "constant": -5.2599720848174983e-05,
+        "dnu_mhz": 0.011773975021590445
+      }
+    },
+    {
+      "aligned_center": 18,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 2.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 0.9999999594080259,
+      "recovered_fit": {
+        "amplitude": 0.041843917367249614,
+        "constant": -5.259963002115148e-05,
+        "dnu_mhz": 0.011773975275189596
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_phase_cycled",
+      "seed": 20262813,
+      "truth_fit": {
+        "amplitude": 0.04184391785522692,
+        "constant": -5.2599720848174983e-05,
+        "dnu_mhz": 0.011773975021590445
+      }
+    },
+    {
+      "aligned_center": 18,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 2.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 1.6896812920891915e-09,
+      "recovered_fit": {
+        "amplitude": 9.999999999999998,
+        "constant": 4.999999999999999,
+        "dnu_mhz": 0.3499999999999999
+      },
+      "recovered_frequency_check": true,
+      "route": "unmatched_noise_free",
+      "seed": 20262813,
+      "truth_fit": {
+        "amplitude": 0.04184391785522692,
+        "constant": -5.2599720848174983e-05,
+        "dnu_mhz": 0.011773975021590445
+      }
+    },
+    {
+      "aligned_center": 28,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 2.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 0.9999999582786715,
+      "recovered_fit": {
+        "amplitude": 0.035878117451793826,
+        "constant": 3.949490119639358e-05,
+        "dnu_mhz": 0.011022727738359883
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_noise_free",
+      "seed": 20262814,
+      "truth_fit": {
+        "amplitude": 0.03587811803622071,
+        "constant": 3.949477916225906e-05,
+        "dnu_mhz": 0.011022727655268353
+      }
+    },
+    {
+      "aligned_center": 28,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 2.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 0.9999999589874244,
+      "recovered_fit": {
+        "amplitude": 0.03587812042987441,
+        "constant": 3.9494979168607786e-05,
+        "dnu_mhz": 0.01102272641989536
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_phase_cycled",
+      "seed": 20262814,
+      "truth_fit": {
+        "amplitude": 0.03587811803622071,
+        "constant": 3.949477916225906e-05,
+        "dnu_mhz": 0.011022727655268353
+      }
+    },
+    {
+      "aligned_center": 28,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 2.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 1.6631819518515764e-09,
+      "recovered_fit": {
+        "amplitude": 9.999999999999998,
+        "constant": 4.999999999999999,
+        "dnu_mhz": 0.3499999999999999
+      },
+      "recovered_frequency_check": true,
+      "route": "unmatched_noise_free",
+      "seed": 20262814,
+      "truth_fit": {
+        "amplitude": 0.03587811803622071,
+        "constant": 3.949477916225906e-05,
+        "dnu_mhz": 0.011022727655268353
+      }
+    },
+    {
+      "aligned_center": 38,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 2.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 0.9999999581738865,
+      "recovered_fit": {
+        "amplitude": 0.039790834002224974,
+        "constant": 7.20602211712894e-05,
+        "dnu_mhz": 0.01230735309015308
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_noise_free",
+      "seed": 20262815,
+      "truth_fit": {
+        "amplitude": 0.0397908354518177,
+        "constant": 7.206028943433407e-05,
+        "dnu_mhz": 0.012307352781624268
+      }
+    },
+    {
+      "aligned_center": 38,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 2.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 0.9999999588551729,
+      "recovered_fit": {
+        "amplitude": 0.03979083908048001,
+        "constant": 7.206028956026235e-05,
+        "dnu_mhz": 0.012307351685029467
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_phase_cycled",
+      "seed": 20262815,
+      "truth_fit": {
+        "amplitude": 0.0397908354518177,
+        "constant": 7.206028943433407e-05,
+        "dnu_mhz": 0.012307352781624268
+      }
+    },
+    {
+      "aligned_center": 38,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 2.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 1.7553837266064815e-09,
+      "recovered_fit": {
+        "amplitude": 9.999999999999998,
+        "constant": 4.999999999999999,
+        "dnu_mhz": 0.3499999999999999
+      },
+      "recovered_frequency_check": true,
+      "route": "unmatched_noise_free",
+      "seed": 20262815,
+      "truth_fit": {
+        "amplitude": 0.0397908354518177,
+        "constant": 7.206028943433407e-05,
+        "dnu_mhz": 0.012307352781624268
+      }
+    },
+    {
+      "aligned_center": 18,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 2.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 0.9999999574859908,
+      "recovered_fit": {
+        "amplitude": 0.03947370000656734,
+        "constant": -2.2227060783577552e-05,
+        "dnu_mhz": 0.01238107620545855
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_noise_free",
+      "seed": 20263113,
+      "truth_fit": {
+        "amplitude": 0.03947369992068908,
+        "constant": -2.222710448372389e-05,
+        "dnu_mhz": 0.01238107625629718
+      }
+    },
+    {
+      "aligned_center": 18,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 2.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 0.9999999577092005,
+      "recovered_fit": {
+        "amplitude": 0.03947370007598379,
+        "constant": -2.222709806670958e-05,
+        "dnu_mhz": 0.012381076182672583
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_phase_cycled",
+      "seed": 20263113,
+      "truth_fit": {
+        "amplitude": 0.03947369992068908,
+        "constant": -2.222710448372389e-05,
+        "dnu_mhz": 0.01238107625629718
+      }
+    },
+    {
+      "aligned_center": 18,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 2.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 1.7005447263010764e-09,
+      "recovered_fit": {
+        "amplitude": 9.999999999999998,
+        "constant": 4.999999999999999,
+        "dnu_mhz": 0.34999999999999987
+      },
+      "recovered_frequency_check": true,
+      "route": "unmatched_noise_free",
+      "seed": 20263113,
+      "truth_fit": {
+        "amplitude": 0.03947369992068908,
+        "constant": -2.222710448372389e-05,
+        "dnu_mhz": 0.01238107625629718
+      }
+    },
+    {
+      "aligned_center": 28,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 2.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 0.9999999578650948,
+      "recovered_fit": {
+        "amplitude": 0.03961848665211303,
+        "constant": 9.712428341486429e-06,
+        "dnu_mhz": 0.012172453750813644
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_noise_free",
+      "seed": 20263114,
+      "truth_fit": {
+        "amplitude": 0.03961848724072644,
+        "constant": 9.712475370549246e-06,
+        "dnu_mhz": 0.012172453498829606
+      }
+    },
+    {
+      "aligned_center": 28,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 2.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 0.9999999574233773,
+      "recovered_fit": {
+        "amplitude": 0.03961848939023793,
+        "constant": 9.712515670812283e-06,
+        "dnu_mhz": 0.0121724528405565
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_phase_cycled",
+      "seed": 20263114,
+      "truth_fit": {
+        "amplitude": 0.03961848724072644,
+        "constant": 9.712475370549246e-06,
+        "dnu_mhz": 0.012172453498829606
+      }
+    },
+    {
+      "aligned_center": 28,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 2.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 1.6523534836385925e-09,
+      "recovered_fit": {
+        "amplitude": 9.999999999999998,
+        "constant": 4.999999999999999,
+        "dnu_mhz": 0.3499999999999999
+      },
+      "recovered_frequency_check": true,
+      "route": "unmatched_noise_free",
+      "seed": 20263114,
+      "truth_fit": {
+        "amplitude": 0.03961848724072644,
+        "constant": 9.712475370549246e-06,
+        "dnu_mhz": 0.012172453498829606
+      }
+    },
+    {
+      "aligned_center": 38,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 2.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 0.9999999578634048,
+      "recovered_fit": {
+        "amplitude": 0.040014753113465897,
+        "constant": 1.720392770694463e-05,
+        "dnu_mhz": 0.012180596833345396
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_noise_free",
+      "seed": 20263115,
+      "truth_fit": {
+        "amplitude": 0.04001475449415253,
+        "constant": 1.7203904732769023e-05,
+        "dnu_mhz": 0.012180596492607153
+      }
+    },
+    {
+      "aligned_center": 38,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 2.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 0.9999999577610075,
+      "recovered_fit": {
+        "amplitude": 0.04001475465406082,
+        "constant": 1.7203953839257915e-05,
+        "dnu_mhz": 0.01218059641937236
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_phase_cycled",
+      "seed": 20263115,
+      "truth_fit": {
+        "amplitude": 0.04001475449415253,
+        "constant": 1.7203904732769023e-05,
+        "dnu_mhz": 0.012180596492607153
+      }
+    },
+    {
+      "aligned_center": 38,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 2.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 1.6984135942733627e-09,
+      "recovered_fit": {
+        "amplitude": 9.999999999999998,
+        "constant": 4.999999999999999,
+        "dnu_mhz": 0.3499999999999999
+      },
+      "recovered_frequency_check": true,
+      "route": "unmatched_noise_free",
+      "seed": 20263115,
+      "truth_fit": {
+        "amplitude": 0.04001475449415253,
+        "constant": 1.7203904732769023e-05,
+        "dnu_mhz": 0.012180596492607153
+      }
+    },
+    {
+      "aligned_center": 18,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 4.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 0.9999999589292542,
+      "recovered_fit": {
+        "amplitude": 0.03985536048612827,
+        "constant": -0.00015877255615137393,
+        "dnu_mhz": 0.025033463645004982
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_noise_free",
+      "seed": 20264813,
+      "truth_fit": {
+        "amplitude": 0.03985536062564808,
+        "constant": -0.00015877250574654046,
+        "dnu_mhz": 0.02503346358862388
+      }
+    },
+    {
+      "aligned_center": 18,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 4.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 0.9999999570976107,
+      "recovered_fit": {
+        "amplitude": 0.03985536065230326,
+        "constant": -0.00015877255272365092,
+        "dnu_mhz": 0.025033463658320168
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_phase_cycled",
+      "seed": 20264813,
+      "truth_fit": {
+        "amplitude": 0.03985536062564808,
+        "constant": -0.00015877250574654046,
+        "dnu_mhz": 0.02503346358862388
+      }
+    },
+    {
+      "aligned_center": 18,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 4.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 1.7637442171215235e-09,
+      "recovered_fit": {
+        "amplitude": 9.999999999999998,
+        "constant": 4.999999999999999,
+        "dnu_mhz": 0.3499999999999999
+      },
+      "recovered_frequency_check": true,
+      "route": "unmatched_noise_free",
+      "seed": 20264813,
+      "truth_fit": {
+        "amplitude": 0.03985536062564808,
+        "constant": -0.00015877250574654046,
+        "dnu_mhz": 0.02503346358862388
+      }
+    },
+    {
+      "aligned_center": 28,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 4.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 0.9999999576944204,
+      "recovered_fit": {
+        "amplitude": 0.04012596656440961,
+        "constant": 2.1332137992916412e-05,
+        "dnu_mhz": 0.024405865836950123
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_noise_free",
+      "seed": 20264814,
+      "truth_fit": {
+        "amplitude": 0.040125966218351315,
+        "constant": 2.1332145582420656e-05,
+        "dnu_mhz": 0.02440586562473369
+      }
+    },
+    {
+      "aligned_center": 28,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 4.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 0.9999999574628847,
+      "recovered_fit": {
+        "amplitude": 0.040125965461670084,
+        "constant": 2.1332000955280267e-05,
+        "dnu_mhz": 0.02440586579950709
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_phase_cycled",
+      "seed": 20264814,
+      "truth_fit": {
+        "amplitude": 0.040125966218351315,
+        "constant": 2.1332145582420656e-05,
+        "dnu_mhz": 0.02440586562473369
+      }
+    },
+    {
+      "aligned_center": 28,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 4.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 1.6522697176391036e-09,
+      "recovered_fit": {
+        "amplitude": 9.999999999999998,
+        "constant": 4.999999999999999,
+        "dnu_mhz": 0.3499999999999999
+      },
+      "recovered_frequency_check": true,
+      "route": "unmatched_noise_free",
+      "seed": 20264814,
+      "truth_fit": {
+        "amplitude": 0.040125966218351315,
+        "constant": 2.1332145582420656e-05,
+        "dnu_mhz": 0.02440586562473369
+      }
+    },
+    {
+      "aligned_center": 38,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 4.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 0.9999999571976469,
+      "recovered_fit": {
+        "amplitude": 0.040542351507288764,
+        "constant": -4.302224928570078e-05,
+        "dnu_mhz": 0.024289935126081227
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_noise_free",
+      "seed": 20264815,
+      "truth_fit": {
+        "amplitude": 0.04054235134990867,
+        "constant": -4.302226369063857e-05,
+        "dnu_mhz": 0.02428993495274027
+      }
+    },
+    {
+      "aligned_center": 38,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 4.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 0.9999999568566476,
+      "recovered_fit": {
+        "amplitude": 0.040542352621371215,
+        "constant": -4.302207315482132e-05,
+        "dnu_mhz": 0.02428993356623636
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_phase_cycled",
+      "seed": 20264815,
+      "truth_fit": {
+        "amplitude": 0.04054235134990867,
+        "constant": -4.302226369063857e-05,
+        "dnu_mhz": 0.02428993495274027
+      }
+    },
+    {
+      "aligned_center": 38,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 4.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 1.7315195488456377e-09,
+      "recovered_fit": {
+        "amplitude": 9.999999999999998,
+        "constant": 4.999999999999999,
+        "dnu_mhz": 0.3499999999999999
+      },
+      "recovered_frequency_check": true,
+      "route": "unmatched_noise_free",
+      "seed": 20264815,
+      "truth_fit": {
+        "amplitude": 0.04054235134990867,
+        "constant": -4.302226369063857e-05,
+        "dnu_mhz": 0.02428993495274027
+      }
+    },
+    {
+      "aligned_center": 18,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 4.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 0.9999999579689489,
+      "recovered_fit": {
+        "amplitude": 0.04018627882336418,
+        "constant": 0.00015497860573024394,
+        "dnu_mhz": 0.024622260605179636
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_noise_free",
+      "seed": 20265113,
+      "truth_fit": {
+        "amplitude": 0.040186278637944224,
+        "constant": 0.00015497853616012328,
+        "dnu_mhz": 0.024622260843888
+      }
+    },
+    {
+      "aligned_center": 18,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 4.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 0.9999999573143528,
+      "recovered_fit": {
+        "amplitude": 0.040186278699083235,
+        "constant": 0.0001549785032084761,
+        "dnu_mhz": 0.024622260623041826
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_phase_cycled",
+      "seed": 20265113,
+      "truth_fit": {
+        "amplitude": 0.040186278637944224,
+        "constant": 0.00015497853616012328,
+        "dnu_mhz": 0.024622260843888
+      }
+    },
+    {
+      "aligned_center": 18,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 4.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 1.7485568363416076e-09,
+      "recovered_fit": {
+        "amplitude": 9.999999999999998,
+        "constant": 4.999999999999999,
+        "dnu_mhz": 0.3499999999999999
+      },
+      "recovered_frequency_check": true,
+      "route": "unmatched_noise_free",
+      "seed": 20265113,
+      "truth_fit": {
+        "amplitude": 0.040186278637944224,
+        "constant": 0.00015497853616012328,
+        "dnu_mhz": 0.024622260843888
+      }
+    },
+    {
+      "aligned_center": 28,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 4.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 0.9999999579069148,
+      "recovered_fit": {
+        "amplitude": 0.039852344823118654,
+        "constant": 0.00013554313785187666,
+        "dnu_mhz": 0.024138587210593494
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_noise_free",
+      "seed": 20265114,
+      "truth_fit": {
+        "amplitude": 0.03985234452008551,
+        "constant": 0.00013554311098068632,
+        "dnu_mhz": 0.024138587200354174
+      }
+    },
+    {
+      "aligned_center": 28,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 4.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 0.9999999579486384,
+      "recovered_fit": {
+        "amplitude": 0.03985234448862259,
+        "constant": 0.00013554303313078174,
+        "dnu_mhz": 0.02413858727908697
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_phase_cycled",
+      "seed": 20265114,
+      "truth_fit": {
+        "amplitude": 0.03985234452008551,
+        "constant": 0.00013554311098068632,
+        "dnu_mhz": 0.024138587200354174
+      }
+    },
+    {
+      "aligned_center": 28,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 4.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 1.7521797766242313e-09,
+      "recovered_fit": {
+        "amplitude": 9.999999999999998,
+        "constant": 4.999999999999999,
+        "dnu_mhz": 0.3499999999999999
+      },
+      "recovered_frequency_check": true,
+      "route": "unmatched_noise_free",
+      "seed": 20265114,
+      "truth_fit": {
+        "amplitude": 0.03985234452008551,
+        "constant": 0.00013554311098068632,
+        "dnu_mhz": 0.024138587200354174
+      }
+    },
+    {
+      "aligned_center": 38,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 4.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 0.9999999569776472,
+      "recovered_fit": {
+        "amplitude": 0.04061646317426314,
+        "constant": 4.5883326742285125e-05,
+        "dnu_mhz": 0.0239177592666992
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_noise_free",
+      "seed": 20265115,
+      "truth_fit": {
+        "amplitude": 0.040616463603093386,
+        "constant": 4.588327702902031e-05,
+        "dnu_mhz": 0.02391775913094254
+      }
+    },
+    {
+      "aligned_center": 38,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 4.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 0.9999999578498935,
+      "recovered_fit": {
+        "amplitude": 0.04061646373457139,
+        "constant": 4.588325597490222e-05,
+        "dnu_mhz": 0.023917759300091383
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_phase_cycled",
+      "seed": 20265115,
+      "truth_fit": {
+        "amplitude": 0.040616463603093386,
+        "constant": 4.588327702902031e-05,
+        "dnu_mhz": 0.02391775913094254
+      }
+    },
+    {
+      "aligned_center": 38,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 4.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 1.7456317428540825e-09,
+      "recovered_fit": {
+        "amplitude": 9.999999999999998,
+        "constant": 4.999999999999999,
+        "dnu_mhz": 0.3499999999999999
+      },
+      "recovered_frequency_check": true,
+      "route": "unmatched_noise_free",
+      "seed": 20265115,
+      "truth_fit": {
+        "amplitude": 0.040616463603093386,
+        "constant": 4.588327702902031e-05,
+        "dnu_mhz": 0.02391775913094254
+      }
+    },
+    {
+      "aligned_center": 18,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 8.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 0.9999999578254783,
+      "recovered_fit": {
+        "amplitude": 0.03999847690661394,
+        "constant": -0.0003424112949664856,
+        "dnu_mhz": 0.04902013862925493
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_noise_free",
+      "seed": 20268813,
+      "truth_fit": {
+        "amplitude": 0.03999847676073063,
+        "constant": -0.0003424112146013229,
+        "dnu_mhz": 0.04902013902286968
+      }
+    },
+    {
+      "aligned_center": 18,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 8.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 0.9999999586019543,
+      "recovered_fit": {
+        "amplitude": 0.03999847684789755,
+        "constant": -0.000342411513124792,
+        "dnu_mhz": 0.049020138610910015
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_phase_cycled",
+      "seed": 20268813,
+      "truth_fit": {
+        "amplitude": 0.03999847676073063,
+        "constant": -0.0003424112146013229,
+        "dnu_mhz": 0.04902013902286968
+      }
+    },
+    {
+      "aligned_center": 18,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 8.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 1.6457835354567483e-09,
+      "recovered_fit": {
+        "amplitude": 9.999999999999998,
+        "constant": 4.999999999999999,
+        "dnu_mhz": 0.3499999999999999
+      },
+      "recovered_frequency_check": true,
+      "route": "unmatched_noise_free",
+      "seed": 20268813,
+      "truth_fit": {
+        "amplitude": 0.03999847676073063,
+        "constant": -0.0003424112146013229,
+        "dnu_mhz": 0.04902013902286968
+      }
+    },
+    {
+      "aligned_center": 28,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 8.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 0.9999999592316091,
+      "recovered_fit": {
+        "amplitude": 0.03975399333151109,
+        "constant": -0.00014409562198752969,
+        "dnu_mhz": 0.048380799034333365
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_noise_free",
+      "seed": 20268814,
+      "truth_fit": {
+        "amplitude": 0.039753993047322786,
+        "constant": -0.00014409552531533502,
+        "dnu_mhz": 0.0483807990011714
+      }
+    },
+    {
+      "aligned_center": 28,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 8.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 0.9999999572538235,
+      "recovered_fit": {
+        "amplitude": 0.0397539923305025,
+        "constant": -0.00014409554880355247,
+        "dnu_mhz": 0.04838079999520969
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_phase_cycled",
+      "seed": 20268814,
+      "truth_fit": {
+        "amplitude": 0.039753993047322786,
+        "constant": -0.00014409552531533502,
+        "dnu_mhz": 0.0483807990011714
+      }
+    },
+    {
+      "aligned_center": 28,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 8.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 1.7409414669874067e-09,
+      "recovered_fit": {
+        "amplitude": 9.999999999999998,
+        "constant": 4.999999999999999,
+        "dnu_mhz": 0.3499999999999999
+      },
+      "recovered_frequency_check": true,
+      "route": "unmatched_noise_free",
+      "seed": 20268814,
+      "truth_fit": {
+        "amplitude": 0.039753993047322786,
+        "constant": -0.00014409552531533502,
+        "dnu_mhz": 0.0483807990011714
+      }
+    },
+    {
+      "aligned_center": 38,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 8.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 0.999999957887923,
+      "recovered_fit": {
+        "amplitude": 0.04014414672164602,
+        "constant": -0.00017140093267995095,
+        "dnu_mhz": 0.04970210077218525
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_noise_free",
+      "seed": 20268815,
+      "truth_fit": {
+        "amplitude": 0.040144147131686445,
+        "constant": -0.00017140092985618778,
+        "dnu_mhz": 0.04970210088893441
+      }
+    },
+    {
+      "aligned_center": 38,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 8.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 0.9999999566422489,
+      "recovered_fit": {
+        "amplitude": 0.04014414711376528,
+        "constant": -0.00017140162689085068,
+        "dnu_mhz": 0.04970210339688786
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_phase_cycled",
+      "seed": 20268815,
+      "truth_fit": {
+        "amplitude": 0.040144147131686445,
+        "constant": -0.00017140092985618778,
+        "dnu_mhz": 0.04970210088893441
+      }
+    },
+    {
+      "aligned_center": 38,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 8.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 1.7095207807978536e-09,
+      "recovered_fit": {
+        "amplitude": 9.999999999999998,
+        "constant": 4.999999999999999,
+        "dnu_mhz": 0.3499999999999999
+      },
+      "recovered_frequency_check": true,
+      "route": "unmatched_noise_free",
+      "seed": 20268815,
+      "truth_fit": {
+        "amplitude": 0.040144147131686445,
+        "constant": -0.00017140092985618778,
+        "dnu_mhz": 0.04970210088893441
+      }
+    },
+    {
+      "aligned_center": 18,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 8.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 0.9999999569453596,
+      "recovered_fit": {
+        "amplitude": 0.04002580527064706,
+        "constant": 0.00020358854718489474,
+        "dnu_mhz": 0.04781379597027694
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_noise_free",
+      "seed": 20269113,
+      "truth_fit": {
+        "amplitude": 0.04002580524744612,
+        "constant": 0.00020358871131689464,
+        "dnu_mhz": 0.04781379565529816
+      }
+    },
+    {
+      "aligned_center": 18,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 8.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 0.9999999581416404,
+      "recovered_fit": {
+        "amplitude": 0.04002580527018633,
+        "constant": 0.000203588648832161,
+        "dnu_mhz": 0.0478137966525818
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_phase_cycled",
+      "seed": 20269113,
+      "truth_fit": {
+        "amplitude": 0.04002580524744612,
+        "constant": 0.00020358871131689464,
+        "dnu_mhz": 0.04781379565529816
+      }
+    },
+    {
+      "aligned_center": 18,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 8.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 1.7003594271830193e-09,
+      "recovered_fit": {
+        "amplitude": 9.999999999999998,
+        "constant": 4.999999999999999,
+        "dnu_mhz": 0.3499999999999999
+      },
+      "recovered_frequency_check": true,
+      "route": "unmatched_noise_free",
+      "seed": 20269113,
+      "truth_fit": {
+        "amplitude": 0.04002580524744612,
+        "constant": 0.00020358871131689464,
+        "dnu_mhz": 0.04781379565529816
+      }
+    },
+    {
+      "aligned_center": 28,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 8.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 0.9999999581191275,
+      "recovered_fit": {
+        "amplitude": 0.04031711998523744,
+        "constant": -0.00018320406987948207,
+        "dnu_mhz": 0.049240010679061114
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_noise_free",
+      "seed": 20269114,
+      "truth_fit": {
+        "amplitude": 0.040317119951540074,
+        "constant": -0.0001832037996327382,
+        "dnu_mhz": 0.04924000935040864
+      }
+    },
+    {
+      "aligned_center": 28,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 8.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 0.9999999585307604,
+      "recovered_fit": {
+        "amplitude": 0.040317120093902474,
+        "constant": -0.00018320367182831572,
+        "dnu_mhz": 0.04924000859724962
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_phase_cycled",
+      "seed": 20269114,
+      "truth_fit": {
+        "amplitude": 0.040317119951540074,
+        "constant": -0.0001832037996327382,
+        "dnu_mhz": 0.04924000935040864
+      }
+    },
+    {
+      "aligned_center": 28,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 8.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 1.7364306597844975e-09,
+      "recovered_fit": {
+        "amplitude": 9.999999999999998,
+        "constant": 4.999999999999999,
+        "dnu_mhz": 0.3499999999999998
+      },
+      "recovered_frequency_check": true,
+      "route": "unmatched_noise_free",
+      "seed": 20269114,
+      "truth_fit": {
+        "amplitude": 0.040317119951540074,
+        "constant": -0.0001832037996327382,
+        "dnu_mhz": 0.04924000935040864
+      }
+    },
+    {
+      "aligned_center": 38,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 8.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 0.9999999585209542,
+      "recovered_fit": {
+        "amplitude": 0.04001414475344074,
+        "constant": 0.0003291615837313626,
+        "dnu_mhz": 0.047955011516324114
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_noise_free",
+      "seed": 20269115,
+      "truth_fit": {
+        "amplitude": 0.04001414518857075,
+        "constant": 0.00032916161429722465,
+        "dnu_mhz": 0.04795501080814174
+      }
+    },
+    {
+      "aligned_center": 38,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 8.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 0.9999999591669766,
+      "recovered_fit": {
+        "amplitude": 0.04001414467338701,
+        "constant": 0.00032916167695888285,
+        "dnu_mhz": 0.04795501159458015
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_phase_cycled",
+      "seed": 20269115,
+      "truth_fit": {
+        "amplitude": 0.04001414518857075,
+        "constant": 0.00032916161429722465,
+        "dnu_mhz": 0.04795501080814174
+      }
+    },
+    {
+      "aligned_center": 38,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 8.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 1.782334166585236e-09,
+      "recovered_fit": {
+        "amplitude": 9.999999999999998,
+        "constant": 4.999999999999999,
+        "dnu_mhz": 0.3499999999999999
+      },
+      "recovered_frequency_check": true,
+      "route": "unmatched_noise_free",
+      "seed": 20269115,
+      "truth_fit": {
+        "amplitude": 0.04001414518857075,
+        "constant": 0.00032916161429722465,
+        "dnu_mhz": 0.04795501080814174
+      }
+    },
+    {
+      "aligned_center": 18,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 16.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 0.999999959012365,
+      "recovered_fit": {
+        "amplitude": 0.040216169546484284,
+        "constant": 0.00010351885284151364,
+        "dnu_mhz": 0.09591721639104223
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_noise_free",
+      "seed": 20276813,
+      "truth_fit": {
+        "amplitude": 0.040216169554504494,
+        "constant": 0.00010351900810835104,
+        "dnu_mhz": 0.09591721625963602
+      }
+    },
+    {
+      "aligned_center": 18,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 16.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 0.9999999580610988,
+      "recovered_fit": {
+        "amplitude": 0.04021616950825087,
+        "constant": 0.00010351913127300673,
+        "dnu_mhz": 0.09591721620531983
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_phase_cycled",
+      "seed": 20276813,
+      "truth_fit": {
+        "amplitude": 0.040216169554504494,
+        "constant": 0.00010351900810835104,
+        "dnu_mhz": 0.09591721625963602
+      }
+    },
+    {
+      "aligned_center": 18,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 16.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 1.752821207888568e-09,
+      "recovered_fit": {
+        "amplitude": 9.999999999999998,
+        "constant": 4.999999999999999,
+        "dnu_mhz": 0.3499999999999999
+      },
+      "recovered_frequency_check": true,
+      "route": "unmatched_noise_free",
+      "seed": 20276813,
+      "truth_fit": {
+        "amplitude": 0.040216169554504494,
+        "constant": 0.00010351900810835104,
+        "dnu_mhz": 0.09591721625963602
+      }
+    },
+    {
+      "aligned_center": 28,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 16.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 0.9999999576704071,
+      "recovered_fit": {
+        "amplitude": 0.040065731561056785,
+        "constant": 7.323489554309435e-05,
+        "dnu_mhz": 0.09634052742502139
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_noise_free",
+      "seed": 20276814,
+      "truth_fit": {
+        "amplitude": 0.04006573176748778,
+        "constant": 7.323493320771698e-05,
+        "dnu_mhz": 0.09634052758131072
+      }
+    },
+    {
+      "aligned_center": 28,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 16.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 0.9999999564739253,
+      "recovered_fit": {
+        "amplitude": 0.04006573210877878,
+        "constant": 7.323471906476575e-05,
+        "dnu_mhz": 0.09634052813251447
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_phase_cycled",
+      "seed": 20276814,
+      "truth_fit": {
+        "amplitude": 0.04006573176748778,
+        "constant": 7.323493320771698e-05,
+        "dnu_mhz": 0.09634052758131072
+      }
+    },
+    {
+      "aligned_center": 28,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 16.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 1.7695478911223582e-09,
+      "recovered_fit": {
+        "amplitude": 9.999999999999998,
+        "constant": 4.999999999999999,
+        "dnu_mhz": 0.3499999999999999
+      },
+      "recovered_frequency_check": true,
+      "route": "unmatched_noise_free",
+      "seed": 20276814,
+      "truth_fit": {
+        "amplitude": 0.04006573176748778,
+        "constant": 7.323493320771698e-05,
+        "dnu_mhz": 0.09634052758131072
+      }
+    },
+    {
+      "aligned_center": 38,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 16.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 0.9999999582157023,
+      "recovered_fit": {
+        "amplitude": 0.0398014274640058,
+        "constant": 0.0004961693171996068,
+        "dnu_mhz": 0.09412394197792025
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_noise_free",
+      "seed": 20276815,
+      "truth_fit": {
+        "amplitude": 0.039801427244373466,
+        "constant": 0.0004961694101872928,
+        "dnu_mhz": 0.09412394248636681
+      }
+    },
+    {
+      "aligned_center": 38,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 16.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 0.9999999571742435,
+      "recovered_fit": {
+        "amplitude": 0.03980142726228121,
+        "constant": 0.0004961687167799228,
+        "dnu_mhz": 0.09412394595456011
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_phase_cycled",
+      "seed": 20276815,
+      "truth_fit": {
+        "amplitude": 0.039801427244373466,
+        "constant": 0.0004961694101872928,
+        "dnu_mhz": 0.09412394248636681
+      }
+    },
+    {
+      "aligned_center": 38,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 16.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 1.638417008329145e-09,
+      "recovered_fit": {
+        "amplitude": 9.999999999999998,
+        "constant": 4.999999999999999,
+        "dnu_mhz": 0.3499999999999999
+      },
+      "recovered_frequency_check": true,
+      "route": "unmatched_noise_free",
+      "seed": 20276815,
+      "truth_fit": {
+        "amplitude": 0.039801427244373466,
+        "constant": 0.0004961694101872928,
+        "dnu_mhz": 0.09412394248636681
+      }
+    },
+    {
+      "aligned_center": 18,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 16.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 0.9999999584334778,
+      "recovered_fit": {
+        "amplitude": 0.03997446751091658,
+        "constant": -0.00018058417308174047,
+        "dnu_mhz": 0.09754026246405079
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_noise_free",
+      "seed": 20277113,
+      "truth_fit": {
+        "amplitude": 0.039974467437192546,
+        "constant": -0.00018058412232052637,
+        "dnu_mhz": 0.09754026337163607
+      }
+    },
+    {
+      "aligned_center": 18,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 16.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 0.9999999570516407,
+      "recovered_fit": {
+        "amplitude": 0.03997446758211485,
+        "constant": -0.00018058424976353287,
+        "dnu_mhz": 0.09754026371236603
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_phase_cycled",
+      "seed": 20277113,
+      "truth_fit": {
+        "amplitude": 0.039974467437192546,
+        "constant": -0.00018058412232052637,
+        "dnu_mhz": 0.09754026337163607
+      }
+    },
+    {
+      "aligned_center": 18,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 16.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 1.6516375602276558e-09,
+      "recovered_fit": {
+        "amplitude": 9.999999999999998,
+        "constant": 4.999999999999999,
+        "dnu_mhz": 0.3499999999999999
+      },
+      "recovered_frequency_check": true,
+      "route": "unmatched_noise_free",
+      "seed": 20277113,
+      "truth_fit": {
+        "amplitude": 0.039974467437192546,
+        "constant": -0.00018058412232052637,
+        "dnu_mhz": 0.09754026337163607
+      }
+    },
+    {
+      "aligned_center": 28,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 16.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 0.9999999577747508,
+      "recovered_fit": {
+        "amplitude": 0.040339143458982644,
+        "constant": -0.00044859005948944,
+        "dnu_mhz": 0.09922226510697912
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_noise_free",
+      "seed": 20277114,
+      "truth_fit": {
+        "amplitude": 0.04033914386351373,
+        "constant": -0.0004485899684393948,
+        "dnu_mhz": 0.09922226525234705
+      }
+    },
+    {
+      "aligned_center": 28,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 16.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 0.9999999575012161,
+      "recovered_fit": {
+        "amplitude": 0.04033914330203472,
+        "constant": -0.00044858985485824045,
+        "dnu_mhz": 0.09922226512232855
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_phase_cycled",
+      "seed": 20277114,
+      "truth_fit": {
+        "amplitude": 0.04033914386351373,
+        "constant": -0.0004485899684393948,
+        "dnu_mhz": 0.09922226525234705
+      }
+    },
+    {
+      "aligned_center": 28,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 16.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 1.7840872998665416e-09,
+      "recovered_fit": {
+        "amplitude": 9.999999999999998,
+        "constant": 4.999999999999999,
+        "dnu_mhz": 0.34999999999999987
+      },
+      "recovered_frequency_check": true,
+      "route": "unmatched_noise_free",
+      "seed": 20277114,
+      "truth_fit": {
+        "amplitude": 0.04033914386351373,
+        "constant": -0.0004485899684393948,
+        "dnu_mhz": 0.09922226525234705
+      }
+    },
+    {
+      "aligned_center": 38,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 16.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 0.9999999580549706,
+      "recovered_fit": {
+        "amplitude": 0.039547997285694574,
+        "constant": -8.015201640510373e-05,
+        "dnu_mhz": 0.0977521104306828
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_noise_free",
+      "seed": 20277115,
+      "truth_fit": {
+        "amplitude": 0.03954799681647509,
+        "constant": -8.015159510341537e-05,
+        "dnu_mhz": 0.0977521096392084
+      }
+    },
+    {
+      "aligned_center": 38,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 16.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 0.9999999577923921,
+      "recovered_fit": {
+        "amplitude": 0.039547996730381424,
+        "constant": -8.015167222587808e-05,
+        "dnu_mhz": 0.09775210959382993
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_phase_cycled",
+      "seed": 20277115,
+      "truth_fit": {
+        "amplitude": 0.03954799681647509,
+        "constant": -8.015159510341537e-05,
+        "dnu_mhz": 0.0977521096392084
+      }
+    },
+    {
+      "aligned_center": 38,
+      "band_mhz": [
+        400.0,
+        627.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 16.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 1.8835769693286397e-09,
+      "recovered_fit": {
+        "amplitude": 9.999999999999998,
+        "constant": 4.999999999999999,
+        "dnu_mhz": 0.34999999999999987
+      },
+      "recovered_frequency_check": true,
+      "route": "unmatched_noise_free",
+      "seed": 20277115,
+      "truth_fit": {
+        "amplitude": 0.03954799681647509,
+        "constant": -8.015159510341537e-05,
+        "dnu_mhz": 0.0977521096392084
+      }
+    },
+    {
+      "aligned_center": 18,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 2.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 0.9999999583177311,
+      "recovered_fit": {
+        "amplitude": 0.04100217947008061,
+        "constant": -0.0001357546293214893,
+        "dnu_mhz": 0.01176614210948783
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_noise_free",
+      "seed": 20272813,
+      "truth_fit": {
+        "amplitude": 0.04100218097370262,
+        "constant": -0.00013575460958611458,
+        "dnu_mhz": 0.011766141878744665
+      }
+    },
+    {
+      "aligned_center": 18,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 2.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 0.9999999595892118,
+      "recovered_fit": {
+        "amplitude": 0.041002187028290234,
+        "constant": -0.00013575435946245565,
+        "dnu_mhz": 0.011766139871718187
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_phase_cycled",
+      "seed": 20272813,
+      "truth_fit": {
+        "amplitude": 0.04100218097370262,
+        "constant": -0.00013575460958611458,
+        "dnu_mhz": 0.011766141878744665
+      }
+    },
+    {
+      "aligned_center": 18,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 2.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 1.90103799139858e-10,
+      "recovered_fit": {
+        "amplitude": 0.16033809867988139,
+        "constant": 0.07116063770486726,
+        "dnu_mhz": 0.04844722861189138
+      },
+      "recovered_frequency_check": true,
+      "route": "unmatched_noise_free",
+      "seed": 20272813,
+      "truth_fit": {
+        "amplitude": 0.04100218097370262,
+        "constant": -0.00013575460958611458,
+        "dnu_mhz": 0.011766141878744665
+      }
+    },
+    {
+      "aligned_center": 28,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 2.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 0.999999958280961,
+      "recovered_fit": {
+        "amplitude": 0.04112064906892984,
+        "constant": 5.6211926356840236e-05,
+        "dnu_mhz": 0.01176006684600932
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_noise_free",
+      "seed": 20272814,
+      "truth_fit": {
+        "amplitude": 0.04112064920573493,
+        "constant": 5.6212026156101465e-05,
+        "dnu_mhz": 0.011760066531895345
+      }
+    },
+    {
+      "aligned_center": 28,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 2.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 0.9999999575783126,
+      "recovered_fit": {
+        "amplitude": 0.04112064265673385,
+        "constant": 5.6212045145959484e-05,
+        "dnu_mhz": 0.011760068398618775
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_phase_cycled",
+      "seed": 20272814,
+      "truth_fit": {
+        "amplitude": 0.04112064920573493,
+        "constant": 5.6212026156101465e-05,
+        "dnu_mhz": 0.011760066531895345
+      }
+    },
+    {
+      "aligned_center": 28,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 2.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 1.8943111877829972e-10,
+      "recovered_fit": {
+        "amplitude": 0.15115616539194177,
+        "constant": 0.06522448109141338,
+        "dnu_mhz": 0.046979525968889706
+      },
+      "recovered_frequency_check": true,
+      "route": "unmatched_noise_free",
+      "seed": 20272814,
+      "truth_fit": {
+        "amplitude": 0.04112064920573493,
+        "constant": 5.6212026156101465e-05,
+        "dnu_mhz": 0.011760066531895345
+      }
+    },
+    {
+      "aligned_center": 38,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 2.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 0.99999995894924,
+      "recovered_fit": {
+        "amplitude": 0.04052108251307902,
+        "constant": 0.00016291286333808524,
+        "dnu_mhz": 0.012092243049852331
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_noise_free",
+      "seed": 20272815,
+      "truth_fit": {
+        "amplitude": 0.040521085235585064,
+        "constant": 0.00016291291012163008,
+        "dnu_mhz": 0.012092242056518272
+      }
+    },
+    {
+      "aligned_center": 38,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 2.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 0.9999999583710418,
+      "recovered_fit": {
+        "amplitude": 0.04052108367981299,
+        "constant": 0.0001629127217777428,
+        "dnu_mhz": 0.012092242671500567
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_phase_cycled",
+      "seed": 20272815,
+      "truth_fit": {
+        "amplitude": 0.040521085235585064,
+        "constant": 0.00016291291012163008,
+        "dnu_mhz": 0.012092242056518272
+      }
+    },
+    {
+      "aligned_center": 38,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 2.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 1.8975794286082958e-10,
+      "recovered_fit": {
+        "amplitude": 0.15293187623797735,
+        "constant": 0.06878939870995522,
+        "dnu_mhz": 0.048617023452412846
+      },
+      "recovered_frequency_check": true,
+      "route": "unmatched_noise_free",
+      "seed": 20272815,
+      "truth_fit": {
+        "amplitude": 0.040521085235585064,
+        "constant": 0.00016291291012163008,
+        "dnu_mhz": 0.012092242056518272
+      }
+    },
+    {
+      "aligned_center": 18,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 2.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 0.9999999578724493,
+      "recovered_fit": {
+        "amplitude": 0.04008994435520305,
+        "constant": -4.5288388041539396e-05,
+        "dnu_mhz": 0.012675821057309768
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_noise_free",
+      "seed": 20273113,
+      "truth_fit": {
+        "amplitude": 0.040089943750861536,
+        "constant": -4.528837314221318e-05,
+        "dnu_mhz": 0.012675821035303188
+      }
+    },
+    {
+      "aligned_center": 18,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 2.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 0.9999999579589505,
+      "recovered_fit": {
+        "amplitude": 0.04008994347759757,
+        "constant": -4.5288499088076535e-05,
+        "dnu_mhz": 0.012675821248894478
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_phase_cycled",
+      "seed": 20273113,
+      "truth_fit": {
+        "amplitude": 0.040089943750861536,
+        "constant": -4.528837314221318e-05,
+        "dnu_mhz": 0.012675821035303188
+      }
+    },
+    {
+      "aligned_center": 18,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 2.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 1.9028468026676957e-10,
+      "recovered_fit": {
+        "amplitude": 0.1614690361418373,
+        "constant": 0.07007372657687695,
+        "dnu_mhz": 0.04812738757098394
+      },
+      "recovered_frequency_check": true,
+      "route": "unmatched_noise_free",
+      "seed": 20273113,
+      "truth_fit": {
+        "amplitude": 0.040089943750861536,
+        "constant": -4.528837314221318e-05,
+        "dnu_mhz": 0.012675821035303188
+      }
+    },
+    {
+      "aligned_center": 28,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 2.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 0.9999999578479547,
+      "recovered_fit": {
+        "amplitude": 0.03499813956439056,
+        "constant": 1.2678354287225425e-05,
+        "dnu_mhz": 0.012026923935923393
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_noise_free",
+      "seed": 20273114,
+      "truth_fit": {
+        "amplitude": 0.03499813679074877,
+        "constant": 1.2678311028214886e-05,
+        "dnu_mhz": 0.012026924656977621
+      }
+    },
+    {
+      "aligned_center": 28,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 2.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 0.9999999583616734,
+      "recovered_fit": {
+        "amplitude": 0.03499813581200236,
+        "constant": 1.2678330547805891e-05,
+        "dnu_mhz": 0.012026924822911086
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_phase_cycled",
+      "seed": 20273114,
+      "truth_fit": {
+        "amplitude": 0.03499813679074877,
+        "constant": 1.2678311028214886e-05,
+        "dnu_mhz": 0.012026924656977621
+      }
+    },
+    {
+      "aligned_center": 28,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 2.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 1.901609793808703e-10,
+      "recovered_fit": {
+        "amplitude": 0.15110648410669977,
+        "constant": 0.07199441772536568,
+        "dnu_mhz": 0.04941940113559512
+      },
+      "recovered_frequency_check": true,
+      "route": "unmatched_noise_free",
+      "seed": 20273114,
+      "truth_fit": {
+        "amplitude": 0.03499813679074877,
+        "constant": 1.2678311028214886e-05,
+        "dnu_mhz": 0.012026924656977621
+      }
+    },
+    {
+      "aligned_center": 38,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 2.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 0.9999999570946831,
+      "recovered_fit": {
+        "amplitude": 0.043754594645341253,
+        "constant": -0.00012877124483691695,
+        "dnu_mhz": 0.011385905765968828
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_noise_free",
+      "seed": 20273115,
+      "truth_fit": {
+        "amplitude": 0.04375459634925429,
+        "constant": -0.000128771286339841,
+        "dnu_mhz": 0.011385905215140258
+      }
+    },
+    {
+      "aligned_center": 38,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 2.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 0.9999999579205405,
+      "recovered_fit": {
+        "amplitude": 0.04375459662814189,
+        "constant": -0.0001287712703173678,
+        "dnu_mhz": 0.011385905188064592
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_phase_cycled",
+      "seed": 20273115,
+      "truth_fit": {
+        "amplitude": 0.04375459634925429,
+        "constant": -0.000128771286339841,
+        "dnu_mhz": 0.011385905215140258
+      }
+    },
+    {
+      "aligned_center": 38,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 2.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 1.9018607301021583e-10,
+      "recovered_fit": {
+        "amplitude": 0.16065080931732845,
+        "constant": 0.07050914557149077,
+        "dnu_mhz": 0.04840573453361953
+      },
+      "recovered_frequency_check": true,
+      "route": "unmatched_noise_free",
+      "seed": 20273115,
+      "truth_fit": {
+        "amplitude": 0.04375459634925429,
+        "constant": -0.000128771286339841,
+        "dnu_mhz": 0.011385905215140258
+      }
+    },
+    {
+      "aligned_center": 18,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 4.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 0.999999957175006,
+      "recovered_fit": {
+        "amplitude": 0.04030232813563481,
+        "constant": 0.00018842988542920114,
+        "dnu_mhz": 0.024205703846710516
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_noise_free",
+      "seed": 20274813,
+      "truth_fit": {
+        "amplitude": 0.04030232815857284,
+        "constant": 0.00018843005812575823,
+        "dnu_mhz": 0.0242057035949834
+      }
+    },
+    {
+      "aligned_center": 18,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 4.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 0.9999999572708196,
+      "recovered_fit": {
+        "amplitude": 0.0403023286908378,
+        "constant": 0.00018843001508938488,
+        "dnu_mhz": 0.024205703627214307
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_phase_cycled",
+      "seed": 20274813,
+      "truth_fit": {
+        "amplitude": 0.04030232815857284,
+        "constant": 0.00018843005812575823,
+        "dnu_mhz": 0.0242057035949834
+      }
+    },
+    {
+      "aligned_center": 18,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 4.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 1.8965864328803532e-10,
+      "recovered_fit": {
+        "amplitude": 0.16935194372298626,
+        "constant": 0.06384327734846361,
+        "dnu_mhz": 0.04930357243107303
+      },
+      "recovered_frequency_check": true,
+      "route": "unmatched_noise_free",
+      "seed": 20274813,
+      "truth_fit": {
+        "amplitude": 0.04030232815857284,
+        "constant": 0.00018843005812575823,
+        "dnu_mhz": 0.0242057035949834
+      }
+    },
+    {
+      "aligned_center": 28,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 4.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 0.9999999585376116,
+      "recovered_fit": {
+        "amplitude": 0.039658045450750516,
+        "constant": 9.786875595365669e-05,
+        "dnu_mhz": 0.023508623917411625
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_noise_free",
+      "seed": 20274814,
+      "truth_fit": {
+        "amplitude": 0.03965804606874868,
+        "constant": 9.786885395396541e-05,
+        "dnu_mhz": 0.023508623572101962
+      }
+    },
+    {
+      "aligned_center": 28,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 4.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 0.9999999605882091,
+      "recovered_fit": {
+        "amplitude": 0.039658046466082696,
+        "constant": 9.786901565238711e-05,
+        "dnu_mhz": 0.023508622478256344
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_phase_cycled",
+      "seed": 20274814,
+      "truth_fit": {
+        "amplitude": 0.03965804606874868,
+        "constant": 9.786885395396541e-05,
+        "dnu_mhz": 0.023508623572101962
+      }
+    },
+    {
+      "aligned_center": 28,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 4.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 1.8991710083861725e-10,
+      "recovered_fit": {
+        "amplitude": 0.1683660606226434,
+        "constant": 0.06793202605227254,
+        "dnu_mhz": 0.04793747419344781
+      },
+      "recovered_frequency_check": true,
+      "route": "unmatched_noise_free",
+      "seed": 20274814,
+      "truth_fit": {
+        "amplitude": 0.03965804606874868,
+        "constant": 9.786885395396541e-05,
+        "dnu_mhz": 0.023508623572101962
+      }
+    },
+    {
+      "aligned_center": 38,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 4.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 0.9999999592524232,
+      "recovered_fit": {
+        "amplitude": 0.040865806000233984,
+        "constant": 0.000352493961592318,
+        "dnu_mhz": 0.02239361893998242
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_noise_free",
+      "seed": 20274815,
+      "truth_fit": {
+        "amplitude": 0.0408658065317172,
+        "constant": 0.0003524938912114422,
+        "dnu_mhz": 0.02239361870638672
+      }
+    },
+    {
+      "aligned_center": 38,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 4.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 0.9999999573999463,
+      "recovered_fit": {
+        "amplitude": 0.04086580569241143,
+        "constant": 0.00035249394016434547,
+        "dnu_mhz": 0.022393618725251904
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_phase_cycled",
+      "seed": 20274815,
+      "truth_fit": {
+        "amplitude": 0.0408658065317172,
+        "constant": 0.0003524938912114422,
+        "dnu_mhz": 0.02239361870638672
+      }
+    },
+    {
+      "aligned_center": 38,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 4.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 1.9010410119457532e-10,
+      "recovered_fit": {
+        "amplitude": 0.16874706402386097,
+        "constant": 0.06976699242030894,
+        "dnu_mhz": 0.04665298722985375
+      },
+      "recovered_frequency_check": true,
+      "route": "unmatched_noise_free",
+      "seed": 20274815,
+      "truth_fit": {
+        "amplitude": 0.0408658065317172,
+        "constant": 0.0003524938912114422,
+        "dnu_mhz": 0.02239361870638672
+      }
+    },
+    {
+      "aligned_center": 18,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 4.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 0.9999999581809642,
+      "recovered_fit": {
+        "amplitude": 0.04117295780151717,
+        "constant": 4.558282325103421e-05,
+        "dnu_mhz": 0.023673356641769998
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_noise_free",
+      "seed": 20275113,
+      "truth_fit": {
+        "amplitude": 0.04117295825888568,
+        "constant": 4.5582880981770945e-05,
+        "dnu_mhz": 0.023673356439358605
+      }
+    },
+    {
+      "aligned_center": 18,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 4.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 0.9999999578013218,
+      "recovered_fit": {
+        "amplitude": 0.04117295809733114,
+        "constant": 4.558277895247964e-05,
+        "dnu_mhz": 0.02367335681081588
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_phase_cycled",
+      "seed": 20275113,
+      "truth_fit": {
+        "amplitude": 0.04117295825888568,
+        "constant": 4.5582880981770945e-05,
+        "dnu_mhz": 0.023673356439358605
+      }
+    },
+    {
+      "aligned_center": 18,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 4.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 1.898130657864283e-10,
+      "recovered_fit": {
+        "amplitude": 0.1715182903773833,
+        "constant": 0.067538811864484,
+        "dnu_mhz": 0.047112939362647425
+      },
+      "recovered_frequency_check": true,
+      "route": "unmatched_noise_free",
+      "seed": 20275113,
+      "truth_fit": {
+        "amplitude": 0.04117295825888568,
+        "constant": 4.5582880981770945e-05,
+        "dnu_mhz": 0.023673356439358605
+      }
+    },
+    {
+      "aligned_center": 28,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 4.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 0.999999957758695,
+      "recovered_fit": {
+        "amplitude": 0.040431363845717445,
+        "constant": -0.00014219153409788398,
+        "dnu_mhz": 0.02470674560862911
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_noise_free",
+      "seed": 20275114,
+      "truth_fit": {
+        "amplitude": 0.040431363687080966,
+        "constant": -0.0001421915730994707,
+        "dnu_mhz": 0.02470674559795887
+      }
+    },
+    {
+      "aligned_center": 28,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 4.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 0.999999958492886,
+      "recovered_fit": {
+        "amplitude": 0.04043136428579405,
+        "constant": -0.00014219149796712747,
+        "dnu_mhz": 0.02470674484443378
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_phase_cycled",
+      "seed": 20275114,
+      "truth_fit": {
+        "amplitude": 0.040431363687080966,
+        "constant": -0.0001421915730994707,
+        "dnu_mhz": 0.02470674559795887
+      }
+    },
+    {
+      "aligned_center": 28,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 4.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 1.9014338206293017e-10,
+      "recovered_fit": {
+        "amplitude": 0.1742774378272347,
+        "constant": 0.0692280044025481,
+        "dnu_mhz": 0.04605518253714878
+      },
+      "recovered_frequency_check": true,
+      "route": "unmatched_noise_free",
+      "seed": 20275114,
+      "truth_fit": {
+        "amplitude": 0.040431363687080966,
+        "constant": -0.0001421915730994707,
+        "dnu_mhz": 0.02470674559795887
+      }
+    },
+    {
+      "aligned_center": 38,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 4.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 0.9999999585965921,
+      "recovered_fit": {
+        "amplitude": 0.03998673593769416,
+        "constant": -5.741384306491604e-05,
+        "dnu_mhz": 0.024866305965136982
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_noise_free",
+      "seed": 20275115,
+      "truth_fit": {
+        "amplitude": 0.039986736046775745,
+        "constant": -5.741381266816025e-05,
+        "dnu_mhz": 0.024866305659508904
+      }
+    },
+    {
+      "aligned_center": 38,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 4.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 0.9999999577978436,
+      "recovered_fit": {
+        "amplitude": 0.0399867356057145,
+        "constant": -5.741378251124819e-05,
+        "dnu_mhz": 0.024866305608479734
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_phase_cycled",
+      "seed": 20275115,
+      "truth_fit": {
+        "amplitude": 0.039986736046775745,
+        "constant": -5.741381266816025e-05,
+        "dnu_mhz": 0.024866305659508904
+      }
+    },
+    {
+      "aligned_center": 38,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 4.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 1.89988471945634e-10,
+      "recovered_fit": {
+        "amplitude": 0.1728264572985714,
+        "constant": 0.0720868704665973,
+        "dnu_mhz": 0.04754233948351865
+      },
+      "recovered_frequency_check": true,
+      "route": "unmatched_noise_free",
+      "seed": 20275115,
+      "truth_fit": {
+        "amplitude": 0.039986736046775745,
+        "constant": -5.741381266816025e-05,
+        "dnu_mhz": 0.024866305659508904
+      }
+    },
+    {
+      "aligned_center": 18,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 8.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 0.9999999593555184,
+      "recovered_fit": {
+        "amplitude": 0.039325515945646906,
+        "constant": 0.0008462285640092043,
+        "dnu_mhz": 0.04885488852860989
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_noise_free",
+      "seed": 20278813,
+      "truth_fit": {
+        "amplitude": 0.03932551604859675,
+        "constant": 0.0008462286826084421,
+        "dnu_mhz": 0.04885488834319831
+      }
+    },
+    {
+      "aligned_center": 18,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 8.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 0.9999999593156383,
+      "recovered_fit": {
+        "amplitude": 0.03932551556321913,
+        "constant": 0.0008462286672363512,
+        "dnu_mhz": 0.04885488841193532
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_phase_cycled",
+      "seed": 20278813,
+      "truth_fit": {
+        "amplitude": 0.03932551604859675,
+        "constant": 0.0008462286826084421,
+        "dnu_mhz": 0.04885488834319831
+      }
+    },
+    {
+      "aligned_center": 18,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 8.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 1.8996161520515963e-10,
+      "recovered_fit": {
+        "amplitude": 0.17920517646973766,
+        "constant": 0.07009931511861268,
+        "dnu_mhz": 0.05005804104487232
+      },
+      "recovered_frequency_check": true,
+      "route": "unmatched_noise_free",
+      "seed": 20278813,
+      "truth_fit": {
+        "amplitude": 0.03932551604859675,
+        "constant": 0.0008462286826084421,
+        "dnu_mhz": 0.04885488834319831
+      }
+    },
+    {
+      "aligned_center": 28,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 8.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 0.9999999580601671,
+      "recovered_fit": {
+        "amplitude": 0.03955777007096035,
+        "constant": 0.0007808017168989161,
+        "dnu_mhz": 0.04533474869239858
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_noise_free",
+      "seed": 20278814,
+      "truth_fit": {
+        "amplitude": 0.03955777045820468,
+        "constant": 0.0007808017467796411,
+        "dnu_mhz": 0.045334748247669726
+      }
+    },
+    {
+      "aligned_center": 28,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 8.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 0.9999999590804598,
+      "recovered_fit": {
+        "amplitude": 0.039557769363178674,
+        "constant": 0.0007808016784156814,
+        "dnu_mhz": 0.04533474871442942
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_phase_cycled",
+      "seed": 20278814,
+      "truth_fit": {
+        "amplitude": 0.03955777045820468,
+        "constant": 0.0007808017467796411,
+        "dnu_mhz": 0.045334748247669726
+      }
+    },
+    {
+      "aligned_center": 28,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 8.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 1.9075898947771694e-10,
+      "recovered_fit": {
+        "amplitude": 0.18438278313212064,
+        "constant": 0.07620188373949102,
+        "dnu_mhz": 0.05437177861429236
+      },
+      "recovered_frequency_check": true,
+      "route": "unmatched_noise_free",
+      "seed": 20278814,
+      "truth_fit": {
+        "amplitude": 0.03955777045820468,
+        "constant": 0.0007808017467796411,
+        "dnu_mhz": 0.045334748247669726
+      }
+    },
+    {
+      "aligned_center": 38,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 8.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 0.9999999591534318,
+      "recovered_fit": {
+        "amplitude": 0.039261819584478906,
+        "constant": 0.0005704635906000819,
+        "dnu_mhz": 0.04706486311750483
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_noise_free",
+      "seed": 20278815,
+      "truth_fit": {
+        "amplitude": 0.03926181902324478,
+        "constant": 0.0005704636423961766,
+        "dnu_mhz": 0.04706486318346954
+      }
+    },
+    {
+      "aligned_center": 38,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 8.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 0.999999958519,
+      "recovered_fit": {
+        "amplitude": 0.03926181892889949,
+        "constant": 0.0005704635784472101,
+        "dnu_mhz": 0.04706486348164105
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_phase_cycled",
+      "seed": 20278815,
+      "truth_fit": {
+        "amplitude": 0.03926181902324478,
+        "constant": 0.0005704636423961766,
+        "dnu_mhz": 0.04706486318346954
+      }
+    },
+    {
+      "aligned_center": 38,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 8.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 1.8931562231867887e-10,
+      "recovered_fit": {
+        "amplitude": 0.17624602435247566,
+        "constant": 0.06706005996742426,
+        "dnu_mhz": 0.04845098298597872
+      },
+      "recovered_frequency_check": true,
+      "route": "unmatched_noise_free",
+      "seed": 20278815,
+      "truth_fit": {
+        "amplitude": 0.03926181902324478,
+        "constant": 0.0005704636423961766,
+        "dnu_mhz": 0.04706486318346954
+      }
+    },
+    {
+      "aligned_center": 18,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 8.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 0.9999999599141796,
+      "recovered_fit": {
+        "amplitude": 0.0392494162165778,
+        "constant": 0.0002843363327392803,
+        "dnu_mhz": 0.048440470822953455
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_noise_free",
+      "seed": 20279113,
+      "truth_fit": {
+        "amplitude": 0.03924941646438684,
+        "constant": 0.00028433620267851687,
+        "dnu_mhz": 0.04844047107854758
+      }
+    },
+    {
+      "aligned_center": 18,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 8.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 0.9999999577716225,
+      "recovered_fit": {
+        "amplitude": 0.039249416389433196,
+        "constant": 0.000284336264898241,
+        "dnu_mhz": 0.04844047094225087
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_phase_cycled",
+      "seed": 20279113,
+      "truth_fit": {
+        "amplitude": 0.03924941646438684,
+        "constant": 0.00028433620267851687,
+        "dnu_mhz": 0.04844047107854758
+      }
+    },
+    {
+      "aligned_center": 18,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 8.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 1.8975728844427008e-10,
+      "recovered_fit": {
+        "amplitude": 0.17534914403951435,
+        "constant": 0.06591046506903879,
+        "dnu_mhz": 0.057760144162452634
+      },
+      "recovered_frequency_check": true,
+      "route": "unmatched_noise_free",
+      "seed": 20279113,
+      "truth_fit": {
+        "amplitude": 0.03924941646438684,
+        "constant": 0.00028433620267851687,
+        "dnu_mhz": 0.04844047107854758
+      }
+    },
+    {
+      "aligned_center": 28,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 8.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 0.9999999569699055,
+      "recovered_fit": {
+        "amplitude": 0.039101729459393615,
+        "constant": 8.521808550814283e-05,
+        "dnu_mhz": 0.050054001840858155
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_noise_free",
+      "seed": 20279114,
+      "truth_fit": {
+        "amplitude": 0.039101729589783606,
+        "constant": 8.52181114807868e-05,
+        "dnu_mhz": 0.05005400226738577
+      }
+    },
+    {
+      "aligned_center": 28,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 8.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 0.9999999577321965,
+      "recovered_fit": {
+        "amplitude": 0.03910172926879849,
+        "constant": 8.521828430567333e-05,
+        "dnu_mhz": 0.050054002607120035
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_phase_cycled",
+      "seed": 20279114,
+      "truth_fit": {
+        "amplitude": 0.039101729589783606,
+        "constant": 8.52181114807868e-05,
+        "dnu_mhz": 0.05005400226738577
+      }
+    },
+    {
+      "aligned_center": 28,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 8.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 1.8961783949072041e-10,
+      "recovered_fit": {
+        "amplitude": 0.18558957914538898,
+        "constant": 0.06376000426367012,
+        "dnu_mhz": 0.049291518929324346
+      },
+      "recovered_frequency_check": true,
+      "route": "unmatched_noise_free",
+      "seed": 20279114,
+      "truth_fit": {
+        "amplitude": 0.039101729589783606,
+        "constant": 8.52181114807868e-05,
+        "dnu_mhz": 0.05005400226738577
+      }
+    },
+    {
+      "aligned_center": 38,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 8.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 0.9999999584308701,
+      "recovered_fit": {
+        "amplitude": 0.03917544891636406,
+        "constant": 3.86768898554366e-05,
+        "dnu_mhz": 0.04928703182077629
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_noise_free",
+      "seed": 20279115,
+      "truth_fit": {
+        "amplitude": 0.039175449240678714,
+        "constant": 3.867709850153509e-05,
+        "dnu_mhz": 0.04928703126101138
+      }
+    },
+    {
+      "aligned_center": 38,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 8.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 0.9999999600955409,
+      "recovered_fit": {
+        "amplitude": 0.03917544888371851,
+        "constant": 3.867697282733262e-05,
+        "dnu_mhz": 0.04928703159364391
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_phase_cycled",
+      "seed": 20279115,
+      "truth_fit": {
+        "amplitude": 0.039175449240678714,
+        "constant": 3.867709850153509e-05,
+        "dnu_mhz": 0.04928703126101138
+      }
+    },
+    {
+      "aligned_center": 38,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 8.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 1.8948703379505066e-10,
+      "recovered_fit": {
+        "amplitude": 0.18457953765149293,
+        "constant": 0.06518359488466673,
+        "dnu_mhz": 0.05229338680898238
+      },
+      "recovered_frequency_check": true,
+      "route": "unmatched_noise_free",
+      "seed": 20279115,
+      "truth_fit": {
+        "amplitude": 0.039175449240678714,
+        "constant": 3.867709850153509e-05,
+        "dnu_mhz": 0.04928703126101138
+      }
+    },
+    {
+      "aligned_center": 18,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 16.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 0.9999999579864395,
+      "recovered_fit": {
+        "amplitude": 0.040646681031367926,
+        "constant": -0.0005364487343584097,
+        "dnu_mhz": 0.10076632641430364
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_noise_free",
+      "seed": 20286813,
+      "truth_fit": {
+        "amplitude": 0.040646680644677226,
+        "constant": -0.0005364489453769689,
+        "dnu_mhz": 0.10076632771473956
+      }
+    },
+    {
+      "aligned_center": 18,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 16.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 0.9999999581693679,
+      "recovered_fit": {
+        "amplitude": 0.04064668065155092,
+        "constant": -0.0005364489901897911,
+        "dnu_mhz": 0.10076632704993904
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_phase_cycled",
+      "seed": 20286813,
+      "truth_fit": {
+        "amplitude": 0.040646680644677226,
+        "constant": -0.0005364489453769689,
+        "dnu_mhz": 0.10076632771473956
+      }
+    },
+    {
+      "aligned_center": 18,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 16.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 1.8945430683300928e-10,
+      "recovered_fit": {
+        "amplitude": 0.17799394442160663,
+        "constant": 0.06615203481973665,
+        "dnu_mhz": 0.05758646320198443
+      },
+      "recovered_frequency_check": true,
+      "route": "unmatched_noise_free",
+      "seed": 20286813,
+      "truth_fit": {
+        "amplitude": 0.040646680644677226,
+        "constant": -0.0005364489453769689,
+        "dnu_mhz": 0.10076632771473956
+      }
+    },
+    {
+      "aligned_center": 28,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 16.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 0.9999999584914786,
+      "recovered_fit": {
+        "amplitude": 0.040578748741646506,
+        "constant": -0.0007737534338419343,
+        "dnu_mhz": 0.09893865746286597
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_noise_free",
+      "seed": 20286814,
+      "truth_fit": {
+        "amplitude": 0.04057874837862961,
+        "constant": -0.0007737534212588003,
+        "dnu_mhz": 0.09893865744270935
+      }
+    },
+    {
+      "aligned_center": 28,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 16.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 0.9999999576981253,
+      "recovered_fit": {
+        "amplitude": 0.040578748422761386,
+        "constant": -0.0007737525455719953,
+        "dnu_mhz": 0.09893865472376766
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_phase_cycled",
+      "seed": 20286814,
+      "truth_fit": {
+        "amplitude": 0.04057874837862961,
+        "constant": -0.0007737534212588003,
+        "dnu_mhz": 0.09893865744270935
+      }
+    },
+    {
+      "aligned_center": 28,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 16.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 1.8992856683081193e-10,
+      "recovered_fit": {
+        "amplitude": 0.18667103007455577,
+        "constant": 0.06780544903558805,
+        "dnu_mhz": 0.059011228716413205
+      },
+      "recovered_frequency_check": true,
+      "route": "unmatched_noise_free",
+      "seed": 20286814,
+      "truth_fit": {
+        "amplitude": 0.04057874837862961,
+        "constant": -0.0007737534212588003,
+        "dnu_mhz": 0.09893865744270935
+      }
+    },
+    {
+      "aligned_center": 38,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 16.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 0.9999999587229954,
+      "recovered_fit": {
+        "amplitude": 0.03884112514024846,
+        "constant": 0.0007831729794201423,
+        "dnu_mhz": 0.09361122184779311
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_noise_free",
+      "seed": 20286815,
+      "truth_fit": {
+        "amplitude": 0.038841125345921206,
+        "constant": 0.0007831729578573009,
+        "dnu_mhz": 0.09361122157968922
+      }
+    },
+    {
+      "aligned_center": 38,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 16.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 0.9999999579648571,
+      "recovered_fit": {
+        "amplitude": 0.03884112499802447,
+        "constant": 0.0007831724517735487,
+        "dnu_mhz": 0.09361122773212589
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_phase_cycled",
+      "seed": 20286815,
+      "truth_fit": {
+        "amplitude": 0.038841125345921206,
+        "constant": 0.0007831729578573009,
+        "dnu_mhz": 0.09361122157968922
+      }
+    },
+    {
+      "aligned_center": 38,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 16.0,
+      "power_ratio": 1.0,
+      "power_recovery_ratio": 1.900105384246759e-10,
+      "recovered_fit": {
+        "amplitude": 0.18560607856469713,
+        "constant": 0.07271460629528007,
+        "dnu_mhz": 0.05693045328610597
+      },
+      "recovered_frequency_check": true,
+      "route": "unmatched_noise_free",
+      "seed": 20286815,
+      "truth_fit": {
+        "amplitude": 0.038841125345921206,
+        "constant": 0.0007831729578573009,
+        "dnu_mhz": 0.09361122157968922
+      }
+    },
+    {
+      "aligned_center": 18,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 16.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 0.9999999581442852,
+      "recovered_fit": {
+        "amplitude": 0.03982743224235164,
+        "constant": -0.0001900855937570289,
+        "dnu_mhz": 0.0974825882371099
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_noise_free",
+      "seed": 20287113,
+      "truth_fit": {
+        "amplitude": 0.03982743250666954,
+        "constant": -0.00019008616006815245,
+        "dnu_mhz": 0.0974825915735193
+      }
+    },
+    {
+      "aligned_center": 18,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 16.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 0.999999958759946,
+      "recovered_fit": {
+        "amplitude": 0.03982743231787848,
+        "constant": -0.00019008613408777518,
+        "dnu_mhz": 0.0974825932784678
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_phase_cycled",
+      "seed": 20287113,
+      "truth_fit": {
+        "amplitude": 0.03982743250666954,
+        "constant": -0.00019008616006815245,
+        "dnu_mhz": 0.0974825915735193
+      }
+    },
+    {
+      "aligned_center": 18,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 16.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 1.8972672657341187e-10,
+      "recovered_fit": {
+        "amplitude": 0.17510911830308842,
+        "constant": 0.06934790388321367,
+        "dnu_mhz": 0.05882201474274048
+      },
+      "recovered_frequency_check": true,
+      "route": "unmatched_noise_free",
+      "seed": 20287113,
+      "truth_fit": {
+        "amplitude": 0.03982743250666954,
+        "constant": -0.00019008616006815245,
+        "dnu_mhz": 0.0974825915735193
+      }
+    },
+    {
+      "aligned_center": 28,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 16.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 0.9999999567519721,
+      "recovered_fit": {
+        "amplitude": 0.03947846286566803,
+        "constant": 0.0012096205717622994,
+        "dnu_mhz": 0.09297511955611414
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_noise_free",
+      "seed": 20287114,
+      "truth_fit": {
+        "amplitude": 0.03947846236131203,
+        "constant": 0.0012096210206815068,
+        "dnu_mhz": 0.0929751184393237
+      }
+    },
+    {
+      "aligned_center": 28,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 16.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 0.9999999581074075,
+      "recovered_fit": {
+        "amplitude": 0.03947846248899634,
+        "constant": 0.00120962074099461,
+        "dnu_mhz": 0.09297511993224693
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_phase_cycled",
+      "seed": 20287114,
+      "truth_fit": {
+        "amplitude": 0.03947846236131203,
+        "constant": 0.0012096210206815068,
+        "dnu_mhz": 0.0929751184393237
+      }
+    },
+    {
+      "aligned_center": 28,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 16.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 1.896020141361182e-10,
+      "recovered_fit": {
+        "amplitude": 0.17936327021182563,
+        "constant": 0.06327674193977119,
+        "dnu_mhz": 0.05783576418392225
+      },
+      "recovered_frequency_check": true,
+      "route": "unmatched_noise_free",
+      "seed": 20287114,
+      "truth_fit": {
+        "amplitude": 0.03947846236131203,
+        "constant": 0.0012096210206815068,
+        "dnu_mhz": 0.0929751184393237
+      }
+    },
+    {
+      "aligned_center": 38,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 16.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 0.9999999573524994,
+      "recovered_fit": {
+        "amplitude": 0.040549055550774815,
+        "constant": -0.0017898396563428985,
+        "dnu_mhz": 0.09806453335428567
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_noise_free",
+      "seed": 20287115,
+      "truth_fit": {
+        "amplitude": 0.04054905487424568,
+        "constant": -0.0017898395988791766,
+        "dnu_mhz": 0.09806453448865807
+      }
+    },
+    {
+      "aligned_center": 38,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 16.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 0.9999999576230852,
+      "recovered_fit": {
+        "amplitude": 0.04054905506902873,
+        "constant": -0.0017898397230173438,
+        "dnu_mhz": 0.09806453426231457
+      },
+      "recovered_frequency_check": true,
+      "route": "matched_phase_cycled",
+      "seed": 20287115,
+      "truth_fit": {
+        "amplitude": 0.04054905487424568,
+        "constant": -0.0017898395988791766,
+        "dnu_mhz": 0.09806453448865807
+      }
+    },
+    {
+      "aligned_center": 38,
+      "band_mhz": [
+        627.0,
+        800.0
+      ],
+      "channel_id_check": true,
+      "nominal_width_channels": 16.0,
+      "power_ratio": 4.0,
+      "power_recovery_ratio": 1.9119484840791008e-10,
+      "recovered_fit": {
+        "amplitude": 0.19331408320446775,
+        "constant": 0.0739301340204751,
+        "dnu_mhz": 0.060342680812693825
+      },
+      "recovered_frequency_check": true,
+      "route": "unmatched_noise_free",
+      "seed": 20287115,
+      "truth_fit": {
+        "amplitude": 0.04054905487424568,
+        "constant": -0.0017898395988791766,
+        "dnu_mhz": 0.09806453448865807
+      }
+    }
+  ],
+  "scallop": {
+    "shape": [
+      0.6474189763397318,
+      0.6510523252419618,
+      0.6574652139458572,
+      0.6718204266875416,
+      0.6870055554058363,
+      0.7034041824603346,
+      0.7407547385634865,
+      0.7770329693230511,
+      0.8006954071325931,
+      0.8344135416274392,
+      0.8788986600865977,
+      0.9024724893326228,
+      0.9389116532357918,
+      0.9910686666480304,
+      1.0133701692473003,
+      1.033600308182551,
+      1.0657054370259964,
+      1.1018555684383875,
+      1.1026481532093682,
+      1.1433810689407027,
+      1.1444850506522606,
+      1.185383554447178,
+      1.1902906234736537,
+      1.201258639963184,
+      1.2082178100055165,
+      1.218674416047119,
+      1.2190475743656195,
+      1.222588309125598,
+      1.2227071203992073,
+      1.2371732135890972,
+      1.225818932287441,
+      1.2267299843246648,
+      1.2290281886458128,
+      1.2285566414566425,
+      1.243268127517871,
+      1.2438221983900275,
+      1.2284384577892387,
+      1.2181281530296364,
+      1.2123074368268114,
+      1.192881967180448,
+      1.1893464239233449,
+      1.186133081379105,
+      1.1775356736396245,
+      1.1550117106320072,
+      1.133236039111476,
+      1.1215879335610457,
+      1.1031383614212718,
+      1.0823521980733761,
+      1.063884723135987,
+      1.0258780873172082,
+      1.012967859212443,
+      0.9695287923260976,
+      0.9299002290747088,
+      0.8967088855849286,
+      0.8517657609550651,
+      0.829279992068985,
+      0.7842927865454327,
+      0.7630158509858551,
+      0.7220411347783299,
+      0.7026054146720387,
+      0.6835308502723105,
+      0.6639538568604043,
+      0.6617698211162384,
+      0.6487526227605037
+    ],
+    "split_half_shape_a": [
+      0.6475046749798952,
+      0.6588489537876325,
+      0.6633422627381423,
+      0.6701564455175603,
+      0.6895003081159045,
+      0.7055547069090838,
+      0.7389494222259327,
+      0.7796217193858898,
+      0.803610717912794,
+      0.8367155499079703,
+      0.868438890031656,
+      0.9090577086065268,
+      0.9372237145073106,
+      0.9892122314714904,
+      1.0066377152537744,
+      1.0265470826568182,
+      1.0685130842335926,
+      1.095248100239574,
+      1.0979875586669023,
+      1.137688445542427,
+      1.142496003287592,
+      1.1827357605470772,
+      1.1895852106604947,
+      1.2103496446162734,
+      1.2035964095188603,
+      1.1935643613650684,
+      1.1999128265888133,
+      1.2264663426297986,
+      1.214006374987924,
+      1.2250693091313916,
+      1.2091542094035395,
+      1.227632262863995,
+      1.2204451115202364,
+      1.2200155527983398,
+      1.2369367764421841,
+      1.2516517340767808,
+      1.2315579530552128,
+      1.2224513783943327,
+      1.2228679401490206,
+      1.173985554952832,
+      1.1976866488300368,
+      1.185721048085705,
+      1.1638543189201598,
+      1.154762396291622,
+      1.14518128588122,
+      1.1321439651201461,
+      1.1086463440088077,
+      1.0938684164844377,
+      1.070429938270287,
+      1.0254899325721722,
+      1.012950405829778,
+      0.9739139068634592,
+      0.9366275671270803,
+      0.8955564854719458,
+      0.8536888684651481,
+      0.8308586854721192,
+      0.8030143345256828,
+      0.7710989583162229,
+      0.732443682608399,
+      0.7054416276013565,
+      0.6944727335781173,
+      0.658778473945498,
+      0.6645242045655998,
+      0.6540057614843524
+    ],
+    "split_half_shape_b": [
+      0.6490830805594964,
+      0.6540225606467195,
+      0.6544732135182649,
+      0.670500546004113,
+      0.6906143615782554,
+      0.7124962453853718,
+      0.7474467510547264,
+      0.7751002835487794,
+      0.8092570490462141,
+      0.8377143216965002,
+      0.8824299660053659,
+      0.9062265496772371,
+      0.9563546056416782,
+      0.9932541994955701,
+      1.0083577003965754,
+      1.0339523320495392,
+      1.056572081663233,
+      1.1005450342053062,
+      1.1009704956607616,
+      1.137454958409046,
+      1.1338410814141116,
+      1.169129480417755,
+      1.184385350160468,
+      1.1957351691862181,
+      1.216196200277649,
+      1.228140013436575,
+      1.2144300175051297,
+      1.2302717642284873,
+      1.2348912372451406,
+      1.2339139778958481,
+      1.22607010698296,
+      1.2250112007269265,
+      1.2372194132991567,
+      1.2258045227283376,
+      1.2297551471960992,
+      1.22437987835938,
+      1.2230717262158766,
+      1.2206959687002525,
+      1.2207637626473462,
+      1.195322998715548,
+      1.176707515210574,
+      1.2047121175779256,
+      1.1761358882373785,
+      1.1448349077854068,
+      1.141687311341219,
+      1.1266457214950405,
+      1.1017664587556972,
+      1.0810869305978867,
+      1.0637100061730984,
+      1.0332862084598242,
+      0.9995285326065818,
+      0.9631950175493018,
+      0.9214807161775282,
+      0.8881336344370784,
+      0.856410463544907,
+      0.8385493345782906,
+      0.7964508134686712,
+      0.755766913829474,
+      0.7227739301001415,
+      0.7008975492881886,
+      0.6872703900909048,
+      0.6701700785910198,
+      0.6553885853146999,
+      0.6475556212071419
+    ],
+    "upchannel_factor": 64
+  },
+  "science_status": "calibration_only"
+}

@@ -47,6 +47,8 @@ without the incoherent step (coherent dedispersion already de-chirps fully). See
 
 from __future__ import annotations
 
+import hashlib
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -102,6 +104,15 @@ TARGETS = {
         "h5_relpath": "2024/01/22/astro_354049284/singlebeam_354049284.h5",
         "note": "MW-floor-dominated (0.0036 MHz floor) -> U=512 via _upchannel(fftsize=1024); slow. Safe only b/c FWHM=24 ms.",
     },
+    "freya": {
+        "id": "278720455",
+        "dm": 912.4,
+        "fwhm_ms": 0.40065937342767416,
+        "upchan": 64,
+        "recoverable": True,
+        "h5_relpath": "2023/03/25/astro_278720455/singlebeam_278720455.h5",
+        "note": "qualification target; U=64 resolves the expected high-band MW scintle",
+    },
     "isha": {
         "id": "252069198",
         "dm": 411.568,
@@ -112,6 +123,14 @@ TARGETS = {
         "note": "NOT cleanly resolvable: railed DSA input + dominant scale at/past the time-smearing wall. Upper-bound only.",
     },
 }
+
+
+def _sha256(path: str | Path) -> str:
+    digest = hashlib.sha256()
+    with Path(path).open("rb") as stream:
+        for block in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
 
 
 def _fetch_h5(relpath: str, scratch: str) -> str:
@@ -127,7 +146,23 @@ def _fetch_h5(relpath: str, scratch: str) -> str:
     return str(dst)
 
 
-def _waterfall(h5_path: str, dm: float, U: int):
+def _detected_products(spec: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """Return Stokes-I and per-polarization power waterfalls.
+
+    ``_upchannel`` returns ``(npol, ntime, nfreq)`` complex voltages.  Keep the
+    two detected polarization streams separate until after validation: their
+    receiver-noise realizations are the independent inputs required by the
+    high-band cross-ACF experiment.  The historical Stokes-I product remains
+    their exact sum.
+    """
+    values = np.asarray(spec)
+    if values.ndim != 3 or values.shape[0] != 2:
+        raise ValueError("upchannelized spectrum must have shape (2, ntime, nfreq)")
+    per_pol = np.transpose(np.abs(values) ** 2, (0, 2, 1))
+    return np.sum(per_pol, axis=0), per_pol
+
+
+def _waterfall(h5_path: str, dm: float, U: int, *, time_shift: bool = True):
     """Coherently-dedispersed, upchannelized Stokes-I waterfall (n_fine_freq, n_time) + freq[MHz].
 
     We assemble the chain by hand rather than via baseband_analysis.analysis.waterfall_from_beamformed
@@ -142,24 +177,40 @@ def _waterfall(h5_path: str, dm: float, U: int):
     from baseband_analysis.core.sampling import _upchannel  # noqa: PLC0415
 
     data = BBData.from_file(h5_path)
-    coherent_dedisp(
-        data, dm, time_shift=True
-    )  # exact de-chirp on the complex voltages at the burst DM
+    time0 = data["time0"][:]
+    source_metadata = {
+        "delta_time": CHIME_NATIVE_DT_S,
+        "fpga_count": np.asarray(time0["fpga_count"], dtype=np.uint64).tolist(),
+        "freq_mhz": np.asarray(data.index_map["freq"]["centre"], dtype=float).tolist(),
+        "freq_id": np.asarray(data.index_map["freq"]["id"], dtype=np.uint32).tolist(),
+    }
+    # coherent_dedisp returns the transformed array unless write=True.  Keep
+    # that return value: upchannelizing data["tiedbeam_baseband"] would silently
+    # use the original dispersed voltages.  For current products time_shift is
+    # disabled because that operation is circular in short channel buffers;
+    # padded alignment is applied downstream from time0 metadata.
+    dedispersed = coherent_dedisp(data, dm, time_shift=time_shift)
 
     # _upchannel returns (spec, freq, chan_id): spec is (npol, nblock, nfine) complex, freq the
     # fine-channel centres (MHz) ordered high->low. upchan factor U = fftsize/downfreq.
     spec, freq, _ = _upchannel(
-        data["tiedbeam_baseband"][:],
+        dedispersed,
         freq_id=data.index_map["freq"]["id"][:],
         fftsize=2 * U,
         downfreq=2,
     )
-    # Stokes I = |X|^2 + |Y|^2 over the two pols -> (nblock, nfine), transpose to (nfine, n_time).
-    stokes_i = (np.abs(spec[0]) ** 2 + np.abs(spec[1]) ** 2).T
-    return stokes_i, np.asarray(freq, dtype=np.float64)
+    stokes_i, per_pol = _detected_products(spec)
+    return stokes_i, per_pol, np.asarray(freq, dtype=np.float64), source_metadata
 
 
-def recover_target(name: str, scratch: str, out_dir: str, run_unresolvable: bool = False) -> Path:
+def recover_target(
+    name: str,
+    scratch: str,
+    out_dir: str,
+    run_unresolvable: bool = False,
+    save_polarizations: bool = False,
+    time_shift: bool = True,
+) -> Path:
     t = TARGETS[name]
     if not t["recoverable"] and not run_unresolvable:
         raise SystemExit(
@@ -169,12 +220,15 @@ def recover_target(name: str, scratch: str, out_dir: str, run_unresolvable: bool
 
     h5_path = _fetch_h5(t["h5_relpath"], scratch)
     U = t["upchan"]
-    stokes_i, freq = _waterfall(h5_path, t["dm"], U)
+    stokes_i, per_pol, freq, source_metadata = _waterfall(
+        h5_path, t["dm"], U, time_shift=time_shift
+    )
 
     # Ascending frequency to match the FLITS BurstDataset convention.
     if freq[0] > freq[-1]:
         freq = freq[::-1]
         stokes_i = stokes_i[::-1, :]
+        per_pol = per_pol[:, ::-1, :]
 
     df_fine = CHIME_COARSE_DF_MHZ / U
     n_fine, n_time = stokes_i.shape
@@ -195,7 +249,40 @@ def recover_target(name: str, scratch: str, out_dir: str, run_unresolvable: bool
     out.mkdir(parents=True, exist_ok=True)
     spec_path = out / f"{name}_chime_upchan.npy"
     np.save(spec_path, stokes_i.astype(np.float32))
-    np.save(out / f"{name}_chime_freq.npy", freq)
+    polarization_paths = []
+    if save_polarizations:
+        for pol_index, power in enumerate(per_pol):
+            path = out / f"{name}_chime_pol{pol_index}_upchan.npy"
+            np.save(path, power.astype(np.float32))
+            polarization_paths.append(path)
+    frequency_path = out / f"{name}_chime_freq.npy"
+    np.save(frequency_path, freq)
+    if save_polarizations:
+        metadata = {
+            **source_metadata,
+            "schema_version": 1,
+            "target": name,
+            "dm_pc_cm3": float(t["dm"]),
+            "upchannel_factor": int(U),
+            "time_shift": bool(time_shift),
+            "source_h5": str(h5_path),
+            "source_h5_sha256": _sha256(h5_path),
+            "producer": str(Path(__file__).resolve()),
+            "producer_sha256": _sha256(Path(__file__).resolve()),
+            "products": {
+                "stokes_i": {"path": spec_path.name, "sha256": _sha256(spec_path)},
+                "polarizations": [
+                    {"path": path.name, "sha256": _sha256(path)} for path in polarization_paths
+                ],
+                "frequencies": {
+                    "path": frequency_path.name,
+                    "sha256": _sha256(frequency_path),
+                },
+            },
+        }
+        (out / f"{name}_crossacf_metadata.json").write_text(
+            json.dumps(metadata, indent=2, sort_keys=True) + "\n"
+        )
     print(
         f"[{name}] U={U} shape={stokes_i.shape} df={df_fine * 1e3:.3f} kHz "
         f"dt={CHIME_NATIVE_DT_S * 2 * U * 1e3:.4f} ms finite={finite_frac:.1%} -> {spec_path.name}"
@@ -211,9 +298,19 @@ def main(argv: list[str]) -> int:
     p.add_argument("--scratch", default=DEFAULT_SCRATCH, help="local landing dir for the .h5 files")
     p.add_argument("--out", default=DEFAULT_OUT_DIR, help="output dir for the .npy products")
     p.add_argument(
+        "--no-time-shift",
+        action="store_true",
+        help="de-chirp without circular time shifting; align downstream from time0 metadata",
+    )
+    p.add_argument(
         "--run-unresolvable",
         action="store_true",
         help="also process targets flagged NOT cleanly resolvable (isha), as an upper bound",
+    )
+    p.add_argument(
+        "--save-polarizations",
+        action="store_true",
+        help="also retain separate detected polarization waterfalls for independent-noise tests",
     )
     args = p.parse_args(argv)
 
@@ -222,7 +319,14 @@ def main(argv: list[str]) -> int:
     if unknown:
         raise SystemExit(f"unknown target(s) {unknown}; known: {list(TARGETS)}")
     for name in targets:
-        recover_target(name, args.scratch, args.out, run_unresolvable=args.run_unresolvable)
+        recover_target(
+            name,
+            args.scratch,
+            args.out,
+            run_unresolvable=args.run_unresolvable,
+            save_polarizations=args.save_polarizations,
+            time_shift=not args.no_time_shift,
+        )
     return 0
 
 

@@ -1,0 +1,15 @@
+{
+  "figure": "figures/oran_dsa_calibrated_measurement.png",
+  "figure_sha256": "efaae17332939497198b83b07674aaa766d0619d2936c4436a42c693fd83fdd6",
+  "review_date": "2026-07-14",
+  "review_status": "pass",
+  "checks": {
+    "response_points_and_intervals_visible": true,
+    "identity_and_observed_fit_distinguishable": true,
+    "calibrated_interval_visible": true,
+    "fit_window_plateau_visible": true,
+    "labels_legible": true,
+    "bound_clipping_not_hidden": true
+  },
+  "note": "The wide-injection intervals visibly reach the 2 MHz estimator bound; this is retained rather than cropped away. The reported measurement is anchored by the monotonic response near the observed 0.40065 MHz raw fit and the stable 12-25 MHz window plateau."
+}

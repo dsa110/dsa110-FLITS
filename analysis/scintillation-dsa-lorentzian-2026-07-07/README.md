@@ -2,6 +2,18 @@
 
 Run date: 2026-07-07 PDT.
 
+## Qualified follow-up measurement
+
+The original survey identified Oran's low DSA sub-band as the strongest
+candidate for a defensible bandwidth. A subsequent frozen injection-recovery
+analysis now qualifies a Lorentzian HWHM decorrelation bandwidth of
+**0.446 MHz**, with a simulation-calibrated 68% interval of
+**0.196–0.685 MHz**, at a band center of **1328.24 MHz**. It passes the
+independent off-pulse null, fit-window stability, low-lag stability, response
+calibration, and calibrated-interval gates. Reproduce it with
+`validate_oran_dsa_measurement.py`; the complete evidence and reviewed figure
+are in `results/oran_qualified/`.
+
 This directory is the first fresh DSA scintillation-bandwidth pass after the
 DSA/CHIME data-products staging cleanup. It deliberately does not read the
 legacy `stored_fits` blocks in `scintillation/configs/bursts/*_dsa.yaml` and

@@ -1,0 +1,15 @@
+{
+  "experiment": "freya_b2_folded_scallop_calibration",
+  "figures": [
+    {
+      "path": "analysis/chime-scallop-calibration-2026-07-13/results/b2/freya_b2_scallop_recovery.png",
+      "sha256": "193460d290cee87e67f78b2585a91f79f7bf1d41cc41e718e22b90d17da786cb",
+      "purpose": "Compare recovered width and power transfer for matched and unmatched scallop-response routes."
+    },
+    {
+      "path": "analysis/chime-scallop-calibration-2026-07-13/results/b2/freya_b2_scallop_recovery.svg",
+      "sha256": "7c0fde80e329df97e31405708204a69e0ea53cfaa499836c9b108e81a3ae33ba",
+      "purpose": "Vector rendering of the complete B2 diagnostic."
+    }
+  ]
+}

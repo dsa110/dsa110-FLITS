@@ -15,7 +15,7 @@ def pinned():
     out = dict()
     for sha, name in pat.findall(DOC.read_text()):
         out[name] = sha
-    assert len(out) == 4, out
+    assert len(out) == 6, out
     return out
 
 

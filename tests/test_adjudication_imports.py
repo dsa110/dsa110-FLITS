@@ -4,8 +4,8 @@ Deviation from plan-trust-reset-revalidation.md P0.2: the plan's template test
 imported the four modules directly, but these are frozen-era execution scripts
 whose top-level code runs the full adjudication pipeline (validate_foreground
 issues live TAP queries at import). The restored scripts intentionally differ
-from the scratch copies only in path plumbing: tracked census inputs come from
-the frozen data package and the docs emitter resolves the repository root.
+from the scratch copies only in path plumbing: all stages use one configurable
+adjudication directory and the docs emitter resolves the repository root.
 The tests therefore assert those path contracts, module locatability, and
 compilation without executing live catalog queries.
 """
@@ -24,9 +24,10 @@ SCRIPTS = (
 )
 
 
-def test_adjudication_scripts_use_tracked_frozen_inputs():
-    for name in ("validate_foreground.py", "merge_final.py", "make_catalog_table.py"):
+def test_adjudication_scripts_share_one_data_directory():
+    for name in SCRIPTS:
         source = (PKG / name).read_text()
+        assert "FLITS_FOREGROUND_ADJUDICATION_DIR" in source, name
         assert '"data", "frozen_census"' in source, name
 
 

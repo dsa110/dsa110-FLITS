@@ -30,3 +30,12 @@ def test_mixed_legacy_inventory_includes_gate_inputs():
     assert "analysis/scattering-refit-2026-06/joint_json/*_joint_ppc.json" in (
         mixed["artifact_globs"]
     )
+    assert "analysis/scattering-refit-2026-06/_a1_fits/*.json" in (
+        mixed["artifact_globs"]
+    )
+
+
+def test_budget_uses_promoted_beta_campaign_generation():
+    inv = yaml.safe_load(INV.read_text())
+    consumers = {c["artifact"]: c["generation"] for c in inv["consumers"]}
+    assert consumers["fig:budget"] == "beta-campaign-2026-07"

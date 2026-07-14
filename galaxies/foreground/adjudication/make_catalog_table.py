@@ -13,12 +13,15 @@ import pandas as pd
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(HERE)))
-FROZEN = os.path.join(os.path.dirname(HERE), "data", "frozen_census")
+DATA = os.environ.get(
+    "FLITS_FOREGROUND_ADJUDICATION_DIR",
+    os.path.join(os.path.dirname(HERE), "data", "frozen_census"),
+)
 
-fin = pd.read_csv(os.path.join(FROZEN, "foreground_final.csv"))
-fgr = pd.read_csv(os.path.join(FROZEN, "foreground.csv"))
-val = pd.read_csv(os.path.join(FROZEN, "foreground_validated.csv"))
-bur = pd.read_csv(os.path.join(FROZEN, "bursts.csv"))
+fin = pd.read_csv(os.path.join(DATA, "foreground_final.csv"))
+fgr = pd.read_csv(os.path.join(DATA, "foreground.csv"))
+val = pd.read_csv(os.path.join(DATA, "foreground_validated.csv"))
+bur = pd.read_csv(os.path.join(DATA, "bursts.csv"))
 for d in (fin, fgr, val):
     d["obj"] = d["obj"].astype(str)
 tns = dict(zip(bur.nickname, bur.tns))
@@ -127,7 +130,7 @@ cat = pd.DataFrame(rows)
 # order by burst MJD, then type (cluster after halo), then impact
 cat["_mjd"] = cat.burst.map(mjd)
 cat = cat.sort_values(["_mjd", "type", "impact_kpc"]).drop(columns="_mjd").reset_index(drop=True)
-cat.to_csv(os.path.join(HERE, "foreground_catalog.csv"), index=False)
+cat.to_csv(os.path.join(DATA, "foreground_catalog.csv"), index=False)
 
 
 def zfmt(z, e, md=True):

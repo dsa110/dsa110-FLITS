@@ -14,6 +14,7 @@ generations:
       - "analysis/scattering-refit-2026-06/joint_json/*_joint_fit.json"
       - "analysis/scattering-refit-2026-06/joint_json/*_joint_ppc.json"
       - "analysis/scattering-refit-2026-06/joint_json/*_joint_gate.json"
+      - "analysis/scattering-refit-2026-06/_a1_fits/*.json"
   - name: beta-campaign-2026-07
     description: >-
       July 2026 beta campaign: shared-zeta joint fits and campaign verdicts.
@@ -33,7 +34,7 @@ consumers:
   - {artifact: "fig:scint_screens", generation: mixed-legacy-2026-06}
   - {artifact: "tab:budget", generation: mixed-legacy-2026-06}
   - {artifact: "tab:foreground", generation: mixed-legacy-2026-06}
-  - {artifact: "fig:budget", generation: mixed-legacy-2026-06}
+  - {artifact: "fig:budget", generation: beta-campaign-2026-07}
 known_conflicts:
   - name: chromatica-three-way-gate
     detail: >-

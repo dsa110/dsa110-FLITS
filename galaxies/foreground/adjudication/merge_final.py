@@ -13,9 +13,12 @@ import numpy as np
 import pandas as pd
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-FROZEN = os.path.join(os.path.dirname(HERE), "data", "frozen_census")
-val = pd.read_csv(os.path.join(FROZEN, "foreground_validated.csv"))
-strm = pd.read_csv(os.path.join(HERE, "ps1_strm_resolution.csv"))
+DATA = os.environ.get(
+    "FLITS_FOREGROUND_ADJUDICATION_DIR",
+    os.path.join(os.path.dirname(HERE), "data", "frozen_census"),
+)
+val = pd.read_csv(os.path.join(DATA, "foreground_validated.csv"))
+strm = pd.read_csv(os.path.join(DATA, "ps1_strm_resolution.csv"))
 val["obj"] = val.obj.astype(str)
 strm["obj"] = strm.obj.astype(str)
 strm_map = strm.set_index("obj")
@@ -78,7 +81,7 @@ cols = [
     "final_reason",
 ]
 final = final[[c for c in cols if c in final.columns]]
-final.to_csv(os.path.join(HERE, "foreground_final.csv"), index=False)
+final.to_csv(os.path.join(DATA, "foreground_final.csv"), index=False)
 
 vc = final.final_verdict.value_counts().to_dict()
 print(final.groupby(["final_verdict"]).size().to_string())

@@ -36,8 +36,11 @@ from astropy import units as u
 from astropy.coordinates import SkyCoord
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-FROZEN = os.path.join(os.path.dirname(HERE), "data", "frozen_census")
-fg = pd.read_csv(os.path.join(FROZEN, "foreground.csv"))
+DATA = os.environ.get(
+    "FLITS_FOREGROUND_ADJUDICATION_DIR",
+    os.path.join(os.path.dirname(HERE), "data", "frozen_census"),
+)
+fg = pd.read_csv(os.path.join(DATA, "foreground.csv"))
 
 TAP = pyvo.dal.TAPService("https://datalab.noirlab.edu/tap")
 GAL_RADIUS_AS = 5.0  # galaxy positional match (STRM/PS1 vs Legacy astrometry slack)
@@ -229,7 +232,7 @@ for i, e in fg.iterrows():
     )
 
 vdf = pd.DataFrame(out)
-vdf.to_csv(os.path.join(HERE, "foreground_validated.csv"), index=False)
+vdf.to_csv(os.path.join(DATA, "foreground_validated.csv"), index=False)
 
 print("\n=== SUMMARY ===")
 print("exists in >=1 catalog: %d / %d" % (vdf.exists.sum(), len(vdf)))

@@ -22,9 +22,13 @@ import numpy as np
 import pandas as pd
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-strm = pd.read_csv(os.path.join(HERE, "strm_catalog_rows.csv"))
+DATA = os.environ.get(
+    "FLITS_FOREGROUND_ADJUDICATION_DIR",
+    os.path.join(os.path.dirname(HERE), "data", "frozen_census"),
+)
+strm = pd.read_csv(os.path.join(DATA, "strm_catalog_rows.csv"))
 res = pd.read_csv(
-    os.path.join(HERE, "ps1_strm_resolution.csv")
+    os.path.join(DATA, "ps1_strm_resolution.csv")
 )  # has nickname, host_z, sheet_zphot
 res["obj"] = res.obj.astype("int64")
 strm["objID"] = strm.objID.astype("int64")
@@ -70,7 +74,7 @@ for _, r in m.iterrows():
         )
     )
 out = pd.DataFrame(rows)
-out.to_csv(os.path.join(HERE, "ps1_strm_resolution.csv"), index=False)
+out.to_csv(os.path.join(DATA, "ps1_strm_resolution.csv"), index=False)
 
 print(
     out[

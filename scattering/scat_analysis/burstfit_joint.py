@@ -594,6 +594,29 @@ class _JointPriorTransformOrdered(_JointPriorTransform):
         return x
 
 
+class _FixedParameterLogLikelihood:
+    """Expand a reduced sampled vector with externally fixed parameters.
+
+    This keeps a scientifically fixed quantity out of the nested-sampling
+    volume instead of approximating a delta-function prior with an arbitrarily
+    narrow interval.  The wrapped likelihood continues to receive its original
+    full parameter layout.
+    """
+
+    def __init__(self, loglike, full_names: tuple[str, ...], fixed: dict[str, float]):
+        self.loglike = loglike
+        self.full_names = tuple(full_names)
+        self.fixed = {str(name): float(value) for name, value in fixed.items()}
+
+    def __call__(self, theta: NDArray[np.floating]) -> float:
+        values = iter(np.asarray(theta, dtype=float))
+        full = np.asarray(
+            [self.fixed[name] if name in self.fixed else next(values) for name in self.full_names],
+            dtype=float,
+        )
+        return self.loglike(full)
+
+
 class _JointLogLikelihood:
     """Picklable joint log-likelihood: ll_CHIME(pC) + ll_DSA(pD).
 
@@ -892,6 +915,8 @@ def fit_joint_scattering(
     proper_gain_prior: bool = False,
     dt_min: float | None = None,
     force_multi: bool = False,
+    fixed_delta_dm_C: float | None = None,
+    fixed_delta_dm_D: float | None = None,
     **dynesty_kwargs,
 ) -> dict[str, Any]:
     """Run the joint CHIME+DSA nested fit; return posterior summary.
@@ -946,7 +971,7 @@ def fit_joint_scattering(
     )
     ptform = None
     if multi:
-        names = JOINT_PARAM_NAMES_GAIN_MULTI(components_C, components_D)
+        full_names = JOINT_PARAM_NAMES_GAIN_MULTI(components_C, components_D)
         spec = _joint_prior_spec_gain_multi(init_C, init_D, beta_bounds, components_C, components_D)
         loglike = _JointLogLikelihoodGainMulti(
             model_C, model_D, n_C=components_C, n_D=components_D, s2=gain_s2
@@ -959,27 +984,46 @@ def fit_joint_scattering(
                 float(np.median(np.abs(np.diff(np.asarray(m.time, dtype=float))))) * 3.0
                 for m in (model_C, model_D)
             ]
-        # index groups of each band's t0 components within the vector.
-        idx = {n: i for i, n in enumerate(names)}
-        grp_C = [idx[f"t0_C{i}"] for i in range(1, int(components_C) + 1)]
-        grp_D = [idx[f"t0_D{i}"] for i in range(1, int(components_D) + 1)]
-        ptform = _JointPriorTransformOrdered(spec, [grp_C, grp_D], dt_min=dt_min)
     elif shared_zeta:
-        names = JOINT_PARAM_NAMES_GAIN_SHARED_ZETA
+        full_names = JOINT_PARAM_NAMES_GAIN_SHARED_ZETA
         spec = _joint_prior_spec_gain_shared_zeta(init_C, init_D, beta_bounds, x_zeta_bounds)
         loglike = _JointLogLikelihoodGainSharedZeta(model_C, model_D)
     elif marginalize_gain_gp:
-        names = JOINT_PARAM_NAMES_GAIN_GP
+        full_names = JOINT_PARAM_NAMES_GAIN_GP
         spec = _joint_prior_spec_gain_gp(init_C, init_D, beta_bounds, model_C, model_D)
         loglike = _JointLogLikelihoodGainGP(model_C, model_D, mu_degree=mu_degree)
     elif marginalize_gain:
-        names = JOINT_PARAM_NAMES_GAIN
+        full_names = JOINT_PARAM_NAMES_GAIN
         spec = _joint_prior_spec_gain(init_C, init_D, beta_bounds)
         loglike = _JointLogLikelihoodGain(model_C, model_D)
     else:
-        names = JOINT_PARAM_NAMES
+        full_names = JOINT_PARAM_NAMES
         spec = _joint_prior_spec(init_C, init_D, beta_bounds)
         loglike = _JointLogLikelihood(model_C, model_D)
+
+    fixed_parameters = {
+        name: float(value)
+        for name, value in (
+            ("delta_dm_C", fixed_delta_dm_C),
+            ("delta_dm_D", fixed_delta_dm_D),
+        )
+        if value is not None
+    }
+    unknown_fixed = sorted(set(fixed_parameters) - set(full_names))
+    if unknown_fixed:
+        raise ValueError(f"fixed parameters absent from fit layout: {unknown_fixed}")
+    names = tuple(name for name in full_names if name not in fixed_parameters)
+    spec = [entry for entry in spec if entry[0] not in fixed_parameters]
+    if fixed_parameters:
+        loglike = _FixedParameterLogLikelihood(loglike, full_names, fixed_parameters)
+
+    if multi:
+        # Index the ordered t0 groups in the REDUCED sampled vector; fixed DM
+        # parameters are absent from this coordinate system.
+        idx = {name: i for i, name in enumerate(names)}
+        grp_C = [idx[f"t0_C{i}"] for i in range(1, int(components_C) + 1)]
+        grp_D = [idx[f"t0_D{i}"] for i in range(1, int(components_D) + 1)]
+        ptform = _JointPriorTransformOrdered(spec, [grp_C, grp_D], dt_min=dt_min)
     ndim = len(spec)
     if ptform is None:
         ptform = _JointPriorTransform(spec)
@@ -1042,9 +1086,18 @@ def fit_joint_scattering(
         weights,
         names,
     )
+    for name, value in fixed_parameters.items():
+        percentiles[name] = {
+            "median": value,
+            "lower": value,
+            "upper": value,
+            "err_minus": 0.0,
+            "err_plus": 0.0,
+        }
 
     return {
         "param_names": list(names),
+        "fixed_parameters": fixed_parameters,
         "percentiles": percentiles,
         "log_evidence": float(results.logz[-1]),
         "log_evidence_err": float(results.logzerr[-1]),

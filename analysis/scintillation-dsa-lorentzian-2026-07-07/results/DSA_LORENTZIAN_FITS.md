@@ -78,16 +78,16 @@ flags remain in the tables and per-burst diagnostics.
 | chromatica | 1 | 1351.097 | 2 | 2 | 26.6806 | 7.98 | 1.018 | 1.006 | dnu_exceeds_fit_window |
 | chromatica | 2 | 1395.889 | 1 | 1 | 2.06527 | 0.158 | 0.9898 | 1.821 |  |
 | chromatica | 3 | 1459.620 | 2 | 1 | 1.38918 | 0.101 | 1.482 | 1.263 |  |
-| chromatica | 3 | 1459.620 | 2 | 2 | 902.408 | 3.91e+05 | 20.29 | 1.263 | dnu_exceeds_fit_window;fractional_dnu_err_gt_1;modulation_gt_3;fractional_mod_err_gt_1 |
+| chromatica | 3 | 1459.620 | 2 | 2 | 902.639 | 3.91e+05 | 20.29 | 1.263 | dnu_exceeds_fit_window;fractional_dnu_err_gt_1;modulation_gt_3;fractional_mod_err_gt_1 |
 | freya | 0 | 1351.564 | 1 | 1 | 11.9147 | 4.38 | 0.1972 | 0.9123 |  |
 | freya | 1 | 1445.314 | 1 | 1 | 392.803 | 3.67e+04 | 3.099 | 0.8966 | dnu_exceeds_fit_window;fractional_dnu_err_gt_1;modulation_gt_3;fractional_mod_err_gt_1 |
 | hamilton | 0 | 1321.841 | 1 | 1 | 0.12859 | 0.0714 | 0.6273 | 1.022 |  |
 | hamilton | 1 | 1351.647 | 1 | 1 | 1.0663 | 0.399 | 0.6305 | 1.052 |  |
 | hamilton | 2 | 1395.370 | 2 | 1 | 0.20727 | 0.0626 | 1.291 | 0.9135 |  |
-| hamilton | 2 | 1395.370 | 2 | 2 | 593.766 | 8.15e+04 | 19.51 | 0.9135 | dnu_exceeds_fit_window;fractional_dnu_err_gt_1;modulation_gt_3;fractional_mod_err_gt_1 |
+| hamilton | 2 | 1395.370 | 2 | 2 | 593.764 | 8.15e+04 | 19.51 | 0.9135 | dnu_exceeds_fit_window;fractional_dnu_err_gt_1;modulation_gt_3;fractional_mod_err_gt_1 |
 | hamilton | 3 | 1459.330 | 2 | 1 | 0.238746 | 0.109 | 1.381 | 0.9799 |  |
 | hamilton | 3 | 1459.330 | 2 | 2 | 17.3959 | 5.25 | 1.301 | 0.9799 |  |
-| isha | 0 | 1361.643 | 1 | 1 | 81.2377 | 3.19e+03 | 0.8128 | 1.038 | dnu_exceeds_fit_window;fractional_dnu_err_gt_1;fractional_mod_err_gt_1 |
+| isha | 0 | 1361.643 | 1 | 1 | 81.2378 | 3.19e+03 | 0.8128 | 1.038 | dnu_exceeds_fit_window;fractional_dnu_err_gt_1;fractional_mod_err_gt_1 |
 | isha | 1 | 1455.408 | 1 | 1 | 0.671635 | 0.428 | 0.6981 | 0.9308 |  |
 | johndoeII | 0 | 1335.683 | 1 | 1 | 21.571 | 3.7 | 0.4883 | 0.8712 |  |
 | johndoeII | 1 | 1392.028 | 1 | 1 | 0.493652 | 0.132 | 0.4306 | 1.33 |  |

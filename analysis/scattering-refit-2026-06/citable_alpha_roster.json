@@ -1,221 +1,119 @@
 {
-  "locked_utc": "2026-07-07",
-  "adr": "docs/adr/0005-citable-alpha-roster.md (beta re-lock under ADR-0006; docs/rse/specs/plan-beta-coherent-thin-screen-campaign.md)",
+  "locked_utc": "2026-07-14",
+  "campaign": "analysis/scattering-dm-locked-2026-07-14",
   "membership_rule": [
-    "beta co-model joint fit (ADR-0006), thin-screen pass 1",
-    "gate_one final != FAIL",
-    "interior posteriors quote beta and derived alpha",
-    "beta=4-railed posteriors quote alpha = 4 as a geometry-conditioned limit (ADR-0004 rail rule; ADR-0007 re-open candidates)"
+    "CHIME-primary DM fixed in both bands",
+    "numerical posterior-predictive check is not FAIL",
+    "residual dynamic spectra contain no coherent omitted morphology",
+    "only accepted_physical rows in results/fit_adjudication.csv supply PBF overlays"
   ],
   "tier_a_fully_adjudicated": [
     {
-      "nickname": "freya",
-      "tns": "FRB 20230325A",
-      "model": "sharedzeta",
-      "beta": 3.7217,
-      "beta_err": [
-        0.0148,
-        0.0142
-      ],
+      "nickname": "whitney",
+      "tns": "FRB 20220310F",
+      "model": "C2D3",
+      "beta": 3.708592,
+      "beta_err": [0.153058, 0.118151],
       "rail_class": "interior",
-      "tau_1ghz": 0.1193849491889905,
-      "chi2_chime": 1.2923906729158352,
-      "chi2_dsa": 1.0303245366438598,
+      "tau_1ghz": 0.066746,
+      "chi2_chime": 1.0609,
+      "chi2_dsa": 1.0091,
       "gate_final": "MARGINAL",
-      "fit_json": "analysis/beta_campaign/fits/freya_joint_fit_sharedzeta.json",
-      "alpha": 4.3233
-    },
-    {
-      "nickname": "casey",
-      "tns": "FRB 20240229A",
-      "model": "sharedzeta",
-      "beta": 3.9902,
-      "beta_err": [
-        0.0069,
-        0.0066
-      ],
-      "rail_class": "railed-hi",
-      "tau_1ghz": 0.018589939827674748,
-      "chi2_chime": 1.565316767928453,
-      "chi2_dsa": 1.0210045747190157,
-      "gate_final": "MARGINAL",
-      "fit_json": "analysis/beta_campaign/fits/casey_joint_fit_sharedzeta.json",
-      "alpha_limit": 4.0,
-      "alpha_note": "posterior railed at beta=4 (square-law/exponential member): alpha = 4 quotable only as a geometry-conditioned limit; ADR-0007 re-open candidate"
-    },
-    {
-      "nickname": "mahi",
-      "tns": "FRB 20240122A",
-      "model": "C1D1",
-      "beta": 3.7852,
-      "beta_err": [
-        0.1549,
-        0.138
-      ],
-      "rail_class": "railed-hi",
-      "tau_1ghz": 0.21930274316476195,
-      "chi2_chime": 1.0384276202716827,
-      "chi2_dsa": 0.8963057783075391,
-      "gate_final": "MARGINAL",
-      "fit_json": "analysis/beta_campaign/fits/mahi_joint_fit_C1D1.json",
-      "alpha_limit": 4.0,
-      "alpha_note": "posterior railed at beta=4 (square-law/exponential member): alpha = 4 quotable only as a geometry-conditioned limit; ADR-0007 re-open candidate"
+      "fit_json": "analysis/scattering-dm-locked-2026-07-14/results/fit_summaries/whitney_joint_fit_C2D3.json",
+      "alpha": 4.341109
     },
     {
       "nickname": "oran",
       "tns": "FRB 20220506D",
       "model": "C2D1",
-      "beta": 3.9872,
-      "beta_err": [
-        0.0207,
-        0.0088
-      ],
-      "rail_class": "railed-hi",
-      "tau_1ghz": 0.8428116817186169,
-      "chi2_chime": 1.0246807577474968,
-      "chi2_dsa": 1.2195770981696326,
+      "beta": 3.299102,
+      "beta_err": [0.218414, 0.259194],
+      "rail_class": "interior",
+      "tau_1ghz": 0.022006,
+      "chi2_chime": 1.0222,
+      "chi2_dsa": 1.4452,
       "gate_final": "MARGINAL",
-      "fit_json": "analysis/beta_campaign/fits/oran_joint_fit_C2D1.json",
-      "alpha_limit": 4.0,
-      "alpha_note": "posterior railed at beta=4 (square-law/exponential member): alpha = 4 quotable only as a geometry-conditioned limit; ADR-0007 re-open candidate"
+      "fit_json": "analysis/scattering-dm-locked-2026-07-14/results/fit_summaries/oran_joint_fit_C2D1.json",
+      "alpha": 5.079050
     },
     {
       "nickname": "isha",
       "tns": "FRB 20221113A",
       "model": "C2D1",
-      "beta": 3.8405,
-      "beta_err": [
-        0.1053,
-        0.085
-      ],
-      "rail_class": "railed-hi",
-      "tau_1ghz": 0.31384875520730254,
-      "chi2_chime": 1.054457130012372,
-      "chi2_dsa": 0.9059256817231529,
+      "beta": 3.103303,
+      "beta_err": [0.005673, 0.005825],
+      "rail_class": "interior",
+      "tau_1ghz": 0.116313,
+      "chi2_chime": 1.0593,
+      "chi2_dsa": 0.9289,
       "gate_final": "MARGINAL",
-      "fit_json": "analysis/beta_campaign/fits/isha_joint_fit_C2D1.json",
-      "alpha_limit": 4.0,
-      "alpha_note": "posterior railed at beta=4 (square-law/exponential member): alpha = 4 quotable only as a geometry-conditioned limit; ADR-0007 re-open candidate"
-    },
-    {
-      "nickname": "johndoeII",
-      "tns": "FRB 20230814B",
-      "model": "C2D2",
-      "beta": 3.9357,
-      "beta_err": [
-        0.0679,
-        0.0324
-      ],
-      "rail_class": "railed-hi",
-      "tau_1ghz": 2.219292440306282,
-      "chi2_chime": 1.0946761408975996,
-      "chi2_dsa": 1.2335789483802273,
-      "gate_final": "MARGINAL",
-      "fit_json": "analysis/beta_campaign/fits/johndoeII_joint_fit_C2D2.json",
-      "alpha_limit": 4.0,
-      "alpha_note": "posterior railed at beta=4 (square-law/exponential member): alpha = 4 quotable only as a geometry-conditioned limit; ADR-0007 re-open candidate"
+      "fit_json": "analysis/scattering-dm-locked-2026-07-14/results/fit_summaries/isha_joint_fit_C2D1.json",
+      "alpha": 5.625477
     },
     {
       "nickname": "phineas",
       "tns": "FRB 20230307A",
       "model": "C3D3",
-      "beta": 3.2281,
-      "beta_err": [
-        0.0181,
-        0.0205
-      ],
+      "beta": 3.322532,
+      "beta_err": [0.091670, 0.090175],
       "rail_class": "interior",
-      "tau_1ghz": 0.4693716400435134,
-      "chi2_chime": 1.0635940358657583,
-      "chi2_dsa": 1.2434717996123592,
+      "tau_1ghz": 0.067589,
+      "chi2_chime": 1.0237,
+      "chi2_dsa": 1.6777,
       "gate_final": "MARGINAL",
-      "fit_json": "analysis/beta_campaign/fits/phineas_joint_fit_C3D3.json",
-      "alpha": 5.2571
-    }
-  ],
-  "tier_b_provisional_pending_s2": [
-    {
-      "nickname": "wilhelm",
-      "tns": "FRB 20221203A",
-      "model": "sharedzeta",
-      "beta": 3.9792,
-      "beta_err": [
-        0.0013,
-        0.0006
-      ],
-      "rail_class": "railed-hi",
-      "tau_1ghz": 0.26930674993199494,
-      "chi2_chime": 1.5714498874722578,
-      "chi2_dsa": 6.726710910040721,
-      "gate_final": "MARGINAL",
-      "fit_json": "analysis/beta_campaign/fits/wilhelm_joint_fit_sharedzeta.json",
-      "alpha_limit": 4.0,
-      "alpha_note": "posterior railed at beta=4 (square-law/exponential member): alpha = 4 quotable only as a geometry-conditioned limit; ADR-0007 re-open candidate",
-      "caveat": "alpha prior-railed (within 0.1 of bound) -> unconstrained; L2 chi2_C=1.57(MARGINAL) chi2_D=6.73(MARGINAL)"
+      "fit_json": "analysis/scattering-dm-locked-2026-07-14/results/fit_summaries/phineas_joint_fit_C3D3.json",
+      "alpha": 5.024501
     },
     {
-      "nickname": "hamilton",
-      "tns": "FRB 20230913A",
-      "model": "sharedzeta",
-      "beta": 3.978,
-      "beta_err": [
-        0.0034,
-        0.0015
-      ],
-      "rail_class": "railed-hi",
-      "tau_1ghz": 0.024470729413943397,
-      "chi2_chime": 3.955615522833022,
-      "chi2_dsa": 0.997605531337867,
+      "nickname": "freya",
+      "tns": "FRB 20230325A",
+      "model": "C1D1",
+      "beta": 3.672294,
+      "beta_err": [0.014620, 0.016111],
+      "rail_class": "interior",
+      "tau_1ghz": 0.118268,
+      "chi2_chime": 1.3422,
+      "chi2_dsa": 1.0919,
       "gate_final": "MARGINAL",
-      "fit_json": "analysis/beta_campaign/fits/hamilton_joint_fit_sharedzeta.json",
-      "alpha_limit": 4.0,
-      "alpha_note": "posterior railed at beta=4 (square-law/exponential member): alpha = 4 quotable only as a geometry-conditioned limit; ADR-0007 re-open candidate",
-      "caveat": "alpha prior-railed (within 0.1 of bound) -> unconstrained; L2 chi2_C=3.96(MARGINAL) chi2_D=1.00(PASS)"
+      "fit_json": "analysis/scattering-dm-locked-2026-07-14/results/fit_summaries/freya_joint_fit.json",
+      "alpha": 4.391923
     },
     {
-      "nickname": "zach",
-      "tns": "FRB 20220207C",
-      "model": "C2D4_cwin",
-      "beta": 3.9897,
-      "beta_err": [
-        0.0062,
-        0.007
-      ],
-      "rail_class": "railed-hi",
-      "tau_1ghz": 0.1864021408460393,
-      "chi2_chime": 1.3468341800327501,
-      "chi2_dsa": 1.0223746479745357,
+      "nickname": "johndoeII",
+      "tns": "FRB 20230814B",
+      "model": "C2D2",
+      "beta": 3.613091,
+      "beta_err": [0.106166, 0.110327],
+      "rail_class": "interior",
+      "tau_1ghz": 0.122274,
+      "chi2_chime": 1.0511,
+      "chi2_dsa": 1.4362,
       "gate_final": "MARGINAL",
-      "fit_json": "analysis/beta_campaign/fits/zach_joint_fit_C2D4_cwin.json",
-      "alpha_limit": 4.0,
-      "alpha_note": "posterior railed at beta=4 (square-law/exponential member): alpha = 4 quotable only as a geometry-conditioned limit; ADR-0007 re-open candidate",
-      "caveat": "alpha prior-railed (within 0.1 of bound) -> unconstrained; L2 chi2_C=1.35(PASS) chi2_D=1.02(PASS)",
-      "tab_beta_status": "IN tab:beta as C2D4_cwin railed-hi limit row (2026-07-09 promotion). Supersedes the earlier pass-2 fixed-s2 'budget-tau member only' exclusion (CONTEXT.md 2026-06-27): the promoted 2x4 morphology fit is now the citable product; tier-B pending_s2 designation retained (second-screen multiplicity robustness is a separate question from table inclusion)."
+      "fit_json": "analysis/scattering-dm-locked-2026-07-14/results/fit_summaries/johndoeII_joint_fit_C2D2.json",
+      "alpha": 4.479711
+    },
+    {
+      "nickname": "mahi",
+      "tns": "FRB 20240122A",
+      "model": "C1D2",
+      "beta": 3.679585,
+      "beta_err": [0.113906, 0.138344],
+      "rail_class": "interior",
+      "tau_1ghz": 0.196410,
+      "chi2_chime": 1.0389,
+      "chi2_dsa": 0.9239,
+      "gate_final": "MARGINAL",
+      "fit_json": "analysis/scattering-dm-locked-2026-07-14/results/fit_summaries/mahi_joint_fit_C1D2.json",
+      "alpha": 4.381541
     }
   ],
-  "multiplicity_exemplar": {
-    "nickname": "whitney",
-    "tns": "FRB 20220310F",
-    "model": "C2D2",
-    "beta": 3.9682,
-    "beta_err": [
-      0.0166,
-      0.0089
-    ],
-    "rail_class": "railed-hi",
-    "tau_1ghz": 1.1821129548071687,
-    "chi2_chime": 1.085857549016285,
-    "chi2_dsa": 1.4152378012367963,
-    "gate_final": "MARGINAL",
-    "fit_json": "analysis/beta_campaign/fits/whitney_fine_joint_fit_C2D2.json",
-    "alpha_limit": 4.0,
-    "alpha_note": "posterior railed at beta=4 (square-law/exponential member): alpha = 4 quotable only as a geometry-conditioned limit; ADR-0007 re-open candidate",
-    "note": "multiplicity exemplar (C2D2 after local re-prep)"
-  },
+  "tier_b_provisional_pending_s2": [],
+  "multiplicity_exemplar": null,
   "excluded_gate_fail": [
-    {
-      "nickname": "chromatica",
-      "reason": "L2 catastrophic chi2_C=11.59(FAIL) chi2_D=9.25(MARGINAL)"
-    }
+    {"nickname": "zach", "reason": "coherent DSA frequency-time residual structure"},
+    {"nickname": "wilhelm", "reason": "no visually accepted morphology variant"},
+    {"nickname": "hamilton", "reason": "coherent CHIME residual structure"},
+    {"nickname": "chromatica", "reason": "catastrophic CHIME residuals"},
+    {"nickname": "casey", "reason": "coherent CHIME tail residual"}
   ]
 }

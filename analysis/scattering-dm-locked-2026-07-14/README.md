@@ -18,6 +18,8 @@ pass and includes one expanded variant for each panel previously flagged as
 morphologically incomplete. Chromatica receives a C1D1 fit attempt rather than
 being assumed to have an acceptable model. Promotion still requires the
 repository's Level 1--3 fit gates and visual review of every diagnostic panel.
+The review-triggered remediation rows retain Mahi C1D2 and Chromatica C2D1/C2D2
+as explicit alternatives after their minimal models failed the residual gate.
 
 ## HPCC execution
 

@@ -87,10 +87,14 @@ Verify: `rclone about gdrive-jakob:` · `rclone lsd gdrive-jakob:Research/`
 
 | Path | Size | Notes |
 |------|------|-------|
-| `/data/research/astrophysics/frbs/chime-dsa-codetections` | ~65G | CHIME docker / filterbanks / numpy / arc archive |
-| `.../upchan_codetections` | 473M | Upchan products (5 targets; moved from `/data/jfaber/` 2026-06-27) |
-| `.../archive/arc_trash_2026-06` | 36G | arc trash copy (moved from `/data/jfaber/` 2026-06-27); optional dedupe → iacobus |
-| `.../scripts/upchannelize_chime.py` | 12K | Baseband upchan worker (moved from `/data/jfaber/` 2026-06-27) |
+| `/data/research/astrophysics/frbs/chime-dsa-codetections` | ~72G | Compute + artifact cache (not a git source of truth) |
+| `.../dsa110-FLITS/` | clone | Canonical FLITS checkout on h17 (`jakobtfaber/dsa110-FLITS`) |
+| `.../upchan_codetections` | ~1.8G | Upchan products (12-target table in baseband_recovery worker) |
+| `.../archive/arc_trash_2026-06` | 36G | arc trash copy; optional dedupe → iacobus |
+| `.../scripts/h17_codetections/` (in clone) | — | Promoted compute workers (see that README) |
+
+Full layout, promotion rules, and sync commands:
+[`docs/infrastructure/H17_WORKSPACE.md`](docs/infrastructure/H17_WORKSPACE.md).
 
 `/data/jfaber/` is empty of codetection products as of 2026-06-27.
 

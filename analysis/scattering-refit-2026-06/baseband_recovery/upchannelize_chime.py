@@ -57,7 +57,7 @@ CHIME_COARSE_DF_MHZ = 0.390625  # CHIME coarse channel width (400 MHz / 1024)
 CHIME_NATIVE_DT_S = 2.56e-6  # CHIME single-pol baseband sample time
 
 ARC_VOS_ROOT = "arc:projects/chime_frb/data/chime/baseband/processed"  # vcp source (CADC vos URI)
-# The 5 singlebeam .h5 are already staged on h17 here -> use in place, no vcp / no arc dependency.
+# All 12 singlebeam .h5 are already staged on h17 here -> use in place, no vcp / no arc dependency.
 LOCAL_H5_DIR = "/data/research/astrophysics/frbs/chime-dsa-codetections/chime_singlebeam"
 DEFAULT_SCRATCH = (
     "/data/jfaber/chime_singlebeam"  # vcp fallback landing if a file is NOT pre-staged
@@ -65,6 +65,15 @@ DEFAULT_SCRATCH = (
 DEFAULT_OUT_DIR = "/data/research/astrophysics/frbs/chime-dsa-codetections/upchan_codetections"
 
 # id/dm/fwhm_ms from crossmatching/notebook_reproduction_fixture.json (DM also in configs/bursts.yaml).
+# Batch 2 (2026-07-07, remaining 6 sightlines): U sized by the same rule -- next power of 2 with
+# >=4 fine channels across the NE2025 MW-floor HWHM at 600.19 MHz (U >= 1562.5/floor_kHz), floors
+# re-derived with scintillation/ne2025/query_ne2025_scint.py (reproduces the batch-1 floors exactly).
+# METHOD EXTENSION vs batch 1: hamilton and johndoeII fail the >=3-time-element gate at their
+# frequency-required U, but their time-bandwidth volume W*Dnu_d ~ 10-12 >> 1, so the scintle
+# structure IS present in a single upchannelized FFT block ("single-block mode"): the burst lands
+# in ~1 output time sample; downstream must take the one on-burst spectrum directly (no
+# matched-filter profile gain) and verify the burst does not straddle a block boundary from
+# time0 metadata. They stay recoverable:False so the gate is an explicit --run-unresolvable choice.
 TARGETS = {
     "casey": {
         "id": "362593221",
@@ -102,6 +111,77 @@ TARGETS = {
         "h5_relpath": "2024/01/22/astro_354049284/singlebeam_354049284.h5",
         "note": "MW-floor-dominated (0.0036 MHz floor) -> U=512 via _upchannel(fftsize=1024); slow. Safe only b/c FWHM=24 ms.",
     },
+    "freya": {
+        "id": "278720455",
+        "dm": 912.4,
+        "fwhm_ms": 0.40065937342767416,
+        "upchan": 64,
+        "recoverable": True,
+        "h5_relpath": "2023/03/25/astro_278720455/singlebeam_278720455.h5",
+        "note": "MW-floor-sized: NE2025 floor 1.6421 MHz @1.405 GHz -> 38.8 kHz @600 MHz (nu^-4.4, census convention); U=64 (df 6.10 kHz) ~6.4 ch across it. Time: dt=0.328 ms vs intrinsic FWHM 0.401 ms (1.2 el) BUT the CHIME profile is scattering-broadened (tau_600~1.07 ms per the beta co-model production fit) -> >=3 elements across the observed profile. The contested ~0.51 MHz DSA sub-floor candidate (~10 kHz @600) is NOT resolvable at any U inside the time wall (needs U~256, dt 1.31 ms).",
+    },
+    "zach": {
+        "id": "210456524",
+        "dm": 262.368,
+        "fwhm_ms": 0.964,
+        "upchan": 64,
+        "recoverable": True,
+        "h5_relpath": "2022/02/07/astro_210456524/run_pre_apr2025/singlebeam_210456524.h5",
+        "note": "MW-floor-dominated (36.0 kHz floor); U=64 (6.10 kHz) ~5.9 ch. Time: dt=0.328 ms vs "
+        "scattering-broadened profile ~2.1 ms (tau600~2.1 from joint fit, alpha=3.66) -> ~6 el.",
+    },
+    "chromatica": {
+        "id": "356959136",
+        "dm": 272.664,
+        "fwhm_ms": 0.821,
+        "upchan": 64,
+        "recoverable": True,
+        "h5_relpath": "2024/02/03/astro_356959136/old_processed_files/singlebeam_356959136.h5",
+        "note": "MW-floor-dominated (35.3 kHz floor); U=64 ~5.8 ch. Time: profile ~1.4 ms "
+        "(FWHM 0.82 + tau600~0.53; NB joint-fit alpha railed at 6.0) -> ~4 el.",
+    },
+    "wilhelm": {
+        "id": "253635173",
+        "dm": 602.346,
+        "fwhm_ms": 0.3887,
+        "upchan": 64,
+        "recoverable": True,
+        "h5_relpath": "2022/12/03/astro_253635173/Run_UpdatedCalSep25/singlebeam_253635173.h5",
+        "note": "MW-floor-dominated (25.9 kHz floor); U=64 ~4.25 ch (tightest freq margin of batch 2). "
+        "Time: profile ~1.0 ms (tau600~1.04, alpha=2.71) -> ~3.2 el, marginal but passes.",
+    },
+    "oran": {
+        "id": "224263996",
+        "dm": 396.882,
+        "fwhm_ms": 74.2,
+        "upchan": 128,
+        "recoverable": True,
+        "h5_relpath": "2022/05/06/astro_224263996/Run_UpdatedCalSep25/singlebeam_224263996.h5",
+        "note": "MW-floor-dominated (23.9 kHz floor); U=64 gives only 3.9 ch -> U=128 (3.05 kHz, "
+        "~7.8 ch). 74 ms FWHM buys ~110 time el even at dt=0.655 ms. Mid-tier _upchannel path.",
+    },
+    "hamilton": {
+        "id": "318353610",
+        "dm": 518.799,
+        "fwhm_ms": 0.2018,
+        "upchan": 64,
+        "recoverable": False,
+        "h5_relpath": "2023/09/13/astro_318353610/singlebeam_318353610.h5",
+        "note": "SINGLE-BLOCK MODE: floor 38.6 kHz needs U>=41 but profile ~0.3 ms (tau600~0.11; "
+        "alpha railed at 6.0) spans <1 el at dt=0.328 ms. W*Dnu_d~12 so the spectrum is recoverable "
+        "from the one on-burst block; check block-straddle from time0 before trusting the ACF.",
+    },
+    "johndoeII": {
+        "id": "311723353",
+        "dm": 696.506,
+        "fwhm_ms": 0.6957,
+        "upchan": 512,
+        "recoverable": False,
+        "h5_relpath": "2023/08/14/astro_311723353/singlebeam_311723353.h5",
+        "note": "SINGLE-BLOCK MODE: floor 5.8 kHz needs U>=269 -> U=512 (0.763 kHz, ~7.6 ch) but "
+        "dt=2.62 ms vs profile ~1.7 ms (tau600~1.7, alpha railed low 1.37) -> ~0.7 el. W*Dnu_d~10. "
+        "SLOW python-loop path (mahi-class). Straddle check mandatory.",
+    },
     "isha": {
         "id": "252069198",
         "dm": 411.568,
@@ -127,7 +207,7 @@ def _fetch_h5(relpath: str, scratch: str) -> str:
     return str(dst)
 
 
-def _waterfall(h5_path: str, dm: float, U: int):
+def _waterfall(h5_path: str, dm: float, U: int, time_shift: bool = True):
     """Coherently-dedispersed, upchannelized Stokes-I waterfall (n_fine_freq, n_time) + freq[MHz].
 
     We assemble the chain by hand rather than via baseband_analysis.analysis.waterfall_from_beamformed
@@ -142,14 +222,24 @@ def _waterfall(h5_path: str, dm: float, U: int):
     from baseband_analysis.core.sampling import _upchannel  # noqa: PLC0415
 
     data = BBData.from_file(h5_path)
-    coherent_dedisp(
-        data, dm, time_shift=True
+    # coherent_dedisp COPIES the baseband and RETURNS the de-chirped array; it only
+    # writes back with write=True. The 2026-07-03 run discarded the return value and
+    # upchannelized the raw voltages (defect confirmed 2026-07-04: full-magnitude
+    # intra-channel sawtooth in the folded burst image). Feed the return value on.
+    # time_shift=True applies an FFT phase-ramp alignment to f_ref=400 MHz that is
+    # CIRCULAR within each channel's valid buffer; channels whose buffer is shorter
+    # than the aligned burst index wrap the burst to early times (verified 2026-07-04
+    # on freya: burst at 386 mod L below ~505 MHz). --no-time-shift leaves the pure
+    # de-chirp (no roll); inter-channel alignment is then done downstream from
+    # time0 metadata on a padded (non-circular) canvas.
+    dedisp = coherent_dedisp(
+        data, dm, time_shift=time_shift
     )  # exact de-chirp on the complex voltages at the burst DM
 
     # _upchannel returns (spec, freq, chan_id): spec is (npol, nblock, nfine) complex, freq the
     # fine-channel centres (MHz) ordered high->low. upchan factor U = fftsize/downfreq.
     spec, freq, _ = _upchannel(
-        data["tiedbeam_baseband"][:],
+        dedisp,
         freq_id=data.index_map["freq"]["id"][:],
         fftsize=2 * U,
         downfreq=2,
@@ -159,7 +249,7 @@ def _waterfall(h5_path: str, dm: float, U: int):
     return stokes_i, np.asarray(freq, dtype=np.float64)
 
 
-def recover_target(name: str, scratch: str, out_dir: str, run_unresolvable: bool = False) -> Path:
+def recover_target(name: str, scratch: str, out_dir: str, run_unresolvable: bool = False, time_shift: bool = True) -> Path:
     t = TARGETS[name]
     if not t["recoverable"] and not run_unresolvable:
         raise SystemExit(
@@ -169,7 +259,7 @@ def recover_target(name: str, scratch: str, out_dir: str, run_unresolvable: bool
 
     h5_path = _fetch_h5(t["h5_relpath"], scratch)
     U = t["upchan"]
-    stokes_i, freq = _waterfall(h5_path, t["dm"], U)
+    stokes_i, freq = _waterfall(h5_path, t["dm"], U, time_shift=time_shift)
 
     # Ascending frequency to match the FLITS BurstDataset convention.
     if freq[0] > freq[-1]:
@@ -211,9 +301,14 @@ def main(argv: list[str]) -> int:
     p.add_argument("--scratch", default=DEFAULT_SCRATCH, help="local landing dir for the .h5 files")
     p.add_argument("--out", default=DEFAULT_OUT_DIR, help="output dir for the .npy products")
     p.add_argument(
+        "--no-time-shift",
+        action="store_true",
+        help="skip coherent_dedisp time_shift (circular in short buffers); align downstream from time0 metadata",
+    )
+    p.add_argument(
         "--run-unresolvable",
         action="store_true",
-        help="also process targets flagged NOT cleanly resolvable (isha), as an upper bound",
+        help="also process targets flagged NOT cleanly resolvable (isha, hamilton, johndoeII single-block), as an upper bound",
     )
     args = p.parse_args(argv)
 
@@ -222,7 +317,7 @@ def main(argv: list[str]) -> int:
     if unknown:
         raise SystemExit(f"unknown target(s) {unknown}; known: {list(TARGETS)}")
     for name in targets:
-        recover_target(name, args.scratch, args.out, run_unresolvable=args.run_unresolvable)
+        recover_target(name, args.scratch, args.out, run_unresolvable=args.run_unresolvable, time_shift=not args.no_time_shift)
     return 0
 
 

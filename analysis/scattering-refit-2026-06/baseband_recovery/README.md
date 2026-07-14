@@ -131,6 +131,11 @@ satisfies that. If the container runs as non-root, mount to that user's `~/.ssl`
 Each target writes `<name>_chime_upchan.npy` (Stokes-I, `(n_freq, n_time)`, float32) +
 `<name>_chime_freq.npy` (ascending MHz), both kB–MB. Pull them to the repo:
 
+For the independent-polarization cross-ACF qualification, add
+`--save-polarizations --no-time-shift`. This also writes
+`<name>_chime_pol{0,1}_upchan.npy` and a provenance-bearing
+`<name>_crossacf_metadata.json` with the source-HDF5, producer, and product hashes.
+
 ```bash
 scp 'h17:/data/research/astrophysics/frbs/chime-dsa-codetections/upchan_codetections/*_chime_*.npy' \
     analysis/scattering-refit-2026-06/baseband_recovery/products/

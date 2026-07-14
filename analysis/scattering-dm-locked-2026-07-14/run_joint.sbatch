@@ -19,7 +19,12 @@ FIX_C="${7:?fixed CHIME residual DM}"
 FIX_D="${8:?fixed DSA residual DM}"
 
 export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1
-export FLITS_RUNS="$RUNS"
+VARIANT_RUNS="$RUNS/variants/$VARIANT"
+mkdir -p "$VARIANT_RUNS/configs" "$VARIANT_RUNS/data/joint"
+cp "$RUNS/configs/${BURST}_chime_run.yaml" "$VARIANT_RUNS/configs/"
+cp "$RUNS/configs/${BURST}_dsa_run.yaml" "$VARIANT_RUNS/configs/"
+
+export FLITS_RUNS="$VARIANT_RUNS"
 export FLITS_REPO="${FLITS_REPO:?set FLITS_REPO to this campaign checkout}"
 export PATH="${FLITS_VENV:-/central/scratch/jfaber/envs/flits-joint}/bin:${PATH}"
 

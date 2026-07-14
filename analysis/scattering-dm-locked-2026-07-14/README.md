@@ -34,3 +34,7 @@ bash analysis/scattering-dm-locked-2026-07-14/submit_campaign.sh \
 The campaign is complete only when every roster row has a fit result, PPC
 metrics, a data/model/residual diagnostic, and a recorded PASS/MARGINAL/FAIL
 plus visual-review verdict.
+
+Each morphology variant writes to `variants/<variant>/`. This isolation is
+required when component-count alternatives for the same burst run
+concurrently because the fitter's native output names are burst-based.

@@ -1,9 +1,16 @@
 """Forward-model convolution for per-sightline P(DM_host).
 
-STATUS: EXPLORATORY (2026-07-07). This lane has NOT passed a V re-validation
-ladder. Nothing produced here is manuscript-quotable; the point of this module
-is to replace the mean-subtraction residual in tab:budget with a proper
-posterior once the lane is validated (candidate ladder entry: V7).
+STATUS: SUPERSEDED (2026-07-15). Do NOT use for the manuscript. The published
+DM_host forward model (the fig:dm_host_posteriors figure and tab:host-forward-model
+table in Faber2026) is produced by the super-repository script
+``scripts/dm_budget_uncertainty.py``, which uses the TNG-300 IGM log-normal
+calibration (Walker/Connor reproduction package) with an f_IGM marginalization.
+This module is the earlier EXPLORATORY convolution built on the Macquart deviate
+PDF with the fixed sigma_DM = F z^{-1/2} scaling, and it also carries stale
+DM_int inputs (the pre-2026-07-15 census values, e.g. 70/41/84/41 for
+20220207C/20221113A/20221203A/20230913A, which the census remediation zeroed).
+It was never V-validated and is retained only for provenance of the approach that
+the TNG-calibrated script replaced. Nothing produced here is manuscript-quotable.
 
 Model
 -----

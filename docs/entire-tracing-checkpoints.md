@@ -5494,3 +5494,17 @@ preserving for future agents.
 - `origin` `entire/*` refs:
   - entire/checkpoints/v1 -> a90492d
 - note: `.entire/` remains host-local runtime state; only this ledger is tracked.
+
+## 2026-07-14T23:35:17-07:00 — jakob
+- repo: `/Users/jakobfaber/Developer/scratch/worktrees/flits-caveat-hygiene`
+- branch: `scint/eligibility-caveats`
+- head: `7679bc5`
+- origin/main: `b130ab4`
+- worktree: clean
+- note: watched path changed: scripts/build_scint_results_table.py
+- tracked status: clean
+- local `entire/*` refs:
+  - entire/checkpoints/v1 -> a90492d
+- `origin` `entire/*` refs:
+  - entire/checkpoints/v1 -> a90492d
+- note: `.entire/` remains host-local runtime state; only this ledger is tracked.

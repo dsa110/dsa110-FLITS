@@ -1,9 +1,15 @@
 # P3′ delay-domain matched Δν_d estimator (`p3-optimal-estimator`)
 
-**Status: `calibrated`. Both blinded gates pass — the first passing gate
-calibration of the CHIME scintillation campaign. The on-pulse window
-(samples 250–350) remains blinded; the one-shot unblinding is a separate
-orchestrator step under the record's frozen rule.**
+**Status: `calibrated` → unblinded one-shot (owner-authorized in-session,
+2026-07-15). Outcome: highly significant broad spectral structure
+(z_max = 40.4), NOT admissible as a Δν_d measurement — the amplitude sits
+~11× above the calibrated scintillation ceiling and the width pins at the
+scan-grid edge; the measured amplitude matches the burst's intrinsic
+spectral envelope (order-unity spectral structure × f_b = 0.05 →
+â ≈ 10⁻³). No qualified Δν_d measurement; the scintillation constraint is
+censored at the envelope-confusion floor, not the radiometer floor. See
+§One-shot unblinding below; interpretation wording awaits owner
+ratification.**
 
 P3′ is the owner-sanctioned amended successor to P2
 ([`experiment-chime-scint-p3-optimal-estimator.md`](../../../../docs/rse/specs/experiment-chime-scint-p3-optimal-estimator.md),
@@ -67,24 +73,55 @@ Trials-corrected threshold `z_trials = 2.06` (p95 of evaluation max-z);
 calibration-half p95 = 2.22 (consistency within the frozen 15 %); σ
 calibration on the evaluation half 0.90 (band [0.8, 1.2]).
 
-## What unblinding can and cannot yield
+## One-shot unblinding (owner-authorized, 2026-07-15)
 
-Expected significance for a true signal at the favorable corner
-(m = 0.17, Δν_d ≈ 213–352 kHz) is ~3–4σ. The frozen G3 bar for a detection
-claim is 5σ inside the Gate-0 window, so the realistic outcomes are:
+Computed exactly once with the frozen configuration
+(`unblind_onpulse.json`, `figures/unblind_onpulse_scan.png`). Facts:
 
-- `censored exclusion` — the calibrated 3–4σ-sensitive upper limit on
-  `Δν_d ∈ [127, 352] kHz` at `m ≥ 0.15` (the quantitative closure P2 could
-  not deliver), or
-- `qualified measurement` — only if the on-pulse z exceeds 5 inside the
-  window (requires a favorable signal plus an upward fluctuation).
+- `z` rises **monotonically** from 13.8 (20 kHz template) to **40.4 at the
+  400 kHz grid edge** — no interior peak; the matched filter wants structure
+  wider/smoother than every template in the scan.
+- `â` is nearly flat: 1.2×10⁻³ → 7.6×10⁻⁴ across the grid. The calibrated
+  scintillation model caps `a = (f_b·m)² ≈ 7.2×10⁻⁵` at m = 0.17 — the
+  measured amplitude implies m ≈ 0.55–0.70 at every width, far outside the
+  calibrated domain (G1″ validated recovery only for m ≤ 0.17,
+  Δν_d ≤ 352 kHz).
+
+Interpretation (fail-closed): a ratio spectrum carries `f_b·e(ν)` for a
+burst with fractional intrinsic-envelope structure `e(ν)`; order-unity
+envelope structure at ≳ MHz scales gives `â ≈ (0.05)² ≈ 2.5×10⁻³·⟨e²⟩` —
+the measured 10⁻³ is the natural value for `e ~ O(1)`. The envelope is
+time-stable across the burst, so it survives the S2 time-split cross that
+kills self-noise, and it is smoother than the k ≥ 11 cut's 12.8 MHz
+excision scale was sized to catch. The G2″ nulls (off-pulse only) and the
+G1″ injections (scintle-only) could not have flagged it — this is exactly
+the confounder limb the record's envelope-control caveat anticipated, at
+larger amplitude than the cut could remove.
+
+Under the frozen G3 rules read literally (Δν_d ≥ 77 kHz, z ≥ 5) this would
+formally qualify; it is **declined as a Δν_d measurement** because the
+amplitude is inconsistent with the calibrated signal model and the width
+estimate is censored at the scan boundary — claiming a scintle here would
+attribute intrinsic burst structure to propagation. Declining a claim is
+the conservative direction of the unblinding rule; no threshold was moved
+to create a claim.
+
+Consequence for the scintillation constraint: the on-pulse spectrum carries
+a ~10⁻³ envelope foreground at all scan widths, so the achievable upper
+limit is **envelope-confusion-limited**, not radiometer-limited: a true
+scintle at the calibrated ceiling (7×10⁻⁵) would contribute ≤ 10 % of the
+measured `â` and cannot be separated without an envelope model — which
+would be a new, separately sanctioned experiment (P4 class), noting that
+the one-shot has been spent and any further on-pulse analysis is
+post-unblinding by construction.
 
 ## Blinding
 
-No statistic was computed on samples 250–350. The structural guard
-(`BlindingError`, `allow_unblind`) is unit-tested; the harness `unblind`
-subcommand refuses without a `calibrated` selection, an unchanged frozen
-config, and the explicit `--unblind-i-know-what-i-am-doing` flag.
+No statistic was computed on samples 250–350 before the owner-authorized
+one-shot above. The structural guard (`BlindingError`, `allow_unblind`) is
+unit-tested; the harness `unblind` subcommand refuses without a
+`calibrated` selection, an unchanged frozen config, and the explicit
+`--unblind-i-know-what-i-am-doing` flag.
 
 ## Deliverables & reproducibility
 

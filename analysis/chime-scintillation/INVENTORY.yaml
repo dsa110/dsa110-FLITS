@@ -1,6 +1,6 @@
 schema_version: 1
 scope: CHIME scintillation validation only
-updated: 2026-07-14
+updated: 2026-07-15
 qualified_chime_measurements: 0
 experiments:
   - id: h0-smoke
@@ -129,6 +129,26 @@ experiments:
       - offpulse_common_mode_lag1_suppression
       - offpulse_common_mode_amplitude_suppression
       - no_variant_eligible_for_c1
+  - id: p2-routeb-voltage
+    target: freya
+    data_class: real_chime_product_with_synthetic_injections
+    status: diagnostic_only
+    machine_status: documented_fail
+    qualified_measurement: false
+    blinded: true
+    unblinded_fit_produced: false
+    common_mode_cancellation: pass  # G2 off-pulse null clean; the ratio cancels g(nu)
+    summary: analysis/chime-scintillation/experiments/p2-routeb-voltage/RESULT.md
+    validation: analysis/chime-scintillation/experiments/p2-routeb-voltage/validation.json
+    decisive_failures:
+      - g1_detectable_width_recovery_below_snr_ceiling  # both S1 and S2, all Dnu_d>=127 kHz cells
+    notes:
+      - G2 (off-pulse null) PASSES for S1 and S2 - the on/off ratio cancels the
+        ~35 kHz common mode that every prior route retained; the failure is the
+        radiometer S/N ceiling at f_b=0.05 (f_b*m signal ~ 0.0075-0.0085), not
+        the common-mode confounder. Separates the two failure modes.
+      - S3 (complex-voltage variant) implemented and unit-tested but not run -
+        complex fine-channel voltages not staged on h17 (out of P2 scope).
   - id: a1-trigger-calibration
     target: synthetic_grid
     data_class: synthetic_null_and_two_component_campaigns

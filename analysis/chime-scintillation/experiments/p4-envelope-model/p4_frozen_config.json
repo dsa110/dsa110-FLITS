@@ -1,0 +1,168 @@
+{
+  "assets_sha256": "ee0377ca4b886ab622247d430b4ac9cd12cf3e19b2666cabeb74a7fb8c0b2acc",
+  "band_mhz": [
+    627.0,
+    800.0
+  ],
+  "chain": {
+    "burst_flux_fraction": 0.05,
+    "clip_percentile": 5.0,
+    "gp_decimation": 4,
+    "injection_weight": "(E_ref-1)/E_ref (scintle rides the burst component only)",
+    "m_template": 0.16,
+    "matched_scan": {
+      "dnu_scan_khz": [
+        20.0,
+        22.658939446607086,
+        25.67137684225033,
+        29.084308668979077,
+        32.950979448841316,
+        37.331712401884495,
+        42.29485053762257,
+        47.91782286176434,
+        54.28835233189814,
+        61.50582440722752,
+        69.68283754285082,
+        78.94695981756077,
+        89.4427190999916,
+        101.33385780132983,
+        114.80588739057127,
+        130.0689825248473,
+        147.3612599456155,
+        166.95249329417138,
+        189.14832180063522,
+        214.29501850539717,
+        242.78489240116696,
+        275.0624087734529,
+        311.6311232217777,
+        353.06153753802056,
+        400.0
+      ],
+      "kmin": 11,
+      "n_template": 200,
+      "variance_smoothing_bands": 48
+    },
+    "reference_envelope": "delay low-pass k<11 of the on-pulse mean ratio spectrum",
+    "residual": "r = R/E - 1 per split half; per-half envelope fits keep the cross power noise-bias-free",
+    "template_construction": "R_syn = E_ref + M_TEMPLATE*(E_ref-1)*delta through the chain; T normalized by (M_TEMPLATE*f_b)^2 so a == (f_b*m)^2"
+  },
+  "channel_width_khz": 6.10360875873539,
+  "e2": {
+    "certification": {
+      "a_true": "(f_b*m)^2",
+      "amplitude_pull_max": 2.0,
+      "convergence_min": 0.9,
+      "dnu_fractional_tolerance": 0.3
+    },
+    "control_clean": "surrogate p95 max-z <= noise p95 max-z * 1.5",
+    "dnu_khz": [
+      77.0,
+      127.0,
+      213.0,
+      352.0
+    ],
+    "drop_rule": "zero certified cells at dnu >= 127.0 kHz, or no control-clean scale",
+    "modulations": [
+      0.15,
+      0.17
+    ],
+    "n_realizations": 50,
+    "operating_point_rule": "among control-clean scales: max certified cells; ties -> 213 kHz certification, then smaller lambda/ell (larger k_env)",
+    "surrogate_source_scale": {
+      "M1_spline": 0.5,
+      "M2_gp": 0.5,
+      "M3_delaycut": 200
+    }
+  },
+  "e3": {
+    "amplitude_admissibility_m": [
+      0.05,
+      0.3
+    ],
+    "e3a": {
+      "alpha_band": [
+        3.0,
+        5.0
+      ],
+      "min_z": 5.0,
+      "n_subbands": 4
+    },
+    "e3b": {
+      "peak_sep_min": 3,
+      "peak_snr_min": 5.0,
+      "smooth_sigma": 2.0
+    },
+    "e3c": {
+      "factor": 3.0,
+      "scaling_index": 4.4
+    },
+    "looks": "one real on-pulse residual scan per surviving family at its operating point",
+    "trials": "max over surviving families; threshold = p95 of the same statistic on the 100 noise-arm nulls"
+  },
+  "evidential_class": "exploratory (post-unblinding, owner-sanctioned 2026-07-15)",
+  "experiment": "p4-envelope-model",
+  "families": {
+    "M1_spline": [
+      0.5,
+      1.0,
+      2.0,
+      5.0,
+      10.0
+    ],
+    "M2_gp": [
+      0.5,
+      1.0,
+      2.0,
+      5.0,
+      10.0
+    ],
+    "M3_delaycut": [
+      25,
+      50,
+      100,
+      200
+    ]
+  },
+  "inputs": {
+    "frequencies": "/Users/jakobfaber/Data/Faber2026/dsa110/upchan_codetections/crossacf-2026-07-14/freya_chime_freq.npy",
+    "metadata": "/Users/jakobfaber/Data/Faber2026/dsa110/upchan_codetections/crossacf-2026-07-14/freya_crossacf_metadata.json",
+    "pol0": "/Users/jakobfaber/Data/Faber2026/dsa110/upchan_codetections/crossacf-2026-07-14/freya_chime_pol0_upchan.npy",
+    "pol1": "/Users/jakobfaber/Data/Faber2026/dsa110/upchan_codetections/crossacf-2026-07-14/freya_chime_pol1_upchan.npy"
+  },
+  "inputs_sha256": {
+    "frequencies": "b686f99e71ad37a0b9014aae8ea480865b7eda8c94f0eb6c1d82e11d6a800255",
+    "metadata": "33dc217f819f1d12134a42e4ccf1b5f9936d7fe36ce80555433225c54e4347d6",
+    "pol0": "859c78d02fd809adedb429581966003034106e7e9497e2a7f6eb627c27550c98",
+    "pol1": "8162191550178bd6079ad92362d0f8b2c370c749484ef260b00adc80c2e5abf3"
+  },
+  "lte_exclusion_mhz": [
+    730.0,
+    760.0
+  ],
+  "n_band_channels": 23064,
+  "n_good_channels": 19465,
+  "noise_variance": 0.017360663207755412,
+  "off_pool_windows": [
+    [
+      10,
+      200
+    ],
+    [
+      360,
+      437
+    ]
+  ],
+  "on_pulse_window": [
+    250,
+    350
+  ],
+  "record": "docs/rse/specs/experiment-chime-scint-p4-envelope-model.md",
+  "schema_version": 1,
+  "seeds": {
+    "injections": "600000 + 1000*cell + r ; cell = m_index*4 + dnu_index",
+    "nulls": "650000 + i (n=100)",
+    "subband_templates": "770000 + 100000*band + 1000*grid_index + j",
+    "surrogates": "680000 + 1000*a_index + r (n=50 per source family)",
+    "templates": "760000 + 1000*grid_index + j"
+  }
+}

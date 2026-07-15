@@ -1,0 +1,26 @@
+{
+  "detail": {
+    "operating_points": {
+      "M1_spline": {
+        "drop_reason": "no control-clean scale",
+        "scale": null,
+        "survives": 0
+      },
+      "M2_gp": {
+        "drop_reason": "zero certified cells at dnu >= 127.0 kHz",
+        "scale": null,
+        "survives": 0
+      },
+      "M3_delaycut": {
+        "drop_reason": "no control-clean scale",
+        "scale": null,
+        "survives": 0
+      }
+    },
+    "reason": "all three families dropped in E2"
+  },
+  "evidential_class": "exploratory (post-unblinding); no blind-analysis weight",
+  "experiment": "p4-envelope-model",
+  "frozen_config_sha256": "e8e5e01dccf7f890c2f7261599747ea9b4a4a160b464df1b1805a70a2bfbecf9",
+  "verdict": "DOCUMENTED-FAIL (envelope not separable)"
+}

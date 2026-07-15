@@ -173,6 +173,33 @@ experiments:
         Delta-nu_d measurement (fail-closed). Scintillation constraint is
         envelope-confusion-limited; interpretation wording awaits owner
         ratification.
+  - id: p4-envelope-model
+    target: freya
+    data_class: real_chime_product_with_synthetic_injections_and_surrogates
+    status: documented_fail_envelope_not_separable
+    machine_status: e2_fail_branch
+    qualified_measurement: false
+    evidential_class: exploratory  # post-P3'-unblinding, owner-sanctioned 2026-07-15
+    real_residual_scanned: false  # 0 of the 3 permitted looks spent
+    summary: analysis/chime-scintillation/experiments/p4-envelope-model/RESULT.md
+    frozen_config: analysis/chime-scintillation/experiments/p4-envelope-model/p4_frozen_config.json
+    notes:
+      - Envelope-model-and-subtract follow-up to P3' (record
+        experiment-chime-scint-p4-envelope-model.md, frozen before any residual
+        statistic). Three families (spline / GP / delay low-pass), templates
+        rebuilt through the identical model+subtract chain per operating point.
+      - Predeclared E2 fail branch triggered. Stiff scales leave 5.4-71.9
+        max-z of envelope-model-mismatch false structure (surrogate control vs
+        noise p95 ~2); the one control-clean scale (GP l=0.5 MHz) absorbs the
+        injected scintles (width bias -0.45..-0.93, zero certified cells); only
+        77 kHz cells (below the admissible window) certify anywhere, and only
+        at control-failing scales. All three families dropped.
+      - E3b unavailable (single profile component, S/N 11); E3c unavailable
+        (no trusted DSA-band Delta-nu_d for freya - DSA fits revoked pending
+        the trust reset).
+      - Consequence - the intrinsic envelope is not separable in-house; the
+        CHIME constraint stays envelope-confusion-limited with no quantifiable
+        post-subtraction upper limit.
   - id: a1-trigger-calibration
     target: synthetic_grid
     data_class: synthetic_null_and_two_component_campaigns

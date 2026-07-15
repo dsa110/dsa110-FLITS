@@ -1,0 +1,30 @@
+{
+  "acf_hwhm_mhz": 0.0061036087587353904,
+  "amplitude_stats": {
+    "fraction_negative": 0.29406627279732855,
+    "max": 1.0140160138968801,
+    "mean": 0.05360120497298141,
+    "median": 0.04789116127004764,
+    "min": -0.32761921035580266,
+    "p5": -0.09454385193765376,
+    "p95": 0.21566484923373097
+  },
+  "delay_power_mean_k11_100": 1542.0382031190904,
+  "delay_power_mean_k1_10": 3478.409525194843,
+  "experiment": "p4-envelope-model",
+  "frozen_config_sha256": "e8e5e01dccf7f890c2f7261599747ea9b4a4a160b464df1b1805a70a2bfbecf9",
+  "half_to_half_correlation": 0.05921536218096032,
+  "profile": {
+    "baseline": 3481494374.968069,
+    "component_windows": [],
+    "components": [
+      {
+        "sample": 254,
+        "snr": 10.966187441082317
+      }
+    ],
+    "e3b_available": 0,
+    "noise": 189407421.3925309,
+    "peak_snr_smoothed": 10.966187441082317
+  }
+}

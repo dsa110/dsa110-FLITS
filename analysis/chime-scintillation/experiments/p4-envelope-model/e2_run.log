@@ -1,0 +1,31 @@
+ERROR conda.cli.main_run:execute(148): `conda run python p4_calibration.py e2` failed. (See above for error)
+{"stage": "fields"}
+{"stage": "op", "family": "M1_spline", "scale": 0.5}
+{"family": "M1_spline", "scale": 0.5, "certified": 2, "control_clean": false, "noise_p95": 1.85, "surrogate_p95": 12.43}
+{"stage": "op", "family": "M1_spline", "scale": 1.0}
+{"family": "M1_spline", "scale": 1.0, "certified": 0, "control_clean": false, "noise_p95": 2.07, "surrogate_p95": 25.8}
+{"stage": "op", "family": "M1_spline", "scale": 2.0}
+{"family": "M1_spline", "scale": 2.0, "certified": 0, "control_clean": false, "noise_p95": 1.92, "surrogate_p95": 35.11}
+{"stage": "op", "family": "M1_spline", "scale": 5.0}
+{"family": "M1_spline", "scale": 5.0, "certified": 0, "control_clean": false, "noise_p95": 2.39, "surrogate_p95": 57.14}
+{"stage": "op", "family": "M1_spline", "scale": 10.0}
+{"family": "M1_spline", "scale": 10.0, "certified": 0, "control_clean": false, "noise_p95": 2.13, "surrogate_p95": 56.5}
+{"stage": "op", "family": "M2_gp", "scale": 0.5}
+{"family": "M2_gp", "scale": 0.5, "certified": 0, "control_clean": true, "noise_p95": 2.01, "surrogate_p95": 1.17}
+{"stage": "op", "family": "M2_gp", "scale": 1.0}
+{"family": "M2_gp", "scale": 1.0, "certified": 2, "control_clean": false, "noise_p95": 2.0, "surrogate_p95": 5.38}
+{"stage": "op", "family": "M2_gp", "scale": 2.0}
+{"family": "M2_gp", "scale": 2.0, "certified": 0, "control_clean": false, "noise_p95": 2.05, "surrogate_p95": 12.24}
+{"stage": "op", "family": "M2_gp", "scale": 5.0}
+{"family": "M2_gp", "scale": 5.0, "certified": 0, "control_clean": false, "noise_p95": 2.12, "surrogate_p95": 32.5}
+{"stage": "op", "family": "M2_gp", "scale": 10.0}
+{"family": "M2_gp", "scale": 10.0, "certified": 0, "control_clean": false, "noise_p95": 2.11, "surrogate_p95": 44.5}
+{"stage": "op", "family": "M3_delaycut", "scale": 25}
+{"family": "M3_delaycut", "scale": 25, "certified": 0, "control_clean": false, "noise_p95": 2.1, "surrogate_p95": 71.89}
+{"stage": "op", "family": "M3_delaycut", "scale": 50}
+{"family": "M3_delaycut", "scale": 50, "certified": 0, "control_clean": false, "noise_p95": 1.82, "surrogate_p95": 52.0}
+{"stage": "op", "family": "M3_delaycut", "scale": 100}
+{"family": "M3_delaycut", "scale": 100, "certified": 0, "control_clean": false, "noise_p95": 1.92, "surrogate_p95": 32.66}
+{"stage": "op", "family": "M3_delaycut", "scale": 200}
+{"family": "M3_delaycut", "scale": 200, "certified": 0, "control_clean": false, "noise_p95": 2.0, "surrogate_p95": 37.37}
+{"fail_branch": true, "survivors": []}

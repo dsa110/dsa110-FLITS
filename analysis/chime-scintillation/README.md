@@ -7,11 +7,16 @@ it does not duplicate large validation records or raw data.
 ## Current scientific answer
 
 There is **no qualified CHIME scintillation-bandwidth measurement** in the
-indexed results. The H0/A1/H2/H3 and B3/B4 qualification routes failed, the
-trigger campaign completed with zero power over its tested alternative grid,
-and the recovered-notebook peak was falsified as an off-pulse instrumental
-scale. In particular, this inventory contains no qualified Oran CHIME
-detection. DSA-110 results are outside this CHIME-only inventory.
+indexed results. The H0/A1/H2/H3, B3/B4, and C1 qualification routes failed,
+the trigger campaign completed with zero power over its tested alternative
+grid, and the recovered-notebook peak was falsified as an off-pulse
+instrumental scale. C1 (all-pairs distinct-time cross-ACF, the owner-selected
+route after B4) reached a blinded NO-GO — 0/8 gated calibration cells and a
+failed null campaign — without any unblinded on-pulse fit; per its stop rule,
+further estimator tuning on the retained product is closed, and the next route
+must change the input product itself (windowed re-upchannelization). In
+particular, this inventory contains no qualified Oran CHIME detection.
+DSA-110 results are outside this CHIME-only inventory.
 
 ## Indexed experiments
 
@@ -23,6 +28,7 @@ detection. DSA-110 results are outside this CHIME-only inventory.
 | H3 stationary-kernel whitening | real CHIME product plus injections | documented failure; diagnostic only | [`experiments/h3-scallop/README.md`](experiments/h3-scallop/README.md) |
 | B3 high-band polarization cross-ACF | real CHIME product plus injections | documented failure; diagnostic only | [`experiments/b3-highband-crossacf/RESULT.md`](experiments/b3-highband-crossacf/RESULT.md) |
 | B4 four-stream cross-ACF | real CHIME product plus injections | documented failure; diagnostic only | [`experiments/b4-fourstream-crossacf/RESULT.md`](experiments/b4-fourstream-crossacf/RESULT.md) |
+| C1 all-pairs distinct-time cross-ACF | real CHIME product plus injections (blinded) | documented failure; no unblinded fit | [`experiments/c1-allpairs-crossgp/RESULT.md`](experiments/c1-allpairs-crossgp/RESULT.md) |
 | A1 trigger calibration | synthetic null and two-component campaigns | completed but zero power; diagnostic only | [`experiments/trigger-calibration/RESULT.md`](experiments/trigger-calibration/RESULT.md) |
 | Recovered notebook replay | real surviving CHIME product | falsified; not a measurement | [`experiments/notebook-replay/RESULT.md`](experiments/notebook-replay/RESULT.md) |
 

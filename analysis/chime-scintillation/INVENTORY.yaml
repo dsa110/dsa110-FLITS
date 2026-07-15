@@ -99,6 +99,22 @@ experiments:
       - legacy_window_contains_burst
       - off_pulse_whiteness
       - on_off_width_separation
+  - id: c1-allpairs-crossgp
+    target: freya
+    data_class: real_chime_product_with_synthetic_injections
+    status: diagnostic_only
+    machine_status: documented_fail
+    qualified_measurement: false
+    blinded: true
+    unblinded_fit_produced: false
+    summary: analysis/chime-scintillation/experiments/c1-allpairs-crossgp/RESULT.md
+    validation: analysis/chime-scintillation/experiments/c1-allpairs-crossgp/calibration_verdict.json
+    artifact_manifest: analysis/chime-scintillation/experiments/c1-allpairs-crossgp/figures.manifest.json
+    figure_review: analysis/chime-scintillation/experiments/c1-allpairs-crossgp/figures.review.json
+    decisive_failures:
+      - gated_low_modulation_width_recovery
+      - low_modulation_interval_coverage
+      - family_wise_null_campaign
   - id: a1-trigger-calibration
     target: synthetic_grid
     data_class: synthetic_null_and_two_component_campaigns

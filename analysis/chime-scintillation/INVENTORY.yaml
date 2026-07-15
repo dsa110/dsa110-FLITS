@@ -115,6 +115,20 @@ experiments:
       - gated_low_modulation_width_recovery
       - low_modulation_interval_coverage
       - family_wise_null_campaign
+  - id: p1-window-upchan
+    target: freya
+    data_class: real_chime_baseband_regenerated_products
+    status: diagnostic_only
+    machine_status: documented_fail
+    qualified_measurement: false
+    blinded: false
+    unblinded_fit_produced: false
+    summary: analysis/chime-scintillation/experiments/p1-window-upchan/RESULT.md
+    validation: analysis/chime-scintillation/experiments/p1-window-upchan/validation.json
+    decisive_failures:
+      - offpulse_common_mode_lag1_suppression
+      - offpulse_common_mode_amplitude_suppression
+      - no_variant_eligible_for_c1
   - id: a1-trigger-calibration
     target: synthetic_grid
     data_class: synthetic_null_and_two_component_campaigns

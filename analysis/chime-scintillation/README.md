@@ -18,6 +18,11 @@ must change the input product itself (windowed re-upchannelization). In
 particular, this inventory contains no qualified Oran CHIME detection.
 DSA-110 results are outside this CHIME-only inventory.
 
+The sanctioned windowed-re-upchannelization successor was executed on Freya
+under `p1-window-upchan`. Rectangular, Hann, and Blackman–Harris products at
+oversample 2 and 4 all failed the predeclared 10× off-pulse common-mode gate;
+the route therefore stopped before any on-pulse fit or new C1 calibration.
+
 ## Indexed experiments
 
 | Experiment | Input type | Status | Start here |
@@ -29,6 +34,7 @@ DSA-110 results are outside this CHIME-only inventory.
 | B3 high-band polarization cross-ACF | real CHIME product plus injections | documented failure; diagnostic only | [`experiments/b3-highband-crossacf/RESULT.md`](experiments/b3-highband-crossacf/RESULT.md) |
 | B4 four-stream cross-ACF | real CHIME product plus injections | documented failure; diagnostic only | [`experiments/b4-fourstream-crossacf/RESULT.md`](experiments/b4-fourstream-crossacf/RESULT.md) |
 | C1 all-pairs distinct-time cross-ACF | real CHIME product plus injections (blinded) | documented failure; no unblinded fit | [`experiments/c1-allpairs-crossgp/RESULT.md`](experiments/c1-allpairs-crossgp/RESULT.md) |
+| P1 windowed re-upchannelization | Freya coherently dedispersed baseband; five shape-compatible variants | documented failure; no on-pulse fit or C1 calibration | [`experiments/p1-window-upchan/RESULT.md`](experiments/p1-window-upchan/RESULT.md) |
 | A1 trigger calibration | synthetic null and two-component campaigns | completed but zero power; diagnostic only | [`experiments/trigger-calibration/RESULT.md`](experiments/trigger-calibration/RESULT.md) |
 | Recovered notebook replay | real surviving CHIME product | falsified; not a measurement | [`experiments/notebook-replay/RESULT.md`](experiments/notebook-replay/RESULT.md) |
 

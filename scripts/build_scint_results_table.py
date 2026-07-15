@@ -229,12 +229,18 @@ def extract_gamma(component: dict[str, Any], n_valid_subbands: int) -> dict[str,
     return extracted
 
 
-def combined_verdict(measurement_status: str | None, odr_verdict: str) -> str:
+def combined_verdict(
+    measurement_status: str | None, odr_verdict: str, provenance_caveat: str | None = None
+) -> str:
     if measurement_status == "diagnostic_only":
-        return "DIAGNOSTIC"
-    if measurement_status == "measurement" and odr_verdict == "PASS":
-        return "PASS"
-    return "FAIL" if odr_verdict == "FAIL" else "MARGINAL"
+        verdict = "DIAGNOSTIC"
+    elif measurement_status == "measurement" and odr_verdict == "PASS":
+        verdict = "PASS"
+    else:
+        verdict = "FAIL" if odr_verdict == "FAIL" else "MARGINAL"
+    # a provenance caveat must never be dropped from the derived table:
+    # a caveated PASS is not a clean PASS
+    return f"{verdict} [{provenance_caveat}]" if provenance_caveat else verdict
 
 
 def extract_record(path: Path, campaign_root: Path) -> dict[str, Any]:
@@ -255,7 +261,11 @@ def extract_record(path: Path, campaign_root: Path) -> dict[str, Any]:
         record.update(
             {
                 "parse_error": f"{type(error).__name__}: {error}",
-                "measurement_status": {"status": None, "failed_checks": None},
+                "measurement_status": {
+                    "status": None,
+                    "failed_checks": None,
+                    "provenance_caveat": None,
+                },
                 "selected_component": None,
                 "n_valid_subbands": 0,
                 "subband_measurements": [],
@@ -270,6 +280,11 @@ def extract_record(path: Path, campaign_root: Path) -> dict[str, Any]:
     measurement = data.get("measurement_status")
     measurement = measurement if isinstance(measurement, dict) else {}
     status = measurement.get("status") if isinstance(measurement.get("status"), str) else None
+    caveat = (
+        measurement.get("provenance_caveat")
+        if isinstance(measurement.get("provenance_caveat"), str)
+        else None
+    )
     component_name, component = select_component(data)
     n_valid, subbands = valid_subbands(component)
     gamma = extract_gamma(component, n_valid)
@@ -280,6 +295,7 @@ def extract_record(path: Path, campaign_root: Path) -> dict[str, Any]:
             "measurement_status": {
                 "status": status,
                 "failed_checks": json_safe(measurement.get("failed_checks")),
+                "provenance_caveat": caveat,
             },
             "selected_component": component_name,
             "n_valid_subbands": n_valid,
@@ -290,7 +306,7 @@ def extract_record(path: Path, campaign_root: Path) -> dict[str, Any]:
                 "available": has_finite_time_modulation(time_modulation),
                 "results": json_safe(time_modulation),
             },
-            "verdict": combined_verdict(status, gamma["odr_logspace"]["quality_flag"]),
+            "verdict": combined_verdict(status, gamma["odr_logspace"]["quality_flag"], caveat),
         }
     )
     return record

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -341,3 +342,16 @@ def test_single_block_provenance_caveats():
     assert registry["hamilton"]["provenance_caveat"] == "single_block"
     assert registry["johndoeII"]["provenance_caveat"] == "single_block"
     assert "provenance_caveat" not in registry["freya"]
+
+
+def test_shipped_burst_configs_carry_single_block_caveat():
+    # direct run_analysis CLI invocations bypass the campaign runner's
+    # registry injection, so the shipped configs must carry the caveat too
+    import yaml
+
+    bursts = Path(__file__).parents[2] / "configs" / "bursts"
+    for nick in ("hamilton", "johndoeII"):
+        config = yaml.safe_load((bursts / f"{nick}_chime.yaml").read_text())
+        assert config["provenance_caveat"] == "single_block", nick
+    freya = yaml.safe_load((bursts / "freya_chime.yaml").read_text())
+    assert "provenance_caveat" not in freya

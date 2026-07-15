@@ -1,6 +1,7 @@
 burst_id: johndoeII
 input_data_path: ${FLITS_ROOT}/scintillation/data/johndoeII_chime.npz
 telescope: chime
+provenance_caveat: single_block
 analysis:
   rfi_masking:
     find_burst_thres: 8.0

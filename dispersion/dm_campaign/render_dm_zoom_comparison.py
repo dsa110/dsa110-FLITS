@@ -360,9 +360,15 @@ def render_tilt(fits_path: Path, out_path: Path, bursts, window_ms: float, n_sub
                 good = np.isfinite(arr)
                 lbl = f"@ {dm_key.upper()}-DM"
                 ax.plot(arr[good], sub_f[good], "o", color=color, ms=4.5, label=f"data {lbl}")
-                # cold-plasma expectation for this DM relative to the band's own DM
-                fgrid = np.linspace(np.nanmin(sub_f), np.nanmax(sub_f), 100)
-                theory = _delay_ms(dm_of[dm_key] - dm_of[band_key], fgrid, ref_f)
+                sub_lo, sub_hi = float(np.nanmin(sub_f)), float(np.nanmax(sub_f))
+                # Cold-plasma residual after dedispersing the band's own-DM burst
+                # to the target DM: the residual delay is proportional to
+                # (dm_true - dm_target) = dm_of[band_key] - dm_of[dm_key]. Over-
+                # dedispersing (target > true) pulls low-frequency channels early;
+                # under-dedispersing leaves them late. This must match the sign of
+                # the shift applied to the data in _subband_arrival_times.
+                fgrid = np.linspace(sub_lo, sub_hi, 100)
+                theory = _delay_ms(dm_of[band_key] - dm_of[dm_key], fgrid, ref_f)
                 ax.plot(theory, fgrid, "-", color=color, lw=1.2, alpha=0.7, label=f"cold-plasma {lbl}")
             ax.axvline(0.0, color="0.6", lw=0.7, ls=":")
             ax.set_title(f"{b}  {band_key.upper()} band", fontsize=8,
@@ -373,8 +379,10 @@ def render_tilt(fits_path: Path, out_path: Path, bursts, window_ms: float, n_sub
             # Annotate the CHIME-vs-DSA DM split projected into THIS band, on the
             # shared row ruler. The DM is separable only where the split is large
             # relative to the panel scale; in DSA it is sub-sample (see caption).
-            sweep = _sweep_ms(dm_of["chime"] - dm_of["dsa"], *sorted(
-                (float(band["frequency_mhz"][0]), float(band["frequency_mhz"][-1]))))
+            # Use the frequency limits measured from the loaded waterfall rather
+            # than a catalog field, so the mode works on any product with the
+            # documented input_path/product_dm/dm schema.
+            sweep = _sweep_ms(dm_of["chime"] - dm_of["dsa"], sub_lo, sub_hi)
             ax.text(0.03, 0.03, f"DM split in band\n{abs(sweep):.3f} ms",
                     transform=ax.transAxes, ha="left", va="bottom", fontsize=6.3,
                     bbox=dict(boxstyle="round,pad=0.2", fc="white", ec="0.7", lw=0.5, alpha=0.9))

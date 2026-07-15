@@ -295,3 +295,23 @@ if __name__ == "__main__":
     import pytest
 
     raise SystemExit(pytest.main([__file__, "-v"]))
+
+
+def test_finalize_measurement_status_carries_caveat():
+    provenance = {"is_chime": True, "status": guards.MEASUREMENT, "missing": []}
+    f = guards.finalize_measurement_status(
+        provenance,
+        off_pulse_null={"null_pass": True},
+        low_lag_stability={"stable": True},
+        modulation_index={"physical": True},
+        subband_support={"sufficient": True},
+        provenance_caveat="single_block",
+    )
+    assert f["provenance_caveat"] == "single_block"
+    assert f["status"] == guards.MEASUREMENT
+
+
+def test_finalize_measurement_status_omits_absent_caveat():
+    provenance = {"is_chime": True, "status": guards.MEASUREMENT, "missing": []}
+    f = guards.finalize_measurement_status(provenance, off_pulse_null={"null_pass": True})
+    assert "provenance_caveat" not in f

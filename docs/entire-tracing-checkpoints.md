@@ -5481,6 +5481,14 @@ preserving for future agents.
   - entire/checkpoints/v1 -> a90492d
 - note: `.entire/` remains host-local runtime state; only this ledger is tracked.
 
+## 2026-07-14T23:01:13-07:00 — jakob
+- repo: `/Users/jakobfaber/Developer/scratch/worktrees/flits-caveat-hygiene`
+- branch: `scint/eligibility-caveats`
+- head: `4414a53`
+- origin/main: `b130ab4`
+- worktree: clean
+- note: watched path changed: scripts/run_chime_scint_campaign.py
+- tracked status: clean
 ## 2026-07-14T22:56:04-07:00 — jakob
 - repo: `/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline`
 - branch: `scint/c1-allpairs-crossgp`
@@ -5500,6 +5508,14 @@ preserving for future agents.
   - entire/checkpoints/v1 -> a90492d
 - note: `.entire/` remains host-local runtime state; only this ledger is tracked.
 
+## 2026-07-14T23:35:17-07:00 — jakob
+- repo: `/Users/jakobfaber/Developer/scratch/worktrees/flits-caveat-hygiene`
+- branch: `scint/eligibility-caveats`
+- head: `7679bc5`
+- origin/main: `b130ab4`
+- worktree: clean
+- note: watched path changed: scripts/build_scint_results_table.py
+- tracked status: clean
 ## 2026-07-14T23:25:25-07:00 — jakob
 - repo: `/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline`
 - branch: `scint/c1-allpairs-crossgp`

@@ -438,6 +438,7 @@ class ScintillationAnalysis:
             low_lag_stability=stability,
             modulation_index=modulation,
             subband_support=support,
+            provenance_caveat=self.config.get("provenance_caveat"),
         )
         # Fail closed: finalize_measurement_status only downgrades on an
         # explicit False, but a swallowed re-fit exception or missing ACF
@@ -455,6 +456,7 @@ class ScintillationAnalysis:
         ]
         if inconclusive:
             status = {
+                **{k: v for k, v in status.items() if k == "provenance_caveat"},
                 "status": guards.DIAGNOSTIC_ONLY,
                 "downgraded": True,
                 "failed_checks": status["failed_checks"]

@@ -1,0 +1,57 @@
+schema_version: 1
+scope: External inputs used by the indexed CHIME experiments
+storage_roots:
+  crossacf_local:
+    kind: local_external
+    location: ${FABER2026_DATA_ROOT}/dsa110/upchan_codetections/crossacf-2026-07-14
+  h17_raw:
+    kind: ssh_external
+    location: ssh://h17/data/research/astrophysics/frbs/chime-dsa-codetections/chime_singlebeam
+  h17_producer:
+    kind: ssh_external
+    location: ssh://h17/data/jfaber
+  notebook_recovery_local:
+    kind: local_external
+    location: ${FABER2026_DATA_ROOT}/dsa110/reference_notebook_20260714
+assets:
+  - id: freya-raw-singlebeam-h5
+    root: h17_raw
+    relative_path: singlebeam_278720455.h5
+    sha256: 676a9033c10926c213603939bee78c44d6d1a011c01e4279b41bccc97127df52
+    used_by: [b3-highband-crossacf, b4-fourstream-crossacf]
+  - id: crossacf-producer
+    root: h17_producer
+    relative_path: upchannelize_chime_crossacf_v2_20260714.py
+    sha256: 8cadc252ede208c0b81773516ced042b4b6ed36622910283660a6716a8971a09
+    used_by: [b3-highband-crossacf, b4-fourstream-crossacf]
+  - id: freya-crossacf-metadata
+    root: crossacf_local
+    relative_path: freya_crossacf_metadata.json
+    sha256: 33dc217f819f1d12134a42e4ccf1b5f9936d7fe36ce80555433225c54e4347d6
+    used_by: [b3-highband-crossacf, b4-fourstream-crossacf]
+  - id: freya-crossacf-frequencies
+    root: crossacf_local
+    relative_path: freya_chime_freq.npy
+    sha256: b686f99e71ad37a0b9014aae8ea480865b7eda8c94f0eb6c1d82e11d6a800255
+    used_by: [b3-highband-crossacf, b4-fourstream-crossacf]
+  - id: freya-crossacf-pol0
+    root: crossacf_local
+    relative_path: freya_chime_pol0_upchan.npy
+    sha256: 859c78d02fd809adedb429581966003034106e7e9497e2a7f6eb627c27550c98
+    used_by: [b3-highband-crossacf, b4-fourstream-crossacf]
+  - id: freya-crossacf-pol1
+    root: crossacf_local
+    relative_path: freya_chime_pol1_upchan.npy
+    sha256: 8162191550178bd6079ad92362d0f8b2c370c749484ef260b00adc80c2e5abf3
+    used_by: [b3-highband-crossacf, b4-fourstream-crossacf]
+  - id: freya-crossacf-stokes
+    root: crossacf_local
+    relative_path: freya_chime_upchan.npy
+    sha256: f7ce42985a99eeb70565abb1b8458ec888fa2e65396cef2e2bf9b367941f62b9
+    used_by: [b3-highband-crossacf, b4-fourstream-crossacf]
+  - id: surviving-notebook-pickle
+    root: notebook_recovery_local
+    relative_path: freya_278720455_fullstokes_interp.pkl
+    sha256: 69ec55d93f2705999da7975448311114b573641561e60d4b939bf3de3a476356
+    used_by: [notebook-replay]
+    note: Same-named surviving candidate; not the missing exact historical input.

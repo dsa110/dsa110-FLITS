@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "validated_on": "2026-07-14",
+  "verdict": "campaign_complete_trigger_not_qualified",
+  "qualified_scintillation_measurement": false,
+  "campaign_complete": true,
+  "checks": {
+    "aggregate_report_json_valid": true,
+    "checkpoint_json_valid": true,
+    "declared_cell_count": 68,
+    "observed_cell_count": 68,
+    "null_cell_count": 60,
+    "power_cell_count": 8,
+    "null_realizations_per_cell": 200,
+    "power_realizations_per_cell": 100,
+    "nonfinite_sample_count": 0,
+    "thresholds_recomputed_exactly": true,
+    "power_curve_recomputed_exactly": true,
+    "producer_commit_present": true,
+    "selected_source_files_tree_identical_after_rebase": true,
+    "figure_count": 3,
+    "figures_decode_as_png": true,
+    "figures_visually_reviewed": true
+  },
+  "operating_point": {
+    "false_escalation_rate": 0.01,
+    "delta_log_evidence_threshold": 59699.69283336272
+  },
+  "thresholds": {
+    "0.005": 64339.94635811708,
+    "0.01": 59699.69283336272,
+    "0.05": 1074.5628723163188
+  },
+  "dominant_null_cells": {
+    "0.005": "null__dnu_over_dchan-100_num_subbands-8_snr-10.0",
+    "0.01": "null__dnu_over_dchan-100_num_subbands-8_snr-10.0",
+    "0.05": "null__dnu_over_dchan-10_num_subbands-8_snr-100.0"
+  },
+  "maximum_null_delta_log_evidence": {
+    "value": 76122.16097938282,
+    "cell": "null__dnu_over_dchan-100_num_subbands-8_snr-10.0"
+  },
+  "power_at_operating_point": {
+    "power__f-3.0_m2_ratio-0.25": 0.0,
+    "power__f-3.0_m2_ratio-1.0": 0.0,
+    "power__f-10.0_m2_ratio-0.25": 0.0,
+    "power__f-10.0_m2_ratio-1.0": 0.0,
+    "power__f-30.0_m2_ratio-0.25": 0.0,
+    "power__f-30.0_m2_ratio-1.0": 0.0,
+    "power__f-100.0_m2_ratio-0.25": 0.0,
+    "power__f-100.0_m2_ratio-1.0": 0.0
+  },
+  "producer": {
+    "host": "h17",
+    "report_path": "/home/ubuntu/a1-trigger-calibration/reports/a1_trigger_calibration.json",
+    "checkpoint_path": "/home/ubuntu/a1-trigger-calibration/reports/a1_trigger_calibration.cells/",
+    "git_sha": "e0776116525ff17d4a85d1178e1883ca35dcaa21",
+    "rebased_source_sha": "b899b5a",
+    "command": "simulation/scripts/run_a1_trigger_calibration.py --n-real 200 --n-real-power 100 --workers 36 --out reports/a1_trigger_calibration.json"
+  }
+}

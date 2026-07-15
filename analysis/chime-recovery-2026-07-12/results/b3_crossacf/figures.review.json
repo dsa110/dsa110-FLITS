@@ -1,0 +1,33 @@
+{
+  "figure_manifest_sha256": "e6f69c26643d581e22fcf3c4f61c411f54d963cf44c9591b7b3ae075fb7ea9ac",
+  "pass": false,
+  "reviewed_at": "2026-07-14T01:15:00-07:00",
+  "reviewer": "Codex",
+  "collaborating_review": {
+    "reviewer": "Claude Fable 5 xhigh via Repowire",
+    "status": "reviewed_fail",
+    "note": "Independent adversarial review confirmed coherent low-lag structure in 11/12 off-pulse windows and no P0/P1 defects in the fail-closed run path. Re-reviewed after declaring the portable manifest path base."
+  },
+  "schema_version": 1,
+  "status": "reviewed_fail",
+  "figures": [
+    {
+      "file": "freya_b3_offpulse_null.png",
+      "render_ok": true,
+      "scientific_expectation_met": false,
+      "note": "All twelve curves share a positive low-lag to negative high-lag trend; the null is visibly structured rather than centered incoherently around zero."
+    },
+    {
+      "file": "freya_b3_injection_recovery.png",
+      "render_ok": true,
+      "scientific_expectation_met": false,
+      "note": "The plot is legible and agrees with the serialized results: every m=0.3 width-bias bar exceeds its fixed limit, while every m=1.0 cell remains below it."
+    }
+  ],
+  "missing_by_design": [
+    {
+      "file": "freya_b3_onpulse_crossacf.png",
+      "reason": "Prerequisite gates failed, so the validator correctly suppressed the on-pulse fit and figure."
+    }
+  ]
+}

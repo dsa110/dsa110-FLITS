@@ -33,7 +33,7 @@ def main() -> int:
     checks["manual_review"] = {
         "pass": manual_pass,
         "overall_verdict": review["overall_verdict"],
-        "review_file": str((RESULT_DIR / "figures.review.json").resolve()),
+        "review_file": "figures.review.json",
         "reason": review["science_disposition"],
     }
     widths = [

@@ -2,15 +2,18 @@
   "figures": [
     {
       "expectation": "Held-out off-pulse ACFs are statistically consistent with the six-slice training kernel in both subbands.",
-      "path": "/Users/jakobfaber/Developer/scratch/worktrees/flits-chime-additive-likelihood/analysis/chime-recovery-2026-07-12/results/a1/figures/freya_a1_offpulse_covariance.png"
+      "path": "figures/freya_a1_offpulse_covariance.svg",
+      "sha256": "9cf44015e06bc26c203263ee34609d7eab3ef0a6bfa42dd78f0e453bdc77b188"
     },
     {
       "expectation": "Every held-out slice has max abs(z) at most 3 and reduced predictive chi-square between 0.5 and 2.0.",
-      "path": "/Users/jakobfaber/Developer/scratch/worktrees/flits-chime-additive-likelihood/analysis/chime-recovery-2026-07-12/results/a1/figures/freya_a1_heldout_qualification.png"
+      "path": "figures/freya_a1_heldout_qualification.svg",
+      "sha256": "7549235967e8031f0052aec3a9e2509027b4fbb6d940a55ea722c27d5cfc9c46"
     },
     {
       "expectation": "Recovered widths and modulation indices follow identity for all 48 real-background injections.",
-      "path": "/Users/jakobfaber/Developer/scratch/worktrees/flits-chime-additive-likelihood/analysis/chime-recovery-2026-07-12/results/a1/figures/freya_a1_injection_recovery.png"
+      "path": "figures/freya_a1_injection_recovery.svg",
+      "sha256": "796e3c07bc1ce9188fef68f79809268c4bff942acca65596b5ccd5a65d4dfda8"
     }
   ]
 }

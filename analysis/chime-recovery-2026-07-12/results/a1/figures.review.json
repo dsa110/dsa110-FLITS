@@ -3,17 +3,20 @@
   "reviewer": "Codex",
   "figures": [
     {
-      "path": "/Users/jakobfaber/Developer/scratch/worktrees/flits-chime-additive-likelihood/analysis/chime-recovery-2026-07-12/results/a1/figures/freya_a1_offpulse_covariance.png",
+      "path": "figures/freya_a1_offpulse_covariance.svg",
+      "sha256": "9cf44015e06bc26c203263ee34609d7eab3ef0a6bfa42dd78f0e453bdc77b188",
       "verdict": "anomaly",
       "notes": "The low-band held-out ACFs have visibly larger and less stationary excursions than the training mean, especially near zero lag and across the broad negative trough. The high-band train and held-out curves are comparatively compact. The plotted behavior supports a frequency-dependent qualification result rather than a single transferable kernel."
     },
     {
-      "path": "/Users/jakobfaber/Developer/scratch/worktrees/flits-chime-additive-likelihood/analysis/chime-recovery-2026-07-12/results/a1/figures/freya_a1_heldout_qualification.png",
+      "path": "figures/freya_a1_heldout_qualification.svg",
+      "sha256": "7549235967e8031f0052aec3a9e2509027b4fbb6d940a55ea722c27d5cfc9c46",
       "verdict": "anomaly",
       "notes": "Only three of six low-band held-out slices satisfy both fixed thresholds; the first three exceed the reduced predictive chi-square ceiling and the first marginally exceeds max abs(z)=3. All six high-band slices satisfy both thresholds. The bars and threshold guides agree with validation.json."
     },
     {
-      "path": "/Users/jakobfaber/Developer/scratch/worktrees/flits-chime-additive-likelihood/analysis/chime-recovery-2026-07-12/results/a1/figures/freya_a1_injection_recovery.png",
+      "path": "figures/freya_a1_injection_recovery.svg",
+      "sha256": "796e3c07bc1ce9188fef68f79809268c4bff942acca65596b5ccd5a65d4dfda8",
       "verdict": "anomaly",
       "notes": "The low-band near-resolution width injections are not identifiable against the measured background: recovered widths span both fit limits, including a 400 kHz upper-bound solution for a 12.2 kHz injection. The remaining width scatter, 25 percent nominal-68 coverage, and modulation-index deviations fail the predeclared recovery gates."
     }

@@ -148,7 +148,7 @@
       "overall_verdict": "anomaly",
       "pass": false,
       "reason": "H3 DOCUMENTED-FAIL; do not apply whitening to the Freya burst and terminate the bounded recovery loop without fleet propagation",
-      "review_file": "/Users/jakobfaber/Developer/scratch/worktrees/flits-chime-recovery-loop/analysis/chime-recovery-2026-07-12/results/h3/figures.review.json"
+      "review_file": "figures.review.json"
     },
     "width_amplitude_injection_recovery": {
       "amplitude_limit": "max(10 percent, 0.05 absolute)",

@@ -1,0 +1,453 @@
+{
+  "schema_version": 1,
+  "generated_on": "2026-07-14",
+  "path_base": "repository_root",
+  "experiment": "A1 CHIME trigger calibration",
+  "artifact_count": 74,
+  "artifacts": [
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/RESULT.md",
+      "sha256": "b363036826c1a95aef9b5ab4b8b7709e78e6e1d7e71ab3b25f310f56c27ae0c7",
+      "bytes": 2747,
+      "role": "interpretation"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-100_num_subbands-1_snr-10.0.json",
+      "sha256": "941c2708e828a3aa7b60949e8a1eacf0d7533156ba9135a9d94b471580c8987f",
+      "bytes": 4165,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-100_num_subbands-1_snr-100.0.json",
+      "sha256": "cddea2118425a22f983f12a283f5e7cbed2fe0758820d8a41d4a5e2e56340061",
+      "bytes": 4206,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-100_num_subbands-1_snr-25.0.json",
+      "sha256": "59d641f3b992df423e2a6b5b52f2fee0b0b3ea5c58a6652ae847f3641ba19300",
+      "bytes": 4185,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-100_num_subbands-1_snr-50.0.json",
+      "sha256": "092d6afc8b00d55b096941a4777b21d271c46891cc4a3effe721a7db4be5572f",
+      "bytes": 4191,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-100_num_subbands-4_snr-10.0.json",
+      "sha256": "ffa3fa4237fd071988008af36916da384147fee1011cd6dd96a3fb78c1dc8729",
+      "bytes": 4160,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-100_num_subbands-4_snr-100.0.json",
+      "sha256": "6ba0a392cc873ee48e0bc65cc9bc160f9a9c65ac120dce748f4d5303443be96e",
+      "bytes": 4178,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-100_num_subbands-4_snr-25.0.json",
+      "sha256": "4314d1efb46afbca5574d35e7613e8c43f673ca0d0fb14284e2c5d13b3af5ca3",
+      "bytes": 4160,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-100_num_subbands-4_snr-50.0.json",
+      "sha256": "dce1a2f8c93861633421d507c506b048c7e9df6b716d95d32b8055e2dd48587c",
+      "bytes": 4186,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-100_num_subbands-8_snr-10.0.json",
+      "sha256": "e9d3fce09217e4a41c97f79f85df9bad44fcf0f659fbac658788e5c1b0ee8d90",
+      "bytes": 4175,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-100_num_subbands-8_snr-100.0.json",
+      "sha256": "fd54ab44b08fdbf81e338050bdba5db77d4db220fc6cd0ce05b1485085179b8c",
+      "bytes": 4189,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-100_num_subbands-8_snr-25.0.json",
+      "sha256": "980c86706189c64c613e23fc1a6a9cc751e52162555cea87cb88ca4dc275fe07",
+      "bytes": 4184,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-100_num_subbands-8_snr-50.0.json",
+      "sha256": "e138171ecdbc56c44cb2ce97c5843f0fd5ac5653527abcfc56e6eef1fd4cf34d",
+      "bytes": 4193,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-10_num_subbands-1_snr-10.0.json",
+      "sha256": "dd2e3c01a0c1d14b7b8169c9359c85fe430e29bb84377e7ba8b65a8218ce6c96",
+      "bytes": 4139,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-10_num_subbands-1_snr-100.0.json",
+      "sha256": "d1143046539f6624b09224629d335a94591c08f493287a18f56ebfc7a2930804",
+      "bytes": 4124,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-10_num_subbands-1_snr-25.0.json",
+      "sha256": "007124a99cdb0608fba69774f981890229c0fdaf7945a2f2cb37033daae17e42",
+      "bytes": 4137,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-10_num_subbands-1_snr-50.0.json",
+      "sha256": "6947177fe51fc979945ccbd2d3315bdef933a029bef5fbcc527cd7b927666821",
+      "bytes": 4115,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-10_num_subbands-4_snr-10.0.json",
+      "sha256": "3bc7506f99a1b3d8db0679e26a18cf8d947b5117fd1b68a91c231e6271bab69c",
+      "bytes": 4020,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-10_num_subbands-4_snr-100.0.json",
+      "sha256": "ae16a814173c91f104858b9f6b6b497f39efd4ae4d81252e97d0247a4b513d8f",
+      "bytes": 4033,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-10_num_subbands-4_snr-25.0.json",
+      "sha256": "e541708f971efdd846e15eaf99bee49e8cfb4f99d24cfe052cd4578c6a07bd94",
+      "bytes": 4026,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-10_num_subbands-4_snr-50.0.json",
+      "sha256": "121264dfb46ede0a5141b1bc9ca31f41ec3c1e33a80aaed7e5066741567ff2d5",
+      "bytes": 4051,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-10_num_subbands-8_snr-10.0.json",
+      "sha256": "b9b711c83309b270190548554a00c6da8faa1fe22e607603eaa7e70c6694d0f0",
+      "bytes": 3992,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-10_num_subbands-8_snr-100.0.json",
+      "sha256": "f9466958902cb0fc242adb7559b50790f00f3fd14a03d2009994978ea91e21f3",
+      "bytes": 3996,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-10_num_subbands-8_snr-25.0.json",
+      "sha256": "f9766f021180505f04342aac30b86288c0b09f73b83d7461c0dd411ddd33be9d",
+      "bytes": 3994,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-10_num_subbands-8_snr-50.0.json",
+      "sha256": "eddc03e11ba1faf918d297dbd34e52db8827aaf2c99dd3f2dfb22fc6f494ff9c",
+      "bytes": 3987,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-2_num_subbands-1_snr-10.0.json",
+      "sha256": "42711b12adbf8a0af51066e0cb604ef371630516b4f308402f05246203a96544",
+      "bytes": 4105,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-2_num_subbands-1_snr-100.0.json",
+      "sha256": "4f096b064da137f82a703b119e72610c2d05be5d09d01538dd785a6f3d9f3a52",
+      "bytes": 4092,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-2_num_subbands-1_snr-25.0.json",
+      "sha256": "14c83baa4e1b4f0585c66b85d0d2266a058b4f3ca14b958fcb958a699a0f2e46",
+      "bytes": 4097,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-2_num_subbands-1_snr-50.0.json",
+      "sha256": "43fffd9ebbc2b7f5a8c9e561b537eb4f9c98e03b135243ba73171bed2a5d9c2b",
+      "bytes": 4086,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-2_num_subbands-4_snr-10.0.json",
+      "sha256": "d44ccd74d0f5a4334e573182e836f179bd122e3e0d5d6110bc1cf41615922d2e",
+      "bytes": 4016,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-2_num_subbands-4_snr-100.0.json",
+      "sha256": "a50ece9cdb8ca22daf57020b2880d5f675d0b152924eb3dea49038e2898ea712",
+      "bytes": 3994,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-2_num_subbands-4_snr-25.0.json",
+      "sha256": "4bcab00c3162dc04346473f00e5411dc4c69acbe01154e80a629387737ab6f4e",
+      "bytes": 4014,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-2_num_subbands-4_snr-50.0.json",
+      "sha256": "503b62f921d8fc15a5815ef5121d0c05d2c53d0d8b1cc0876b4d3985ae905811",
+      "bytes": 4007,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-2_num_subbands-8_snr-10.0.json",
+      "sha256": "cf523f7fab01d67f67e240ce1ccb2827a9b114849ecfd48f47b6cc3fc0d46f9b",
+      "bytes": 3991,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-2_num_subbands-8_snr-100.0.json",
+      "sha256": "b3329a639d795410db6952a9ccb29831b0c8c532083f20b906db59b055fffb33",
+      "bytes": 3994,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-2_num_subbands-8_snr-25.0.json",
+      "sha256": "089cb24f1fa0c3583a7c457378da645ad83ccbea5ae43a08fac517d35d415125",
+      "bytes": 3975,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-2_num_subbands-8_snr-50.0.json",
+      "sha256": "42e3bc132131131d18f23ac528335b70935acebd5dfb453144e3380644dba042",
+      "bytes": 4003,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-30_num_subbands-1_snr-10.0.json",
+      "sha256": "46b7fb2ce2612ad1920a57aad34f975ef50b53f2d3966f068ba7cd9f9f0c2cd3",
+      "bytes": 4144,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-30_num_subbands-1_snr-100.0.json",
+      "sha256": "f5260d78739a804d67decac2607bee9c87fbc8ce44a83c60092cdccbe1a318eb",
+      "bytes": 4136,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-30_num_subbands-1_snr-25.0.json",
+      "sha256": "129cc33b516db910eeb481247b9273643cd6cedf9d74b822557bdaffc86ed715",
+      "bytes": 4174,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-30_num_subbands-1_snr-50.0.json",
+      "sha256": "9f50e78541d66c30003ced39711c3c6fc1017124ff241e1b9a86996a82423654",
+      "bytes": 4143,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-30_num_subbands-4_snr-10.0.json",
+      "sha256": "b70607433bdd8b824ff2d1a68d36d510fd26b7843d849110cf25128642104192",
+      "bytes": 4085,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-30_num_subbands-4_snr-100.0.json",
+      "sha256": "2785d334b73447dec24fde24e29fd469016a6b8e123f16c3f5ec7fa8e4b97a9f",
+      "bytes": 4089,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-30_num_subbands-4_snr-25.0.json",
+      "sha256": "f687e73e3c25034ab42b153806fa2d59c4610cccb53ea3a1be6d29220efad2eb",
+      "bytes": 4080,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-30_num_subbands-4_snr-50.0.json",
+      "sha256": "630f26535eea318b80b8bdc8f47dd37eea91929e8b0c02cfe56738a90556c964",
+      "bytes": 4085,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-30_num_subbands-8_snr-10.0.json",
+      "sha256": "1645c43ddfa2f2486882ebcd109db06dea709c38aa68a5f62b2a05d491f0b624",
+      "bytes": 4076,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-30_num_subbands-8_snr-100.0.json",
+      "sha256": "bce5481dd5bdfc0910980fec8201e21c25574265a37de4ed18cebcb174251420",
+      "bytes": 4058,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-30_num_subbands-8_snr-25.0.json",
+      "sha256": "10b9214fd3920fe3b1ca92ae95ddddb72699c7b0683ec5c5c7ef20c87c646b21",
+      "bytes": 4055,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-30_num_subbands-8_snr-50.0.json",
+      "sha256": "c8b90d5083af63124f4f1d53d54bedc7f5e5c207bc51c6831bbef956a8932447",
+      "bytes": 4066,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-5_num_subbands-1_snr-10.0.json",
+      "sha256": "8ee73424ae6a49ce66d8970279dd9ec8d6df22b4dbad7d21cc965a6549180ca5",
+      "bytes": 4132,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-5_num_subbands-1_snr-100.0.json",
+      "sha256": "ec7eab464ca58279a23993145ecc54f4fd2c3b0545895808b23b35ae93296084",
+      "bytes": 4141,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-5_num_subbands-1_snr-25.0.json",
+      "sha256": "a15d771fad9a099ad9fc3582b9900510cdc225a9c7dec92e0f79407ebd247e76",
+      "bytes": 4142,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-5_num_subbands-1_snr-50.0.json",
+      "sha256": "e58845bef6b79e10d6e0f225a97a337c4a98c60edfb18e76641cda75300653f5",
+      "bytes": 4126,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-5_num_subbands-4_snr-10.0.json",
+      "sha256": "5e0582a79af7ad289e686d1eb947378cb93fd54a96a8393ec54f274cffe3a6ef",
+      "bytes": 4014,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-5_num_subbands-4_snr-100.0.json",
+      "sha256": "08991beabe97247d520e2d9acb8e7733a072f93057f4bb834b987e8335f068fd",
+      "bytes": 4014,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-5_num_subbands-4_snr-25.0.json",
+      "sha256": "c35e990230a29d53488fbda8b78f8d6b98d8bf2bb7de672a49adf741bccdfb80",
+      "bytes": 4021,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-5_num_subbands-4_snr-50.0.json",
+      "sha256": "57ff1830e6119385b1ec49711e964b85cb02e054e8f0b16d9f210708d87364e0",
+      "bytes": 4035,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-5_num_subbands-8_snr-10.0.json",
+      "sha256": "1535528748d1ab6ffd53b3bc48536b98499153951f2b01451f053ede5abcf20a",
+      "bytes": 4019,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-5_num_subbands-8_snr-100.0.json",
+      "sha256": "0647df3209043556b3cee070652f5aee1c33850523ab8a782bd42a3da09b7f96",
+      "bytes": 4009,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-5_num_subbands-8_snr-25.0.json",
+      "sha256": "9dcd77bfc86d594c58322524582c58fc965cbfb4e807573f563077a49fae6108",
+      "bytes": 4011,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/null__dnu_over_dchan-5_num_subbands-8_snr-50.0.json",
+      "sha256": "feb1020a7bba17fefa8d23ae4a1949e426789adb76a5118ba0511b116f4cb212",
+      "bytes": 3982,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/power__f-10.0_m2_ratio-0.25.json",
+      "sha256": "f81c4e8636052f941ce901c4d6b64d273308630c84a6e65fc4fb2a9344e4e15e",
+      "bytes": 2034,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/power__f-10.0_m2_ratio-1.0.json",
+      "sha256": "8b9fafaabafb118d18de1580179999be4917f3ef5291f6b5d402b9089f56e5f8",
+      "bytes": 2034,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/power__f-100.0_m2_ratio-0.25.json",
+      "sha256": "50ad889606006160322e14cc25ac70bcffe7a7c8cc6a2cd118275f9a5d8b17e9",
+      "bytes": 2029,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/power__f-100.0_m2_ratio-1.0.json",
+      "sha256": "8ac6f06545300768aad476060314eb2a05f098e7d131d87ee7b39e2bb4951e07",
+      "bytes": 2028,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/power__f-3.0_m2_ratio-0.25.json",
+      "sha256": "a3740d3a4d906c0c51bfe8aced2ac94314876c002ee3b7123f917550daedb676",
+      "bytes": 2034,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/power__f-3.0_m2_ratio-1.0.json",
+      "sha256": "afd3a83045beb37c537c4c76e121b6178629f76d6ae78256397de080103be166",
+      "bytes": 2028,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/power__f-30.0_m2_ratio-0.25.json",
+      "sha256": "ebed2ac8b714ee06531fba8fa01362a52f35113d2890bfac82ecf059d1bfdbb4",
+      "bytes": 2041,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.cells/power__f-30.0_m2_ratio-1.0.json",
+      "sha256": "217de8a3b1c6f71fb178129345c51a2a99ba5e39b4228fc02eb6a91040d8ef3d",
+      "bytes": 2038,
+      "role": "cell_checkpoint"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/a1_trigger_calibration.json",
+      "sha256": "c2468ba4894f4d190ba890e786e5a033caa8cefb6aa4b0afe6905c2032b0ae16",
+      "bytes": 12492,
+      "role": "aggregate_report"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/figures/a1_null_dlnz_contactsheet.png",
+      "sha256": "75f837c2215a4f7f2ebfeff8a37df2fd731fec6b49bb6613b1d9e96da3045f82",
+      "bytes": 413490,
+      "role": "diagnostic_figure"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/figures/a1_power_curves.png",
+      "sha256": "5ba525b55e853ea76c3d3725750776eacc0dec1a72bec2628ebcabf24305f6b1",
+      "bytes": 42893,
+      "role": "diagnostic_figure"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/figures/a1_threshold_vs_rate.png",
+      "sha256": "3d6f8d9058af8bbfd52c60adffd9c84396668f53f9e7ede2342e12a98c64bf9d",
+      "bytes": 39578,
+      "role": "diagnostic_figure"
+    },
+    {
+      "path": "analysis/chime-scintillation/experiments/trigger-calibration/validation.json",
+      "sha256": "a7d0866432bf1d4c14589bfbc6f90567db99127fbfb02f65ae642c3221bc76c2",
+      "bytes": 2229,
+      "role": "validation_record"
+    }
+  ]
+}

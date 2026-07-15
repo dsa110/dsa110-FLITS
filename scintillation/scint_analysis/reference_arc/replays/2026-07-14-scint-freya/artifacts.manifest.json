@@ -1,0 +1,29 @@
+{
+  "artifacts": [
+    {
+      "path": "scintillation/scint_analysis/reference_arc/replays/2026-07-14-scint-freya/README.md",
+      "sha256": "329af8210507a49ba3b2eb108a5a09dd774eba833ffbfbde134caf4250abea8b"
+    },
+    {
+      "path": "scintillation/scint_analysis/reference_arc/replays/2026-07-14-scint-freya/FALSIFICATION.md",
+      "sha256": "e943924f48180a43619be8524e4b211bb3c12311d4eec9f0a5fdb5d4ae25cafc"
+    },
+    {
+      "path": "scintillation/scint_analysis/reference_arc/replays/2026-07-14-scint-freya/archived-acf-fit.png",
+      "sha256": "36fefa16d3d055d628bd66d509e63473cbaea03603736158968a9ceb9f2f28ed"
+    },
+    {
+      "path": "scintillation/scint_analysis/reference_arc/replays/2026-07-14-scint-freya/replayed-acf-fit.png",
+      "sha256": "ff85b63467788666e871ecccfa8231f9f87630ddca192c8b67532ee1e834f586"
+    },
+    {
+      "path": "scintillation/scint_analysis/reference_arc/replays/2026-07-14-scint-freya/matched-window-falsification.json",
+      "sha256": "26f2710fe490ef28bc920a185a8657743a0425d77bc6920853fd4bdd5508d7ad"
+    },
+    {
+      "path": "scintillation/scint_analysis/reference_arc/replays/2026-07-14-scint-freya/matched-window-falsification.png",
+      "sha256": "8e52b558c81014b18a1140c35dd30aacf933dbabfa3687034ede562574d949c1"
+    }
+  ],
+  "schema_version": 1
+}

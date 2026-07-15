@@ -1,0 +1,26 @@
+{
+  "figures": [
+    {
+      "expectation": "off-pulse curves scatter around zero without coherent lag structure",
+      "path": "analysis/chime-recovery-2026-07-12/results/b3_crossacf/figures/freya_b3_offpulse_null.png",
+      "pixel_shape": [
+        817,
+        1380,
+        4
+      ],
+      "sha256": "b9d068887aecbfa78abecb9fb34515006b618cb16453dcc60efd8619fdac2264"
+    },
+    {
+      "expectation": "bias bars remain below the fixed limits for every validated cell",
+      "path": "analysis/chime-recovery-2026-07-12/results/b3_crossacf/figures/freya_b3_injection_recovery.png",
+      "pixel_shape": [
+        812,
+        1374,
+        4
+      ],
+      "sha256": "7399c676787c104de947b6f7e6ae9e80b78a8940fc2083e6112ed7740ce15ee6"
+    }
+  ],
+  "path_base": "repository_root",
+  "schema_version": 1
+}

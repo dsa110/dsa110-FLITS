@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import importlib.util
 import json
 import math
@@ -30,6 +31,14 @@ DRIVER = ROOT / "analysis/scintillation-dsa-lorentzian-2026-07-07/run_dsa_lorent
 BASE_CONFIG = ROOT / "scintillation/configs/bursts/freya_chime.yaml"
 DEFAULT_DATA = Path.home() / "Data/Faber2026/dsa110/scintillation-data"
 CHANNEL_WIDTH_MHZ = 0.006103608758678547
+
+
+def _figure_record(output_dir: Path, path: Path, expectation: str) -> dict[str, str]:
+    return {
+        "path": path.relative_to(output_dir).as_posix(),
+        "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+        "expectation": expectation,
+    }
 
 
 def _driver_module():
@@ -531,22 +540,26 @@ def _render_figures(output_dir, result, plot_subbands, checks, uncorrected_path,
     plt.close(fig)
 
     figures = [
-        {
-            "path": str(Path(canonical["figure_png"]).resolve()),
-            "expectation": "Two CHIME subband ACF panels show resolved positive-lag Lorentzian wings and no claim of final measurement status.",
-        },
-        {
-            "path": str(injection_path.resolve()),
-            "expectation": "Recovered widths track the identity line without a width-dependent trend; uncertainty bars are visible.",
-        },
-        {
-            "path": str(correction_path.resolve()),
-            "expectation": "Rank-2 correction reduces low-band short-lag off-pulse correlation without producing a new narrow spike; high-band behavior remains near zero.",
-        },
-        {
-            "path": str(battery_path.resolve()),
-            "expectation": "Fit-window, split-time, comb, and held-out-kernel panels are legible and agree with the machine verdicts in validation.json.",
-        },
+        _figure_record(
+            output_dir,
+            Path(canonical["figure_png"]),
+            "Two CHIME subband ACF panels show resolved positive-lag Lorentzian wings and no claim of final measurement status.",
+        ),
+        _figure_record(
+            output_dir,
+            injection_path,
+            "Recovered widths track the identity line without a width-dependent trend; uncertainty bars are visible.",
+        ),
+        _figure_record(
+            output_dir,
+            correction_path,
+            "Rank-2 correction reduces low-band short-lag off-pulse correlation without producing a new narrow spike; high-band behavior remains near zero.",
+        ),
+        _figure_record(
+            output_dir,
+            battery_path,
+            "Fit-window, split-time, comb, and held-out-kernel panels are legible and agree with the machine verdicts in validation.json.",
+        ),
     ]
     (output_dir / "figures.manifest.json").write_text(
         json.dumps({"figures": figures}, indent=2, sort_keys=True) + "\n"

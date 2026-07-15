@@ -1,0 +1,116 @@
+schema_version: 1
+scope: CHIME scintillation validation only
+updated: 2026-07-14
+qualified_chime_measurements: 0
+experiments:
+  - id: h0-smoke
+    target: freya
+    data_class: retained_real_chime_product
+    status: diagnostic_only
+    machine_status: exact_reconstructed_fail
+    qualified_measurement: false
+    summary: analysis/chime-scintillation/experiments/h0-smoke/README.md
+    validation: analysis/chime-recovery-2026-07-12/results/h0/validation.json
+    decisive_failures:
+      - low_band_offpulse_null
+  - id: a1-covariance
+    target: freya
+    data_class: real_chime_product_with_synthetic_injections
+    status: diagnostic_only
+    machine_status: documented_fail
+    qualified_measurement: false
+    summary: analysis/chime-scintillation/experiments/a1-covariance/README.md
+    validation: analysis/chime-recovery-2026-07-12/results/a1/validation.json
+    artifact_manifest: analysis/chime-recovery-2026-07-12/results/a1/figures.manifest.json
+    figure_review: analysis/chime-recovery-2026-07-12/results/a1/figures.review.json
+    decisive_failures:
+      - held_out_low_band_covariance
+      - injection_width_recovery
+      - injection_interval_coverage
+      - injection_modulation_recovery
+  - id: h2-calibration
+    target: freya
+    data_class: real_chime_product_with_synthetic_injections
+    status: diagnostic_only
+    machine_status: documented_fail
+    qualified_measurement: false
+    summary: analysis/chime-scintillation/experiments/h2-calibration/README.md
+    validation: analysis/chime-recovery-2026-07-12/results/h2/validation.json
+    artifact_manifest: analysis/chime-recovery-2026-07-12/results/h2/figures.manifest.json
+    figure_review: analysis/chime-recovery-2026-07-12/results/h2/figures.review.json
+    decisive_failures:
+      - injection_recovery
+      - fit_window_stability
+      - split_time_stability
+      - comb_residual
+      - held_out_kernel
+      - manual_figure_review
+  - id: h3-scallop
+    target: freya
+    data_class: real_chime_product_with_synthetic_injections
+    status: diagnostic_only
+    machine_status: documented_fail
+    qualified_measurement: false
+    summary: analysis/chime-scintillation/experiments/h3-scallop/README.md
+    validation: analysis/chime-recovery-2026-07-12/results/h3/validation.json
+    artifact_manifest: analysis/chime-recovery-2026-07-12/results/h3/figures.manifest.json
+    figure_review: analysis/chime-recovery-2026-07-12/results/h3/figures.review.json
+    decisive_failures:
+      - held_out_kernel
+      - injection_width_recovery
+      - injection_amplitude_recovery
+      - manual_figure_review
+  - id: b3-highband-crossacf
+    target: freya
+    data_class: real_chime_product_with_synthetic_injections
+    status: diagnostic_only
+    machine_status: documented_fail
+    qualified_measurement: false
+    summary: analysis/chime-scintillation/experiments/b3-highband-crossacf/RESULT.md
+    validation: analysis/chime-recovery-2026-07-12/results/b3_crossacf/validation.json
+    artifact_manifest: analysis/chime-recovery-2026-07-12/results/b3_crossacf/figures.manifest.json
+    figure_review: analysis/chime-recovery-2026-07-12/results/b3_crossacf/figures.review.json
+    decisive_failures:
+      - independent_noise_null
+      - low_modulation_injection_recovery
+  - id: b4-fourstream-crossacf
+    target: freya
+    data_class: real_chime_product_with_synthetic_injections
+    status: diagnostic_only
+    machine_status: documented_fail
+    qualified_measurement: false
+    summary: analysis/chime-scintillation/experiments/b4-fourstream-crossacf/RESULT.md
+    validation: analysis/chime-recovery-2026-07-12/results/b4_fourstream/validation.json
+    artifact_manifest: analysis/chime-recovery-2026-07-12/results/b4_fourstream/figures.manifest.json
+    figure_review: analysis/chime-recovery-2026-07-12/results/b4_fourstream/figures.review.json
+    decisive_failures:
+      - low_modulation_injection_recovery
+      - onpulse_width_within_validated_envelope
+  - id: notebook-replay
+    target: freya
+    data_class: surviving_real_chime_product
+    status: falsified
+    machine_status: documented_fail
+    qualified_measurement: false
+    summary: analysis/chime-scintillation/experiments/notebook-replay/RESULT.md
+    validation: scintillation/scint_analysis/reference_arc/replays/2026-07-14-scint-freya/matched-window-falsification.json
+    artifact_manifest: scintillation/scint_analysis/reference_arc/replays/2026-07-14-scint-freya/artifacts.manifest.json
+    decisive_failures:
+      - legacy_window_contains_burst
+      - off_pulse_whiteness
+      - on_off_width_separation
+  - id: a1-trigger-calibration
+    target: synthetic_grid
+    data_class: synthetic_null_and_two_component_campaigns
+    status: diagnostic_only
+    machine_status: completed_zero_power
+    qualified_measurement: false
+    summary: analysis/chime-scintillation/experiments/trigger-calibration/RESULT.md
+    validation: analysis/chime-scintillation/experiments/trigger-calibration/validation.json
+    artifact_manifest: analysis/chime-scintillation/experiments/trigger-calibration/artifact-manifest.json
+    decisive_failures:
+      - zero_power_at_calibrated_operating_point
+notes:
+  - Qualified simulation or injection cells do not qualify the associated real-data fit.
+  - No Oran CHIME measurement is present or qualified in this inventory.
+  - DSA-110 measurements are intentionally out of scope.

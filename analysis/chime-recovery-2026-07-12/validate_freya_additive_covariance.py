@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import importlib.util
 import json
 import math
@@ -33,6 +34,16 @@ N_TRAIN = 6
 N_TEST = 6
 MAX_HELDOUT_Z = 3.0
 HELDOUT_REDCHI_RANGE = (0.5, 2.0)
+
+
+def _figure_record(output_dir: Path, path: Path, expectation: str) -> dict[str, str]:
+    return {
+        "path": path.relative_to(output_dir).as_posix(),
+        "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+        "expectation": expectation,
+    }
+
+
 WIDTH_CHANNELS = (2.0, 4.0, 8.0, 16.0)
 MODULATION_INDICES = (0.3, 1.0)
 N_SEEDS = 3
@@ -427,10 +438,11 @@ def _render(output_dir: Path, subbands: list[dict], injection: dict):
     fig.savefig(path.with_suffix(".svg"), bbox_inches="tight")
     plt.close(fig)
     figures.append(
-        {
-            "path": str(path.resolve()),
-            "expectation": "Held-out off-pulse ACFs are statistically consistent with the six-slice training kernel in both subbands.",
-        }
+        _figure_record(
+            output_dir,
+            path.with_suffix(".svg"),
+            "Held-out off-pulse ACFs are statistically consistent with the six-slice training kernel in both subbands.",
+        )
     )
 
     fig, axes = plt.subplots(1, 2, figsize=(11.5, 4.6))
@@ -466,10 +478,11 @@ def _render(output_dir: Path, subbands: list[dict], injection: dict):
     fig.savefig(path.with_suffix(".svg"), bbox_inches="tight")
     plt.close(fig)
     figures.append(
-        {
-            "path": str(path.resolve()),
-            "expectation": "Every held-out slice has max abs(z) at most 3 and reduced predictive chi-square between 0.5 and 2.0.",
-        }
+        _figure_record(
+            output_dir,
+            path.with_suffix(".svg"),
+            "Every held-out slice has max abs(z) at most 3 and reduced predictive chi-square between 0.5 and 2.0.",
+        )
     )
 
     finite = [item for item in injection["records"] if item["fit"] is not None]
@@ -512,10 +525,11 @@ def _render(output_dir: Path, subbands: list[dict], injection: dict):
     fig.savefig(path.with_suffix(".svg"), bbox_inches="tight")
     plt.close(fig)
     figures.append(
-        {
-            "path": str(path.resolve()),
-            "expectation": "Recovered widths and modulation indices follow identity for all 48 real-background injections.",
-        }
+        _figure_record(
+            output_dir,
+            path.with_suffix(".svg"),
+            "Recovered widths and modulation indices follow identity for all 48 real-background injections.",
+        )
     )
 
     (output_dir / "figures.manifest.json").write_text(

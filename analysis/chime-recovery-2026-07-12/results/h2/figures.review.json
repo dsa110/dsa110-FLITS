@@ -3,22 +3,26 @@
   "reviewer": "Codex",
   "figures": [
     {
-      "path": "/Users/jakobfaber/Developer/scratch/worktrees/flits-chime-recovery-loop/analysis/chime-recovery-2026-07-12/results/h2/figures/freya_chime_h2_acf_lorentzian_fits.png",
+      "path": "figures/freya_chime_h2_acf_lorentzian_fits.png",
+      "sha256": "a9384c07c20661ee6025d6f92ca59e8373853d3f024fbdc113c0776a671c071d",
       "verdict": "anomaly",
       "notes": "Both panels are legible, but the low-band ACF has structured residuals and chi2_red=2.42; the two measured widths also sit far below the displayed nu^4 guide. The large blank middle region is a layout weakness but does not hide the scientific anomaly."
     },
     {
-      "path": "/Users/jakobfaber/Developer/scratch/worktrees/flits-chime-recovery-loop/analysis/chime-recovery-2026-07-12/results/h2/figures/freya_h2_injection_recovery.png",
+      "path": "figures/freya_h2_injection_recovery.png",
+      "sha256": "abdf91234f06d5519d8a5fb5f15b209b45948218e0d48b8cbcbcdebbbb10a694",
       "verdict": "anomaly",
       "notes": "The repaired full-range and zoom panels are legible and show catastrophic outliers, strong width-dependent scatter, and severe interval miscalibration. Recovery does not follow the identity line."
     },
     {
-      "path": "/Users/jakobfaber/Developer/scratch/worktrees/flits-chime-recovery-loop/analysis/chime-recovery-2026-07-12/results/h2/figures/freya_h2_correction_diagnostic.png",
+      "path": "figures/freya_h2_correction_diagnostic.png",
+      "sha256": "201d42c885c8d11492e2d12aba89f860105cee89d4e251ab19ffe35955f1e789",
       "verdict": "anomaly",
       "notes": "The rank-2 correction visibly reduces short-lag correlation, but the 400-600 MHz curve retains a broad positive correlated tail through the plotted range. The 600-800 MHz curve remains near zero."
     },
     {
-      "path": "/Users/jakobfaber/Developer/scratch/worktrees/flits-chime-recovery-loop/analysis/chime-recovery-2026-07-12/results/h2/figures/freya_h2_validation_battery.png",
+      "path": "figures/freya_h2_validation_battery.png",
+      "sha256": "de6ec108d73da1be11ee346f096c338b7b3f82dec7b6a4ad845625309d37f166",
       "verdict": "anomaly",
       "notes": "All panels are legible and agree with validation.json. The plot shows low-band fit-window drift, a large early-to-late width collapse in both subbands, elevated high-band comb residual ratio, and held-out kernel mismatch."
     }

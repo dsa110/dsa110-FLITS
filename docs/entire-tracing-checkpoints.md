@@ -5466,3 +5466,17 @@ preserving for future agents.
 - `origin` `entire/*` refs:
   - entire/checkpoints/v1 -> a90492d
 - note: `.entire/` remains host-local runtime state; only this ledger is tracked.
+
+## 2026-07-14T18:38:49-07:00 — jakob
+- repo: `/Users/jakobfaber/Developer/scratch/worktrees/flits-chime-artifact-consolidation`
+- branch: `agent/chime-artifact-consolidation`
+- head: `75bd940`
+- origin/main: `82fc7ec`
+- worktree: clean
+- note: Consolidated CHIME scintillation qualification artifacts and portable diagnostics
+- tracked status: clean
+- local `entire/*` refs:
+  - entire/checkpoints/v1 -> a90492d
+- `origin` `entire/*` refs:
+  - entire/checkpoints/v1 -> a90492d
+- note: `.entire/` remains host-local runtime state; only this ledger is tracked.

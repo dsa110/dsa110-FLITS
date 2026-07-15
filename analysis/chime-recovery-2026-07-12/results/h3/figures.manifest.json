@@ -2,15 +2,18 @@
   "figures": [
     {
       "expectation": "Training kernels and the fixed eigenvalue regularization are finite, smooth, and distinct between the two half-bands.",
-      "path": "/Users/jakobfaber/Developer/scratch/worktrees/flits-chime-recovery-loop/analysis/chime-recovery-2026-07-12/results/h3/figures/freya_h3_whitening_transfer.png"
+      "path": "figures/freya_h3_whitening_transfer.svg",
+      "sha256": "53fcc6f2c3cac386c179022c72cb4ebbe7c0c4edeee87b427990e107b7ac0a4b"
     },
     {
       "expectation": "Whitened held-out correlations are consistent with zero within the predeclared 3-standard-error maximum.",
-      "path": "/Users/jakobfaber/Developer/scratch/worktrees/flits-chime-recovery-loop/analysis/chime-recovery-2026-07-12/results/h3/figures/freya_h3_held_out_kernel.png"
+      "path": "figures/freya_h3_held_out_kernel.svg",
+      "sha256": "b39a8923f75124fbbe79f21317abdafea25b58910813c529c44d334095bf0f3e"
     },
     {
       "expectation": "Recovered widths and modulation indices follow the identity lines at both near-resolution and resolved scales.",
-      "path": "/Users/jakobfaber/Developer/scratch/worktrees/flits-chime-recovery-loop/analysis/chime-recovery-2026-07-12/results/h3/figures/freya_h3_injection_recovery.png"
+      "path": "figures/freya_h3_injection_recovery.svg",
+      "sha256": "7c06acb2cd2165a57596ef5a90076b21f4bafe8527a59f12e431a1d5da6fafb2"
     }
   ]
 }

@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import importlib.util
 import json
 import math
@@ -33,6 +34,16 @@ EIGEN_FLOOR_FRACTION = 0.10
 MAX_KERNEL_Z = 3.0
 WIDTHS_MHZ = CHANNEL_WIDTH_MHZ * np.asarray([2.0, 4.0, 8.0, 16.0])
 MODULATION_INDICES = (0.3, 1.0)
+
+
+def _figure_record(output_dir: Path, path: Path, expectation: str) -> dict[str, str]:
+    return {
+        "path": path.relative_to(output_dir).as_posix(),
+        "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+        "expectation": expectation,
+    }
+
+
 N_SEEDS = 3
 
 
@@ -310,10 +321,11 @@ def _render(output_dir: Path, transfers: list[dict], held_out: list[dict], injec
     fig.savefig(path.with_suffix(".svg"))
     plt.close(fig)
     figures.append(
-        {
-            "path": str(path.resolve()),
-            "expectation": "Training kernels and the fixed eigenvalue regularization are finite, smooth, and distinct between the two half-bands.",
-        }
+        _figure_record(
+            output_dir,
+            path.with_suffix(".svg"),
+            "Training kernels and the fixed eigenvalue regularization are finite, smooth, and distinct between the two half-bands.",
+        )
     )
 
     fig, axes = plt.subplots(1, 2, figsize=(11.2, 4.5), sharey=True)
@@ -339,10 +351,11 @@ def _render(output_dir: Path, transfers: list[dict], held_out: list[dict], injec
     fig.savefig(path.with_suffix(".svg"))
     plt.close(fig)
     figures.append(
-        {
-            "path": str(path.resolve()),
-            "expectation": "Whitened held-out correlations are consistent with zero within the predeclared 3-standard-error maximum.",
-        }
+        _figure_record(
+            output_dir,
+            path.with_suffix(".svg"),
+            "Whitened held-out correlations are consistent with zero within the predeclared 3-standard-error maximum.",
+        )
     )
 
     finite = [item for item in injection["records"] if item["after"] is not None]
@@ -384,10 +397,11 @@ def _render(output_dir: Path, transfers: list[dict], held_out: list[dict], injec
     fig.savefig(path.with_suffix(".svg"))
     plt.close(fig)
     figures.append(
-        {
-            "path": str(path.resolve()),
-            "expectation": "Recovered widths and modulation indices follow the identity lines at both near-resolution and resolved scales.",
-        }
+        _figure_record(
+            output_dir,
+            path.with_suffix(".svg"),
+            "Recovered widths and modulation indices follow the identity lines at both near-resolution and resolved scales.",
+        )
     )
 
     (output_dir / "figures.manifest.json").write_text(

@@ -35,7 +35,7 @@
   "component_usable_median_dnu_mhz": {
     "1": 0.051802764250576616
   },
-  "config_path": "/Users/jakobfaber/Developer/scratch/worktrees/flits-chime-recovery-loop/scintillation/configs/bursts/freya_chime.yaml",
+  "config_path": "scintillation/configs/bursts/freya_chime.yaml",
   "correction_validation": {
     "checks": {
       "comb_residual": {
@@ -1440,7 +1440,7 @@
         "overall_verdict": "anomaly",
         "pass": false,
         "reason": "H2 FAIL; retain diagnostic_only and do not unlock fleet propagation",
-        "review_file": "/Users/jakobfaber/Developer/scratch/worktrees/flits-chime-recovery-loop/analysis/chime-recovery-2026-07-12/results/h2/figures.review.json"
+        "review_file": "figures.review.json"
       },
       "off_pulse_null": {
         "pass": true

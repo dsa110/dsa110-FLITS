@@ -3,17 +3,20 @@
   "reviewer": "Codex",
   "figures": [
     {
-      "path": "/Users/jakobfaber/Developer/scratch/worktrees/flits-chime-recovery-loop/analysis/chime-recovery-2026-07-12/results/h3/figures/freya_h3_whitening_transfer.png",
+      "path": "figures/freya_h3_whitening_transfer.svg",
+      "sha256": "53fcc6f2c3cac386c179022c72cb4ebbe7c0c4edeee87b427990e107b7ac0a4b",
       "verdict": "anomaly",
       "notes": "The training curves are legible and show a broad roughly -0.01 to -0.02 anticorrelation across almost every nonzero lag, not a localized short-range upchannelization kernel. The eigenspectrum has one low mode and an otherwise nearly flat unit spectrum, so the proposed stationary-kernel mechanism is not supported visually."
     },
     {
-      "path": "/Users/jakobfaber/Developer/scratch/worktrees/flits-chime-recovery-loop/analysis/chime-recovery-2026-07-12/results/h3/figures/freya_h3_held_out_kernel.png",
+      "path": "figures/freya_h3_held_out_kernel.svg",
+      "sha256": "b39a8923f75124fbbe79f21317abdafea25b58910813c529c44d334095bf0f3e",
       "verdict": "anomaly",
       "notes": "The transfer removes the broad negative offset, but structured oscillatory residuals remain and multiple points are visibly inconsistent with zero at the plotted uncertainties. The displayed maxima of 3.90 and 4.44 standard errors agree with validation.json and exceed the fixed threshold of 3."
     },
     {
-      "path": "/Users/jakobfaber/Developer/scratch/worktrees/flits-chime-recovery-loop/analysis/chime-recovery-2026-07-12/results/h3/figures/freya_h3_injection_recovery.png",
+      "path": "figures/freya_h3_injection_recovery.svg",
+      "sha256": "7c06acb2cd2165a57596ef5a90076b21f4bafe8527a59f12e431a1d5da6fafb2",
       "verdict": "anomaly",
       "notes": "The width panel shows broad, catastrophic scatter above the identity line at every injected scale. The amplitude panel shows systematic suppression: injected m=0.3 recovers near 0.15-0.25 and injected m=1.0 near 0.50-0.84. The transfer therefore biases or erases permitted signals."
     }

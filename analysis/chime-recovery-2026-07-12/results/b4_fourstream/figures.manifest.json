@@ -1,0 +1,36 @@
+{
+  "figures": [
+    {
+      "expectation": "template-corrected off-pulse curves scatter around zero",
+      "path": "figures/freya_b4_offpulse_null.png",
+      "pixel_shape": [
+        817,
+        1659,
+        4
+      ],
+      "sha256": "e0e80e666263de51f3e521da7791abc59e547113031f28442a6a9ab07d299aad"
+    },
+    {
+      "expectation": "bias bars expose the validated modulation region",
+      "path": "figures/freya_b4_injection_recovery.png",
+      "pixel_shape": [
+        873,
+        1334,
+        4
+      ],
+      "sha256": "98194202aa941f30b7d1de37b545e8784802fbbabccea33a0b72c01366dc5420"
+    },
+    {
+      "expectation": "on-pulse points expose the weak boundary-dependent feature",
+      "path": "figures/freya_b4_onpulse_acf.png",
+      "pixel_shape": [
+        822,
+        1363,
+        4
+      ],
+      "sha256": "e609cc8e300087ec9bf63b6b39290f97403ba2cf23e47b6815b5e12dfce18995"
+    }
+  ],
+  "path_base": "manifest_directory",
+  "schema_version": 1
+}

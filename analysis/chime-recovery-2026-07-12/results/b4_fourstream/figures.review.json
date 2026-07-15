@@ -1,0 +1,37 @@
+{
+  "review_date": "2026-07-14",
+  "review_status": "pass",
+  "figures": [
+    {
+      "figure": "figures/freya_b4_offpulse_null.png",
+      "figure_sha256": "e0e80e666263de51f3e521da7791abc59e547113031f28442a6a9ab07d299aad",
+      "checks": {
+        "curves_visible": true,
+        "zero_reference_visible": true,
+        "labels_legible": true,
+        "residual_scatter_not_hidden": true
+      }
+    },
+    {
+      "figure": "figures/freya_b4_injection_recovery.png",
+      "figure_sha256": "98194202aa941f30b7d1de37b545e8784802fbbabccea33a0b72c01366dc5420",
+      "checks": {
+        "all_injection_cells_visible": true,
+        "bias_limits_visible": true,
+        "width_and_modulation_labels_legible": true,
+        "failed_low_modulation_cells_not_hidden": true
+      }
+    },
+    {
+      "figure": "figures/freya_b4_onpulse_acf.png",
+      "figure_sha256": "e609cc8e300087ec9bf63b6b39290f97403ba2cf23e47b6815b5e12dfce18995",
+      "checks": {
+        "points_and_uncertainties_visible": true,
+        "diagnostic_fit_visible": true,
+        "four_stream_estimator_named": true,
+        "boundary_dependent_slope_not_hidden": true
+      }
+    }
+  ],
+  "note": "Re-reviewed after portable manifest normalization and explicit manifest path-base declaration. All figures are legible and faithfully expose the documented failure; the on-pulse Lorentzian is diagnostic only."
+}

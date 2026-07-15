@@ -7,7 +7,7 @@
       "overall_verdict": "anomaly",
       "pass": false,
       "reason": "A1 DOCUMENTED-FAIL; the additive off-pulse likelihood is not qualified for Freya, the on-pulse fit remains forbidden, and CHIME remains diagnostic_only without fleet propagation",
-      "review_file": "/Users/jakobfaber/Developer/scratch/worktrees/flits-chime-additive-likelihood/analysis/chime-recovery-2026-07-12/results/a1/figures.review.json"
+      "review_file": "figures.review.json"
     },
     "width_amplitude_injection_recovery": {
       "amplitude_limit": "max(10 percent, 0.05 absolute)",

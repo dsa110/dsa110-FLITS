@@ -2,19 +2,23 @@
   "figures": [
     {
       "expectation": "Two CHIME subband ACF panels show resolved positive-lag Lorentzian wings and no claim of final measurement status.",
-      "path": "/Users/jakobfaber/Developer/scratch/worktrees/flits-chime-recovery-loop/analysis/chime-recovery-2026-07-12/results/h2/figures/freya_chime_h2_acf_lorentzian_fits.png"
+      "path": "figures/freya_chime_h2_acf_lorentzian_fits.png",
+      "sha256": "a9384c07c20661ee6025d6f92ca59e8373853d3f024fbdc113c0776a671c071d"
     },
     {
       "expectation": "Recovered widths track the identity line without a width-dependent trend; uncertainty bars are visible.",
-      "path": "/Users/jakobfaber/Developer/scratch/worktrees/flits-chime-recovery-loop/analysis/chime-recovery-2026-07-12/results/h2/figures/freya_h2_injection_recovery.png"
+      "path": "figures/freya_h2_injection_recovery.png",
+      "sha256": "abdf91234f06d5519d8a5fb5f15b209b45948218e0d48b8cbcbcdebbbb10a694"
     },
     {
       "expectation": "Rank-2 correction reduces low-band short-lag off-pulse correlation without producing a new narrow spike; high-band behavior remains near zero.",
-      "path": "/Users/jakobfaber/Developer/scratch/worktrees/flits-chime-recovery-loop/analysis/chime-recovery-2026-07-12/results/h2/figures/freya_h2_correction_diagnostic.png"
+      "path": "figures/freya_h2_correction_diagnostic.png",
+      "sha256": "201d42c885c8d11492e2d12aba89f860105cee89d4e251ab19ffe35955f1e789"
     },
     {
       "expectation": "Fit-window, split-time, comb, and held-out-kernel panels are legible and agree with the machine verdicts in validation.json.",
-      "path": "/Users/jakobfaber/Developer/scratch/worktrees/flits-chime-recovery-loop/analysis/chime-recovery-2026-07-12/results/h2/figures/freya_h2_validation_battery.png"
+      "path": "figures/freya_h2_validation_battery.png",
+      "sha256": "de6ec108d73da1be11ee346f096c338b7b3f82dec7b6a4ad845625309d37f166"
     }
   ]
 }

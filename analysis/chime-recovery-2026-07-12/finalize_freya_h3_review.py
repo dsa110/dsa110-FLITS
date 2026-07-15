@@ -24,7 +24,7 @@ def main() -> int:
     validation["checks"]["manual_review"] = {
         "pass": manual_pass,
         "overall_verdict": review["overall_verdict"],
-        "review_file": str((RESULT_DIR / "figures.review.json").resolve()),
+        "review_file": "figures.review.json",
         "reason": review["science_disposition"],
     }
     failed = [name for name, check in validation["checks"].items() if check.get("pass") is False]

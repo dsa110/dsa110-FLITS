@@ -1,0 +1,116 @@
+{
+  "alpha_scaling": 4.4,
+  "band_mhz": [
+    627.0,
+    800.0
+  ],
+  "burst_window": [
+    253,
+    268
+  ],
+  "calibration": {
+    "gated_modulations": [
+      0.15,
+      0.17
+    ],
+    "modulation_indices": [
+      0.1,
+      0.15,
+      0.17,
+      0.2,
+      0.3,
+      1.0
+    ],
+    "n_trials": 128,
+    "seed_formula": "20260714 + 1e6*width_index + 1e4*modulation_index + trial",
+    "width_channels": [
+      3.0,
+      6.0,
+      10.0,
+      16.0
+    ]
+  },
+  "channel_width_mhz": 0.0061036087587353904,
+  "channels_per_coarse": 64,
+  "estimator": {
+    "exclude_same_time": true,
+    "name": "all_pairs_cross_acf",
+    "normalizations": "per-fold on-pulse envelope means (time profile)"
+  },
+  "experiment": "c1-allpairs-crossgp",
+  "first_lag_bin": 2,
+  "fit_maxima_mhz": [
+    0.15,
+    0.2,
+    0.25
+  ],
+  "gates": {
+    "coverage_68": [
+      0.53,
+      0.83
+    ],
+    "detection_m_sigma": 3.0,
+    "fit_window_max_movement": 0.2,
+    "modulation_bias_limit": "max(0.10*truth, 0.05)",
+    "null_family_wise_alpha": 0.01,
+    "null_max_abs_z": 4.408338469548746,
+    "null_n_comparisons": 960,
+    "width_bias_limit": "max(0.10*truth, 0.25*channel_width)"
+  },
+  "inputs_sha256": {
+    "frequencies": "b686f99e71ad37a0b9014aae8ea480865b7eda8c94f0eb6c1d82e11d6a800255",
+    "metadata": "33dc217f819f1d12134a42e4ccf1b5f9936d7fe36ce80555433225c54e4347d6",
+    "pol0": "859c78d02fd809adedb429581966003034106e7e9497e2a7f6eb627c27550c98",
+    "pol1": "8162191550178bd6079ad92362d0f8b2c370c749484ef260b00adc80c2e5abf3",
+    "stokes": "f7ce42985a99eeb70565abb1b8458ec888fa2e65396cef2e2bf9b367941f62b9"
+  },
+  "lte_exclusion_mhz": [
+    730.0,
+    760.0
+  ],
+  "max_lag_bins": 40,
+  "n_good_channels": 19465,
+  "off_pulse": [
+    10,
+    200
+  ],
+  "off_window_starts": [
+    10,
+    25,
+    40,
+    55,
+    70,
+    85,
+    100,
+    115,
+    130,
+    145,
+    160,
+    175
+  ],
+  "prerequisites": {
+    "alignment": {
+      "burst_finite_fraction": 0.8439559486645855,
+      "minimum_finite_fraction": 0.75,
+      "offpulse_finite_fraction": 0.8439559486645855,
+      "pass": true,
+      "peak_bin": 254,
+      "required_peak_window": [
+        253,
+        268
+      ]
+    },
+    "producer_parity": true,
+    "provenance": true
+  },
+  "provenance_note": "Hyperparameters inherit the B4 predeclarations; the 2026-07-14 single-template diagnostic was pre-freeze exploratory and its unconstrained on-pulse numbers informed nothing here.",
+  "schema_version": 1,
+  "scrambles": {
+    "pairing_scramble": "seeded within-coarse-block circular channel shift of pol-1 folds",
+    "post_unblind": [
+      "pol_scramble",
+      "time_scramble_onxoff",
+      "coarse_phase_shift"
+    ]
+  }
+}

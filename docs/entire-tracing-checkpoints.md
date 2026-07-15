@@ -5499,3 +5499,22 @@ preserving for future agents.
 - `origin` `entire/*` refs:
   - entire/checkpoints/v1 -> a90492d
 - note: `.entire/` remains host-local runtime state; only this ledger is tracked.
+
+## 2026-07-14T23:25:25-07:00 — jakob
+- repo: `/Users/jakobfaber/Developer/repos/github.com/jakobtfaber/Faber2026/pipeline`
+- branch: `scint/c1-allpairs-crossgp`
+- head: `802f291`
+- origin/main: `b130ab4`
+- worktree: dirty
+- note: watched path changed: analysis/chime-scintillation/experiments/c1-allpairs-crossgp/RESULT.md
+- tracked status:
+  - M analysis/chime-recovery-2026-07-12/results/b4_fourstream/figures.manifest.json
+  -  M analysis/chime-recovery-2026-07-12/results/b4_fourstream/figures/freya_b4_injection_recovery.png
+  -  M analysis/chime-recovery-2026-07-12/results/b4_fourstream/figures/freya_b4_offpulse_null.png
+  -  M analysis/chime-recovery-2026-07-12/results/b4_fourstream/figures/freya_b4_onpulse_acf.png
+  -  M analysis/chime-recovery-2026-07-12/results/b4_fourstream/validation.json
+- local `entire/*` refs:
+  - entire/checkpoints/v1 -> a90492d
+- `origin` `entire/*` refs:
+  - entire/checkpoints/v1 -> a90492d
+- note: `.entire/` remains host-local runtime state; only this ledger is tracked.

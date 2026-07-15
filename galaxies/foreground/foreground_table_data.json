@@ -1,5 +1,5 @@
 {
-  "_comment": "Single source of truth for foreground_table.tex. Edit VALUES in 'rows' (each row is the list of 10 deluxetable cells, verbatim LaTeX); regenerate the .tex with the emitter (do NOT hand-edit the .tex). Object IDs and verdicts are cross-checked against galaxies/foreground/data/intervening_census_registry.csv by the parity test. Only confirmed+inconclusive systems are tabulated (refuted omitted); the cluster row (FRB 20230307A) draws its cluster ID from the WenHan2024 catalog, not the registry.",
+  "_comment": "Single source of truth for foreground_table.tex. Edit VALUES in 'rows' (each row is the list of 10 deluxetable cells, verbatim LaTeX); regenerate the .tex with the emitter (do NOT hand-edit the .tex). Object IDs and verdicts are cross-checked against galaxies/foreground/data/intervening_census_registry.csv by the parity test. Only confirmed+inconclusive systems are tabulated (refuted omitted); the cluster row (FRB 20230307A) draws its cluster ID from the WenHan2024 catalog, not the registry. Census-empty sightlines (FRB 20221113A, FRB 20230814B, FRB 20240122A) carry an explicit no-candidates row so every co-detection appears (2026-07-15).",
   "columns": [
     "burst",
     "type",
@@ -60,6 +60,18 @@
       "UNSURE",
       "inconclusive",
       "STRM unsure"
+    ],
+    [
+      "FRB 20221113A",
+      "\\nodata",
+      "\\nodata",
+      "\\nodata",
+      "\\nodata",
+      "\\nodata",
+      "\\nodata",
+      "\\nodata",
+      "no candidates",
+      "outside deep footprints"
     ],
     [
       "FRB 20221203A",
@@ -230,6 +242,18 @@
       "host z unknown"
     ],
     [
+      "FRB 20230814B",
+      "\\nodata",
+      "\\nodata",
+      "\\nodata",
+      "\\nodata",
+      "\\nodata",
+      "\\nodata",
+      "\\nodata",
+      "no candidates",
+      "outside deep footprints"
+    ],
+    [
       "FRB 20230913A",
       "halo",
       "192963050359413614",
@@ -252,6 +276,18 @@
       "UNSURE",
       "inconclusive",
       "STRM unsure"
+    ],
+    [
+      "FRB 20240122A",
+      "\\nodata",
+      "\\nodata",
+      "\\nodata",
+      "\\nodata",
+      "\\nodata",
+      "\\nodata",
+      "\\nodata",
+      "no candidates",
+      "outside deep footprints"
     ],
     [
       "FRB 20240203A",

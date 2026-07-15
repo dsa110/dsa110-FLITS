@@ -170,6 +170,21 @@ def load_intervening_census_registry(path: Path | str | None = None) -> pd.DataF
     return build_intervening_census_registry()
 
 
+def census_roster_nicknames() -> frozenset[str]:
+    """Lowercased nicknames of the census bursts (frozen V4 roster).
+
+    The registry is *authoritative* for these sightlines: a burst on this
+    roster with no budget-eligible registry rows has, as a census verdict, no
+    confirmed budget-eligible foreground -- consumers must not fall back to
+    the legacy pre-V4 candidate lists for it. Nicknames outside the roster
+    (synthetic test bursts, future events) are unknown to the census and may
+    use their own acquisition paths.
+    """
+    bursts_csv = DATA_DIR / "frozen_census" / "bursts.csv"
+    df = pd.read_csv(bursts_csv)
+    return frozenset(str(n).lower() for n in df["nickname"])
+
+
 def registry_to_matches(
     registry: pd.DataFrame,
     nickname: str,

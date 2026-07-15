@@ -396,3 +396,74 @@ def test_cluster_budget_is_measured_and_dm_only(tmp_path):
     assert rec["intervening_mass_confidence"] == "measured"
     assert rec["dm_intervening"] > 0.0
     assert rec["tau_intervening_ms"] == 0.0
+
+
+# --- V4-registry authority over the legacy candidate lists (2026-07-15) -------
+
+
+def _repo_root():
+    import pathlib
+
+    return pathlib.Path(sb.__file__).resolve().parents[2]
+
+
+def test_foreground_unified_registry_empty_is_final():
+    """A registry-empty sightline must NOT fall back to legacy results CSVs.
+
+    Regression for the phantom-DM_int bug (2026-07-15): sightlines the
+    V4-verified census registry clears as having no budget-eligible foreground
+    (isha here) used to fall through to the Wave-2-revoked
+    results/{name}_galaxies.csv lists, resurrecting refuted/stale candidates
+    into the DM budget. The registry answer is final.
+    """
+    root = _repo_root()
+    legacy = root / "results" / "isha_galaxies.csv"
+    assert legacy.exists(), "test premise: the legacy trap file must exist"
+    # The legacy list contains a z < z_frb galaxy, so the fallback (if taken)
+    # would produce a non-empty foreground set.
+    legacy_rows = pd.read_csv(legacy)
+    assert (pd.to_numeric(legacy_rows["z"], errors="coerce") < 0.251).any()
+
+    uni = sb.foreground_unified(
+        "isha", 0.251, 71.4110, 70.3074, results_dir=str(root / "results")
+    )
+    assert uni.empty, (
+        "registry-empty sightline resurrected legacy candidates: "
+        f"{len(uni)} rows"
+    )
+
+
+def test_foreground_unified_legacy_path_still_available_without_registry():
+    """use_registry=False preserves the historical acquisition path."""
+    root = _repo_root()
+    uni = sb.foreground_unified(
+        "isha",
+        0.251,
+        71.4110,
+        70.3074,
+        results_dir=str(root / "results"),
+        use_registry=False,
+    )
+    assert len(uni) >= 1  # the legacy GLADE+ z=0.047 candidate
+
+
+def test_budget_table_dm_int_consistent_with_registry():
+    """Data-parity guard: no budget row may carry DM_int > 0 unless the
+    V4 census registry lists at least one budget-eligible system for it."""
+    import json as _json
+
+    root = _repo_root()
+    reg = pd.read_csv(
+        root / "galaxies" / "foreground" / "data" / "intervening_census_registry.csv"
+    )
+    eligible = reg[reg["budget_eligible"]].groupby("tns").size()
+    data = _json.loads(
+        (root / "galaxies" / "foreground" / "budget_table_data.json").read_text()
+    )
+    for row in data["rows"]:
+        if int(eligible.get(row["burst"], 0)) == 0:
+            assert row["dm_int"] == 0, (
+                f"{row['burst']}: DM_int={row['dm_int']} but the registry has "
+                "no budget-eligible system on this sightline"
+            )
+            assert row["regime"] == "none", row["burst"]

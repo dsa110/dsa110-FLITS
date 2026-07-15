@@ -45,9 +45,18 @@ def test_emitted_tex_matches_committed_export():
 
 def test_rows_have_ten_cells():
     data = json.loads(DATA_PATH.read_text())
-    assert len(data["rows"]) == 28  # the tabulated census systems
+    # 28 tabulated census systems + 3 explicit no-candidate sightline rows
+    # (FRB 20221113A, FRB 20230814B, FRB 20240122A; added 2026-07-15 so every
+    # co-detection sightline appears in the table).
+    assert len(data["rows"]) == 31
     for r in data["rows"]:
         assert len(r) == 10, f"row has {len(r)} cells, expected 10: {r!r}"
+    empties = [r for r in data["rows"] if r[8] == "no candidates"]
+    assert [r[0] for r in empties] == [
+        "FRB 20221113A",
+        "FRB 20230814B",
+        "FRB 20240122A",
+    ]
 
 
 def test_verdicts_match_census_registry():

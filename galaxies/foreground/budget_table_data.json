@@ -1,5 +1,5 @@
 {
-  "_comment": "Single source of truth for budget_table.tex. Edit VALUES here; regenerate the .tex with the emitter (do NOT hand-edit the .tex). DM in pc/cm^3, tau in ms. DM_host is the forward-modeled posterior [median, +p84-p50, -(p50-p16)] from scripts/dm_budget_uncertainty.py (cross-checked in tests). Placeholder-z sightlines (note 'p') have no cosmic/host term.",
+  "_comment": "Single source of truth for budget_table.tex. Edit VALUES here; regenerate the .tex with the emitter (do NOT hand-edit the .tex). DM in pc/cm^3, tau in ms. DM_int is sourced ONLY from the V4-verified census registry (data/intervening_census_registry.csv): budget-eligible confirmed systems, via sightline_budget.foreground_unified (registry-authoritative as of 2026-07-15; an empty eligible set is a census verdict, never a legacy-CSV fallback). DM_host is the forward-modeled posterior [median, +p84-p50, -(p50-p16)] from scripts/dm_budget_uncertainty.py (cross-checked in tests). Placeholder-z sightlines (note 'p') have no cosmic/host term.",
   "columns": [
     "burst",
     "z",
@@ -14,29 +14,28 @@
   ],
   "footnotes": {
     "p": "Host redshift unknown (placeholder); the cosmological and host terms cannot be computed, so this sightline is excluded from any distance-dependent quantity.",
-    "c": "Sightline in the galaxy-interior regime ($b<0.1\\,R_{\\mathrm{vir}}$, $b\\approx4.6$\\,kpc); $\\mathrm{DM_{int}}$ is capped at the $b=0.1\\,R_{\\mathrm{vir}}$ value (raw core-extrapolated column $71\\,\\mathrm{pc\\,cm^{-3}}$).",
     "u": "Position lies outside the deep-imaging survey footprints (DESI Legacy DR8-North; SDSS DR12 returns no redshifts here), so only the shallow all-sky catalogs (NED, GLADE+) constrain the sightline: the intervening term is \\emph{unconstrained by the searched surveys}, not excluded---absence of coverage is not absence of foreground (Section~\\ref{sec:obs-fg}).",
     "m": "Confirmed foreground halos are present but lie beyond the virial radii implied by their assumed halo masses ($b/R_{\\mathrm{vir}}\\approx1.3$--$1.8$ at the fallback mass), so the modeled two-phase column vanishes. The fallback mass is a fiducial stellar mass ($\\log M_\\star/M_\\odot\\approx10$, the midpoint of the $9$--$11$ range spanned by the sensitivity prior families) converted to halo mass through the \\citet{Moster2013} stellar-to-halo-mass relation. This is a median guess, not a conservative lower bound, so its sign is not one-directional: $\\mathrm{DM_{int}}=0$ here is conditional on the assumed mass, and a more massive (or a measured) halo would bring the sightline inside $R_{\\mathrm{vir}}$ and make the column nonzero."
   },
   "rows": [
     {
       "burst": "FRB 20220207C",
-      "burst_note": "",
+      "burst_note": "u",
       "z": 0.043,
       "z_note": "",
       "dm_obs": 262,
       "dm_mw": 111,
       "dm_cos": 36,
-      "dm_int": 70,
+      "dm_int": 0,
       "dm_int_note": "",
-      "regime": "CGM",
-      "mass": "measured",
+      "regime": "none",
+      "mass": "",
       "dm_host": [
-        51,
-        36,
-        43
+        120,
+        26,
+        31
       ],
-      "tau_int": "0.0012"
+      "tau_int": "0"
     },
     {
       "burst": "FRB 20220310F",
@@ -51,8 +50,8 @@
       "regime": "CGM",
       "mass": "assumed",
       "dm_host": [
-        -10,
-        88,
+        -9,
+        86,
         107
       ],
       "tau_int": "0.0011"
@@ -78,41 +77,41 @@
     },
     {
       "burst": "FRB 20221113A",
-      "burst_note": "",
+      "burst_note": "u",
       "z": 0.251,
       "z_note": "",
       "dm_obs": 411,
       "dm_mw": 123,
       "dm_cos": 217,
-      "dm_int": 41,
+      "dm_int": 0,
       "dm_int_note": "",
-      "regime": "CGM",
-      "mass": "measured",
+      "regime": "none",
+      "mass": "",
       "dm_host": [
-        55,
-        61,
-        75
+        97,
+        58,
+        74
       ],
-      "tau_int": "0.020"
+      "tau_int": "0"
     },
     {
       "burst": "FRB 20221203A",
-      "burst_note": "",
+      "burst_note": "u",
       "z": 0.51,
       "z_note": "",
       "dm_obs": 602,
       "dm_mw": 117,
       "dm_cos": 456,
-      "dm_int": 84,
+      "dm_int": 0,
       "dm_int_note": "",
-      "regime": "CGM",
-      "mass": "assumed",
+      "regime": "none",
+      "mass": "",
       "dm_host": [
-        -2,
-        106,
-        131
+        79,
+        93,
+        112
       ],
-      "tau_int": "0.011"
+      "tau_int": "0"
     },
     {
       "burst": "FRB 20230307A",
@@ -127,60 +126,60 @@
       "regime": "CGM",
       "mass": "assumed",
       "dm_host": [
-        90,
-        87,
+        89,
+        88,
         107
       ],
       "tau_int": "0.0079"
     },
     {
       "burst": "FRB 20230325A",
-      "burst_note": "",
+      "burst_note": "u",
       "z": null,
       "z_note": "p",
       "dm_obs": 912,
       "dm_mw": 100,
       "dm_cos": null,
-      "dm_int": 10,
+      "dm_int": 0,
       "dm_int_note": "",
-      "regime": "CGM",
-      "mass": "assumed",
+      "regime": "none",
+      "mass": "",
       "dm_host": null,
-      "tau_int": "0.00052"
+      "tau_int": "0"
     },
     {
       "burst": "FRB 20230814B",
-      "burst_note": "",
+      "burst_note": "u",
       "z": null,
       "z_note": "p",
       "dm_obs": 696,
       "dm_mw": 137,
       "dm_cos": null,
-      "dm_int": 70,
-      "dm_int_note": "c",
-      "regime": "interior",
-      "mass": "assumed",
+      "dm_int": 0,
+      "dm_int_note": "",
+      "regime": "none",
+      "mass": "",
       "dm_host": null,
-      "tau_int": "0.024"
+      "tau_int": "0"
     },
     {
       "burst": "FRB 20230913A",
-      "burst_note": "",
+      "burst_note": "u",
       "z": 0.302,
       "z_note": "",
       "dm_obs": 518,
       "dm_mw": 110,
       "dm_cos": 264,
-      "dm_int": 41,
+      "dm_int": 0,
       "dm_int_note": "",
-      "regime": "CGM",
-      "mass": "assumed",
+      "regime": "none",
+      "mass": "",
       "dm_host": [
-        136,
-        69,
-        88
+        177,
+        64,
+        80
       ],
-      "tau_int": "0.017"
+      "tau_int": "0"
     },
     {
       "burst": "FRB 20240122A",

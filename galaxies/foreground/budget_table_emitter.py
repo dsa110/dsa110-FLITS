@@ -80,9 +80,6 @@ _TAIL = r"""\enddata
 \tablenotetext{p}{Host redshift unknown (placeholder); the cosmological and host
 terms cannot be computed, so this sightline is excluded from any distance-dependent
 quantity.}
-\tablenotetext{c}{Sightline in the galaxy-interior regime ($b<0.1\,R_{\mathrm{vir}}$,
-$b\approx4.6$\,kpc); $\mathrm{DM_{int}}$ is capped at the $b=0.1\,R_{\mathrm{vir}}$
-value (raw core-extrapolated column $71\,\mathrm{pc\,cm^{-3}}$).}
 \tablenotetext{u}{Position lies outside the deep-imaging survey footprints
 (DESI Legacy DR8-North; SDSS DR12 returns no redshifts here), so only the
 shallow all-sky catalogs (NED, GLADE+) constrain the sightline: the
@@ -102,13 +99,13 @@ massive (or a measured) halo would bring the sightline inside $R_{\mathrm{vir}}$
 and make the column nonzero.}
 \tablecomments{Because the diffuse cosmic term is drawn from a skewed log-normal,
 the host posteriors are asymmetric and their medians exceed the naive
-mean-subtracted residuals. The two highest-redshift sightlines
-(FRB 20220310F, FRB 20221203A; $z=0.48$, $0.51$), where the diffuse cosmic term
-dominates the budget, have host posteriors consistent with zero
-($P(\mathrm{DM_{host}}<0)\approx0.5$): their marginally negative medians reflect
+mean-subtracted residuals. One high-redshift sightline
+(FRB 20220310F; $z=0.48$), where the diffuse cosmic term
+dominates the budget, has a host posterior consistent with zero
+($P(\mathrm{DM_{host}}<0)\approx0.5$): its marginally negative median reflects
 sightline-to-sightline scatter about the cosmological normalization rather than an
-unphysical host, and an IGM baryon fraction within $0.25\sigma$ of the adopted
-prior places either median at zero. Per-sightline $P(\mathrm{DM_{host}}<0)$ and
+unphysical host, and an IGM baryon fraction within $0.3\sigma$ of the adopted
+prior places the median at zero. Per-sightline $P(\mathrm{DM_{host}}<0)$ and
 the forward-model priors are tabulated in Appendix~\ref{app:host-forward-model}.}
 \end{deluxetable*}
 """

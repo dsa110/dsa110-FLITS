@@ -468,26 +468,42 @@ def foreground_unified(
 ) -> pd.DataFrame:
     """The budget's foreground set for one sightline as unified records.
 
-    Registry-first acquisition (falling back to results/{name}_galaxies.csv),
-    then build_unified_records, filtered to z < z_frb. Single source of truth
-    for every consumer -- build_sightline_budget and the dominant-systems
-    figure (galaxies/v2_0/systems_figures.py) -- so figure annotations cannot
-    drift from the tabulated budget.
+    Registry-authoritative acquisition, then build_unified_records, filtered
+    to z < z_frb. Single source of truth for every consumer --
+    build_sightline_budget and the dominant-systems figure
+    (galaxies/v2_0/systems_figures.py) -- so figure annotations cannot drift
+    from the tabulated budget.
+
+    When the V4 census registry loads and the burst is on the frozen census
+    roster, the registry's answer is final: an empty budget-eligible set is a
+    census verdict ("no confirmed, budget-eligible foreground on this
+    sightline"), NOT a trigger to fall back to the legacy
+    ``results/{name}_galaxies.csv`` candidate lists. Those legacy lists are
+    the Wave-2-revoked pre-V4 products; falling back to them on
+    registry-empty sightlines silently resurrected refuted/stale candidates
+    (caught 2026-07-15: six sightlines -- zach, isha, wilhelm, freya,
+    hamilton, johndoeii -- carried phantom DM_int columns of 70/41/84/10/41/70
+    pc cm^-3 sourced from this path). The legacy CSV is consulted only for
+    nicknames outside the census roster (synthetic/test bursts), when the
+    registry itself cannot be loaded, or with ``use_registry=False``.
     """
     csv_path = os.path.join(results_dir, f"{name.lower()}_galaxies.csv")
     matches: pd.DataFrame | None = None
+    registry_authoritative = False
     if use_registry:
         try:
             from galaxies.foreground.census_registry import (
+                census_roster_nicknames,
                 load_intervening_census_registry,
                 registry_to_matches,
             )
 
             registry = load_intervening_census_registry(registry_path)
             matches = registry_to_matches(registry, name, z_frb)
+            registry_authoritative = name.lower() in census_roster_nicknames()
         except (ImportError, OSError, ValueError):
             matches = None
-    if matches is None or matches.empty:
+    if not registry_authoritative and (matches is None or matches.empty):
         matches = pd.read_csv(csv_path) if os.path.exists(csv_path) else pd.DataFrame()
     if not len(matches):
         return pd.DataFrame()

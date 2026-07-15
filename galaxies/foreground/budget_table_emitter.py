@@ -86,15 +86,16 @@ shallow all-sky catalogs (NED, GLADE+) constrain the sightline: the
 intervening term is \emph{unconstrained by the searched surveys}, not
 excluded---absence of coverage is not absence of foreground
 (Section~\ref{sec:obs-fg}).}
-\tablecomments{Because the diffuse cosmic term is drawn from a skewed log-normal,
+\tablecomments{Because the diffuse cosmic term follows a skewed log-normal,
 the host posteriors are asymmetric and their medians exceed the naive
 mean-subtracted residuals. One high-redshift sightline
 (FRB 20220310F; $z=0.48$), where the diffuse cosmic term
 dominates the budget, has a host posterior consistent with zero
 ($P(\mathrm{DM_{host}}<0)\approx0.5$): its marginally negative median reflects
 sightline-to-sightline scatter about the cosmological normalization rather than an
-unphysical host, and an IGM baryon fraction within $0.3\sigma$ of the adopted
-prior places the median at zero. Per-sightline $P(\mathrm{DM_{host}}<0)$ and
+unphysical host, and a small downward shift of the IGM baryon fraction within
+its quoted uncertainty places the median at zero. Per-sightline
+$P(\mathrm{DM_{host}}<0)$ and
 the forward-model priors are tabulated in Appendix~\ref{app:host-forward-model}.}
 \end{deluxetable*}
 """

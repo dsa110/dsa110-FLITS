@@ -93,6 +93,10 @@ def main():
         "analysis.acf.enable_intra_pulse_analysis": True,
     }
 
+    registry = yaml.safe_load(
+        (pkg_root / "configs" / "chime_products.yaml").read_text()
+    )["targets"]
+
     jobs = []
     missing = []
     for n in args.bursts:
@@ -103,11 +107,15 @@ def main():
             print(f"SKIP {n}: missing {'config' if not cfg_path.exists() else 'data'}",
                   file=sys.stderr)
             continue
-        jobs.append((n, patch_config(cfg_path, data, dict(science_overrides)), out_root / n))
+        overrides = dict(science_overrides)
+        caveat = registry.get(n, {}).get("provenance_caveat")
+        if caveat:
+            overrides["provenance_caveat"] = caveat
+        jobs.append((n, patch_config(cfg_path, data, overrides), out_root / n))
         hi_cfg = cfg_dir / f"{n}_chime_hi.yaml"
         hi_data = data_dir / f"{n}_chime_hi.npz"
         if hi_cfg.exists() and hi_data.exists():
-            jobs.append((f"{n}_hi", patch_config(hi_cfg, hi_data, dict(science_overrides)),
+            jobs.append((f"{n}_hi", patch_config(hi_cfg, hi_data, dict(overrides)),
                          out_root / f"{n}_hi"))
 
     if not args.skip_sweep and "freya" in args.bursts:

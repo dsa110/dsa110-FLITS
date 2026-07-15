@@ -484,6 +484,7 @@ def finalize_measurement_status(
     low_lag_stability: dict | None = None,
     modulation_index: dict | None = None,
     subband_support: dict | None = None,
+    provenance_caveat: str | None = None,
 ) -> dict:
     """Combine the provenance gate with the physical null/stability verdicts.
 
@@ -493,14 +494,23 @@ def finalize_measurement_status(
     enabled (the freya CHIME case: full mitigation stack, but arm A/B1 fail).
     Non-CHIME results keep their provenance status untouched.
 
-    Returns a dict: ``status``, ``downgraded`` (bool), ``failed_checks`` (list).
+    ``provenance_caveat`` (e.g. ``single_block`` for hamilton/johndoeII) is a
+    data-provenance annotation, not a gate: it rides along in the returned
+    record so no downstream consumer can promote a caveated product without
+    seeing the caveat (DATA_PROVENANCE.md section 7c).
+
+    Returns a dict: ``status``, ``downgraded`` (bool), ``failed_checks`` (list),
+    plus ``provenance_caveat`` when one applies.
     """
     if not provenance.get("is_chime"):
-        return {
+        result = {
             "status": provenance.get("status", MEASUREMENT),
             "downgraded": False,
             "failed_checks": [],
         }
+        if provenance_caveat:
+            result["provenance_caveat"] = provenance_caveat
+        return result
 
     failed: list[str] = []
     if provenance.get("status") == DIAGNOSTIC_ONLY:
@@ -515,4 +525,7 @@ def finalize_measurement_status(
         failed.append("subband_support")
 
     status = MEASUREMENT if not failed else DIAGNOSTIC_ONLY
-    return {"status": status, "downgraded": bool(failed), "failed_checks": failed}
+    result = {"status": status, "downgraded": bool(failed), "failed_checks": failed}
+    if provenance_caveat:
+        result["provenance_caveat"] = provenance_caveat
+    return result

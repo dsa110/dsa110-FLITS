@@ -227,18 +227,24 @@ def _is_detection(fit: dict | None, channel_width: float, fit_max: float) -> boo
     if fit is None:
         return False
     bound_clear = 0.55 * channel_width < fit["dnu_mhz"] < 0.95 * fit_max
-    significant = (
-        np.isfinite(fit.get("m_err", np.nan))
-        and fit["m_err"] > 0
-        and fit["m"] / fit["m_err"] >= DETECTION_M_SIGMA
-    )
-    return bool(bound_clear and significant)
+    if not bound_clear:
+        return False
+    # fail closed: a bound-clear control fit with an invalid uncertainty
+    # estimate cannot be certified insignificant
+    m_err = fit.get("m_err", np.nan)
+    if not (np.isfinite(m_err) and m_err > 0):
+        return True
+    return bool(fit["m"] / m_err >= DETECTION_M_SIGMA)
 
 
 def _frozen_or_die() -> dict:
     if not FROZEN.exists():
         raise SystemExit("frozen_config.json missing — run the freeze subcommand first")
     return json.loads(FROZEN.read_text())
+
+
+def _frozen_sha() -> str:
+    return hashlib.sha256(FROZEN.read_bytes()).hexdigest()
 
 
 def cmd_freeze(args: argparse.Namespace) -> int:
@@ -318,8 +324,11 @@ def cmd_calibrate(args: argparse.Namespace) -> int:
     CALIBRATION_DIR.mkdir(exist_ok=True)
     checkpoint = CALIBRATION_DIR / f"cell_m{args.modulation:.2f}_w{args.width:g}.json"
     if checkpoint.exists() and not args.force:
-        print(json.dumps({"cell": checkpoint.name, "status": "already complete"}))
-        return 0
+        existing = json.loads(checkpoint.read_text())
+        if existing.get("frozen_config_sha256") == _frozen_sha():
+            print(json.dumps({"cell": checkpoint.name, "status": "already complete"}))
+            return 0
+        # checkpoint predates the current freeze: rerun rather than reuse
 
     starts = _off_starts()
     window_width = b4.BURST_WINDOW[1] - b4.BURST_WINDOW[0]
@@ -470,6 +479,7 @@ def cmd_nulls(args: argparse.Namespace) -> int:
     detections = [record for record in records if record["detection"]]
     result = {
         "experiment": EXPERIMENT_ID,
+        "frozen_config_sha256": _frozen_sha(),
         "pass": bool(z_pass and not detections),
         "family_wise_threshold": threshold,
         "family_wise_alpha": 0.01,
@@ -501,8 +511,11 @@ def cmd_aggregate(args: argparse.Namespace) -> int:
     if not nulls_path.exists():
         raise SystemExit("nulls.json missing — run the nulls subcommand first")
     nulls = json.loads(nulls_path.read_text())
+    current_sha = _frozen_sha()
     cells = []
     missing = []
+    if nulls.get("frozen_config_sha256") != current_sha:
+        missing.append("nulls.json (stale or missing frozen_config_sha256)")
     for modulation in MODULATION_INDICES:
         for width in WIDTH_CHANNELS:
             path = CALIBRATION_DIR / f"cell_m{modulation:.2f}_w{width:g}.json"
@@ -510,6 +523,9 @@ def cmd_aggregate(args: argparse.Namespace) -> int:
                 missing.append(path.name)
                 continue
             cell = json.loads(path.read_text())
+            if cell.get("frozen_config_sha256") != current_sha:
+                missing.append(f"{path.name} (stale frozen config)")
+                continue
             if cell["n_trials"] < N_TRIALS:
                 missing.append(f"{path.name} (undersized: {cell['n_trials']} < {N_TRIALS})")
                 continue
@@ -528,7 +544,7 @@ def cmd_aggregate(args: argparse.Namespace) -> int:
     )
     verdict = {
         "experiment": EXPERIMENT_ID,
-        "frozen_config_sha256": hashlib.sha256(FROZEN.read_bytes()).hexdigest(),
+        "frozen_config_sha256": current_sha,
         "go": go,
         "missing_cells": missing,
         "nulls_pass": nulls["pass"],
@@ -565,7 +581,7 @@ def cmd_unblind(args: argparse.Namespace) -> int:
     verdict = json.loads(VERDICT.read_text())
     if not verdict.get("go"):
         raise SystemExit("calibration verdict is NO-GO — the on-pulse fit stays blind")
-    if verdict["frozen_config_sha256"] != hashlib.sha256(FROZEN.read_bytes()).hexdigest():
+    if verdict["frozen_config_sha256"] != _frozen_sha():
         raise SystemExit("frozen_config.json changed after the verdict — new experiment required")
 
     products = Products(args)
@@ -710,6 +726,21 @@ def cmd_unblind(args: argparse.Namespace) -> int:
         and compatibility["pass"]
         and envelope_gate["pass"]
     )
+    # a numeric pass is not a pass until the diagnostic figures are reviewed
+    # (repo validation contract): the review file must exist beside the
+    # validation record and every figure verdict must be "match"
+    review_path = VALIDATION_DIR / "figures.review.json"
+    review = json.loads(review_path.read_text()) if review_path.exists() else None
+    reviewed_figures = review.get("figures", []) if isinstance(review, dict) else []
+    figure_review_pass = bool(reviewed_figures) and all(
+        item.get("verdict") == "match" for item in reviewed_figures
+    )
+    if machine_pass and figure_review_pass:
+        machine_status = "pass"
+    elif machine_pass:
+        machine_status = "pass_pending_figure_review"
+    else:
+        machine_status = "documented_fail"
     result = {
         "experiment": EXPERIMENT_ID,
         "frozen_config_sha256": verdict["frozen_config_sha256"],
@@ -721,9 +752,13 @@ def cmd_unblind(args: argparse.Namespace) -> int:
             "post_unblind_scrambles": scramble_gate,
             "split_compatibility": compatibility,
             "onpulse_width_within_validated_envelope": envelope_gate,
-            "manual_figure_review": {"pass": False, "status": "pending"},
+            "manual_figure_review": {
+                "pass": figure_review_pass,
+                "status": "reviewed" if figure_review_pass else "pending",
+                "review_file": str(review_path),
+            },
         },
-        "machine_status": "pass_pending_figure_review" if machine_pass else "documented_fail",
+        "machine_status": machine_status,
         "science_status": "diagnostic_only",
     }
     VALIDATION_DIR.mkdir(exist_ok=True)
@@ -756,7 +791,7 @@ def cmd_unblind(args: argparse.Namespace) -> int:
             sort_keys=True,
         )
     )
-    return 0 if machine_pass else 2
+    return 0 if machine_pass and figure_review_pass else 2
 
 
 def main() -> int:

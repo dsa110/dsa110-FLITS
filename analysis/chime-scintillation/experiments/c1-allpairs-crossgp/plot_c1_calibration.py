@@ -190,8 +190,9 @@ def main() -> None:
         ),
         nulls_figure().name: (
             "Per-null-realization max |z| bars vs the family-wise threshold 4.408. "
-            "Expected: at least one bar crosses the red line (max 4.810, FAIL) while "
-            "fit-level detections remain zero."
+            "Expected: at least one bar crosses the red line (max 4.810, FAIL); "
+            "one fail-closed fit-level detection (bound-clear control fit with "
+            "invalid uncertainty counts as a detection)."
         ),
     }
     manifest = {

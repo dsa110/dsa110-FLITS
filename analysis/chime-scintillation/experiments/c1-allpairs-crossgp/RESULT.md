@@ -26,7 +26,8 @@ on-pulse fit.
   regime-specific, not a harness bug.
 - **Null campaign FAILS**: max |z| = 4.810 over 24 held-out off-pulse +
   pairing-scramble realizations vs family-wise threshold 4.408
-  (α = 0.01, N = 960); zero fit-level detections.
+  (α = 0.01, N = 960); one fail-closed fit-level detection (a bound-clear
+  control fit with an invalid uncertainty estimate counts as a detection).
 - **Aggregate: `go: false`** (24/24 cells present, 128 finite trials each).
 
 ## Failure mode

@@ -2,9 +2,10 @@
   "experiment": "c1-allpairs-crossgp",
   "family_wise_alpha": 0.01,
   "family_wise_threshold": 4.408338469548746,
+  "frozen_config_sha256": "444652ecb717dcce77ea9b47658213f5131513ecf410419ba5ef52a5288ac7db",
   "max_abs_z": 4.809707180953919,
   "n_comparisons": 960,
-  "n_detections": 0,
+  "n_detections": 1,
   "pass": false,
   "records": [
     {
@@ -5022,7 +5023,7 @@
         -0.004016788001046033,
         0.002248276536543209
       ],
-      "detection": false,
+      "detection": true,
       "error": [
         0.002273511321376945,
         0.0021546779162835016,

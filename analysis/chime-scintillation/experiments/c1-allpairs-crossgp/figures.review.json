@@ -15,7 +15,7 @@
     {
       "path": "figures/c1_nulls.png",
       "verdict": "match",
-      "notes": "Four of 24 null realizations (both held-out off-pulse and pairing-scramble kinds) exceed the family-wise threshold 4.408, max 4.810; zero fit-level detections. Fail-closed null gate correctly reports FAIL."
+      "notes": "Four of 24 null realizations (both held-out off-pulse and pairing-scramble kinds) exceed the family-wise threshold 4.408, max 4.810; one fail-closed fit-level detection (bound-clear control fit with invalid uncertainty now counts as a detection under the hardened rule). Fail-closed null gate correctly reports FAIL."
     }
   ]
 }

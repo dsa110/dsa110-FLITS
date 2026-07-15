@@ -1,0 +1,11 @@
+{"m": 0.15, "dnu_khz": 35.0, "certify": false, "median_dnu_khz": 95.4, "bias": 1.725, "pull": 0.21, "median_z_max": 1.45}
+{"m": 0.15, "dnu_khz": 77.0, "certify": false, "median_dnu_khz": 157.2, "bias": 1.041, "pull": 0.58, "median_z_max": 2.4}
+{"m": 0.15, "dnu_khz": 127.0, "certify": true, "median_dnu_khz": 122.4, "bias": -0.036, "pull": 0.2, "median_z_max": 2.23}
+{"m": 0.15, "dnu_khz": 213.0, "certify": true, "median_dnu_khz": 242.8, "bias": 0.14, "pull": 0.49, "median_z_max": 3.07}
+{"m": 0.15, "dnu_khz": 352.0, "certify": true, "median_dnu_khz": 353.1, "bias": 0.003, "pull": -0.0, "median_z_max": 3.0}
+{"m": 0.17, "dnu_khz": 35.0, "certify": false, "median_dnu_khz": 45.8, "bias": 0.309, "pull": -0.03, "median_z_max": 1.52}
+{"m": 0.17, "dnu_khz": 77.0, "certify": true, "median_dnu_khz": 95.4, "bias": 0.239, "pull": 0.14, "median_z_max": 2.51}
+{"m": 0.17, "dnu_khz": 127.0, "certify": false, "median_dnu_khz": 167.0, "bias": 0.315, "pull": -0.12, "median_z_max": 2.56}
+{"m": 0.17, "dnu_khz": 213.0, "certify": true, "median_dnu_khz": 275.1, "bias": 0.291, "pull": 0.17, "median_z_max": 3.56}
+{"m": 0.17, "dnu_khz": 352.0, "certify": true, "median_dnu_khz": 353.1, "bias": 0.003, "pull": -0.05, "median_z_max": 3.85}
+{"control_certifies": false, "g1_pass": true}

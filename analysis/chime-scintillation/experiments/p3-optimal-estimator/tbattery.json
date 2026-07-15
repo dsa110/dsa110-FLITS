@@ -1,0 +1,16 @@
+{
+  "experiment": "p3-optimal-estimator",
+  "frozen_config_sha256": "0baf4ea2eb27dd950aa08eb93e6cb41ae0faa3fce1b01ae7cd72bd0b3affed5f",
+  "signal_scatter_over_null_sigma": 1.1919189750434493,
+  "synthetic_fractional_rms": 1.4431173899064154,
+  "t1_max_deviation": 1.4432899320127035e-15,
+  "t1_pass": true,
+  "t2_bias_over_stderr": 3.6863946847465545,
+  "t2_pass": true,
+  "t3_pass": true,
+  "t3_sigma_ratio": 0.8815321095836417,
+  "t4_note": "demeaning/mask transfer baked into MC templates by construction",
+  "t5_note": "resolved by the P3' amendment (full-band, no demeaning)",
+  "t6_note": "unit-tested (test_optimal_dnu.py::test_t6_blinding_guard)",
+  "tbattery_pass": true
+}

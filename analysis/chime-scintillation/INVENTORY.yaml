@@ -149,6 +149,30 @@ experiments:
         the common-mode confounder. Separates the two failure modes.
       - S3 (complex-voltage variant) implemented and unit-tested but not run -
         complex fine-channel voltages not staged on h17 (out of P2 scope).
+  - id: p3-optimal-estimator
+    target: freya
+    data_class: real_chime_product_with_synthetic_injections
+    status: unblinded_no_admissible_measurement
+    machine_status: calibrated_then_unblinded
+    qualified_measurement: false
+    blinded: false  # owner-authorized one-shot unblinding 2026-07-15
+    unblinded_fit_produced: true
+    common_mode_cancellation: pass  # inherits P2's ratio construction unchanged
+    summary: analysis/chime-scintillation/experiments/p3-optimal-estimator/RESULT.md
+    frozen_config: analysis/chime-scintillation/experiments/p3-optimal-estimator/frozen_config.json
+    notes:
+      - First passing blinded gate calibration of the campaign (G1'' + G2'' both
+        pass; T battery pass). Delay-domain matched estimator on the P2 ratio
+        spectra per the owner-sanctioned P3' amendment (no block demeaning,
+        k>=11 envelope cut, null-mean-subtracted z; z_trials = 2.06).
+      - Gate 0b killed the originally frozen (block-demeaned) spec at 1.24 sigma
+        forecast before anything was built; amendment restored 3.0-4.5 sigma.
+      - One-shot unblinding (owner-authorized): z_max=40.4 pinned at the
+        400 kHz scan edge with a_hat ~1e-3 (11x the calibrated scintillation
+        ceiling; implied m~0.6) -> intrinsic spectral envelope, DECLINED as a
+        Delta-nu_d measurement (fail-closed). Scintillation constraint is
+        envelope-confusion-limited; interpretation wording awaits owner
+        ratification.
   - id: a1-trigger-calibration
     target: synthetic_grid
     data_class: synthetic_null_and_two_component_campaigns

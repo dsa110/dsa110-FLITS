@@ -467,3 +467,20 @@ def test_budget_table_dm_int_consistent_with_registry():
                 "no budget-eligible system on this sightline"
             )
             assert row["regime"] == "none", row["burst"]
+
+
+def test_roster_burst_raises_when_adjudication_inputs_missing(tmp_path, monkeypatch):
+    """Fail-closed: a census-roster burst must raise, not fall back to the
+    legacy CSVs, when the committed adjudication inputs cannot be loaded."""
+    import pytest
+
+    from galaxies.foreground import census_registry as cr
+
+    monkeypatch.setattr(
+        cr, "load_census_duplicates", lambda path=None: (_ for _ in ()).throw(OSError("missing"))
+    )
+    root = _repo_root()
+    with pytest.raises(OSError):
+        sb.foreground_unified(
+            "isha", 0.251, 71.4110, 70.3074, results_dir=str(root / "results")
+        )

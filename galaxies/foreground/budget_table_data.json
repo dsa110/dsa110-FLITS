@@ -1,5 +1,5 @@
 {
-  "_comment": "Single source of truth for budget_table.tex. Edit VALUES here; regenerate the .tex with the emitter (do NOT hand-edit the .tex). DM in pc/cm^3, tau in ms. DM_int is sourced ONLY from the V4-verified census registry (data/intervening_census_registry.csv): budget-eligible confirmed systems, via sightline_budget.foreground_unified (registry-authoritative as of 2026-07-15; an empty eligible set is a census verdict, never a legacy-CSV fallback). DM_host is the forward-modeled posterior [median, +p84-p50, -(p50-p16)] from scripts/dm_budget_uncertainty.py (cross-checked in tests). Placeholder-z sightlines (note 'p') have no cosmic/host term.",
+  "_comment": "Single source of truth for budget_table.tex. Edit VALUES here; regenerate the .tex with the emitter (do NOT hand-edit the .tex). DM in pc/cm^3, tau in ms. DM_int is sourced ONLY from the V4-verified census registry (data/intervening_census_registry.csv): budget-eligible confirmed systems, via sightline_budget.foreground_unified (registry-authoritative as of 2026-07-15; an empty eligible set is a census verdict, never a legacy-CSV fallback; census remediation 2026-07-15: duplicates dropped, adjudicated empirical masses + uniformly recomputed halo impact parameters govern -- see data/census_masses/). DM_host is the forward-modeled posterior [median, +p84-p50, -(p50-p16)] from scripts/dm_budget_uncertainty.py (cross-checked in tests). Placeholder-z sightlines (note 'p') have no cosmic/host term.",
   "columns": [
     "burst",
     "z",
@@ -14,8 +14,7 @@
   ],
   "footnotes": {
     "p": "Host redshift unknown (placeholder); the cosmological and host terms cannot be computed, so this sightline is excluded from any distance-dependent quantity.",
-    "u": "Position lies outside the deep-imaging survey footprints (DESI Legacy DR8-North; SDSS DR12 returns no redshifts here), so only the shallow all-sky catalogs (NED, GLADE+) constrain the sightline: the intervening term is \\emph{unconstrained by the searched surveys}, not excluded---absence of coverage is not absence of foreground (Section~\\ref{sec:obs-fg}).",
-    "m": "Confirmed foreground halos are present but lie beyond the virial radii implied by their assumed halo masses ($b/R_{\\mathrm{vir}}\\approx1.3$--$1.8$ at the fallback mass), so the modeled two-phase column vanishes. The fallback mass is a fiducial stellar mass ($\\log M_\\star/M_\\odot\\approx10$, the midpoint of the $9$--$11$ range spanned by the sensitivity prior families) converted to halo mass through the \\citet{Moster2013} stellar-to-halo-mass relation. This is a median guess, not a conservative lower bound, so its sign is not one-directional: $\\mathrm{DM_{int}}=0$ here is conditional on the assumed mass, and a more massive (or a measured) halo would bring the sightline inside $R_{\\mathrm{vir}}$ and make the column nonzero."
+    "u": "Position lies outside the deep-imaging survey footprints (DESI Legacy DR8-North; SDSS DR12 returns no redshifts here), so only the shallow all-sky catalogs (NED, GLADE+) constrain the sightline: the intervening term is \\emph{unconstrained by the searched surveys}, not excluded---absence of coverage is not absence of foreground (Section~\\ref{sec:obs-fg})."
   },
   "rows": [
     {
@@ -45,16 +44,16 @@
       "dm_obs": 462,
       "dm_mw": 81,
       "dm_cos": 427,
-      "dm_int": 11,
+      "dm_int": 6,
       "dm_int_note": "",
       "regime": "CGM",
-      "mass": "assumed",
+      "mass": "measured",
       "dm_host": [
-        -9,
-        86,
-        107
+        -5,
+        87,
+        106
       ],
-      "tau_int": "0.0011"
+      "tau_int": "0.00036"
     },
     {
       "burst": "FRB 20220506D",
@@ -121,16 +120,16 @@
       "dm_obs": 610,
       "dm_mw": 74,
       "dm_cos": 235,
-      "dm_int": 241,
+      "dm_int": 243,
       "dm_int_note": "",
       "regime": "CGM",
-      "mass": "assumed",
+      "mass": "measured",
       "dm_host": [
-        89,
         88,
-        107
+        88,
+        108
       ],
-      "tau_int": "0.0079"
+      "tau_int": "0.015"
     },
     {
       "burst": "FRB 20230325A",
@@ -204,16 +203,16 @@
       "dm_obs": 272,
       "dm_mw": 111,
       "dm_cos": 62,
-      "dm_int": 0,
-      "dm_int_note": "m",
+      "dm_int": 26,
+      "dm_int_note": "",
       "regime": "CGM",
-      "mass": "assumed",
+      "mass": "measured",
       "dm_host": [
-        106,
-        30,
-        36
+        80,
+        32,
+        38
       ],
-      "tau_int": "0"
+      "tau_int": "0.0034"
     },
     {
       "burst": "FRB 20240229A",
@@ -223,16 +222,16 @@
       "dm_obs": 491,
       "dm_mw": 74,
       "dm_cos": 250,
-      "dm_int": 0,
-      "dm_int_note": "m",
+      "dm_int": 117,
+      "dm_int_note": "",
       "regime": "CGM",
-      "mass": "assumed",
+      "mass": "measured",
       "dm_host": [
-        197,
-        60,
-        75
+        81,
+        74,
+        92
       ],
-      "tau_int": "0"
+      "tau_int": "0.073"
     }
   ]
 }

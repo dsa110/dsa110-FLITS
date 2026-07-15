@@ -116,6 +116,16 @@ def _distmod(z_gal: float) -> float:
 
 def select_stellar_mass(row, z_gal) -> tuple[float, str, str]:
     """Return the best available log10 stellar mass and provenance."""
+    # B7 census adjudicated empirical mass (owner decision 2026-07-15): when a
+    # frozen-census halo carries an adjudicated PS1-Taylor/WISE-W1 stellar mass
+    # (data/census_masses/halo_rvir_ADJUDICATED.csv, attached by
+    # census_registry.registry_to_matches), it supersedes every other route,
+    # including the assumed fallback that previously governed registry rows.
+    adj_mass = _num(row, "logM_adj")
+    if _finite(adj_mass):
+        source = _text(row, "mass_source_adj") or "census_adjudicated"
+        return float(adj_mass), source, "census_adjudicated_b7"
+
     catalog = (_text(row, "catalog") or "").lower()
     glade_mass = _num(row, "M_star")
     if "glade" in catalog and _finite(glade_mass):

@@ -491,18 +491,36 @@ def foreground_unified(
     matches: pd.DataFrame | None = None
     registry_authoritative = False
     if use_registry:
-        try:
-            from galaxies.foreground.census_registry import (
-                census_roster_nicknames,
-                load_intervening_census_registry,
-                registry_to_matches,
-            )
+        from galaxies.foreground.census_registry import (
+            census_roster_nicknames,
+            load_intervening_census_registry,
+            registry_to_matches,
+        )
 
+        if name.lower() in census_roster_nicknames():
+            # Census burst: the registry and its adjudication inputs are
+            # committed repo data and REQUIRED -- any load failure raises
+            # rather than falling back to the revoked legacy candidate lists
+            # (review finding on this PR: a swallowed FileNotFoundError here
+            # would silently reintroduce the undeduped/stale foreground
+            # budget).
             registry = load_intervening_census_registry(registry_path)
-            matches = registry_to_matches(registry, name, z_frb)
-            registry_authoritative = name.lower() in census_roster_nicknames()
-        except (ImportError, OSError, ValueError):
-            matches = None
+            matches = registry_to_matches(
+                registry,
+                name,
+                z_frb,
+                sight_ra_deg=sight_ra,
+                sight_dec_deg=sight_dec,
+            )
+            registry_authoritative = True
+        else:
+            # Off-roster (synthetic/test) nickname: registry knowledge is
+            # optional; failures fall through to the legacy CSV path.
+            try:
+                registry = load_intervening_census_registry(registry_path)
+                matches = registry_to_matches(registry, name, z_frb)
+            except (OSError, ValueError):
+                matches = None
     if not registry_authoritative and (matches is None or matches.empty):
         matches = pd.read_csv(csv_path) if os.path.exists(csv_path) else pd.DataFrame()
     if not len(matches):

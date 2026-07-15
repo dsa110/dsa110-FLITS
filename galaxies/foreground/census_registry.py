@@ -170,6 +170,89 @@ def load_intervening_census_registry(path: Path | str | None = None) -> pd.DataF
     return build_intervening_census_registry()
 
 
+ADJUDICATED_MASSES_CSV = DATA_DIR / "census_masses" / "halo_rvir_ADJUDICATED.csv"
+CENSUS_DUPLICATES_CSV = DATA_DIR / "census_masses" / "census_duplicates.csv"
+MASS_OVERRIDES_CSV = DATA_DIR / "census_masses" / "mass_overrides.csv"
+
+
+def load_census_duplicates(path: Path | str | None = None) -> dict[tuple[str, str], str]:
+    """(nickname, duplicate_obj) -> canonical_obj for cross-listed census rows.
+
+    Owner adjudication 2026-07-15: seven halo pairs (five confirmed, two
+    refuted) sit at <0.2 arcsec separation with identical redshifts -- the
+    same physical galaxy carried under two catalog identifiers. The physical
+    census is deduplicated by dropping the duplicate member; the canonical
+    member is the catalog-resolvable LS DR9 objid.
+    """
+    csv_path = Path(path) if path is not None else CENSUS_DUPLICATES_CSV
+    df = pd.read_csv(csv_path, dtype={"duplicate_obj": str, "canonical_obj": str})
+    return {
+        (str(r.nickname).lower(), str(r.duplicate_obj)): str(r.canonical_obj)
+        for _, r in df.iterrows()
+    }
+
+
+def load_mass_overrides(path: Path | str | None = None) -> pd.DataFrame:
+    """Owner mass adjudications that supersede the B7 adjudicated table.
+
+    2026-07-15: whitney obj 1473's B7 wise_w1 mass (logM*=11.279) is a WISE
+    blend (LS DR9 forced photometry shows the on-source galaxy at W1=22.9);
+    the adopted mass is the optical Zibetti-2009 g-z estimate. See the CSV's
+    evidence column for the photometry.
+    """
+    csv_path = Path(path) if path is not None else MASS_OVERRIDES_CSV
+    df = pd.read_csv(csv_path, dtype={"obj": str})
+    df["nickname"] = df["nickname"].str.lower()
+    return df
+
+
+def recompute_impact_kpc(
+    sight_ra_deg: float,
+    sight_dec_deg: float,
+    obj_ra_deg: float,
+    obj_dec_deg: float,
+    z: float,
+) -> float:
+    """Proper impact parameter (kpc) from the V6 burst position and object coordinates.
+
+    Owner adjudication 2026-07-15: the registry's listed impact parameters are
+    provenance-heterogeneous (duplicate pair members carried inconsistent
+    values, up to 48 kpc apart); the budget uses this uniform recomputation
+    (fiducial cosmology of galaxies.foreground.config) instead.
+    """
+    from astropy import units as u
+    from astropy.coordinates import SkyCoord
+
+    from galaxies.foreground import config
+
+    sep = SkyCoord(sight_ra_deg * u.deg, sight_dec_deg * u.deg).separation(
+        SkyCoord(obj_ra_deg * u.deg, obj_dec_deg * u.deg)
+    )
+    kpc_per_arcmin = config.COSMO.kpc_proper_per_arcmin(float(z)).to(u.kpc / u.arcmin).value
+    return float(sep.arcmin * kpc_per_arcmin)
+
+
+def load_adjudicated_masses(path: Path | str | None = None) -> pd.DataFrame:
+    """The B7 empirical-mass table for the frozen census halos.
+
+    Produced 2026-07-08 (handoff-2026-07-08-18-12-b7-cgm-census-resolved.md):
+    per-halo stellar masses from live PS1 g-i (Taylor 2011) / WISE W1
+    (Cluver 2014) photometry through the pipeline's own mass ladder
+    (select_stellar_mass -> estimate_halo_mass -> get_rvir_and_rs), with the
+    eight logM>11.3 suspects human-adjudicated (suspect_vetting_adjudicated.csv;
+    owner decision). ``logM_adj`` is the adjudicated log10 stellar mass;
+    rows whose mass_status is not a measured/adjudicated pass carry no
+    ``logM_adj`` and fall back to the ladder's default behavior downstream.
+
+    Original artifact provenance: Claude Science artifact store, project
+    proj_55f9c893cfe1, version d3fd91ff-6bb8-4b94-b185-0a36d0c8fdbe.
+    """
+    csv_path = Path(path) if path is not None else ADJUDICATED_MASSES_CSV
+    df = pd.read_csv(csv_path, dtype={"obj": str})
+    df["nickname"] = df["nickname"].str.lower()
+    return df
+
+
 def census_roster_nicknames() -> frozenset[str]:
     """Lowercased nicknames of the census bursts (frozen V4 roster).
 
@@ -189,8 +272,48 @@ def registry_to_matches(
     registry: pd.DataFrame,
     nickname: str,
     z_frb: float,
+    *,
+    adjudicated_masses: pd.DataFrame | None = None,
+    sight_ra_deg: float | None = None,
+    sight_dec_deg: float | None = None,
 ) -> pd.DataFrame:
-    """Budget-eligible confirmed registry rows as a ``build_unified_records`` matches table."""
+    """Budget-eligible confirmed registry rows as a ``build_unified_records`` matches table.
+
+    Owner adjudications applied (2026-07-15):
+
+    1. *Dedupe* — rows listed in ``census_duplicates.csv`` (same physical
+       galaxy under two catalog identifiers) are dropped in favor of their
+       canonical member.
+    2. *Empirical masses govern* — halo rows are annotated with the B7
+       adjudicated stellar mass (``logM_adj`` + ``mass_source_adj``), as
+       superseded by ``mass_overrides.csv`` (e.g. the whitney-1473 WISE-blend
+       correction). Rows without an adjudicated mass keep the ladder's
+       default behavior.
+    3. *Uniform geometry* — when the burst position is provided, the impact
+       parameter is recomputed from (position, coordinates, best_z) rather
+       than trusting the provenance-heterogeneous listed value.
+    """
+    # The adjudication inputs are committed repo data; a missing file is a
+    # broken checkout and must raise, never silently disable the remediation
+    # (review finding on this PR: a swallowed FileNotFoundError here would
+    # un-dedupe the census and drop every mass adjudication without warning).
+    if adjudicated_masses is None:
+        adjudicated_masses = load_adjudicated_masses()
+    adj_by_key: dict[tuple[str, str], dict] = {}
+    for _, a in adjudicated_masses.iterrows():
+        logm = pd.to_numeric(a.get("logM_adj"), errors="coerce")
+        if pd.notna(logm) and np.isfinite(float(logm)):
+            adj_by_key[(str(a.nickname).lower(), str(a.obj))] = {
+                "logM_adj": float(logm),
+                "mass_source_adj": str(a.get("mass_source", "census_adjudicated")),
+            }
+    for _, o in load_mass_overrides().iterrows():
+        adj_by_key[(str(o.nickname).lower(), str(o.obj))] = {
+            "logM_adj": float(o.logM_adj),
+            "mass_source_adj": str(o.mass_source),
+        }
+    duplicates = load_census_duplicates()
+
     sub = registry[
         (registry.nickname.str.lower() == nickname.lower())
         & (registry.final_verdict == "confirmed")
@@ -198,14 +321,27 @@ def registry_to_matches(
     ]
     rows: list[dict] = []
     for _, r in sub.iterrows():
+        if (str(r.nickname).lower(), str(r.obj)) in duplicates:
+            continue  # same physical system as its canonical member
         z = float(r.best_z)
         if not (np.isfinite(z) and z < float(z_frb)):
             continue
+        impact = float(r.impact_kpc) if np.isfinite(r.impact_kpc) else np.nan
+        if (
+            r.type != "cluster"  # cluster keeps its analysis-provenance b
+            and sight_ra_deg is not None
+            and sight_dec_deg is not None
+            and np.isfinite(z)
+            and z > 0.0
+        ):
+            impact = recompute_impact_kpc(
+                sight_ra_deg, sight_dec_deg, float(r.ra_deg), float(r.dec_deg), z
+            )
         row: dict = {
             "ra": float(r.ra_deg),
             "dec": float(r.dec_deg),
             "z": z,
-            "impact_kpc": float(r.impact_kpc) if np.isfinite(r.impact_kpc) else np.nan,
+            "impact_kpc": impact,
             "catalog": f"registry:{r.survey}",
             "classification": "GClstr" if r.type == "cluster" else str(r.classification),
         }
@@ -213,6 +349,10 @@ def registry_to_matches(
             row["m500_msun"] = float(r.m500_1e14msun) * 1e14
         if np.isfinite(r.get("r500_mpc", np.nan)):
             row["R500_mpc"] = float(r.r500_mpc)
+        if r.type != "cluster":
+            adj = adj_by_key.get((str(r.nickname).lower(), str(r.obj)))
+            if adj is not None:
+                row.update(adj)
         rows.append(row)
     return pd.DataFrame(rows)
 

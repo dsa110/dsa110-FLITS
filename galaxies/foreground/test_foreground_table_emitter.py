@@ -45,10 +45,11 @@ def test_emitted_tex_matches_committed_export():
 
 def test_rows_have_ten_cells():
     data = json.loads(DATA_PATH.read_text())
-    # 28 tabulated census systems + 3 explicit no-candidate sightline rows
-    # (FRB 20221113A, FRB 20230814B, FRB 20240122A; added 2026-07-15 so every
-    # co-detection sightline appears in the table).
-    assert len(data["rows"]) == 31
+    # 23 tabulated physical census systems (28 rows minus the five confirmed
+    # cross-listed duplicate pairs merged by the 2026-07-15 remediation)
+    # + 3 explicit no-candidate sightline rows (FRB 20221113A, FRB 20230814B,
+    # FRB 20240122A) so every co-detection sightline appears in the table.
+    assert len(data["rows"]) == 26
     for r in data["rows"]:
         assert len(r) == 10, f"row has {len(r)} cells, expected 10: {r!r}"
     empties = [r for r in data["rows"] if r[8] == "no candidates"]
@@ -57,6 +58,8 @@ def test_rows_have_ten_cells():
         "FRB 20230814B",
         "FRB 20240122A",
     ]
+    merged = [r for r in data["rows"] if "," in r[2] and not r[2].startswith("J")]
+    assert len(merged) == 5  # the five dual-listed confirmed systems
 
 
 def test_verdicts_match_census_registry():

@@ -38,17 +38,17 @@ $\mathrm{pc\,cm^{-3}}$, $\tau$ in ms.
 \colhead{$\mathrm{DM_{host}}$} & \colhead{$\tau_{\mathrm{int}}$}}
 \startdata
 FRB 20220207C\tablenotemark{u} & $0.043$ & 262 & 111 & 36 & 0 & none & \nodata & $120^{+26}_{-31}$ & $0$ \\
-FRB 20220310F & $0.479$ & 462 & 81 & 427 & 11 & CGM & assumed & $-9^{+86}_{-107}$ & $0.0011$ \\
+FRB 20220310F & $0.479$ & 462 & 81 & 427 & 6 & CGM & measured & $-5^{+87}_{-106}$ & $0.00036$ \\
 FRB 20220506D\tablenotemark{u} & $0.300$ & 397 & 118 & 262 & 0 & none & \nodata & $48^{+65}_{-80}$ & $0$ \\
 FRB 20221113A\tablenotemark{u} & $0.251$ & 411 & 123 & 217 & 0 & none & \nodata & $97^{+58}_{-74}$ & $0$ \\
 FRB 20221203A\tablenotemark{u} & $0.510$ & 602 & 117 & 456 & 0 & none & \nodata & $79^{+93}_{-112}$ & $0$ \\
-FRB 20230307A & $0.271$ & 610 & 74 & 235 & 241 & CGM & assumed & $89^{+88}_{-107}$ & $0.0079$ \\
+FRB 20230307A & $0.271$ & 610 & 74 & 235 & 243 & CGM & measured & $88^{+88}_{-108}$ & $0.015$ \\
 FRB 20230325A\tablenotemark{u} & \nodata\tablenotemark{p} & 912 & 100 & \nodata & 0 & none & \nodata & \nodata & $0$ \\
 FRB 20230814B\tablenotemark{u} & \nodata\tablenotemark{p} & 696 & 137 & \nodata & 0 & none & \nodata & \nodata & $0$ \\
 FRB 20230913A\tablenotemark{u} & $0.302$ & 518 & 110 & 264 & 0 & none & \nodata & $177^{+64}_{-80}$ & $0$ \\
 FRB 20240122A\tablenotemark{u} & \nodata\tablenotemark{p} & 960 & 133 & \nodata & 0 & none & \nodata & \nodata & $0$ \\
-FRB 20240203A\tablenotemark{u} & $0.074$ & 272 & 111 & 62 & 0\tablenotemark{m} & CGM & assumed & $106^{+30}_{-36}$ & $0$ \\
-FRB 20240229A & $0.287$ & 491 & 74 & 250 & 0\tablenotemark{m} & CGM & assumed & $197^{+60}_{-75}$ & $0$ \\
+FRB 20240203A\tablenotemark{u} & $0.074$ & 272 & 111 & 62 & 26 & CGM & measured & $80^{+32}_{-38}$ & $0.0034$ \\
+FRB 20240229A & $0.287$ & 491 & 74 & 250 & 117 & CGM & measured & $81^{+74}_{-92}$ & $0.073$ \\
 \enddata
 \tablenotetext{p}{Host redshift unknown (placeholder); the cosmological and host
 terms cannot be computed, so this sightline is excluded from any distance-dependent
@@ -59,17 +59,6 @@ shallow all-sky catalogs (NED, GLADE+) constrain the sightline: the
 intervening term is \emph{unconstrained by the searched surveys}, not
 excluded---absence of coverage is not absence of foreground
 (Section~\ref{sec:obs-fg}).}
-\tablenotetext{m}{Confirmed foreground halos are present but lie beyond the
-virial radii implied by their assumed halo masses
-($b/R_{\mathrm{vir}}\approx1.3$--$1.8$ at the fallback mass), so the modeled
-two-phase column vanishes. The fallback mass is a fiducial stellar mass
-($\log M_\star/M_\odot\approx10$, the midpoint of the $9$--$11$ range spanned by
-the sensitivity prior families) converted to halo mass through the
-\citet{Moster2013} stellar-to-halo-mass relation. This is a median guess, not a
-conservative lower bound, so its sign is not one-directional:
-$\mathrm{DM_{int}}=0$ here is conditional on the assumed mass, and a more
-massive (or a measured) halo would bring the sightline inside $R_{\mathrm{vir}}$
-and make the column nonzero.}
 \tablecomments{Because the diffuse cosmic term is drawn from a skewed log-normal,
 the host posteriors are asymmetric and their medians exceed the naive
 mean-subtracted residuals. One high-redshift sightline

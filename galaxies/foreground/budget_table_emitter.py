@@ -86,17 +86,6 @@ shallow all-sky catalogs (NED, GLADE+) constrain the sightline: the
 intervening term is \emph{unconstrained by the searched surveys}, not
 excluded---absence of coverage is not absence of foreground
 (Section~\ref{sec:obs-fg}).}
-\tablenotetext{m}{Confirmed foreground halos are present but lie beyond the
-virial radii implied by their assumed halo masses
-($b/R_{\mathrm{vir}}\approx1.3$--$1.8$ at the fallback mass), so the modeled
-two-phase column vanishes. The fallback mass is a fiducial stellar mass
-($\log M_\star/M_\odot\approx10$, the midpoint of the $9$--$11$ range spanned by
-the sensitivity prior families) converted to halo mass through the
-\citet{Moster2013} stellar-to-halo-mass relation. This is a median guess, not a
-conservative lower bound, so its sign is not one-directional:
-$\mathrm{DM_{int}}=0$ here is conditional on the assumed mass, and a more
-massive (or a measured) halo would bring the sightline inside $R_{\mathrm{vir}}$
-and make the column nonzero.}
 \tablecomments{Because the diffuse cosmic term is drawn from a skewed log-normal,
 the host posteriors are asymmetric and their medians exceed the naive
 mean-subtracted residuals. One high-redshift sightline

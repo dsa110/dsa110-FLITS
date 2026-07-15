@@ -50,3 +50,56 @@ def test_registry_to_matches_budget_eligible_only():
     assert (matches.z < 0.271).all()
     ineligible = registry_to_matches(reg, "phineas", z_frb=0.271)
     assert "catalog" in ineligible.columns
+
+
+# --- 2026-07-15 census remediation: dedupe, adjudicated masses, geometry -----
+
+
+def test_registry_to_matches_dedupes_confirmed_pairs():
+    """The five confirmed cross-listed pairs collapse to single physical systems."""
+    from galaxies.foreground.census_registry import (
+        load_intervening_census_registry,
+        registry_to_matches,
+    )
+
+    reg = load_intervening_census_registry()
+    phineas = registry_to_matches(reg, "phineas", z_frb=0.271)
+    assert len(phineas) == 6  # 5 physical halos + 1 cluster (was 9 rows)
+    casey = registry_to_matches(reg, "casey", z_frb=0.287)
+    assert len(casey) == 2  # 2 physical halos (was 4 rows)
+
+
+def test_whitney_1473_mass_override_applied():
+    """Owner adjudication: the WISE-blend mass is superseded by the optical mass."""
+    from galaxies.foreground.census_registry import (
+        load_intervening_census_registry,
+        registry_to_matches,
+    )
+
+    reg = load_intervening_census_registry()
+    m = registry_to_matches(reg, "whitney", z_frb=0.479)
+    assert len(m) == 1
+    row = m.iloc[0]
+    assert abs(row.logM_adj - 9.604533681319118) < 1e-9
+    assert row.mass_source_adj == "desi_ls_sed"
+
+
+def test_impact_recomputed_for_halos_not_cluster():
+    """Halo b comes from the uniform geometry recomputation; the cluster keeps
+    its analysis-provenance value (603.6 kpc, b/R500=0.83)."""
+    from galaxies.foreground.census_registry import (
+        load_intervening_census_registry,
+        registry_to_matches,
+    )
+
+    reg = load_intervening_census_registry()
+    m = registry_to_matches(
+        reg, "phineas", z_frb=0.271, sight_ra_deg=177.7813, sight_dec_deg=71.6956
+    )
+    cluster = m[m.classification == "GClstr"].iloc[0]
+    assert abs(cluster.impact_kpc - 603.6) < 0.1
+    halos = m[m.classification != "GClstr"]
+    # the z=0.1925 physical halo: listed values were 158.8/130.6 (inconsistent
+    # duplicate members); the uniform recomputation gives ~144.0
+    h = halos[(halos.z - 0.1925).abs() < 1e-3].iloc[0]
+    assert abs(h.impact_kpc - 144.0) < 1.0

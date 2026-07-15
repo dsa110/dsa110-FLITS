@@ -1,0 +1,2 @@
+nickname,obj,logM_adj,mass_source,mass_method,verdict,evidence
+whitney,1473,9.604533681319118,desi_ls_sed,desi_ls_gz_zibetti2009,reject_wise_blend_adopt_optical,"LS DR9 forced photometry at 0.01 arcsec: g=22.947 r=22.274 z=22.164 W1=22.909 (faint REX); PS1 DR2: zero detections on-source; the AllWISE W1~16.7 behind the B7 wise_w1 logM*=11.279 is a blended neighbor ~300x brighter. Owner adjudication 2026-07-15 (extends B7 suspect vetting): adopt the optical Zibetti-2009 g-z mass."

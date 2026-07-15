@@ -1,0 +1,8 @@
+nickname,duplicate_obj,canonical_obj,sep_arcsec,best_z,evidence
+casey,795,192821699728654764,0.04,0.3747,identical position and redshift; same physical galaxy cross-listed (Legacy/Zhou21 internal id vs LS DR9 objid)
+casey,824,192821700026167542,0.01,0.2028,identical position and redshift (DESI spec); same physical galaxy cross-listed
+casey,827,192831699797402822,0.01,0.2398,identical position and redshift (LS/Zhou phot); same physical galaxy cross-listed
+phineas,832,194021777634832653,0.01,0.1925,identical position and redshift; same physical galaxy cross-listed
+phineas,1153,194041777780157594,0.02,0.2146,identical position and redshift; same physical galaxy cross-listed
+phineas,1190,194051777813062524,0.01,0.1096,identical position and redshift (DESI spec); same physical galaxy cross-listed
+whitney,1472,196191347354360083,0.12,0.5551,identical position and redshift; same physical galaxy cross-listed

@@ -1,5 +1,20 @@
 # Reference-parity fixture provenance
 
+## `all_pairs_reference_20260717.npz`
+
+- Origin: **RECOMPUTATION** — output of the pre-vectorization per-pair
+  `all_pairs_cross_acf` on the seeded C1 synthetic
+  (`test_cross_acf._c1_low_modulation_inputs`, seed `20260717`; 2 pols ×
+  12 times, m=0.15, width 6 native bins, 256 blocks × 64 channels,
+  `max_lag_bins=40`). Generated 2026-07-14 at the last per-pair commit on
+  `scint/c1-allpairs-crossgp` before the closed-form vectorization landed.
+- Purpose: characterization pin for
+  `test_all_pairs_cross_acf_matches_pinned_reference` — every `CrossACF`
+  field of the vectorized implementation must match to rtol 1e-10
+  (covariance 1e-9); only float summation order may differ.
+- SHA-256:
+  `5e09f575fdab68ffc94399ac91c45a9e65b9a1ef28db76db59a29d84534902e8`.
+
 ## `zach_acf_codetections_fftsize64_downfreq1.npz`
 
 - Origin: byte-for-byte copy of

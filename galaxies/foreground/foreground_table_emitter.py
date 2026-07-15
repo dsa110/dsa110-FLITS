@@ -3,7 +3,7 @@
 Rationale
 ---------
 Like the budget table, the manuscript's ``foreground_table.tex`` was
-hand-transcribed. This module makes it *generated*: the 28 tabulated census
+hand-transcribed. This module makes it *generated*: the 26 tabulated physical
 systems live in ``foreground_table_data.json`` (one place to review and edit)
 and the AASTeX ``deluxetable`` markup is assembled here. Each row's object ID and
 verdict are cross-checked against the committed census registry
@@ -47,23 +47,22 @@ _HEAD = r"""% !! GENERATED FILE -- do not edit by hand. Values live in
 %    Regenerate: python -m galaxies.foreground.foreground_table_emitter --out <this file>
 %    Object IDs + verdicts are cross-checked against data/intervening_census_registry.csv.
 % Foreground census table. Values from the dsa110-FLITS foreground validation
-% (LS DR9 / DESI DR1 / NED /
-% PS1-STRM); see sec:obs-fg. Clusters are the WenHan2024 DESI Legacy/WISE
-% catalog, restricted to sightlines passing within R500 (only FRB 20230307A
-% J115120.4+714435 qualifies); 14 further foreground clusters at b>R500 are omitted.
+% (LS DR9 / DESI DR1 / NED / PS1-STRM / GLADE+ / WHL12); see sec:obs-fg.
+% The budgeted cluster comes from WenHan2024. One additional WHL12 cluster is
+% tabulated as a census systematic but lacks the adopted M500/R500 inputs.
 % Only confirmed and inconclusive systems are tabulated; the 7 candidates
 % refuted as background (and stellar classifications) are described in the text
 % (sec:obs-fg), matching the treatment of the other categorical cuts.
 \startlongtable
 \begin{deluxetable*}{lllrrlllll}
 \tabletypesize{\tiny}
-\tablecaption{Intervening foreground halos and clusters along the sightlines to the 12 CHIME/DSA co-detected FRBs, validated against DESI Legacy DR9 (Zhou+2021 photo-z), DESI DR1 spec-z, NED, and PS1-STRM. Verdicts: \emph{confirmed} (catalog $z<z_{\rm host}$) and \emph{inconclusive} ($z$ within $1\sigma$ of host, host $z$ unknown, or no trustworthy $z$). Candidates refuted as background are omitted (Section~\ref{sec:obs-fg}). \label{tab:foreground}}
+\tablecaption{Intervening foreground halos and clusters along the sightlines to the 12 CHIME/DSA co-detected FRBs, validated against DESI Legacy DR9 (Zhou+2021 photo-z), DESI DR1 spec-z, NED, PS1-STRM, GLADE+, and WHL12. Verdicts: \emph{confirmed} (catalog $z<z_{\rm host}$) and \emph{inconclusive} ($z$ within $1\sigma$ of host, host $z$ unknown, or no trustworthy $z$). Discovery-stage redshifts that fail the validation hierarchy are shown only as flagged context and do not enter the dispersion-measure budget. Candidates refuted as background are omitted (Section~\ref{sec:obs-fg}). \label{tab:foreground}}
 \tablehead{\colhead{Burst} & \colhead{Type} & \colhead{Obj ID} & \colhead{$b$} & \colhead{$b/R_{500}$} & \colhead{$z$} & \colhead{$z$ src} & \colhead{Class} & \colhead{Verdict} & \colhead{Note}}
 \startdata
 """
 
 _TAIL = r"""\enddata
-\tablecomments{All 23 tabulated physical systems exist in $\geq$1 public catalog; every redshift is DESI/Legacy spectroscopic or LS~DR9/PS1-STRM photometric. Five confirmed systems recovered under two catalog identifiers (sub-arcsecond coincidence at identical redshift) are shown once, with both identifiers on the row. $b$ is the proper impact parameter (kpc) at the object redshift; for confirmed systems it is uniformly recomputed from the burst position, object coordinates, and adopted redshift, while inconclusive systems retain their discovery-stage values. The candidates refuted as background by the validation stage (five physical systems) are omitted, as are candidates spectroscopically classified as stars (Section~\ref{sec:obs-fg}). Clusters are drawn from the \citet{WenHan2024} DESI Legacy/WISE catalog and restricted to the one sightline (FRB~20230307A) passing within $R_{500}$; 14 further spectroscopically confirmed foreground clusters lie at $b>R_{500}$ and are omitted as they contribute negligibly to $\mathrm{DM_{int}}$. Sightlines with no tabulated system (FRB~20221113A, FRB~20230814B, FRB~20240122A) returned no candidates surviving validation and lie outside the deep-imaging footprints; they are listed explicitly so that every co-detection sightline appears, and their intervening term is unconstrained rather than measured to be zero (Table~\ref{tab:budget}, note~u).}
+\tablecomments{All 26 tabulated physical systems exist in $\geq$1 public catalog. Adopted redshifts follow the DESI/Legacy/NED hierarchy; the two flagged discovery-stage galaxy redshifts lack the quality or classification needed for adoption. Five confirmed systems recovered under two catalog identifiers (sub-arcsecond coincidence at identical redshift) are shown once, with both identifiers on the row. $b$ is the proper impact parameter (kpc) at the object redshift; for confirmed systems it is uniformly recomputed from the burst position, object coordinates, and adopted redshift, while inconclusive systems retain their discovery-stage values. The candidates refuted as background by the validation stage (five physical systems) are omitted, as are candidates spectroscopically classified as stars (Section~\ref{sec:obs-fg}). The budgeted cluster is drawn from the \citet{WenHan2024} DESI Legacy/WISE catalog and passes within $R_{500}$. WHL J115048.0$+$714428 is a confirmed WHL12 cluster at comparable impact parameter but is absent from the adopted Wen--Han 2024 source and has no adopted $M_{500}$ or $R_{500}$; it is tabulated as an unmodeled one-sided systematic and contributes zero to the reported $\mathrm{DM_{int}}$. Fourteen further Wen--Han foreground clusters at $b>R_{500}$ are omitted. Sightlines with no tabulated system (FRB~20230814B and FRB~20240122A) are listed explicitly; their intervening term is unconstrained rather than measured to be zero (Table~\ref{tab:budget}, note~u).}
 \end{deluxetable*}
 """
 

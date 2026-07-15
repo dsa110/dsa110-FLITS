@@ -62,6 +62,8 @@ Thumbs.db
 !galaxies/foreground/data/frozen_census/*.csv
 # ...and the census-remediation mass/dedupe adjudications (owner decisions, small)
 !galaxies/foreground/data/census_masses/*.csv
+# ...and append-only census extensions promoted from discovery-stage vetting
+!galaxies/foreground/data/census_extensions/*.csv
 # FITS (astronomy images)
 *.fits
 *.fit

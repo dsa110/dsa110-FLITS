@@ -15,11 +15,24 @@ def test_scratch_codetection_exists():
 
 def test_registry_row_count_and_verdicts():
     df = build_intervening_census_registry()
-    assert len(df) == 49
+    assert len(df) == 52
     counts = df.final_verdict.value_counts()
-    assert counts["confirmed"] == 29
-    assert counts["inconclusive"] == 13
+    assert counts["confirmed"] == 30
+    assert counts["inconclusive"] == 15
     assert counts["refuted"] == 7
+
+
+def test_v4_extension_is_present_but_budget_ineligible():
+    df = build_intervening_census_registry()
+    expected = {
+        ("isha", "WISEA J044538.83+701843.3"),
+        ("oran", "WISEA J211150.32+724807.8"),
+        ("phineas", "WHL J115048.0+714428"),
+    }
+    ext = df[df.provenance_scratch_final == "v4-extension-2026-07-15"]
+    assert set(zip(ext.nickname, ext.obj, strict=True)) == expected
+    assert not ext.budget_eligible.any()
+    assert ext.set_index("obj").loc["WHL J115048.0+714428", "final_verdict"] == "confirmed"
 
 
 def test_registry_stable_keys_unique():

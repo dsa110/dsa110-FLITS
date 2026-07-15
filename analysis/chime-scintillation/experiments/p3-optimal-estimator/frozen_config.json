@@ -1,0 +1,143 @@
+{
+  "amendment": "P3' (2026-07-15): no block demeaning; kmin=11; null-mean-subtracted z",
+  "band_mhz": [
+    627.0,
+    800.0
+  ],
+  "blinding": {
+    "on_pulse_guard": [
+      250,
+      350
+    ],
+    "policy": "no statistic on samples 250-350 without the explicit flag",
+    "unblind_flag": "--unblind-i-know-what-i-am-doing"
+  },
+  "channel_width_khz": 6.10360875873539,
+  "estimator": {
+    "burst_flux_fraction": 0.05,
+    "construction": "S2 split-ratio fields (P2), pol-mean halves",
+    "dnu_scan_khz": [
+      20.0,
+      22.658939446607086,
+      25.67137684225033,
+      29.084308668979077,
+      32.950979448841316,
+      37.331712401884495,
+      42.29485053762257,
+      47.91782286176434,
+      54.28835233189814,
+      61.50582440722752,
+      69.68283754285082,
+      78.94695981756077,
+      89.4427190999916,
+      101.33385780132983,
+      114.80588739057127,
+      130.0689825248473,
+      147.3612599456155,
+      166.95249329417138,
+      189.14832180063522,
+      214.29501850539717,
+      242.78489240116696,
+      275.0624087734529,
+      311.6311232217777,
+      353.06153753802056,
+      400.0
+    ],
+    "kmin": 11,
+    "n_on_samples": 100,
+    "n_template": 200,
+    "template_seed_base": 750000,
+    "transform": "global demean + full-band rfft, DC dropped (P3' amendment)",
+    "variance_smoothing_bands": 48
+  },
+  "experiment": "p3-optimal-estimator",
+  "gates": {
+    "g1": {
+      "amplitude_pull": "(a_hat - a_true)/sigma_null at grid point nearest injection",
+      "amplitude_pull_max": 2.0,
+      "control_must_not_certify": true,
+      "convergence_min": 0.9,
+      "detectable_cells_must_certify": ">= 213 kHz (both m)",
+      "dnu_fractional_tolerance": 0.3,
+      "recovered_dnu": "argmax z over the 25-point scan grid"
+    },
+    "g2": {
+      "consistency": "|p95_cal - p95_eval| <= 0.15 * p95_eval",
+      "t3_sigma_band": [
+        0.8,
+        1.2
+      ],
+      "threshold": "p95 of eval-null max-z"
+    },
+    "g3_admissibility_after_unblind": {
+      "detection_requires_dnu_in_gate0_window": true,
+      "gate0_window_khz": {
+        "m0.15": 127.0,
+        "m0.17": 77.0
+      },
+      "significance_min": 5.0
+    }
+  },
+  "injection_grid": {
+    "control_dnu_khz": 35.0,
+    "detectable_dnu_khz": 213.0,
+    "dnu_khz": [
+      35.0,
+      77.0,
+      127.0,
+      213.0,
+      352.0
+    ],
+    "modulations": [
+      0.15,
+      0.17
+    ],
+    "n_realizations": 50,
+    "seed_formula": "1000*cell_index + realization ; cell_index = m_index*5 + dnu_index"
+  },
+  "inputs": {
+    "frequencies": "/Users/jakobfaber/Data/Faber2026/dsa110/upchan_codetections/crossacf-2026-07-14/freya_chime_freq.npy",
+    "metadata": "/Users/jakobfaber/Data/Faber2026/dsa110/upchan_codetections/crossacf-2026-07-14/freya_crossacf_metadata.json",
+    "pol0": "/Users/jakobfaber/Data/Faber2026/dsa110/upchan_codetections/crossacf-2026-07-14/freya_chime_pol0_upchan.npy",
+    "pol1": "/Users/jakobfaber/Data/Faber2026/dsa110/upchan_codetections/crossacf-2026-07-14/freya_chime_pol1_upchan.npy"
+  },
+  "inputs_sha256": {
+    "frequencies": "b686f99e71ad37a0b9014aae8ea480865b7eda8c94f0eb6c1d82e11d6a800255",
+    "metadata": "33dc217f819f1d12134a42e4ccf1b5f9936d7fe36ce80555433225c54e4347d6",
+    "pol0": "859c78d02fd809adedb429581966003034106e7e9497e2a7f6eb627c27550c98",
+    "pol1": "8162191550178bd6079ad92362d0f8b2c370c749484ef260b00adc80c2e5abf3"
+  },
+  "lte_exclusion_mhz": [
+    730.0,
+    760.0
+  ],
+  "n_band_channels": 23064,
+  "n_good_channels": 19465,
+  "null_split": {
+    "calibration": {
+      "n": 100,
+      "seed_base": 900000
+    },
+    "evaluation": {
+      "n": 100,
+      "seed_base": 900100
+    }
+  },
+  "off_pool_windows": [
+    [
+      10,
+      200
+    ],
+    [
+      360,
+      437
+    ]
+  ],
+  "on_pulse_window_blinded": [
+    250,
+    350
+  ],
+  "record": "docs/rse/specs/experiment-chime-scint-p3-optimal-estimator.md",
+  "scan_assets_sha256": "81b18cd79f3a1535c018329d27e1417c04413b26f69abc4d784683dd46995cde",
+  "schema_version": 1
+}

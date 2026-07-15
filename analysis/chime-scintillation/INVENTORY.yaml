@@ -149,6 +149,28 @@ experiments:
         the common-mode confounder. Separates the two failure modes.
       - S3 (complex-voltage variant) implemented and unit-tested but not run -
         complex fine-channel voltages not staged on h17 (out of P2 scope).
+  - id: p3-optimal-estimator
+    target: freya
+    data_class: real_chime_product_with_synthetic_injections
+    status: calibrated_blinded
+    machine_status: calibrated
+    qualified_measurement: false
+    blinded: true
+    unblinded_fit_produced: false
+    common_mode_cancellation: pass  # inherits P2's ratio construction unchanged
+    summary: analysis/chime-scintillation/experiments/p3-optimal-estimator/RESULT.md
+    frozen_config: analysis/chime-scintillation/experiments/p3-optimal-estimator/frozen_config.json
+    notes:
+      - First passing blinded gate calibration of the campaign (G1'' + G2'' both
+        pass; T battery pass). Delay-domain matched estimator on the P2 ratio
+        spectra per the owner-sanctioned P3' amendment (no block demeaning,
+        k>=11 envelope cut, null-mean-subtracted z; z_trials = 2.06).
+      - Gate 0b killed the originally frozen (block-demeaned) spec at 1.24 sigma
+        forecast before anything was built; amendment restored 3.0-4.5 sigma.
+      - On-pulse window still blinded at this commit; unblinding is the
+        orchestrator's one-shot step; G3 requires >=5 sigma inside the Gate-0
+        window for any detection claim (realistic product: calibrated upper
+        limit over 127-352 kHz).
   - id: a1-trigger-calibration
     target: synthetic_grid
     data_class: synthetic_null_and_two_component_campaigns

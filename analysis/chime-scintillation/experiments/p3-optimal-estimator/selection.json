@@ -1,0 +1,9 @@
+{
+  "experiment": "p3-optimal-estimator",
+  "frozen_config_sha256": "0baf4ea2eb27dd950aa08eb93e6cb41ae0faa3fce1b01ae7cd72bd0b3affed5f",
+  "g1_pass": true,
+  "g2_pass": true,
+  "note": "verdict 'calibrated' means the estimator may be unblinded once, by the orchestrator, per the record's unblinding rule; 'DOCUMENTED-FAIL' is a terminal, reportable outcome with no unblinding.",
+  "tbattery_pass": true,
+  "verdict": "calibrated"
+}

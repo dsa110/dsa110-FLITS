@@ -1,0 +1,21 @@
+{
+  "reviewed": "2026-07-14",
+  "reviewer": "claude-fable-5 (session 39bdc6b7, C1 lane)",
+  "figures": [
+    {
+      "path": "figures/c1_calibration_matrix.png",
+      "verdict": "match",
+      "notes": "Width-bias/limit panel: every m<=0.30 cell exceeds its limit (ratios 1.66-9.69, bold), all eight blue-framed gated cells fail (ratios 4.63-8.33), m=1.00 row all under limit (0.34-0.54). Coverage panel shows w=3 over-coverage at m=0.15/0.17 (0.95/0.98). m-bias panel violated only in the w=3 column at low m. Matches the aggregate verdict cell-for-cell."
+    },
+    {
+      "path": "figures/c1_recovery_histograms.png",
+      "verdict": "match",
+      "notes": "Low-m rows are bimodal pileups at the fit-window bounds (~0.003 and 0.25 MHz) rather than at truth; the pileup weakens with rising m and vanishes at m=1.00, where all four widths concentrate tightly on truth. Confirms the failure is SNR-driven fit collapse, not a bookkeeping error."
+    },
+    {
+      "path": "figures/c1_nulls.png",
+      "verdict": "match",
+      "notes": "Four of 24 null realizations (both held-out off-pulse and pairing-scramble kinds) exceed the family-wise threshold 4.408, max 4.810; one fail-closed fit-level detection (bound-clear control fit with invalid uncertainty now counts as a detection under the hardened rule). Fail-closed null gate correctly reports FAIL."
+    }
+  ]
+}

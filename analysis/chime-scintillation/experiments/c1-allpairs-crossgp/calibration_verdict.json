@@ -1,0 +1,267 @@
+{
+  "all_cells": [
+    {
+      "coverage_68": 0.8203125,
+      "median_absolute_modulation_bias": 0.0720231696672235,
+      "median_absolute_width_bias_mhz": 0.015259021896838474,
+      "modulation_index": 0.1,
+      "pass": false,
+      "stress_cell": true,
+      "width_channels": 3.0
+    },
+    {
+      "coverage_68": 0.828125,
+      "median_absolute_modulation_bias": 0.047034256404888286,
+      "median_absolute_width_bias_mhz": 0.033569848173043315,
+      "modulation_index": 0.1,
+      "pass": false,
+      "stress_cell": true,
+      "width_channels": 6.0
+    },
+    {
+      "coverage_68": 0.6796875,
+      "median_absolute_modulation_bias": 0.047935300113155735,
+      "median_absolute_width_bias_mhz": 0.05798428299543515,
+      "modulation_index": 0.1,
+      "pass": false,
+      "stress_cell": true,
+      "width_channels": 10.0
+    },
+    {
+      "coverage_68": 0.671875,
+      "median_absolute_modulation_bias": 0.0550141743954036,
+      "median_absolute_width_bias_mhz": 0.09460593576038688,
+      "modulation_index": 0.1,
+      "pass": false,
+      "stress_cell": true,
+      "width_channels": 16.0
+    },
+    {
+      "coverage_68": 0.9453125,
+      "median_absolute_modulation_bias": 0.07411221549631464,
+      "median_absolute_width_bias_mhz": 0.015259021896838268,
+      "modulation_index": 0.15,
+      "pass": false,
+      "stress_cell": false,
+      "width_channels": 3.0
+    },
+    {
+      "coverage_68": 0.7890625,
+      "median_absolute_modulation_bias": 0.031079348359100673,
+      "median_absolute_width_bias_mhz": 0.02128527092697213,
+      "modulation_index": 0.15,
+      "pass": false,
+      "stress_cell": false,
+      "width_channels": 6.0
+    },
+    {
+      "coverage_68": 0.78125,
+      "median_absolute_modulation_bias": 0.02797450685529719,
+      "median_absolute_width_bias_mhz": 0.03460720126572011,
+      "modulation_index": 0.15,
+      "pass": false,
+      "stress_cell": false,
+      "width_channels": 10.0
+    },
+    {
+      "coverage_68": 0.7578125,
+      "median_absolute_modulation_bias": 0.028191734701342112,
+      "median_absolute_width_bias_mhz": 0.06998713060860494,
+      "modulation_index": 0.15,
+      "pass": false,
+      "stress_cell": false,
+      "width_channels": 16.0
+    },
+    {
+      "coverage_68": 0.984375,
+      "median_absolute_modulation_bias": 0.06020885161764243,
+      "median_absolute_width_bias_mhz": 0.015259021896824768,
+      "modulation_index": 0.17,
+      "pass": false,
+      "stress_cell": false,
+      "width_channels": 3.0
+    },
+    {
+      "coverage_68": 0.7109375,
+      "median_absolute_modulation_bias": 0.027059606318223836,
+      "median_absolute_width_bias_mhz": 0.018084497609845006,
+      "modulation_index": 0.17,
+      "pass": false,
+      "stress_cell": false,
+      "width_channels": 6.0
+    },
+    {
+      "coverage_68": 0.75,
+      "median_absolute_modulation_bias": 0.024009947298134576,
+      "median_absolute_width_bias_mhz": 0.028270919991188328,
+      "modulation_index": 0.17,
+      "pass": false,
+      "stress_cell": false,
+      "width_channels": 10.0
+    },
+    {
+      "coverage_68": 0.84375,
+      "median_absolute_modulation_bias": 0.028119338162995222,
+      "median_absolute_width_bias_mhz": 0.05189487206156104,
+      "modulation_index": 0.17,
+      "pass": false,
+      "stress_cell": false,
+      "width_channels": 16.0
+    },
+    {
+      "coverage_68": 0.96875,
+      "median_absolute_modulation_bias": 0.04566751676435943,
+      "median_absolute_width_bias_mhz": 0.011262563564326096,
+      "modulation_index": 0.2,
+      "pass": false,
+      "stress_cell": false,
+      "width_channels": 3.0
+    },
+    {
+      "coverage_68": 0.71875,
+      "median_absolute_modulation_bias": 0.021972014954614982,
+      "median_absolute_width_bias_mhz": 0.012772950858385116,
+      "modulation_index": 0.2,
+      "pass": false,
+      "stress_cell": false,
+      "width_channels": 6.0
+    },
+    {
+      "coverage_68": 0.75,
+      "median_absolute_modulation_bias": 0.016914006922473204,
+      "median_absolute_width_bias_mhz": 0.021417006160123327,
+      "modulation_index": 0.2,
+      "pass": false,
+      "stress_cell": false,
+      "width_channels": 10.0
+    },
+    {
+      "coverage_68": 0.8359375,
+      "median_absolute_modulation_bias": 0.022529999141241888,
+      "median_absolute_width_bias_mhz": 0.03578154591825576,
+      "modulation_index": 0.2,
+      "pass": false,
+      "stress_cell": false,
+      "width_channels": 16.0
+    },
+    {
+      "coverage_68": 0.6328125,
+      "median_absolute_modulation_bias": 0.041827864876240684,
+      "median_absolute_width_bias_mhz": 0.005869098137479552,
+      "modulation_index": 0.3,
+      "pass": false,
+      "stress_cell": false,
+      "width_channels": 3.0
+    },
+    {
+      "coverage_68": 0.625,
+      "median_absolute_modulation_bias": 0.01761217947257701,
+      "median_absolute_width_bias_mhz": 0.006061906764056,
+      "modulation_index": 0.3,
+      "pass": false,
+      "stress_cell": false,
+      "width_channels": 6.0
+    },
+    {
+      "coverage_68": 0.625,
+      "median_absolute_modulation_bias": 0.014089037470208843,
+      "median_absolute_width_bias_mhz": 0.010351828542940901,
+      "modulation_index": 0.3,
+      "pass": false,
+      "stress_cell": false,
+      "width_channels": 10.0
+    },
+    {
+      "coverage_68": 0.6953125,
+      "median_absolute_modulation_bias": 0.01986765514058414,
+      "median_absolute_width_bias_mhz": 0.01886680585830472,
+      "modulation_index": 0.3,
+      "pass": false,
+      "stress_cell": false,
+      "width_channels": 16.0
+    },
+    {
+      "coverage_68": 0.6953125,
+      "median_absolute_modulation_bias": 0.019104951205486387,
+      "median_absolute_width_bias_mhz": 0.0009883404901557709,
+      "modulation_index": 1.0,
+      "pass": true,
+      "stress_cell": false,
+      "width_channels": 3.0
+    },
+    {
+      "coverage_68": 0.7109375,
+      "median_absolute_modulation_bias": 0.013365002416593164,
+      "median_absolute_width_bias_mhz": 0.0012394777408578535,
+      "modulation_index": 1.0,
+      "pass": true,
+      "stress_cell": false,
+      "width_channels": 6.0
+    },
+    {
+      "coverage_68": 0.671875,
+      "median_absolute_modulation_bias": 0.017202939074096202,
+      "median_absolute_width_bias_mhz": 0.0023948753137681827,
+      "modulation_index": 1.0,
+      "pass": true,
+      "stress_cell": false,
+      "width_channels": 10.0
+    },
+    {
+      "coverage_68": 0.65625,
+      "median_absolute_modulation_bias": 0.024092690882287715,
+      "median_absolute_width_bias_mhz": 0.004593786761643619,
+      "modulation_index": 1.0,
+      "pass": true,
+      "stress_cell": false,
+      "width_channels": 16.0
+    }
+  ],
+  "experiment": "c1-allpairs-crossgp",
+  "frozen_config_sha256": "444652ecb717dcce77ea9b47658213f5131513ecf410419ba5ef52a5288ac7db",
+  "gated_cells": [
+    {
+      "modulation_index": 0.15,
+      "pass": false,
+      "width_channels": 3.0
+    },
+    {
+      "modulation_index": 0.15,
+      "pass": false,
+      "width_channels": 6.0
+    },
+    {
+      "modulation_index": 0.15,
+      "pass": false,
+      "width_channels": 10.0
+    },
+    {
+      "modulation_index": 0.15,
+      "pass": false,
+      "width_channels": 16.0
+    },
+    {
+      "modulation_index": 0.17,
+      "pass": false,
+      "width_channels": 3.0
+    },
+    {
+      "modulation_index": 0.17,
+      "pass": false,
+      "width_channels": 6.0
+    },
+    {
+      "modulation_index": 0.17,
+      "pass": false,
+      "width_channels": 10.0
+    },
+    {
+      "modulation_index": 0.17,
+      "pass": false,
+      "width_channels": 16.0
+    }
+  ],
+  "go": false,
+  "missing_cells": [],
+  "nulls_pass": false
+}

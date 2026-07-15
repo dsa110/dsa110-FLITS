@@ -136,3 +136,26 @@ python analysis/scintillation-dsa-lorentzian-2026-07-07/run_dsa_lorentzian_fits.
 Set `FLITS_ROOT` or pass `--flits-root` if the staged data live somewhere other
 than `~/Data/Faber2026/dsa110`. Add `--band chime` to run on the CHIME configs;
 the artifact-control guards above then apply.
+
+## One-event two-band layout prototype
+
+`prototype_two_band_event.py` is a reviewable Freya-only layout experiment for
+placing CHIME and DSA-110 bandwidth components beside four representative ACF
+panels. It is not the canonical measurement producer, a multi-event command,
+or an approved manuscript figure. When the CHIME artifact-control result is
+`diagnostic_only`, CHIME markers remain hollow and the joint scaling overlay is
+explicitly labelled diagnostic rather than being promoted to a measurement.
+
+Run it from the FLITS root with the staged `freya_dsa.yaml` and
+`freya_chime.yaml` inputs available under `FLITS_ROOT`:
+
+```bash
+NUMBA_DISABLE_JIT=1 python \
+  analysis/scintillation-dsa-lorentzian-2026-07-07/prototype_two_band_event.py
+```
+
+The script writes temporary fit products under
+`/tmp/two-band-event-prototype/` and the rendered PNG/PDF beside
+`/tmp/freya-two-band-scintillation-prototype.png`. These outputs are deliberately
+untracked. Manuscript replacement remains blocked on the upstream Phase 0 gate
+and separate author review.

@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "experiment": "p1-window-upchan",
+  "status": "DOCUMENTED-FAIL",
+  "selected_variant": null,
+  "eligible_count": 0,
+  "selection_rule": [
+    "lowest_lorentzian_amplitude",
+    "lowest_lag1_cross_correlation",
+    "lowest_oversample"
+  ],
+  "gate": {
+    "suppression_factor": 10.0,
+    "baseline_lag1": 0.587,
+    "baseline_amplitude": 0.586,
+    "lag1_limit": 0.0587,
+    "amplitude_limit": 0.0586
+  },
+  "measurements": [
+    {
+      "variant": {"window": "rectangular", "oversample": 2},
+      "lag1_cross_correlation": 0.5922678382420997,
+      "lorentzian_fit": {"amplitude": 0.6498763215996154, "width_mhz": 0.040771186486303096, "offset": -0.12036311696800765, "r_squared": 0.932420291279061},
+      "eligible": false,
+      "measurement_artifact_sha256": "d5ef2bd82c362e2b7db6f3c60d77427f7ac8cdfd0764fd9619c7040014f611c5"
+    },
+    {
+      "variant": {"window": "hann", "oversample": 2},
+      "lag1_cross_correlation": 0.5944535407483711,
+      "lorentzian_fit": {"amplitude": 0.6352522075697695, "width_mhz": 0.03961089308321416, "offset": -0.11150250031980577, "r_squared": 0.9191534327395237},
+      "eligible": false,
+      "measurement_artifact_sha256": "c38bf01b2da1a9276e2a083f1d09ba1d8b29e84c055c3c0d06feefab90612160"
+    },
+    {
+      "variant": {"window": "hann", "oversample": 4},
+      "lag1_cross_correlation": 0.5867300969225835,
+      "lorentzian_fit": {"amplitude": 0.6173771510714442, "width_mhz": 0.03738433819190864, "offset": -0.09736175572591076, "r_squared": 0.9164837216707614},
+      "eligible": false,
+      "measurement_artifact_sha256": "81ba6afb75696807a3ef8a06ec5047d7e3f296327bcc1bc7fec75fd390c52bfb"
+    },
+    {
+      "variant": {"window": "blackmanharris", "oversample": 2},
+      "lag1_cross_correlation": 0.61879318779755,
+      "lorentzian_fit": {"amplitude": 0.684303504277249, "width_mhz": 0.04138688727022821, "offset": -0.1307963237303718, "r_squared": 0.9376926339115448},
+      "eligible": false,
+      "measurement_artifact_sha256": "a37e2ff4d430829659224a6610244433e4e542ed1ac302ffab8e90db02802127"
+    },
+    {
+      "variant": {"window": "blackmanharris", "oversample": 4},
+      "lag1_cross_correlation": 0.6000347521744338,
+      "lorentzian_fit": {"amplitude": 0.6354222906479116, "width_mhz": 0.03793944321931295, "offset": -0.10230018272578295, "r_squared": 0.9184678242944384},
+      "eligible": false,
+      "measurement_artifact_sha256": "cf9544b95b1af3c86bb08bdcd6dc97e3c7550ed12b564eeea4861b6286229a3a"
+    }
+  ],
+  "next_step": "stop without on-pulse fitting or C1 calibration"
+}

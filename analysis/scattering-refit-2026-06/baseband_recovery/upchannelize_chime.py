@@ -233,7 +233,15 @@ def _detected_products(spec: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     return np.sum(per_pol, axis=0), per_pol
 
 
-def _waterfall(h5_path: str, dm: float, U: int, *, time_shift: bool = True):
+def _waterfall(
+    h5_path: str,
+    dm: float,
+    U: int,
+    *,
+    time_shift: bool = True,
+    fine_window: str | None = None,
+    fine_oversample: int | None = None,
+):
     """Coherently-dedispersed, upchannelized Stokes-I waterfall (n_fine_freq, n_time) + freq[MHz].
 
     We assemble the chain by hand rather than via baseband_analysis.analysis.waterfall_from_beamformed
@@ -264,14 +272,53 @@ def _waterfall(h5_path: str, dm: float, U: int, *, time_shift: bool = True):
 
     # _upchannel returns (spec, freq, chan_id): spec is (npol, nblock, nfine) complex, freq the
     # fine-channel centres (MHz) ordered high->low. upchan factor U = fftsize/downfreq.
-    spec, freq, _ = _upchannel(
-        dedispersed,
-        freq_id=data.index_map["freq"]["id"][:],
-        fftsize=2 * U,
-        downfreq=2,
-    )
+    freq_id = data.index_map["freq"]["id"][:]
+    if fine_window is None and fine_oversample is None:
+        spec, freq, _ = _upchannel(
+            dedispersed,
+            freq_id=freq_id,
+            fftsize=2 * U,
+            downfreq=2,
+        )
+        channelizer_metadata = {
+            "implementation": "baseband_analysis_1.9.0_private_upchannel",
+            "window": "rectangular",
+            "upchannel_factor": int(U),
+            "oversample": 2,
+            "fft_size": int(2 * U),
+            "downfreq": 2,
+            "hop_samples": int(2 * U),
+            "frame_center_offset_samples": (2 * U - 1) / 2.0,
+            "normalization": "package_exact",
+        }
+    elif fine_window is None or fine_oversample is None:
+        raise ValueError("fine_window and fine_oversample must be supplied together")
+    else:
+        from windowed_upchan import windowed_upchannel  # noqa: PLC0415
+
+        spec, freq, _, channelizer_metadata = windowed_upchannel(
+            dedispersed,
+            freq_id,
+            upchan_factor=U,
+            window=fine_window,
+            oversample=fine_oversample,
+        )
     stokes_i, per_pol = _detected_products(spec)
-    return stokes_i, per_pol, np.asarray(freq, dtype=np.float64), source_metadata
+    return (
+        stokes_i,
+        per_pol,
+        np.asarray(freq, dtype=np.float64),
+        source_metadata,
+        channelizer_metadata,
+    )
+
+
+def _variant_suffix(fine_window: str | None, fine_oversample: int | None) -> str:
+    if fine_window is None and fine_oversample is None:
+        return ""
+    if fine_window is None or fine_oversample is None:
+        raise ValueError("fine_window and fine_oversample must be supplied together")
+    return f"_{fine_window}_os{fine_oversample}"
 
 
 def recover_target(
@@ -281,6 +328,8 @@ def recover_target(
     run_unresolvable: bool = False,
     save_polarizations: bool = False,
     time_shift: bool = True,
+    fine_window: str | None = None,
+    fine_oversample: int | None = None,
 ) -> Path:
     t = TARGETS[name]
     if not t["recoverable"] and not run_unresolvable:
@@ -291,8 +340,13 @@ def recover_target(
 
     h5_path = _fetch_h5(t["h5_relpath"], scratch)
     U = t["upchan"]
-    stokes_i, per_pol, freq, source_metadata = _waterfall(
-        h5_path, t["dm"], U, time_shift=time_shift
+    stokes_i, per_pol, freq, source_metadata, channelizer_metadata = _waterfall(
+        h5_path,
+        t["dm"],
+        U,
+        time_shift=time_shift,
+        fine_window=fine_window,
+        fine_oversample=fine_oversample,
     )
 
     # Ascending frequency to match the FLITS BurstDataset convention.
@@ -318,15 +372,16 @@ def recover_target(
 
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
-    spec_path = out / f"{name}_chime_upchan.npy"
+    suffix = _variant_suffix(fine_window, fine_oversample)
+    spec_path = out / f"{name}_chime_upchan{suffix}.npy"
     np.save(spec_path, stokes_i.astype(np.float32))
     polarization_paths = []
     if save_polarizations:
         for pol_index, power in enumerate(per_pol):
-            path = out / f"{name}_chime_pol{pol_index}_upchan.npy"
+            path = out / f"{name}_chime_pol{pol_index}_upchan{suffix}.npy"
             np.save(path, power.astype(np.float32))
             polarization_paths.append(path)
-    frequency_path = out / f"{name}_chime_freq.npy"
+    frequency_path = out / f"{name}_chime_freq{suffix}.npy"
     np.save(frequency_path, freq)
     if save_polarizations:
         metadata = {
@@ -336,6 +391,7 @@ def recover_target(
             "dm_pc_cm3": float(t["dm"]),
             "upchannel_factor": int(U),
             "time_shift": bool(time_shift),
+            "channelizer": channelizer_metadata,
             "source_h5": str(h5_path),
             "source_h5_sha256": _sha256(h5_path),
             "producer": str(Path(__file__).resolve()),
@@ -351,12 +407,19 @@ def recover_target(
                 },
             },
         }
-        (out / f"{name}_crossacf_metadata.json").write_text(
+        if fine_window is not None:
+            companion = Path(__file__).with_name("windowed_upchan.py")
+            metadata["channelizer_producer"] = {
+                "path": str(companion.resolve()),
+                "sha256": _sha256(companion),
+            }
+        (out / f"{name}_crossacf_metadata{suffix}.json").write_text(
             json.dumps(metadata, indent=2, sort_keys=True) + "\n"
         )
+    dt_s = CHIME_NATIVE_DT_S * int(channelizer_metadata["hop_samples"])
     print(
         f"[{name}] U={U} shape={stokes_i.shape} df={df_fine * 1e3:.3f} kHz "
-        f"dt={CHIME_NATIVE_DT_S * 2 * U * 1e3:.4f} ms finite={finite_frac:.1%} -> {spec_path.name}"
+        f"dt={dt_s * 1e3:.4f} ms finite={finite_frac:.1%} -> {spec_path.name}"
     )
     return spec_path
 
@@ -383,7 +446,21 @@ def main(argv: list[str]) -> int:
         action="store_true",
         help="also retain separate detected polarization waterfalls for independent-noise tests",
     )
+    p.add_argument(
+        "--fine-window",
+        choices=("rectangular", "hann", "blackmanharris"),
+        help="use the local windowed channelizer (requires --fine-oversample)",
+    )
+    p.add_argument(
+        "--fine-oversample",
+        type=int,
+        choices=(2, 4),
+        help="FFT oversampling and complex-bin grouping (requires --fine-window)",
+    )
     args = p.parse_args(argv)
+
+    if (args.fine_window is None) != (args.fine_oversample is None):
+        p.error("--fine-window and --fine-oversample must be supplied together")
 
     targets = args.targets or list(TARGETS)
     unknown = [n for n in targets if n not in TARGETS]
@@ -397,6 +474,8 @@ def main(argv: list[str]) -> int:
             run_unresolvable=args.run_unresolvable,
             save_polarizations=args.save_polarizations,
             time_shift=not args.no_time_shift,
+            fine_window=args.fine_window,
+            fine_oversample=args.fine_oversample,
         )
     return 0
 

@@ -204,3 +204,14 @@ def write_attribution_matrix(path: Path | str | None = None) -> Path:
     out.parent.mkdir(parents=True, exist_ok=True)
     build_attribution_matrix().to_csv(out, index=False)
     return out
+
+
+def main() -> int:
+    """Regenerate the committed attribution-matrix artifact."""
+    out = write_attribution_matrix()
+    print(f"wrote {out}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

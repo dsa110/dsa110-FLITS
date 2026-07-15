@@ -1,0 +1,114 @@
+{
+  "band_mhz": [
+    627.0,
+    800.0
+  ],
+  "blinding": {
+    "on_pulse_guard": [
+      250,
+      350
+    ],
+    "policy": "no statistic on samples 250-350 without the explicit flag",
+    "unblind_flag": "--unblind-i-know-what-i-am-doing"
+  },
+  "channel_width_mhz": 0.0061036087587353904,
+  "channels_per_coarse": 64,
+  "estimator": {
+    "block_length": 64,
+    "burst_flux_fraction": 0.05,
+    "first_lag_bin": 2,
+    "fit_max_mhz": 0.5,
+    "max_lag_bins": 48,
+    "n_on_samples": 100,
+    "ratio_cancels_common_mode": "g(nu) divides out of on/off ratio (algebraic)"
+  },
+  "experiment": "p2-routeb-voltage",
+  "gates": {
+    "g1": {
+      "amplitude_pull_max": 2.0,
+      "certify": "median|dnu_bias|<=0.30 AND |median amp pull|<=2 AND convergence>=0.90",
+      "control_must_not_certify": true,
+      "convergence_min": 0.9,
+      "detectable_cells_must_certify": true,
+      "dnu_fractional_tolerance": 0.3
+    },
+    "g2": {
+      "correction": "Sidak two-sided",
+      "family_wise_error_rate": 0.05,
+      "n_windows_min": 24,
+      "null_construction": "off-pulse-only pseudo-on null realizations at the G1 operating point (n_on=100 seeded permutation split, pseudo-on perpendicular reference, no injection); seed = 900000 + index",
+      "pass": "no fitted-amplitude z exceeds the Sidak threshold; all windows fit"
+    },
+    "g3_admissibility_after_unblind": {
+      "detection_requires_dnu_in_gate0_window": true,
+      "gate0_window_khz": {
+        "m0.15": 127.0,
+        "m0.17": 77.0
+      },
+      "significance_min": 5.0
+    }
+  },
+  "injection_grid": {
+    "control_dnu_khz": 35.0,
+    "detectable_dnu_khz": 127.0,
+    "dnu_khz": [
+      35.0,
+      77.0,
+      127.0,
+      213.0,
+      352.0
+    ],
+    "modulations": [
+      0.15,
+      0.17
+    ],
+    "n_realizations": 50,
+    "seed_formula": "1000*cell_index + realization ; cell_index = m_index*5 + dnu_index"
+  },
+  "inputs": {
+    "frequencies": "/Users/jakobfaber/Data/Faber2026/dsa110/upchan_codetections/crossacf-2026-07-14/freya_chime_freq.npy",
+    "metadata": "/Users/jakobfaber/Data/Faber2026/dsa110/upchan_codetections/crossacf-2026-07-14/freya_crossacf_metadata.json",
+    "pol0": "/Users/jakobfaber/Data/Faber2026/dsa110/upchan_codetections/crossacf-2026-07-14/freya_chime_pol0_upchan.npy",
+    "pol1": "/Users/jakobfaber/Data/Faber2026/dsa110/upchan_codetections/crossacf-2026-07-14/freya_chime_pol1_upchan.npy"
+  },
+  "inputs_sha256": {
+    "frequencies": "b686f99e71ad37a0b9014aae8ea480865b7eda8c94f0eb6c1d82e11d6a800255",
+    "metadata": "33dc217f819f1d12134a42e4ccf1b5f9936d7fe36ce80555433225c54e4347d6",
+    "pol0": "859c78d02fd809adedb429581966003034106e7e9497e2a7f6eb627c27550c98",
+    "pol1": "8162191550178bd6079ad92362d0f8b2c370c749484ef260b00adc80c2e5abf3"
+  },
+  "lte_exclusion_mhz": [
+    730.0,
+    760.0
+  ],
+  "n_band_channels": 23064,
+  "n_good_channels": 19465,
+  "off_pool_windows": [
+    [
+      10,
+      200
+    ],
+    [
+      360,
+      437
+    ]
+  ],
+  "on_pulse_window_blinded": [
+    250,
+    350
+  ],
+  "prerequisites": {
+    "data_loaded": true,
+    "n_good_channels": 19465,
+    "offpulse_probe_dnu_mhz": 0.2041051682581591,
+    "offpulse_probe_fit_finite": true
+  },
+  "record": "docs/rse/specs/experiment-chime-scint-routeb-voltage.md",
+  "schema_version": 1,
+  "selection_rule": "best G1 calibration score; ties break S2 -> S1 -> S3",
+  "statistics": [
+    "S1",
+    "S2",
+    "S3"
+  ]
+}

@@ -1,0 +1,279 @@
+{
+  "experiment": "p2-routeb-voltage",
+  "record": "docs/rse/specs/experiment-chime-scint-routeb-voltage.md",
+  "frozen_config_sha256": "cb7b21b77e1435169a8af11101fa50c7d8022116b2ecd2c59b88e9610b2eefce",
+  "blinded": true,
+  "unblinded_fit_produced": false,
+  "verdict": "DOCUMENTED-FAIL",
+  "selected_statistic": null,
+  "burst_flux_fraction": 0.05,
+  "channel_width_khz": 6.103608758678547,
+  "gates": {
+    "S1": {
+      "g1": {
+        "pass": false,
+        "detectable_all_certify": false,
+        "control_certifies": false,
+        "calibration_score": null,
+        "cells": [
+          {
+            "m": 0.15,
+            "dnu_khz": 35.0,
+            "median_recovered_khz": 20.7,
+            "dnu_fractional_bias": -0.408,
+            "median_amplitude_pull": 0.213,
+            "convergence": 0.96,
+            "certify": false,
+            "is_detectable_gate": false,
+            "is_control": true
+          },
+          {
+            "m": 0.15,
+            "dnu_khz": 77.0,
+            "median_recovered_khz": 38.2,
+            "dnu_fractional_bias": -0.504,
+            "median_amplitude_pull": 0.628,
+            "convergence": 0.98,
+            "certify": false,
+            "is_detectable_gate": false,
+            "is_control": false
+          },
+          {
+            "m": 0.15,
+            "dnu_khz": 127.0,
+            "median_recovered_khz": 33.0,
+            "dnu_fractional_bias": -0.74,
+            "median_amplitude_pull": 0.486,
+            "convergence": 1.0,
+            "certify": false,
+            "is_detectable_gate": true,
+            "is_control": false
+          },
+          {
+            "m": 0.15,
+            "dnu_khz": 213.0,
+            "median_recovered_khz": 30.4,
+            "dnu_fractional_bias": -0.857,
+            "median_amplitude_pull": 0.227,
+            "convergence": 0.98,
+            "certify": false,
+            "is_detectable_gate": true,
+            "is_control": false
+          },
+          {
+            "m": 0.15,
+            "dnu_khz": 352.0,
+            "median_recovered_khz": 27.4,
+            "dnu_fractional_bias": -0.922,
+            "median_amplitude_pull": 0.191,
+            "convergence": 0.96,
+            "certify": false,
+            "is_detectable_gate": true,
+            "is_control": false
+          },
+          {
+            "m": 0.17,
+            "dnu_khz": 35.0,
+            "median_recovered_khz": 17.5,
+            "dnu_fractional_bias": -0.5,
+            "median_amplitude_pull": 0.319,
+            "convergence": 0.98,
+            "certify": false,
+            "is_detectable_gate": false,
+            "is_control": true
+          },
+          {
+            "m": 0.17,
+            "dnu_khz": 77.0,
+            "median_recovered_khz": 30.8,
+            "dnu_fractional_bias": -0.6,
+            "median_amplitude_pull": 0.27,
+            "convergence": 1.0,
+            "certify": false,
+            "is_detectable_gate": false,
+            "is_control": false
+          },
+          {
+            "m": 0.17,
+            "dnu_khz": 127.0,
+            "median_recovered_khz": 39.1,
+            "dnu_fractional_bias": -0.692,
+            "median_amplitude_pull": 0.154,
+            "convergence": 1.0,
+            "certify": false,
+            "is_detectable_gate": true,
+            "is_control": false
+          },
+          {
+            "m": 0.17,
+            "dnu_khz": 213.0,
+            "median_recovered_khz": 34.3,
+            "dnu_fractional_bias": -0.839,
+            "median_amplitude_pull": 0.285,
+            "convergence": 0.96,
+            "certify": false,
+            "is_detectable_gate": true,
+            "is_control": false
+          },
+          {
+            "m": 0.17,
+            "dnu_khz": 352.0,
+            "median_recovered_khz": 21.4,
+            "dnu_fractional_bias": -0.939,
+            "median_amplitude_pull": 0.198,
+            "convergence": 0.94,
+            "certify": false,
+            "is_detectable_gate": true,
+            "is_control": false
+          }
+        ]
+      },
+      "g2": {
+        "pass": true,
+        "n_windows": 24,
+        "max_abs_z": 2.586,
+        "sidak_z_threshold": 3.071,
+        "n_detections": 0
+      }
+    },
+    "S2": {
+      "g1": {
+        "pass": false,
+        "detectable_all_certify": false,
+        "control_certifies": true,
+        "calibration_score": null,
+        "cells": [
+          {
+            "m": 0.15,
+            "dnu_khz": 35.0,
+            "median_recovered_khz": 25.3,
+            "dnu_fractional_bias": -0.278,
+            "median_amplitude_pull": 0.475,
+            "convergence": 0.98,
+            "certify": true,
+            "is_detectable_gate": false,
+            "is_control": true
+          },
+          {
+            "m": 0.15,
+            "dnu_khz": 77.0,
+            "median_recovered_khz": 36.2,
+            "dnu_fractional_bias": -0.53,
+            "median_amplitude_pull": 0.36,
+            "convergence": 0.98,
+            "certify": false,
+            "is_detectable_gate": false,
+            "is_control": false
+          },
+          {
+            "m": 0.15,
+            "dnu_khz": 127.0,
+            "median_recovered_khz": 33.6,
+            "dnu_fractional_bias": -0.736,
+            "median_amplitude_pull": 0.55,
+            "convergence": 1.0,
+            "certify": false,
+            "is_detectable_gate": true,
+            "is_control": false
+          },
+          {
+            "m": 0.15,
+            "dnu_khz": 213.0,
+            "median_recovered_khz": 39.6,
+            "dnu_fractional_bias": -0.814,
+            "median_amplitude_pull": 0.411,
+            "convergence": 0.98,
+            "certify": false,
+            "is_detectable_gate": true,
+            "is_control": false
+          },
+          {
+            "m": 0.15,
+            "dnu_khz": 352.0,
+            "median_recovered_khz": 18.2,
+            "dnu_fractional_bias": -0.948,
+            "median_amplitude_pull": 0.131,
+            "convergence": 1.0,
+            "certify": false,
+            "is_detectable_gate": true,
+            "is_control": false
+          },
+          {
+            "m": 0.17,
+            "dnu_khz": 35.0,
+            "median_recovered_khz": 24.1,
+            "dnu_fractional_bias": -0.311,
+            "median_amplitude_pull": 0.235,
+            "convergence": 0.96,
+            "certify": false,
+            "is_detectable_gate": false,
+            "is_control": true
+          },
+          {
+            "m": 0.17,
+            "dnu_khz": 77.0,
+            "median_recovered_khz": 42.1,
+            "dnu_fractional_bias": -0.453,
+            "median_amplitude_pull": 0.465,
+            "convergence": 1.0,
+            "certify": false,
+            "is_detectable_gate": false,
+            "is_control": false
+          },
+          {
+            "m": 0.17,
+            "dnu_khz": 127.0,
+            "median_recovered_khz": 44.3,
+            "dnu_fractional_bias": -0.651,
+            "median_amplitude_pull": 0.292,
+            "convergence": 1.0,
+            "certify": false,
+            "is_detectable_gate": true,
+            "is_control": false
+          },
+          {
+            "m": 0.17,
+            "dnu_khz": 213.0,
+            "median_recovered_khz": 35.1,
+            "dnu_fractional_bias": -0.835,
+            "median_amplitude_pull": 0.179,
+            "convergence": 0.92,
+            "certify": false,
+            "is_detectable_gate": true,
+            "is_control": false
+          },
+          {
+            "m": 0.17,
+            "dnu_khz": 352.0,
+            "median_recovered_khz": 33.4,
+            "dnu_fractional_bias": -0.905,
+            "median_amplitude_pull": 0.302,
+            "convergence": 0.96,
+            "certify": false,
+            "is_detectable_gate": true,
+            "is_control": false
+          }
+        ]
+      },
+      "g2": {
+        "pass": true,
+        "n_windows": 24,
+        "max_abs_z": 1.996,
+        "sidak_z_threshold": 3.071,
+        "n_detections": 0
+      }
+    }
+  },
+  "s3_status": "not_run: h17 reachable but the complex fine-channel voltage products S3 requires are not staged (only detected per-pol power exists); regenerating them via the P1 voltage worker is out of P2 scope. S1 already operates on the detected per-pol |V_p|^2; S3 adds only the P1 grouped-bin noise normalization on complex voltages.",
+  "interpretation": {
+    "common_mode_cancellation": "PASS: on/off ratio cancels g(nu) algebraically; off-pulse ratio cross-ACF null (G2 max|z| 2.0-2.6 < Sidak 3.07). This is the failure mode that defeated every prior route (their cross-ACF retained g).",
+    "g1_failure_cause": "S/N ceiling, not estimator bug: at the real burst contrast f_b=0.05 the scintillation signature on the ratio is f_b*m ~ 0.0075-0.0085 (amplitude (f_b*m)^2 ~ 5-7e-5), at the ratio-cross-ACF per-lag noise floor (~9e-5). The Lorentzian fit pins at ~20-45 kHz for every injected 35-352 kHz cell.",
+    "estimator_threshold": "S1 recovers Dnu_d=213 kHz within +-17% only for effective modulation s_eff=f_b*m >= ~0.05 (6x the real 0.0085); see estimator_sanity_snr.png.",
+    "gate0_relation": "Gate 0 GO (optimal-quadratic ceiling SNR~5 at 213 kHz) vs Route-B cross-ACF G1 FAIL: the lag-space cross-ACF + Lorentzian fit falls ~1 order of magnitude short of the Gate-0 optimal-estimator ceiling.",
+    "successor": "A Route-B success would need a matched/optimal quadratic estimator (not the lag-space cross-ACF) or a higher-S/N input; S3 (complex-voltage grouped-bin normalization) is implemented but its input is not staged on h17."
+  },
+  "decisive_failures": [
+    "g1_detectable_width_recovery_below_snr_ceiling",
+    "g1_control_or_detectable_certification_pattern"
+  ]
+}

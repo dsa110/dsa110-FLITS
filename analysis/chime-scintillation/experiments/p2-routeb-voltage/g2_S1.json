@@ -1,0 +1,236 @@
+{
+  "experiment": "p2-routeb-voltage",
+  "family_wise_error_rate": 0.05,
+  "frozen_config_sha256": "cb7b21b77e1435169a8af11101fa50c7d8022116b2ecd2c59b88e9610b2eefce",
+  "g2_pass": true,
+  "gates": {
+    "correction": "Sidak two-sided",
+    "family_wise_error_rate": 0.05,
+    "n_windows_min": 24,
+    "null_construction": "off-pulse-only pseudo-on null realizations at the G1 operating point (n_on=100 seeded permutation split, pseudo-on perpendicular reference, no injection); seed = 900000 + index",
+    "pass": "no fitted-amplitude z exceeds the Sidak threshold; all windows fit"
+  },
+  "max_abs_z": 2.5864697523963773,
+  "n_detections": 0,
+  "n_windows": 24,
+  "records": [
+    {
+      "amplitude": 0.0001241433574278636,
+      "amplitude_z": 0.25103781976339906,
+      "detection": false,
+      "dnu_mhz": 0.07072270769626537,
+      "n_off": 167,
+      "n_on": 100,
+      "seed": 900000
+    },
+    {
+      "amplitude": 0.00019625747448128778,
+      "amplitude_z": 0.051233006022800134,
+      "detection": false,
+      "dnu_mhz": 0.4999999999999999,
+      "n_off": 167,
+      "n_on": 100,
+      "seed": 900001
+    },
+    {
+      "amplitude": 5.248827699448147e-20,
+      "amplitude_z": 0.0,
+      "detection": false,
+      "dnu_mhz": 0.49999999990629956,
+      "n_off": 167,
+      "n_on": 100,
+      "seed": 900002
+    },
+    {
+      "amplitude": 0.0002082331898766191,
+      "amplitude_z": 0.18877541583601323,
+      "detection": false,
+      "dnu_mhz": 0.13476270583731356,
+      "n_off": 167,
+      "n_on": 100,
+      "seed": 900003
+    },
+    {
+      "amplitude": 0.00330702588022551,
+      "amplitude_z": 0.0331915915859926,
+      "detection": false,
+      "dnu_mhz": 0.003051804379760545,
+      "n_off": 167,
+      "n_on": 100,
+      "seed": 900004
+    },
+    {
+      "amplitude": 0.001567156162033486,
+      "amplitude_z": 0.01697236496859737,
+      "detection": false,
+      "dnu_mhz": 0.0030518043799561863,
+      "n_off": 167,
+      "n_on": 100,
+      "seed": 900005
+    },
+    {
+      "amplitude": 0.0002195468989842791,
+      "amplitude_z": 0.05615530875548426,
+      "detection": false,
+      "dnu_mhz": 0.11416863054247471,
+      "n_off": 167,
+      "n_on": 100,
+      "seed": 900006
+    },
+    {
+      "amplitude": 0.00015731962977912387,
+      "amplitude_z": 0.05435700336995445,
+      "detection": false,
+      "dnu_mhz": 0.041521643161746655,
+      "n_off": 167,
+      "n_on": 100,
+      "seed": 900007
+    },
+    {
+      "amplitude": 1.905949873035728e-05,
+      "amplitude_z": 0.15684919316784168,
+      "detection": false,
+      "dnu_mhz": 0.12401198134621187,
+      "n_off": 167,
+      "n_on": 100,
+      "seed": 900008
+    },
+    {
+      "amplitude": 0.004104039847793911,
+      "amplitude_z": 0.041265805670949125,
+      "detection": false,
+      "dnu_mhz": 0.0030518043793676987,
+      "n_off": 167,
+      "n_on": 100,
+      "seed": 900009
+    },
+    {
+      "amplitude": 0.0001338388354972176,
+      "amplitude_z": 1.599812446306925,
+      "detection": false,
+      "dnu_mhz": 0.06544806412833729,
+      "n_off": 167,
+      "n_on": 100,
+      "seed": 900010
+    },
+    {
+      "amplitude": 0.0002363079629152419,
+      "amplitude_z": 2.5864697523963773,
+      "detection": false,
+      "dnu_mhz": 0.09114499218611978,
+      "n_off": 167,
+      "n_on": 100,
+      "seed": 900011
+    },
+    {
+      "amplitude": 0.00016616727548234518,
+      "amplitude_z": 0.03858180099060474,
+      "detection": false,
+      "dnu_mhz": 0.03697516186266213,
+      "n_off": 167,
+      "n_on": 100,
+      "seed": 900012
+    },
+    {
+      "amplitude": 0.0013591651173723008,
+      "amplitude_z": 0.017730553428503205,
+      "detection": false,
+      "dnu_mhz": 0.0030518043793788456,
+      "n_off": 167,
+      "n_on": 100,
+      "seed": 900013
+    },
+    {
+      "amplitude": 2.7379509503762697e-05,
+      "amplitude_z": 0.35051044130122405,
+      "detection": false,
+      "dnu_mhz": 0.061167597271083285,
+      "n_off": 167,
+      "n_on": 100,
+      "seed": 900014
+    },
+    {
+      "amplitude": 0.00013893496829618898,
+      "amplitude_z": 0.36531798728643533,
+      "detection": false,
+      "dnu_mhz": 0.04148166029938155,
+      "n_off": 167,
+      "n_on": 100,
+      "seed": 900015
+    },
+    {
+      "amplitude": 0.0023904090162194195,
+      "amplitude_z": 0.01966697480227954,
+      "detection": false,
+      "dnu_mhz": 0.0030518043810754264,
+      "n_off": 167,
+      "n_on": 100,
+      "seed": 900016
+    },
+    {
+      "amplitude": 0.0008303487975786832,
+      "amplitude_z": 0.190517930163916,
+      "detection": false,
+      "dnu_mhz": 0.49999999999999994,
+      "n_off": 167,
+      "n_on": 100,
+      "seed": 900017
+    },
+    {
+      "amplitude": 0.000431318900237985,
+      "amplitude_z": 1.5280058545012611,
+      "detection": false,
+      "dnu_mhz": 0.01656384427687133,
+      "n_off": 167,
+      "n_on": 100,
+      "seed": 900018
+    },
+    {
+      "amplitude": 0.005154355774206001,
+      "amplitude_z": 0.053175721887789316,
+      "detection": false,
+      "dnu_mhz": 0.003051804379367698,
+      "n_off": 167,
+      "n_on": 100,
+      "seed": 900019
+    },
+    {
+      "amplitude": 1.4044617694114297e-18,
+      "amplitude_z": 0.0,
+      "detection": false,
+      "dnu_mhz": 0.0030518043793676957,
+      "n_off": 167,
+      "n_on": 100,
+      "seed": 900020
+    },
+    {
+      "amplitude": 0.003438369323704313,
+      "amplitude_z": 0.04330668916011411,
+      "detection": false,
+      "dnu_mhz": 0.0030518043793677178,
+      "n_off": 167,
+      "n_on": 100,
+      "seed": 900021
+    },
+    {
+      "amplitude": 0.0004301110197207208,
+      "amplitude_z": 0.5580668092153084,
+      "detection": false,
+      "dnu_mhz": 0.3133189025140249,
+      "n_off": 167,
+      "n_on": 100,
+      "seed": 900022
+    },
+    {
+      "amplitude": 3.725034302126897e-05,
+      "amplitude_z": 0.05151745384316507,
+      "detection": false,
+      "dnu_mhz": 0.014317430143662173,
+      "n_off": 167,
+      "n_on": 100,
+      "seed": 900023
+    }
+  ],
+  "sidak_z_threshold": 3.0707891774990053,
+  "statistic": "S1"
+}

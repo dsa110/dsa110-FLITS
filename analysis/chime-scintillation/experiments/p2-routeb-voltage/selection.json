@@ -1,0 +1,25 @@
+{
+  "candidates": [
+    {
+      "calibration_score": null,
+      "g1_pass": false,
+      "g2_pass": true,
+      "qualifies": false,
+      "statistic": "S1"
+    },
+    {
+      "calibration_score": null,
+      "g1_pass": false,
+      "g2_pass": true,
+      "qualifies": false,
+      "statistic": "S2"
+    }
+  ],
+  "experiment": "p2-routeb-voltage",
+  "frozen_config_sha256": "cb7b21b77e1435169a8af11101fa50c7d8022116b2ecd2c59b88e9610b2eefce",
+  "note": "verdict 'calibrated' means G1+G2 passed for the selected statistic; the on-pulse fit remains blinded and is the orchestrator's one-shot unblind step. 'DOCUMENTED-FAIL' is a terminal, reportable outcome.",
+  "s3_status": "not_run: h17 reachable but the complex fine-channel voltage products S3 requires are not staged (only detected per-pol power exists); regenerating them via the P1 voltage worker is out of P2 scope. S1 already operates on the detected per-pol |V_p|^2; S3 adds only the P1 grouped-bin noise normalization on complex voltages.",
+  "selected_statistic": null,
+  "selection_rule": "best G1 calibration score; ties break S2 -> S1 -> S3",
+  "verdict": "DOCUMENTED-FAIL"
+}

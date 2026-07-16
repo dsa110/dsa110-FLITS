@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
 import numpy as np
@@ -19,9 +20,37 @@ DSA_REF_MHZ = 1400.0
 
 JOINT_GATE_CSV = REPO_ROOT / "analysis" / "scattering-refit-2026-06" / "joint_gate_verdicts.csv"
 REFIT_DIR = REPO_ROOT / "analysis" / "scattering-refit-2026-06"
-ALLEXP_FITS_DIR = REFIT_DIR / "_a1_fits"
 CITABLE_ROSTER_JSON = REFIT_DIR / "citable_alpha_roster.json"
 TAU_CONSISTENCY_DIR = DATA_DIR / "tau_consistency"
+
+
+def _results_library_root() -> Path | None:
+    """Optional Faber2026 results library (Phase B); None if unset and missing."""
+    raw = os.environ.get("FABER2026_RESULTS_LIBRARY")
+    if raw:
+        return Path(raw).expanduser().resolve()
+    default = Path.home() / "Data" / "Faber2026" / "results-library"
+    return default if default.is_dir() else None
+
+
+def _resolve_repo_or_library(repo_path: Path, *library_parts: str) -> Path:
+    """Prefer in-repo path (incl. materialize symlink); else library slot."""
+    if repo_path.exists():
+        return repo_path
+    root = _results_library_root()
+    if root is not None:
+        cand = root.joinpath(*library_parts)
+        if cand.exists():
+            return cand
+    return repo_path
+
+
+ALLEXP_FITS_DIR = _resolve_repo_or_library(
+    REFIT_DIR / "_a1_fits",
+    "scattering",
+    "2026-06_refit",
+    "_a1_fits",
+)
 
 
 def co_detected_nicknames() -> list[str]:

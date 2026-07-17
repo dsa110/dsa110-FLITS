@@ -11,13 +11,14 @@
   },
   "expected_chance_associations": 5.460165706874625e-08,
   "geometric_pedestal": {
-    "geometric_delay_mean_ms": -2.1669346696978353,
-    "geometric_delay_spread_ms": 0.2623092203544699,
-    "residual_weighted_mean_ms": 1.8712933975417347,
+    "geometric_delay_mean_ms": -2.166934675453852,
+    "geometric_delay_spread_ms": 0.26230921358721204,
+    "residual_weighted_mean_ms": 2.3824409445976698,
     "residual_error_ms": 0.741931575562576,
-    "residual_n_sigma": 2.522191343754052,
+    "residual_n_sigma": 3.211132971111471,
     "n_pairs": 12,
-    "note": "residual = measured_offset_ms - geometric_delay_ms, weighted by combined_error_full_ms; tests the shared geometric pedestal. Arrival order / offset sign is a DM-referral + intrinsic-band diagnostic and is NOT an input to the chance-coincidence gate."
+    "offset_convention": "observed_peak_400MHz",
+    "note": "residual = measured_offset_ms - geometric_delay_ms, weighted by combined_error_full_ms; measured_offset_ms remains the observed peak offset while joint-model corrections are MARGINAL. This is reporting-only and is NOT an input to the chance-coincidence gate."
   },
   "bursts": [
     {

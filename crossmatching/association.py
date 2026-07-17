@@ -246,11 +246,12 @@ def build_association_report(
                 "residual_error_ms": rp["error_ms"],
                 "residual_n_sigma": rp["n_sigma"],
                 "n_pairs": len(resid),
+                "offset_convention": "observed_peak_400MHz",
                 "note": (
                     "residual = measured_offset_ms - geometric_delay_ms, weighted by "
-                    "combined_error_full_ms; tests the shared geometric pedestal. "
-                    "Arrival order / offset sign is a DM-referral + intrinsic-band "
-                    "diagnostic and is NOT an input to the chance-coincidence gate."
+                    "combined_error_full_ms; measured_offset_ms remains the observed "
+                    "peak offset while joint-model corrections are MARGINAL. This is "
+                    "reporting-only and is NOT an input to the chance-coincidence gate."
                 ),
             }
 

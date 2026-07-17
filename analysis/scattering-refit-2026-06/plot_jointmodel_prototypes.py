@@ -71,13 +71,13 @@ def _fit_t0_delta(npz_fp: Path) -> float:
 
 
 def _toa_offset_ms(burst: str) -> float | None:
-    """Measured CHIME−DSA offset at 400 MHz (toa_crossmatch_results.json)."""
+    """Observed peak CHIME−DSA offset at 400 MHz."""
     if not TOA_JSON.exists():
         return None
     row = json.loads(TOA_JSON.read_text()).get(burst.lower())
     if not row:
         return None
-    return float(row["measured_offset_ms"])
+    return float(row.get("peak_measured_offset_ms", row["measured_offset_ms"]))
 
 
 def _chime_time_shift(npz_fp: Path, burst: str) -> tuple[float, float, str]:

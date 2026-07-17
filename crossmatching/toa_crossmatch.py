@@ -105,6 +105,10 @@ class CrossmatchInput:
     # the position uncertainty onto the DRAO-OVRO baseline; folded once into the
     # combined offset error (it is not a per-band term).
     geo_pos_err_ms: float | None = None
+    # A model correction may replace the peak ToA only after the fit passes the
+    # numerical gates and its diagnostic figure has been reviewed.
+    model_fit_quality: str | None = None
+    model_figure_reviewed: bool = False
 
 
 @dataclass(frozen=True)
@@ -146,6 +150,8 @@ class CrossmatchResult:
     error_chime_full_ms: float | None = None
     error_dsa_full_ms: float | None = None
     combined_error_full_ms: float | None = None
+    model_corrected_offset_ms: float | None = None
+    model_correction_status: str | None = None
 
     _LEGACY_KEYS: ClassVar[tuple[str, ...]] = (
         "chime_id", "dm", "fwhm_ms", "toa_chime_unix_400", "toa_chime_utc_400",
@@ -288,14 +294,15 @@ def reproduce_model_result(crossmatch: CrossmatchInput) -> CrossmatchResult:
     ):
         return reproduce_notebook_result(crossmatch)
 
+    peak_result = reproduce_notebook_result(crossmatch)
     dm = crossmatch.dm * (u.pc / u.cm**3)
     scat_chime = crossmatch.scatter_corr_chime_ms * u.ms
     scat_dsa = crossmatch.scatter_corr_dsa_ms * u.ms
 
     # CHIME ToA is stored provenance already referred to 400 MHz; subtract its
     # scattering peak-shift directly to recover the intrinsic arrival.
-    chime_toa = crossmatch.chime.toa_time_400 - scat_chime
-    dsa_toa = compute_toa(
+    chime_model_toa = crossmatch.chime.toa_time_400 - scat_chime
+    dsa_model_toa = compute_toa(
         crossmatch.dsa.curated_time,
         0.0 * u.s,
         crossmatch.dsa.native_frequency_mhz * u.MHz,
@@ -303,11 +310,26 @@ def reproduce_model_result(crossmatch: CrossmatchInput) -> CrossmatchResult:
         crossmatch.dsa.reference_frequency_mhz * u.MHz,
         scatter_correction=scat_dsa,
     )
-    measured_offset_ms = (chime_toa - dsa_toa).to_value(u.ms)
-    peak_measured_offset_ms = reproduce_notebook_result(crossmatch).measured_offset_ms
+    model_corrected_offset_ms = (chime_model_toa - dsa_model_toa).to_value(u.ms)
+    peak_measured_offset_ms = peak_result.measured_offset_ms
     differential_scatter_shift_ms = float(
         crossmatch.scatter_corr_chime_ms - crossmatch.scatter_corr_dsa_ms
     )
+
+    model_validated = (
+        crossmatch.model_fit_quality == "PASS" and crossmatch.model_figure_reviewed
+    )
+    if model_validated:
+        chime_toa = chime_model_toa
+        dsa_toa = dsa_model_toa
+        measured_offset_ms = model_corrected_offset_ms
+        correction_status = "validated"
+    else:
+        chime_toa = crossmatch.chime.toa_time_400
+        dsa_toa = Time(peak_result.toa_dsa_utc_400, format="iso", scale="utc")
+        measured_offset_ms = peak_measured_offset_ms
+        quality = crossmatch.model_fit_quality or "UNVALIDATED"
+        correction_status = f"diagnostic_only:{quality}"
 
     src = SkyCoord(crossmatch.source_coord, unit=(u.hourangle, u.deg), frame="icrs")
     geometric_delay_ms = compute_geometric_delay(
@@ -373,7 +395,7 @@ def reproduce_model_result(crossmatch: CrossmatchInput) -> CrossmatchResult:
         chime_id=crossmatch.chime_id,
         dm=crossmatch.dm,
         fwhm_ms=crossmatch.fwhm_ms,
-        toa_chime_unix_400=crossmatch.chime.toa_unix_400,
+        toa_chime_unix_400=float(chime_toa.unix),
         toa_chime_utc_400=chime_toa.iso,
         dm_mjd=crossmatch.dsa.dsa_mjd,
         toa_dsa_utc_400=dsa_toa.iso,
@@ -398,6 +420,8 @@ def reproduce_model_result(crossmatch: CrossmatchInput) -> CrossmatchResult:
         error_chime_full_ms=err_chime_full,
         error_dsa_full_ms=err_dsa_full,
         combined_error_full_ms=combined_error_full_ms,
+        model_corrected_offset_ms=model_corrected_offset_ms,
+        model_correction_status=correction_status,
     )
 
 

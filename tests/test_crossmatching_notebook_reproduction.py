@@ -1,7 +1,9 @@
 import json
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
+from astropy.time import Time
 
 from crossmatching.toa_crossmatch import (
     DsaTimingProvenance,
@@ -22,10 +24,8 @@ def _load_json(path):
 def test_reproduces_notebook_crossmatch_results():
     """Legacy peak-based path.
 
-    The golden ``measured_offset_ms`` is now the model (scatter-corrected)
-    offset, so the legacy peak offset is asserted against
-    ``peak_measured_offset_ms``. ``combined_dm_uncertainty_ms`` remains the pure
-    DM-referral term and is unchanged by the model switch.
+    ``measured_offset_ms`` remains the observed peak offset unless a model fit
+    has passed every validation gate and figure review.
     """
     fixture = _load_json(FIXTURE)
     golden = _load_json(GOLDEN)
@@ -43,9 +43,8 @@ def test_reproduces_notebook_crossmatch_results():
         assert result["combined_dm_uncertainty_ms"] == pytest.approx(
             expected["combined_dm_uncertainty_ms"], abs=1e-12
         )
-        # Legacy peak offset -> golden peak_measured_offset_ms.
         assert result["measured_offset_ms"] == pytest.approx(
-            expected["peak_measured_offset_ms"], abs=2e-3
+            expected["measured_offset_ms"], abs=2e-3
         )
         assert result["geometric_delay_ms"] == pytest.approx(
             expected["geometric_delay_ms"], abs=1e-2
@@ -53,12 +52,11 @@ def test_reproduces_notebook_crossmatch_results():
 
 
 def test_reproduces_model_crossmatch_results():
-    """Model (scatter-corrected) path reproduces the golden model offsets.
+    """Marginal model corrections remain diagnostic and fail closed.
 
     Asserts the intrinsic offset, the per-band scatter corrections, the
-    differential shift, and the folded error budget. The model ToA subtracts
-    each band's joint-fit scattering peak-shift, so ``measured_offset_ms`` =
-    peak offset - (Delta_scat_C - Delta_scat_D).
+    differential shift, and the folded error budget. The fixture has no PASS +
+    figure-review verdict, so the primary ToA and offset stay peak-based.
     """
     fixture = _load_json(FIXTURE)
     golden = _load_json(GOLDEN)
@@ -67,7 +65,7 @@ def test_reproduces_model_crossmatch_results():
         expected = golden[row["name"]]
         result = reproduce_model_result(crossmatch_input_from_dict(row)).to_model_dict()
 
-        # Model offset and its provenance.
+        # Primary offset stays peak-based; corrected offset is diagnostic.
         assert result["measured_offset_ms"] == pytest.approx(
             expected["measured_offset_ms"], abs=2e-3
         )
@@ -83,11 +81,17 @@ def test_reproduces_model_crossmatch_results():
         ):
             assert result[key] == pytest.approx(expected[key], abs=1e-9)
 
-        # Offset relation: model = peak - differential.
-        assert result["measured_offset_ms"] == pytest.approx(
+        assert result["model_corrected_offset_ms"] == pytest.approx(
             result["peak_measured_offset_ms"]
             - result["differential_scatter_shift_ms"],
             abs=2e-3,
+        )
+        assert result["measured_offset_ms"] == pytest.approx(
+            result["peak_measured_offset_ms"], abs=2e-3
+        )
+        assert result["model_correction_status"] == "diagnostic_only:MARGINAL"
+        assert result["toa_chime_unix_400"] == pytest.approx(
+            crossmatch_input_from_dict(row).chime.toa_time_400.unix, abs=1e-6
         )
 
         # Folded error budget: combined = hypot(chime_model, dsa_model).
@@ -143,6 +147,29 @@ def test_reproduces_model_crossmatch_results():
         assert result["error_chime_full_ms"] >= result["error_chime_ms"] - 1e-9
         assert result["error_dsa_full_ms"] >= result["error_dsa_ms"] - 1e-9
         assert result["combined_error_full_ms"] >= result["combined_error_ms"] - 1e-9
+
+
+def test_model_correction_requires_pass_and_figure_review():
+    row = _load_json(FIXTURE)["bursts"][0]
+    base = crossmatch_input_from_dict(row)
+
+    marginal = reproduce_model_result(replace(base, model_fit_quality="MARGINAL"))
+    assert marginal.measured_offset_ms == pytest.approx(marginal.peak_measured_offset_ms)
+    assert marginal.model_correction_status == "diagnostic_only:MARGINAL"
+
+    unreviewed = reproduce_model_result(replace(base, model_fit_quality="PASS"))
+    assert unreviewed.measured_offset_ms == pytest.approx(unreviewed.peak_measured_offset_ms)
+    assert unreviewed.model_correction_status == "diagnostic_only:PASS"
+
+    validated = reproduce_model_result(
+        replace(base, model_fit_quality="PASS", model_figure_reviewed=True)
+    )
+    assert validated.measured_offset_ms == pytest.approx(validated.model_corrected_offset_ms)
+    assert validated.model_correction_status == "validated"
+    assert validated.toa_chime_unix_400 == pytest.approx(
+        Time(validated.toa_chime_utc_400, format="iso", scale="utc").unix,
+        abs=1e-3,
+    )
 
 
 def test_legacy_dict_schema_is_unchanged():

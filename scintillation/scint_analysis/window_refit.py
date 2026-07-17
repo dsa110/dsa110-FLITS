@@ -112,7 +112,10 @@ def _fit_subband(lags, acf):
         return dict(ok=False, reason="too few lags")
     outer = lp > 0.5 * lp.max()
     noise = float(np.std(ap[outer])) if outer.sum() > 3 else float(np.std(ap))
-    A0 = max(ap[0] - np.median(ap[outer]), 1e-3)
+    # clip the guess inside the fit bounds: weighted spectra of noise-dominated
+    # subbands can put ap[0] above the A<=10 bound, which makes curve_fit raise
+    # ("initial guess outside bounds") instead of returning a gated non-detection
+    A0 = float(np.clip(ap[0] - np.median(ap[outer]), 1e-3, 9.9))
     try:
         p, cov = curve_fit(lorentz, lp, ap, p0=[A0, 0.5, 0.0],
                            bounds=([0, 0.01, -1], [10, 20, 1]), maxfev=20000)
@@ -123,7 +126,12 @@ def _fit_subband(lags, acf):
     m = float(np.sqrt(max(A, 0)))
     dlag = float(np.median(np.diff(lp)))
     amp_snr = A / noise if noise > 0 else np.inf
-    railed = (gamma < 0.02) or (gamma > 0.9 * 20) or (gamma > 0.9 * LAG_MAX)
+    # A railed at its upper bound is as diagnostic as a railed gamma: weak-burst
+    # weighted spectra can drive the ACF amplitude to the A<=10 bound (m=sqrt(10)
+    # =3.16 exactly — johndoeII/mahi 739-MHz artifact, 2026-07-17), which is an
+    # envelope/noise pathology, never a physical modulation index
+    railed = (gamma < 0.02) or (gamma > 0.9 * 20) or (gamma > 0.9 * LAG_MAX) \
+        or (A > 0.9 * 10)
     resolved = bool((amp_snr > 3) and (not railed) and (gamma > 2 * dlag) and (gerr < gamma))
     return dict(ok=True, A=float(A), gamma=float(gamma), gamma_err=float(gerr), c0=float(c0),
                 m=m, noise=noise, amp_snr=float(amp_snr), resolved=resolved,

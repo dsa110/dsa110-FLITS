@@ -101,6 +101,11 @@ def _detrend(x, width):
     return x - median_filter(x, size=w, mode="nearest")
 
 
+OFF_SNR_MAX = 3.0   # off-window purity threshold: a candidate off run whose matched-filter
+                    # response at the burst scale exceeds this carries residual burst/tail
+                    # power and is rejected as a de-scalloping/RFI reference (see gate below)
+
+
 def select_windows(profile, k_sat=3.0, k_edge=0.75, guard_frac=1.0, min_snr=5.0):
     """Deterministic (burst_lims, off_lims) from a standardized S/N profile.
 
@@ -184,15 +189,30 @@ def select_windows(profile, k_sat=3.0, k_edge=0.75, guard_frac=1.0, min_snr=5.0)
     off_runs = _runs_above(free)
     if not off_runs:
         return None
-    off = max(off_runs, key=lambda r: r[1] - r[0])
-    # Off-window purity check: the off range feeds de-scalloping + RFI statistics, so
-    # residual burst power there corrupts everything downstream (oran: the default off
-    # window rides the rising burst envelope — its subbands FAIL for exactly this
-    # reason). Report the max matched-filter response inside the off range at the burst
-    # scale; consumers flag off_snr > ~3 as a contaminated de-scallop reference.
-    op = prof[off[0]:off[1]]
-    off_snr = float(matched_peak(op, max_width=min(width * 2, max(4, op.size // 2)))[2]) \
-        if op.size >= 8 else np.inf
+
+    # Off-window purity gate (ENFORCED). The off range feeds de-scalloping + RFI
+    # statistics, so residual burst power there corrupts everything downstream. Two
+    # failure modes seen 2026-07-17: (a) oran — the default off window rides the rising
+    # burst envelope; (b) chromatica/zach — the LARGEST free run is the post-burst region
+    # carrying the scattering tail (off_snr 7-11), and picking it purely by length
+    # collapsed the recovered alpha (chromatica +1.87 -> -0.05). Previously off_snr was
+    # computed only for the size-max run and never acted on. Now: score every candidate
+    # run at the burst scale on the standardized profile and take the LARGEST run whose
+    # off_snr clears OFF_SNR_MAX; fall back to the least-contaminated run only if none do.
+    def _osnr(r):
+        op = prof[r[0]:r[1]]
+        return float(matched_peak(op, max_width=min(width * 2, max(4, op.size // 2)))[2]) \
+            if op.size >= 8 else np.inf
+    scored = [(r, r[1] - r[0], _osnr(r)) for r in off_runs if r[1] - r[0] >= 8]
+    if not scored:                                   # no run long enough to characterize
+        off = max(off_runs, key=lambda r: r[1] - r[0])
+        off_snr = _osnr(off)
+    else:
+        clean = [t for t in scored if t[2] <= OFF_SNR_MAX]
+        if clean:
+            off, _, off_snr = max(clean, key=lambda t: t[1])
+        else:                                        # all contaminated: least-bad wins
+            off, _, off_snr = min(scored, key=lambda t: t[2])
     # Matched (profile-proportional) time weights: the injection harness (round 2,
     # 2026-07-17) found weighting the burst spectrum by the time profile is the least
     # biased gamma estimator (x1.05-1.18 of truth, best resolved rate) — it keeps the

@@ -1,15 +1,16 @@
 #!/usr/bin/env python
-"""Final joint-fit campaign table (amended 2026-07-17): per burst, per instrument.
+"""Joint-fit relative-coordinate campaign table: per burst, per instrument.
 
-Columns (owner spec): chosen component counts, TOA +/- err, alpha, beta, tau_1ghz,
+Columns: chosen component counts, crop-relative centroid +/- err, alpha, beta, tau_1ghz,
 delta_dm per band, resolution factors (f/t) + achieved peak S/N, residual max per
 band, and OLD-vs-NEW where an OLD fit exists.
 
-TOA REFERENCE (uniform, stated): the FLUENCE-WEIGHTED CENTROID of the component
-arrival times per band, weights = OLS-recovered per-component spectral fluence at
+MODEL-COORDINATE REFERENCE (uniform, stated): the FLUENCE-WEIGHTED CENTROID of the
+component arrival coordinates per band, weights = OLS-recovered per-component spectral fluence at
 the posterior median (from the jointmodel dump), error = posterior spread of the
 centroid (component t0's varied over the equal-weight posterior, weights fixed).
-Reduces exactly to t0 +/- err for a single-component band. Component-count changes
+These coordinates are relative to each independently cropped model time axis; they
+are not absolute or cross-telescope TOAs. Reduces exactly to t0 +/- err for a single-component band. Component-count changes
 vs OLD, and bursts where CHIME and DSA resolve DIFFERENT counts (matched reference
 most delicate), are flagged explicitly.
 
@@ -149,7 +150,7 @@ def main():
     rows = []
     print("=" * 120)
     print("JOINT-FIT CAMPAIGN (amended): NEW = beta-native [3,4], AUTO S/N-driven prep, evidence-selected counts")
-    print("TOA = fluence-weighted centroid of component arrival times per band (uniform reference)")
+    print("RELATIVE MODEL COORDINATE = fluence-weighted centroid per independently cropped band")
     print("=" * 120)
     for burst, ntag, otag in BURSTS:
         new = load(JOINT / f"{burst}_joint_fit{ntag}.json")
@@ -171,7 +172,10 @@ def main():
         oc = (old or {}).get("components_C", 1)
         od = (old or {}).get("components_D", 1)
         if old and (oc != nC or od != nD):
-            flags.append(f"component count CHANGED vs OLD (C{oc}D{od}->C{nC}D{nD}) — TOA may shift materially")
+            flags.append(
+                f"component count CHANGED vs OLD (C{oc}D{od}->C{nC}D{nD}) — "
+                "relative centroid may shift materially"
+            )
         for band, r in (("CHIME", (rj or {}).get("C")), ("DSA", (rj or {}).get("D"))):
             if r and r.get("escalate"):
                 flags.append(f"{band} residual ESCALATE (resid_max {r['resid_prof_max']:+.1f}s, "
@@ -194,19 +198,18 @@ def main():
         for key, lab in [("tau_1ghz", "tau_1GHz(ms)"), ("alpha", "alpha"), ("beta", "beta"),
                          ("delta_dm_C", "dDM_C(pc/cc)"), ("delta_dm_D", "dDM_D(pc/cc)")]:
             print(f"   {lab:14s} OLD {fmt(pget(old,key)):32s}  NEW {fmt(pget(new,key))}")
-        print(f"   TOA_CHIME (centroid, ms)  NEW {fmt(toaC)}")
+        print(f"   RELATIVE_MODEL_CHIME (centroid, ms)  NEW {fmt(toaC)}")
         for nm, m, w in compC:
             print(f"       component {nm:7s} t0={m:+.4f} ms  (fluence weight {w:.2f})")
-        print(f"   TOA_DSA   (centroid, ms)  NEW {fmt(toaD)}")
+        print(f"   RELATIVE_MODEL_DSA   (centroid, ms)  NEW {fmt(toaD)}")
         for nm, m, w in compD:
             print(f"       component {nm:7s} t0={m:+.4f} ms  (fluence weight {w:.2f})")
         if flags:
             for fl in flags:
                 print(f"   >> FLAG: {fl}")
 
-        def snr(band):
-            g = cap.get(band) or {}
-            return g.get("snr")
+        chime_snr = (cap.get("CHIME") or {}).get("snr")
+        dsa_snr = (cap.get("DSA") or {}).get("snr")
         rcC = (rj or {}).get("C", {}) or {}
         rcD = (rj or {}).get("D", {}) or {}
         tau_n = pget(new, "tau_1ghz")
@@ -215,19 +218,19 @@ def main():
             burst=burst, comp=f"C{nC}D{nD}",
             chime_ff_tf=f"f{(cap.get('CHIME') or {}).get('ff','?')}/t{(cap.get('CHIME') or {}).get('tf','?')}",
             dsa_ff_tf=f"f{(cap.get('DSA') or {}).get('ff','?')}/t{(cap.get('DSA') or {}).get('tf','?')}",
-            chime_peaksnr=snr("CHIME"), dsa_peaksnr=snr("DSA"),
+            chime_peaksnr=chime_snr, dsa_peaksnr=dsa_snr,
             chi2_C=(da or {}).get("chi2C"), chi2_D=(da or {}).get("chi2D"),
             tau_ms=(tau_n[0] if tau_n else None),
             alpha=(al_n[0] if al_n else None),
-            toa_C_ms=(toaC[0] if toaC else None),
-            toa_C_err_ms=((toaC[1] + toaC[2]) / 2 if toaC else None),
-            toa_D_ms=(toaD[0] if toaD else None),
-            toa_D_err_ms=((toaD[1] + toaD[2]) / 2 if toaD else None),
+            relative_model_C_ms=(toaC[0] if toaC else None),
+            relative_model_C_err_ms=((toaC[1] + toaC[2]) / 2 if toaC else None),
+            relative_model_D_ms=(toaD[0] if toaD else None),
+            relative_model_D_err_ms=((toaD[1] + toaD[2]) / 2 if toaD else None),
             resid_max_C=rcC.get("resid_prof_max"), resid_max_D=rcD.get("resid_prof_max"),
             escalate_C=rcC.get("escalate"), escalate_D=rcD.get("escalate"),
             flags="; ".join(flags),
         ))
-    csv_fp = HERE / "joint_tf_toa_table.csv"
+    csv_fp = HERE / "joint_tf_relative_model_coordinates.csv"
     with open(csv_fp, "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
         w.writeheader()

@@ -78,7 +78,7 @@ MAX_TIME_BINS = 512
 # --- Robust-window knobs ----------------------------------------------------
 WIN_K_HI = 5.0          # core threshold (sigma over baseline): bright burst body
 WIN_K_LO = 1.5          # tail threshold (sigma): follow the scattering tail down
-WIN_MAX_GAP_MS = 1.0    # tolerated sub-threshold gap before an edge stops growing
+WIN_MAX_GAP_MS = 0.02   # tight tail contiguity; native CHIME noise must not chain to the cap
 WIN_MARGIN_FRAC = 0.4   # off-pulse margin added each side, as a fraction of span
 WIN_TRAIL_CAP_MS = 30.0 # absolute cap on the trailing extension past the core
 WIN_MIN_OFFPULSE_FRAC = 0.15  # keep at least this fraction of the window off-pulse
@@ -99,12 +99,16 @@ class BandPrep:
     win_hi_native: int
     peak_pixel_snr: float
     peak_profile_snr: float
+    median_channel_snr: float
+    snr_target: float
+    snr_qualified: bool
 
     def caption(self) -> str:
         return (
             f"{self.n_chan} ch x {self.df_MHz:.1f} MHz, "
             f"dt={self.dt_ms * 1e3:.1f} us (f{self.f_factor}/t{self.t_factor}); "
-            f"window {self.window_ms:.1f} ms; peak S/N {self.peak_pixel_snr:.0f}/px"
+            f"window {self.window_ms:.1f} ms; peak S/N {self.peak_pixel_snr:.0f}/px; "
+            f"S/N-qualified={self.snr_qualified} (target {self.snr_target:g})"
         )
 
 
@@ -252,6 +256,17 @@ def _profile_peak_snr(data: np.ndarray, win: tuple[int, int]) -> float:
     return float((np.max(prof[lo:hi]) - mu) / max(sig, 1e-9))
 
 
+def resolution_snr_status(
+    data: np.ndarray, win: tuple[int, int], snr_target: float
+) -> tuple[float, float, bool]:
+    """Return profile/channel S/N and whether both clear the publication floor."""
+    profile_snr = _profile_peak_snr(data, win)
+    channel_snr = _median_channel_snr(data, win)
+    return profile_snr, channel_snr, bool(
+        profile_snr >= snr_target and channel_snr >= snr_target
+    )
+
+
 def _downsample_window(win: tuple[int, int], t_factor: int, n_ds: int) -> tuple[int, int]:
     lo, hi = win
     return max(0, lo // t_factor), min(n_ds, int(np.ceil(hi / t_factor)))
@@ -330,6 +345,7 @@ class _Probe:
     win: tuple[int, int]
     f_factor: int
     t_factor: int
+    snr_target: float
 
 
 def _probe_band(cfg_path: str, name: str, outdir: str, *, snr_target: float) -> _Probe:
@@ -353,7 +369,7 @@ def _probe_band(cfg_path: str, name: str, outdir: str, *, snr_target: float) -> 
     peak = int(np.argmax(prof - _baseline(prof)[0]))
     win = robust_onpulse_bounds(prof, dt_native)
     f_factor, t_factor = choose_resolution(native, win, native.shape[0], snr_target=snr_target)
-    return _Probe(native, dt_native, tel, peak, win, f_factor, t_factor)
+    return _Probe(native, dt_native, tel, peak, win, f_factor, t_factor, snr_target)
 
 
 def _build_model(p: _Probe, win_native: tuple[int, int]) -> tuple[FRBModel, BandPrep]:
@@ -380,6 +396,9 @@ def _build_model(p: _Probe, win_native: tuple[int, int]) -> tuple[FRBModel, Band
     model = FRBModel(
         time=time, freq=freq, data=data_c, df_MHz=p.tel.df_MHz_raw, noise_std=noise_ds
     )
+    peak_profile_snr, median_channel_snr, snr_qualified = resolution_snr_status(
+        binned, win_ds, p.snr_target
+    )
     meta = BandPrep(
         f_factor=p.f_factor,
         t_factor=t_factor,
@@ -391,7 +410,10 @@ def _build_model(p: _Probe, win_native: tuple[int, int]) -> tuple[FRBModel, Band
         win_lo_native=int(win_native[0]),
         win_hi_native=int(win_native[1]),
         peak_pixel_snr=_peak_pixel_snr(binned, win_ds),
-        peak_profile_snr=_profile_peak_snr(binned, win_ds),
+        peak_profile_snr=peak_profile_snr,
+        median_channel_snr=median_channel_snr,
+        snr_target=p.snr_target,
+        snr_qualified=snr_qualified,
     )
     return model, meta
 

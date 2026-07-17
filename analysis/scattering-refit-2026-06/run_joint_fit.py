@@ -80,6 +80,12 @@ def prepare_joint(cC, cD, burst, outdir):
         (model_C, mkC), (model_D, mkD) = joint_tf_prep.prepare_pair(cC, cD, burst, outdir)
         print(f"[{burst}] AUTO-TF CHIME: {mkC.caption()}", flush=True)
         print(f"[{burst}] AUTO-TF DSA  : {mkD.caption()}", flush=True)
+        marginal = [band for band, meta in (("CHIME", mkC), ("DSA", mkD)) if not meta.snr_qualified]
+        if marginal:
+            raise SystemExit(
+                f"[{burst}] AUTO-TF MARGINAL: {', '.join(marginal)} did not clear the "
+                f"S/N target; refusing to publish a joint fit"
+            )
         return model_C, _init_for(model_C, dm_C), model_D, _init_for(model_D, dm_D)
     model_C, init_C = prepare(cC, f"{burst}_chime", outdir)
     model_D, init_D = prepare(cD, f"{burst}_dsa", outdir)

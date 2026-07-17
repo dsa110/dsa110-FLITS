@@ -219,8 +219,9 @@ def build_association_report(
     # ~-2.2 ms pedestal (CHIME leads DSA) shared by every pair because the sources
     # cluster in declination near CHIME transit. A common pedestal is a positive
     # association signature -- unrelated triggers would not sit on one. We test the
-    # residual (measured 400-MHz offset minus the predicted geometric delay) for a
-    # significant nonzero sample mean, weighted by each pair's full timing budget.
+    # residual (observed peak offset minus the predicted geometric delay), weighted
+    # by each pair's full timing budget including the pulse width. This is descriptive,
+    # not an association-significance gate.
     pedestal = None
     if toa_results_path and Path(toa_results_path).exists():
         toa = json.loads(Path(toa_results_path).read_text())
@@ -229,13 +230,14 @@ def build_association_report(
             tr = toa.get(b["name"])
             if tr is None:
                 continue
-            off = tr.get("measured_offset_ms")
+            off = tr.get("peak_measured_offset_ms")
             geo = tr.get("geometric_delay_ms")
-            err = tr.get("combined_error_full_ms") or tr.get("combined_error_ms")
-            if off is None or geo is None or not err:
+            base_err = tr.get("combined_error_full_ms") or tr.get("combined_error_ms")
+            fwhm = tr.get("fwhm_ms", b.get("fwhm_ms"))
+            if off is None or geo is None or not base_err or fwhm is None:
                 continue
             resid.append(off - geo)
-            errs.append(err)
+            errs.append(math.hypot(float(base_err), float(fwhm)))
             geos.append(geo)
         if len(resid) >= 2:
             rp = residual_pedestal(resid, errs)
@@ -248,10 +250,9 @@ def build_association_report(
                 "n_pairs": len(resid),
                 "offset_convention": "observed_peak_400MHz",
                 "note": (
-                    "residual = measured_offset_ms - geometric_delay_ms, weighted by "
-                    "combined_error_full_ms; measured_offset_ms remains the observed "
-                    "peak offset while joint-model corrections are MARGINAL. This is "
-                    "reporting-only and is NOT an input to the chance-coincidence gate."
+                    "residual = peak_measured_offset_ms - geometric_delay_ms for every row; "
+                    "weights combine combined_error_full_ms and fwhm_ms in quadrature. This "
+                    "is descriptive only and is NOT an input to the chance-coincidence gate."
                 ),
             }
 

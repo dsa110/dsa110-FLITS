@@ -10,6 +10,15 @@
     "chime_localization_note": "tiedbeam pointing; no multi-beam error ellipse (Michilli+2021 sub-arcmin assumed)"
   },
   "expected_chance_associations": 5.460165706874625e-08,
+  "geometric_pedestal": {
+    "geometric_delay_mean_ms": -2.1669346696978353,
+    "geometric_delay_spread_ms": 0.2623092203544699,
+    "residual_weighted_mean_ms": 1.8712933975417347,
+    "residual_error_ms": 0.741931575562576,
+    "residual_n_sigma": 2.522191343754052,
+    "n_pairs": 12,
+    "note": "residual = measured_offset_ms - geometric_delay_ms, weighted by combined_error_full_ms; tests the shared geometric pedestal. Arrival order / offset sign is a DM-referral + intrinsic-band diagnostic and is NOT an input to the chance-coincidence gate."
+  },
   "bursts": [
     {
       "name": "zach",

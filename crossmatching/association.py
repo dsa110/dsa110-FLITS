@@ -176,6 +176,7 @@ def build_association_report(
     ddm: float = DDM_BASELINE,
     chime_inputs_path=None,
     chime_radius_deg: float = 0.1,
+    toa_results_path=None,
 ) -> dict:
     """Run all four pillars over the fixture and return the report dict. Read-only on disk.
 
@@ -213,6 +214,46 @@ def build_association_report(
                 ),
             }
         )
+
+    # Pillar 3, sample level: the inter-site geometric delay is a near-constant
+    # ~-2.2 ms pedestal (CHIME leads DSA) shared by every pair because the sources
+    # cluster in declination near CHIME transit. A common pedestal is a positive
+    # association signature -- unrelated triggers would not sit on one. We test the
+    # residual (measured 400-MHz offset minus the predicted geometric delay) for a
+    # significant nonzero sample mean, weighted by each pair's full timing budget.
+    pedestal = None
+    if toa_results_path and Path(toa_results_path).exists():
+        toa = json.loads(Path(toa_results_path).read_text())
+        resid, errs, geos = [], [], []
+        for b in fx["bursts"]:
+            tr = toa.get(b["name"])
+            if tr is None:
+                continue
+            off = tr.get("measured_offset_ms")
+            geo = tr.get("geometric_delay_ms")
+            err = tr.get("combined_error_full_ms") or tr.get("combined_error_ms")
+            if off is None or geo is None or not err:
+                continue
+            resid.append(off - geo)
+            errs.append(err)
+            geos.append(geo)
+        if len(resid) >= 2:
+            rp = residual_pedestal(resid, errs)
+            pedestal = {
+                "geometric_delay_mean_ms": sum(geos) / len(geos),
+                "geometric_delay_spread_ms": max(geos) - min(geos),
+                "residual_weighted_mean_ms": rp["weighted_mean_ms"],
+                "residual_error_ms": rp["error_ms"],
+                "residual_n_sigma": rp["n_sigma"],
+                "n_pairs": len(resid),
+                "note": (
+                    "residual = measured_offset_ms - geometric_delay_ms, weighted by "
+                    "combined_error_full_ms; tests the shared geometric pedestal. "
+                    "Arrival order / offset sign is a DM-referral + intrinsic-band "
+                    "diagnostic and is NOT an input to the chance-coincidence gate."
+                ),
+            }
+
     return {
         "inputs": {
             "rate_per_day": rate_per_day,
@@ -232,6 +273,7 @@ def build_association_report(
         "expected_chance_associations": expected_chance_associations(
             dms, rate_per_day=rate_per_day, omega_win_deg2=omega_win_deg2, dt_s=dt_s, ddm=ddm
         ),
+        "geometric_pedestal": pedestal,
         "bursts": bursts,
     }
 
@@ -239,9 +281,11 @@ def build_association_report(
 def main() -> None:
     here = Path(__file__).resolve().parent
     chime_path = here / "chime_side_inputs.json"
+    toa_path = here / "toa_crossmatch_results.json"
     rep = build_association_report(
         here / "notebook_reproduction_fixture.json",
         chime_inputs_path=chime_path if chime_path.exists() else None,
+        toa_results_path=toa_path if toa_path.exists() else None,
     )
     out = here / "association_report.json"
     out.write_text(json.dumps(rep, indent=2))

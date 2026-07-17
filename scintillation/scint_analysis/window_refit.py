@@ -31,8 +31,13 @@ COMB_HALFWIDTH_MHZ = 0.05
 _MIN_OFF = 50
 SIGMA_RFI = 5.0
 M_PHYS = 1.2       # max physical modulation index admitted to the alpha power-law fit
+ALPHA_BOUNDS = (1.5, 6.0)
 
 _BASECFG = {}      # name -> base config dict (cheap; the npz load dominates and is cached by the OS)
+
+
+def alpha_is_physical(alpha):
+    return bool(alpha and ALPHA_BOUNDS[0] < alpha["alpha"] < ALPHA_BOUNDS[1])
 
 
 def _base_config(name):
@@ -50,6 +55,12 @@ def _base_config(name):
         cfg = config_module.load_config(f"{R}/scintillation/configs/bursts/{name}_chime.yaml")
     _BASECFG[name] = cfg
     return copy.deepcopy(cfg)
+
+
+def product_available(name):
+    """Return whether the configured local burst product exists."""
+    path = os.path.expandvars(os.path.expanduser(_base_config(name)["input_data_path"]))
+    return os.path.exists(path)
 
 
 def load_raw(name):
@@ -205,14 +216,14 @@ def _fit_subband(lags, acf):
     # linearly across the fitted lags and can pass every amplitude/rail gate with a
     # physical m — require the Lorentzian to beat a 2-param line by dBIC >= 6 or the
     # scale is not constrained within LAG_MAX. When the two-component model wins, the
-    # narrow component's reality is already established by beating the (broad-capable)
-    # single-Lorentzian by dBIC >= DBIC_2COMP, so the line test does not apply to it.
+    # narrow component must also beat the simpler line model. Beating one nonlinear
+    # alternative does not establish that the winning shape is physically useful.
     rss_sel = float(np.sum((ap - model) ** 2))
     rss_lin = float(np.sum((ap - np.polyval(np.polyfit(lp, ap, 1), lp)) ** 2))
     k_sel = 5 if model_sel == "2L" else 3
     dbic = (npts * np.log(max(rss_lin, 1e-30) / npts) + 2 * np.log(npts)) \
         - (npts * np.log(max(rss_sel, 1e-30) / npts) + k_sel * np.log(npts))
-    shape_ok = bool(dbic >= 6.0) if model_sel == "1L" else True
+    shape_ok = bool(dbic >= 6.0)
     resolved = bool((amp_snr > 3) and (not railed) and (gamma > 2 * dlag)
                     and (gerr < gamma) and shape_ok)
     return dict(ok=True, A=float(A), gamma=float(gamma), gamma_err=float(gerr), c0=float(c0),
@@ -223,7 +234,7 @@ def _fit_subband(lags, acf):
 
 
 def refit(name, burst_lims, off_lims, rfi_bands_mhz=None, first_fit_lag=1,
-          time_weights=None):
+          time_weights=None, subband_channel_slices=None):
     """first_fit_lag=1 keeps the lag-1 bin, which carries most of the constraint for
     gamma near the channel width (FFL=2 in the drifted configs railed chromatica's
     517 MHz subband; FFL=1 reproduces the archived resolved fit). Uniform for all
@@ -246,6 +257,10 @@ def refit(name, burst_lims, off_lims, rfi_bands_mhz=None, first_fit_lag=1,
     rfi_bands_mhz = rfi_bands_mhz or []
     spec, c, method = _build_spec(name, burst, off)
     c["analysis"]["acf"]["first_fit_lag"] = int(first_fit_lag)
+    if subband_channel_slices is not None:
+        c["analysis"]["acf"]["subband_channel_slices"] = [
+            [int(start), int(end)] for start, end in subband_channel_slices
+        ]
     if time_weights is not None:
         c["analysis"]["acf"]["time_weights"] = np.asarray(time_weights, float)
         method += " + matched time-weighting"
@@ -281,13 +296,15 @@ def refit(name, burst_lims, off_lims, rfi_bands_mhz=None, first_fit_lag=1,
     # one contaminated subband can swing a 3-4 point slope wildly (hamilton_hi's
     # flagged 751-MHz band produced alpha=+33). The per-subband fit is still
     # reported — only the power-law selection excludes it.
-    resolved = [(cf[i], fits[int(i)]["gamma"], fits[int(i)]["gamma_err"]) for i in order
+    resolved = [(cf[i], fits[int(i)]["gamma"], fits[int(i)]["gamma_err"],
+                 fits[int(i)]["gamma_scintle_err"]) for i in order
                 if fits[int(i)]["ok"] and fits[int(i)]["resolved"]
                 and fits[int(i)]["m"] <= M_PHYS]
     alpha = None
     if len(resolved) >= 2:
         fr = np.array([r[0] for r in resolved]); gm = np.array([r[1] for r in resolved])
-        ge = np.array([r[2] for r in resolved]); lw = 1.0 / (ge / gm) ** 2
+        ge = np.array([np.hypot(r[2], r[3]) for r in resolved])
+        lw = 1.0 / (ge / gm) ** 2
         Amat = np.vstack([np.log(fr / np.mean(fr)), np.ones_like(fr)]).T
         W = np.diag(lw); cov = np.linalg.inv(Amat.T @ W @ Amat)
         beta = cov @ (Amat.T @ W @ np.log(gm))
@@ -300,4 +317,5 @@ def refit(name, burst_lims, off_lims, rfi_bands_mhz=None, first_fit_lag=1,
                      provisional=(len(resolved) < 3))
     return dict(name=name, burst=burst, off=off, method=method, center_freqs=cf, order=list(order),
                 fits=fits, alpha=alpha, rfi_new=int((flag & ~already).sum()),
-                rfi_total=int(flag.sum()), ntime=spec.power.shape[1], nchan=spec.power.shape[0])
+                rfi_total=int(flag.sum()), ntime=spec.power.shape[1], nchan=spec.power.shape[0],
+                subband_channel_slices=res["subband_channel_slices"])

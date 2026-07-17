@@ -15,7 +15,12 @@ Usage:
   FLITS_ROOT=<repo> python run_window_campaign.py all [outdir]        # serial sweep
 """
 from __future__ import annotations
-import os, sys, json
+
+import json
+import os
+import sys
+from datetime import date
+from pathlib import Path
 import numpy as np
 import matplotlib
 matplotlib.use("Agg")
@@ -34,6 +39,37 @@ BURSTS = ["casey", "chromatica", "freya", "hamilton", "isha", "johndoeII",
 # so bursts whose standard-product gamma sits near 2x24.4 kHz need these);
 # "all_hi" sweeps every burst's _hi product.
 OFF_SNR_FLAG = 3.0        # off-window matched response above this = contaminated de-scallop
+def _update_figure_manifest(out, name):
+    """Register generated figures; review verdicts are written by a reviewer."""
+    path = Path(out) / "figures.manifest.json"
+    figures = {}
+    if path.exists():
+        figures = {
+            item["file"]: item
+            for item in json.loads(path.read_text()).get("figures", [])
+        }
+    filename = f"{name}_acf_fits.png"
+    figures[filename] = {
+        "file": filename,
+        "expectation": (
+            "Per-subband ACF points are finite and the selected Lorentzian curve follows "
+            "the central peak without fitting broad envelope structure; legends and flags "
+            "agree with the campaign JSON."
+        ),
+        "review_status": "pending",
+    }
+    path.write_text(
+        json.dumps(
+            {
+                "directory": str(Path(out)),
+                "generated": str(date.today()),
+                "campaign": "CHIME objective-window scintillation diagnostics",
+                "figures": [figures[key] for key in sorted(figures)],
+            },
+            indent=2,
+        )
+        + "\n"
+    )
 
 
 def _windows_for(name):
@@ -101,13 +137,20 @@ def run_burst(name, out):
         raise SystemExit(f"{name}: no off window available (source={source})")
     r0 = wr.refit(name, chosen["burst_lims"], chosen["off_lims"], [],
                   time_weights=chosen.get("weights"))
+    fixed_slices = r0["subband_channel_slices"]
     seen, var_tables = set(), []
     for v in variants:
         key = (tuple(v["burst_lims"]), tuple(v["off_lims"]))
         if key in seen:            # primary is weighted, so no boxcar duplicates it
             continue
         seen.add(key)
-        rv = wr.refit(name, v["burst_lims"], v["off_lims"], [])
+        rv = wr.refit(
+            name,
+            v["burst_lims"],
+            v["off_lims"],
+            [],
+            subband_channel_slices=fixed_slices,
+        )
         var_tables.append(dict(windows=v, fits=_fit_table(rv)))
 
     # window systematic per subband: half-range of gamma across the matched primary +
@@ -157,10 +200,8 @@ def run_burst(name, out):
     flagtxt = "" if (off_snr is None or off_snr <= OFF_SNR_FLAG) else \
         f"  [OFF CONTAMINATED off_snr={off_snr:.1f}]"
     alpha_flag = ""
-    if r0["alpha"] and r0["alpha"]["alpha"] < 0:
-        # gamma falling with frequency is backwards for scintillation (expect ~nu^+4):
-        # an envelope/scattering-contamination signature at the sample level
-        alpha_flag = f"  [ALPHA<0: {r0['alpha']['alpha']:+.2f}]"
+    if r0["alpha"] and not wr.alpha_is_physical(r0["alpha"]):
+        alpha_flag = f"  [ALPHA OUTSIDE (1.5, 6.0): {r0['alpha']['alpha']:+.2f}]"
     est = chosen.get("estimator", "boxcar")
     fig.suptitle(f"{name}: per-subband fits ({est}), {source} windows "
                  f"{chosen['burst_lims']}/{chosen['off_lims']}, "
@@ -168,6 +209,7 @@ def run_burst(name, out):
     fig.tight_layout()
     fig.savefig(f"{out}/{name}_acf_fits.png", dpi=125, bbox_inches="tight")
     plt.close(fig)
+    _update_figure_manifest(out, name)
 
     # weights are provenance, not payload: store the nonzero span compactly
     wjson = None
@@ -180,7 +222,11 @@ def run_burst(name, out):
                    estimator=chosen.get("estimator", "boxcar"), weights=wjson)
     rec = dict(name=name, window_source=source, off_snr=off_snr, valid_span=list(span),
                windows=win_rec, alpha=r0["alpha"],
-               alpha_unphysical=bool(r0["alpha"] and r0["alpha"]["alpha"] < 0),
+               alpha_unphysical=bool(r0["alpha"] and not wr.alpha_is_physical(r0["alpha"])),
+               alpha_bounds=list(wr.ALPHA_BOUNDS),
+               science_status="diagnostic_only",
+               artifact_validation_status="not_run",
+               figure_review_status="pending",
                subbands=base,
                variants=var_tables, rfi_new=r0["rfi_new"], method=r0["method"])
     with open(f"{out}/{name}_campaign.json", "w") as fh:
@@ -204,8 +250,15 @@ if __name__ == "__main__":
     target = sys.argv[1]
     out = sys.argv[2] if len(sys.argv) > 2 else os.path.expanduser("~/Developer/scratch/window_campaign")
     os.makedirs(out, exist_ok=True)
-    names = (BURSTS if target == "all"
-             else [b + "_hi" for b in BURSTS] if target == "all_hi"
-             else [target])
+    if target == "all":
+        names = BURSTS
+    elif target == "all_hi":
+        candidates = [b + "_hi" for b in BURSTS]
+        names = [name for name in candidates if wr.product_available(name)]
+        skipped = sorted(set(candidates) - set(names))
+        if skipped:
+            print("Skipping unavailable high-resolution products: " + ", ".join(skipped))
+    else:
+        names = [target]
     for n in names:
         run_burst(n, out)

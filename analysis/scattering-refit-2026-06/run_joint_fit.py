@@ -21,6 +21,7 @@ import sys
 REPO = os.environ.get("FLITS_REPO", "/home/jfaber/flits/dsa110-FLITS")
 RUNS = os.environ.get("FLITS_RUNS", "/central/scratch/jfaber/flits-runs")
 sys.path.insert(0, f"{REPO}/scattering")  # so `scat_analysis` imports
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))  # so joint_tf_prep imports
 
 import numpy as np
 import yaml
@@ -30,6 +31,8 @@ from scat_analysis.burstfit_joint import fit_joint_scattering
 from scat_analysis.config_utils import load_telescope_block
 from scat_analysis.pipeline.io import BurstDataset
 from scat_analysis.pipeline.optimization import refine_initial_guess_mle
+
+import joint_tf_prep
 
 
 def prepare(cfg_path, name, outdir):
@@ -50,6 +53,12 @@ def prepare(cfg_path, name, outdir):
     model = ds.model
     dm_init = float(cfg.get("dm_init", 0.0))
     model.dm_init = dm_init
+    return model, _init_for(model, dm_init)
+
+
+def _init_for(model, dm_init):
+    """Data-driven initial guess + MLE refine for a prepared band model."""
+    model.dm_init = dm_init
     init = data_driven_initial_guess(
         data=model.data,
         freq=model.freq,
@@ -57,8 +66,26 @@ def prepare(cfg_path, name, outdir):
         dm=dm_init,
         verbose=False,
     ).params
-    init = refine_initial_guess_mle(model, init)
-    return model, init
+    return refine_initial_guess_mle(model, init)
+
+
+def prepare_joint(cC, cD, burst, outdir):
+    """CHIME + DSA prepared together with the S/N-driven resolution + robust common
+    window (joint_tf_prep.prepare_pair). Returns (model_C, init_C, model_D, init_D)
+    and logs the chosen per-band resolution/window. Set FLITS_JOINT_AUTO_TF=0 to
+    fall back to the config's fixed f_factor/t_factor + legacy per-band crop."""
+    dm_C = float(yaml.safe_load(open(cC)).get("dm_init", 0.0))
+    dm_D = float(yaml.safe_load(open(cD)).get("dm_init", 0.0))
+    if joint_tf_prep._env_auto():
+        (model_C, mkC), (model_D, mkD) = joint_tf_prep.prepare_pair(
+            cC, cD, burst, outdir, auto=True
+        )
+        print(f"[{burst}] AUTO-TF CHIME: {mkC.caption()}", flush=True)
+        print(f"[{burst}] AUTO-TF DSA  : {mkD.caption()}", flush=True)
+        return model_C, _init_for(model_C, dm_C), model_D, _init_for(model_D, dm_D)
+    model_C, init_C = prepare(cC, f"{burst}_chime", outdir)
+    model_D, init_D = prepare(cD, f"{burst}_dsa", outdir)
+    return model_C, init_C, model_D, init_D
 
 
 def main():
@@ -158,8 +185,7 @@ def main():
             sys.exit(f"missing config: {c}")
 
     print(f"[{a.burst}] preparing CHIME + DSA models ...", flush=True)
-    model_C, init_C = prepare(cC, f"{a.burst}_chime", out_dir)
-    model_D, init_D = prepare(cD, f"{a.burst}_dsa", out_dir)
+    model_C, init_C, model_D, init_D = prepare_joint(cC, cD, a.burst, out_dir)
     print(
         f"[{a.burst}] CHIME init: tau={init_C.tau_1ghz:.3g} a={init_C.alpha:.2g} | "
         f"DSA init: tau={init_D.tau_1ghz:.3g} a={init_D.alpha:.2g}",

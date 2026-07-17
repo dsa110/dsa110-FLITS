@@ -1,5 +1,6 @@
 """Tests for crossmatching/association.py — CHIME-DSA association significance (pillars 1-4)."""
 
+import json
 import math
 from pathlib import Path
 
@@ -129,6 +130,55 @@ def test_report_has_chance_P_for_all_12_and_golden_untouched():
     assert report["expected_chance_associations"] < 1e-3
     # building the report must not touch the golden artifact
     assert golden.read_text() == golden_before
+
+
+def test_report_geometric_pedestal_from_toa_results(tmp_path):
+    # Pillar 3 sample level: when the crossmatch results are supplied, the report
+    # carries the shared geometric pedestal. It must use one explicit peak convention,
+    # include pulse width in the weights, and never perturb the chance gate.
+    golden = ROOT / "crossmatching/toa_crossmatch_results.json"
+    report = build_association_report(
+        ROOT / "crossmatching/notebook_reproduction_fixture.json",
+        toa_results_path=golden,
+    )
+    ped = report["geometric_pedestal"]
+    assert ped is not None and ped["n_pairs"] == 12
+    # geometry is a tight pedestal, CHIME ahead by ~2.2 ms, spread well under 0.5 ms
+    assert -2.4 < ped["geometric_delay_mean_ms"] < -2.0
+    assert ped["geometric_delay_spread_ms"] < 0.5
+    # Including the pulse width prevents broad events from creating a spurious
+    # high-significance pedestal.
+    assert ped["offset_convention"] == "observed_peak_400MHz"
+    assert "fwhm_ms" in ped["note"]
+
+    rows = json.loads(golden.read_text())
+    first = next(iter(rows.values()))
+    first["measured_offset_ms"] = 1.0e6
+    altered = tmp_path / "altered.json"
+    altered.write_text(json.dumps(rows))
+    altered_ped = build_association_report(
+        ROOT / "crossmatching/notebook_reproduction_fixture.json",
+        toa_results_path=altered,
+    )["geometric_pedestal"]
+    assert altered_ped["residual_weighted_mean_ms"] == pytest.approx(
+        ped["residual_weighted_mean_ms"]
+    )
+
+    for row in rows.values():
+        row["fwhm_ms"] = 0.0
+    zero_width = tmp_path / "zero-width.json"
+    zero_width.write_text(json.dumps(rows))
+    zero_width_ped = build_association_report(
+        ROOT / "crossmatching/notebook_reproduction_fixture.json",
+        toa_results_path=zero_width,
+    )["geometric_pedestal"]
+    assert ped["residual_error_ms"] > zero_width_ped["residual_error_ms"]
+    # the pedestal is reporting-only: the chance expectation is unchanged
+    report_no_toa = build_association_report(
+        ROOT / "crossmatching/notebook_reproduction_fixture.json"
+    )
+    assert report["expected_chance_associations"] == report_no_toa["expected_chance_associations"]
+    assert report_no_toa["geometric_pedestal"] is None
 
 
 def test_report_activates_pillars_2_and_4_from_chime_inputs(tmp_path):

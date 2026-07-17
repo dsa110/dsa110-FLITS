@@ -96,20 +96,16 @@
     {
       "burst": "FRB 20221203A",
       "burst_note": "u",
-      "z": 0.51,
-      "z_note": "",
+      "z": null,
+      "z_note": "p",
       "dm_obs": 602,
       "dm_mw": 117,
-      "dm_cos": 456,
+      "dm_cos": null,
       "dm_int": 0,
       "dm_int_note": "",
       "regime": "none",
       "mass": "",
-      "dm_host": [
-        73,
-        93,
-        113
-      ],
+      "dm_host": null,
       "tau_int": "0"
     },
     {
@@ -149,16 +145,20 @@
     {
       "burst": "FRB 20230814B",
       "burst_note": "u",
-      "z": null,
-      "z_note": "p",
+      "z": 0.5535,
+      "z_note": "",
       "dm_obs": 696,
       "dm_mw": 137,
-      "dm_cos": null,
+      "dm_cos": 497,
       "dm_int": 0,
       "dm_int_note": "",
       "regime": "none",
       "mass": "",
-      "dm_host": null,
+      "dm_host": [
+        108,
+        102,
+        121
+      ],
       "tau_int": "0"
     },
     {

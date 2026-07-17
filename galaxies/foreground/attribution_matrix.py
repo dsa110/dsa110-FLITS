@@ -7,7 +7,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from galaxies.foreground.census_registry import build_intervening_census_registry
+from galaxies.foreground.census_registry import load_intervening_census_registry
 from galaxies.foreground.config import TARGETS
 from galaxies.foreground.scintillation_bridge import (
     build_scintillation_source_block,
@@ -63,7 +63,22 @@ def _dnu_cells(burst: str) -> dict:
 
 
 def _registry_foreground_summary(registry: pd.DataFrame, nickname: str) -> dict:
+    """Physical-system foreground counts for one sightline.
+
+    Census remediation 2026-07-15: cross-listed duplicate rows (same physical
+    galaxy under two catalog identifiers) are dropped before counting, so
+    ``n_confirmed`` / ``n_budget_eligible`` count physical systems, matching
+    the deduplicated budget path in ``census_registry.registry_to_matches``.
+    """
+    from galaxies.foreground.census_registry import load_census_duplicates
+
+    duplicates = load_census_duplicates()
     sub = registry[registry.nickname == nickname]
+    if duplicates:
+        dup_objs = {
+            obj for (nick, obj) in duplicates if nick == str(nickname).lower()
+        }
+        sub = sub[~sub.obj.astype(str).isin(dup_objs)]
     confirmed = sub[sub.final_verdict == "confirmed"]
     eligible = confirmed[confirmed.budget_eligible]
     dom = ""
@@ -167,7 +182,9 @@ def _constraint_level(triggers: list[str], dnu: dict) -> str:
 def build_attribution_matrix(
     registry: pd.DataFrame | None = None,
 ) -> pd.DataFrame:
-    registry = registry if registry is not None else build_intervening_census_registry()
+    # Committed SSOT (falls back to the scratch build only when the CSV is
+    # absent) so the matrix counts cannot drift from the frozen census.
+    registry = registry if registry is not None else load_intervening_census_registry()
     rows: list[dict] = []
     for burst in co_detected_nicknames():
         tau_row = build_tau_consistency_row(burst)

@@ -210,6 +210,19 @@ def refit(name, burst_lims, off_lims, rfi_bands_mhz=None, first_fit_lag=1,
     cf = np.asarray(res["subband_center_freqs_mhz"], float)
     order = np.argsort(cf)[::-1]
     fits = {int(i): _fit_subband(res["subband_lags_mhz"][i], res["subband_acfs"][i]) for i in order}
+    # Finite-scintle error: with N_ISS ~ 1 + eta*BW/gamma independent scintles per
+    # subband (eta=0.2, Cordes & Lazio estimator-filling convention), the fractional
+    # gamma uncertainty from sampling a finite number of scintles is 1/sqrt(N_ISS) —
+    # irreducible at fixed bandwidth, and the dominant term for broad gamma
+    # (injection round 1: scatter grows to 20-33% by gamma=3 MHz for exactly this
+    # reason). Derived from (gamma, BW) only; does not feed back into the fit.
+    for i in order:
+        f = fits[int(i)]
+        if f.get("ok"):
+            bw = float(res["subband_num_channels"][i]) * float(res["subband_channel_widths_mhz"][i])
+            n_iss = 1.0 + 0.2 * bw / max(f["gamma"], 1e-6)
+            f["subband_bw_mhz"] = bw
+            f["gamma_scintle_err"] = float(f["gamma"] / np.sqrt(n_iss))
     # The alpha fit additionally requires a physical modulation index: m>M_PHYS
     # passes the resolved gate but is envelope-contaminated (point-source strong
     # scintillation has m<=1; the margin absorbs self-/finite-scintle noise), and

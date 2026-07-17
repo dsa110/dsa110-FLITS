@@ -83,7 +83,9 @@ def _fit_table(r):
             row.update(gamma=f["gamma"], gamma_err=f["gamma_err"], m=f["m"],
                        amp_snr=f["amp_snr"], resolved=bool(f["resolved"]),
                        shape_ok=bool(f.get("shape_ok", True)),
-                       dbic_line=f.get("dbic_line"))
+                       dbic_line=f.get("dbic_line"),
+                       gamma_scintle_err=f.get("gamma_scintle_err"),
+                       subband_bw_mhz=f.get("subband_bw_mhz"))
         else:
             row["reason"] = f.get("reason")
         rows.append(row)

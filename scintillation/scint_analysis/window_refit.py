@@ -95,9 +95,12 @@ lorentz = fs._lorentzian_with_baseline
 
 def _fit_subband(lags, acf):
     lags = np.asarray(lags, float); acf = np.asarray(acf, float)
-    i0 = int(np.argmin(np.abs(lags)))
-    norm = acf[i0] if acf[i0] != 0 else np.nanmax(acf)
-    a = acf / norm
+    # No renormalization: calculate_acf already divides by (mean_on - mean_off)^2, so the
+    # ACF amplitude IS m^2. The old argmin|lag| anchor hit a synthetic lag-0=1.0 bin that
+    # commit dad9786 removed; renormalizing by the first REAL lag (~0.6 for chromatica)
+    # inflated every A and m by ~1.7x (diagnosed 2026-07-17, reproduced archive to the
+    # digit with norm=1.0).
+    a = acf
     pos = lags > 0
     lp = lags[pos]; ap = a[pos]
     o = np.argsort(lp); lp = lp[o]; ap = ap[o]
@@ -127,7 +130,11 @@ def _fit_subband(lags, acf):
                 lp=lp, ap=ap, model=lorentz(lp, *p))
 
 
-def refit(name, burst_lims, off_lims, rfi_bands_mhz=None):
+def refit(name, burst_lims, off_lims, rfi_bands_mhz=None, first_fit_lag=1):
+    """first_fit_lag=1 keeps the lag-1 bin, which carries most of the constraint for
+    gamma near the channel width (FFL=2 in the drifted configs railed chromatica's
+    517 MHz subband; FFL=1 reproduces the archived resolved fit). Uniform for all
+    bursts; the 1-vs-2 bias is under injection-harness validation."""
     burst = (int(burst_lims[0]), int(burst_lims[1]))
     off = (int(off_lims[0]), int(off_lims[1]))
     # The off-pulse window feeds the off-pulse-only RFI statistics and the de-scallop gain.
@@ -140,6 +147,7 @@ def refit(name, burst_lims, off_lims, rfi_bands_mhz=None):
             "move the off-pulse slider clear of the on-pulse region")
     rfi_bands_mhz = rfi_bands_mhz or []
     spec, c, method = _build_spec(name, burst, off)
+    c["analysis"]["acf"]["first_fit_lag"] = int(first_fit_lag)
     freqs = np.asarray(spec.frequencies, float)
     # user painted RFI bands (whole-channel) on top of pipeline + auto flag
     band_mask = np.zeros(spec.power.shape[0], bool)

@@ -154,12 +154,20 @@ def select_windows(profile, k_sat=3.0, k_edge=0.75, guard_frac=1.0, min_snr=5.0)
         elif 0 < lo - r[1] <= width:
             lo = r[0]
 
+    core = (int(lo), int(hi))                          # matched core + satellites, no tail
+
     floor = mu + k_edge * sig                          # scattering-tail edge expansion
     while lo > 0 and s[lo - 1] > floor:
         lo -= 1
     while hi < n and s[hi] > floor:
         hi += 1
     burst = (int(lo), int(hi))
+    # ACF-vs-fluence window distinction (2026-07-17 chromatica 2x2 isolation): including
+    # the scattering tail inflates fitted gamma 2-4x in every subband and raises the ACF
+    # baseline — low-S/N tail bins dilute scintle contrast so the fit latches onto the
+    # broad intrinsic-envelope structure. The matched CORE is the ACF window; the
+    # tail-expanded window is kept for fluence work and as a scan variant that measures
+    # this systematic. Off-window choice moved gamma by <5% in the same test.
 
     guard = max(5, int(round(guard_frac * (hi - lo))))
     free = np.ones(n, bool)
@@ -176,7 +184,8 @@ def select_windows(profile, k_sat=3.0, k_edge=0.75, guard_frac=1.0, min_snr=5.0)
     op = prof[off[0]:off[1]]
     off_snr = float(matched_peak(op, max_width=min(width * 2, max(4, op.size // 2)))[2]) \
         if op.size >= 8 else np.inf
-    return dict(burst_lims=[burst[0], burst[1]], off_lims=[int(off[0]), int(off[1])],
+    return dict(burst_lims=[burst[0], burst[1]], burst_core=[core[0], core[1]],
+                off_lims=[int(off[0]), int(off[1])],
                 matched=dict(center=int(center), width=int(width), snr=float(snr)),
                 off_snr=off_snr, smoothed=s, sigma_smooth=sig, guard=guard,
                 params=dict(k_sat=k_sat, k_edge=k_edge, guard_frac=guard_frac,

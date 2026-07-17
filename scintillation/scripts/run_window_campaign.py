@@ -48,9 +48,14 @@ def _windows_for(name):
                        off_lims=[int(ol_def[0]), int(ol_def[1])] if ol_def else None)
         return default, [], "pipeline-default-fallback", None, span
     shift = lambda w: [int(w[0] + t0), int(w[1] + t0)]
-    chosen = dict(burst_lims=shift(sel["burst_lims"]), off_lims=shift(sel["off_lims"]))
-    variants = [dict(burst_lims=shift(v["burst_lims"]), off_lims=shift(v["off_lims"]))
+    # matched CORE is the primary ACF window (tail inclusion inflates gamma 2-4x —
+    # see window_optimize.select_windows); the tail-expanded window rides along as an
+    # explicit variant so the systematic stays measured, not hidden
+    chosen = dict(burst_lims=shift(sel["burst_core"]), off_lims=shift(sel["off_lims"]))
+    variants = [dict(burst_lims=shift(v["burst_core"]), off_lims=shift(v["off_lims"]))
                 for v in wo.window_variants(prof)]
+    variants.append(dict(burst_lims=shift(sel["burst_lims"]), off_lims=shift(sel["off_lims"]),
+                         label="tail-expanded"))
     return chosen, variants, "objective", float(sel["off_snr"]), span
 
 
@@ -82,12 +87,19 @@ def run_burst(name, out):
         rv = wr.refit(name, v["burst_lims"], v["off_lims"], [])
         var_tables.append(dict(windows=v, fits=_fit_table(rv)))
 
-    # window systematic per subband: half-range of gamma across chosen+variants,
-    # matched by subband rank (equal-S/N subbanding keeps ranks comparable)
+    # window systematic per subband: half-range of gamma across chosen + CORE variants,
+    # matched by subband rank (equal-S/N subbanding keeps ranks comparable). The
+    # tail-expanded variant is a known ~2-4x biased configuration — report its gamma
+    # separately (gamma_tail) instead of letting it blow up sigma_win.
     base = _fit_table(r0)
     for k, row in enumerate(base):
-        gs = [row.get("gamma")] + [t["fits"][k].get("gamma") for t in var_tables
-                                   if k < len(t["fits"]) and t["fits"][k].get("ok")]
+        gs = [row.get("gamma")]
+        for t in var_tables:
+            if k < len(t["fits"]) and t["fits"][k].get("ok"):
+                if t["windows"].get("label") == "tail-expanded":
+                    row["gamma_tail"] = t["fits"][k].get("gamma")
+                else:
+                    gs.append(t["fits"][k].get("gamma"))
         gs = [g for g in gs if g is not None]
         row["gamma_win_sys"] = float((max(gs) - min(gs)) / 2) if len(gs) > 1 else None
         row["n_variants"] = len(gs)

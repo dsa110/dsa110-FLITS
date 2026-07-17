@@ -18,6 +18,7 @@ sys.path.insert(0, R + "/scintillation")
 from scint_analysis import window_refit as wr
 from scint_analysis import window_optimize as wo
 from scint_analysis import freya_scintillation as fs
+from scint_analysis import figure_manifest as fm
 
 BURSTS = ["casey", "chromatica", "freya", "hamilton", "isha", "johndoeII",
           "mahi", "oran", "phineas", "whitney", "wilhelm", "zach"]
@@ -69,8 +70,16 @@ for name in BURSTS:
     ax.set_title(f"{name}: objective window selection ({len(variants)} scan variants)", fontsize=10)
     ax.legend(fontsize=6.5, ncol=3, loc="upper right")
     fig.tight_layout()
-    fig.savefig(f"{OUT}/{name}_window_preview.png", dpi=120, bbox_inches="tight")
+    filename = f"{name}_window_preview.png"
+    fig.savefig(f"{OUT}/{filename}", dpi=120, bbox_inches="tight")
     plt.close(fig)
+    fm.register_figure(
+        OUT,
+        filename,
+        "The objective on/off windows cover the burst and clean baseline respectively; "
+        "invalid spans and pipeline-default overlays agree with windows.json.",
+        campaign="CHIME objective-window selection previews",
+    )
 
     summary[name] = dict(
         valid_span=[t0, t1],
@@ -85,6 +94,8 @@ for name in BURSTS:
                      off_lims=None if ol_def is None else [int(ol_def[0]), int(ol_def[1])]),
         n_variants=len(variants),
         variant_burst_lims=[_shift(v["burst_lims"], t0) for v in variants],
+        science_status="diagnostic_only",
+        figure_review_status="pending",
     )
     ob = summary[name]["objective"]
     print(f"{name}: objective={None if ob is None else ob['burst_lims']} "

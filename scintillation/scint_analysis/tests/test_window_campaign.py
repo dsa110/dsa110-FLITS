@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 
@@ -12,6 +13,7 @@ sys.path.insert(0, str(_test_dir.parent.parent.parent))
 sys.path.insert(0, str(_test_dir.parent.parent))
 
 from scint_analysis import analysis
+from scint_analysis import figure_manifest
 from scint_analysis import window_refit
 from scint_analysis.core import DynamicSpectrum
 
@@ -71,3 +73,31 @@ def test_smooth_linear_artifact_is_not_resolved():
 
     assert not result["shape_ok"]
     assert not result["resolved"]
+
+
+def test_figure_manifest_merges_pending_entries(tmp_path):
+    figure_manifest.register_figure(
+        tmp_path, "one.png", "first expectation", campaign="test campaign"
+    )
+    path = figure_manifest.register_figure(
+        tmp_path, "two.png", "second expectation", campaign="test campaign"
+    )
+    payload = json.loads(path.read_text())
+    assert [item["file"] for item in payload["figures"]] == ["one.png", "two.png"]
+    assert all(item["review_status"] == "pending" for item in payload["figures"])
+
+
+def test_campaign_validation_requires_all_three_gates():
+    diagnostic = {
+        "science_status": "diagnostic_only",
+        "artifact_validation_status": "not_run",
+        "figure_review_status": "pending",
+    }
+    assert not figure_manifest.campaign_is_validated(diagnostic)
+    assert figure_manifest.campaign_is_validated(
+        {
+            "science_status": "measurement",
+            "artifact_validation_status": "pass",
+            "figure_review_status": "pass",
+        }
+    )

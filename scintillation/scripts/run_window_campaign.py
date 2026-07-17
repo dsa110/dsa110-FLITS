@@ -19,8 +19,6 @@ from __future__ import annotations
 import json
 import os
 import sys
-from datetime import date
-from pathlib import Path
 import numpy as np
 import matplotlib
 matplotlib.use("Agg")
@@ -31,6 +29,7 @@ sys.path.insert(0, R + "/scintillation")
 from scint_analysis import window_refit as wr
 from scint_analysis import window_optimize as wo
 from scint_analysis import freya_scintillation as fs
+from scint_analysis import figure_manifest as fm
 
 BURSTS = ["casey", "chromatica", "freya", "hamilton", "isha", "johndoeII",
           "mahi", "oran", "phineas", "whitney", "wilhelm", "zach"]
@@ -39,39 +38,6 @@ BURSTS = ["casey", "chromatica", "freya", "hamilton", "isha", "johndoeII",
 # so bursts whose standard-product gamma sits near 2x24.4 kHz need these);
 # "all_hi" sweeps every burst's _hi product.
 OFF_SNR_FLAG = 3.0        # off-window matched response above this = contaminated de-scallop
-def _update_figure_manifest(out, name):
-    """Register generated figures; review verdicts are written by a reviewer."""
-    path = Path(out) / "figures.manifest.json"
-    figures = {}
-    if path.exists():
-        figures = {
-            item["file"]: item
-            for item in json.loads(path.read_text()).get("figures", [])
-        }
-    filename = f"{name}_acf_fits.png"
-    figures[filename] = {
-        "file": filename,
-        "expectation": (
-            "Per-subband ACF points are finite and the selected Lorentzian curve follows "
-            "the central peak without fitting broad envelope structure; legends and flags "
-            "agree with the campaign JSON."
-        ),
-        "review_status": "pending",
-    }
-    path.write_text(
-        json.dumps(
-            {
-                "directory": str(Path(out)),
-                "generated": str(date.today()),
-                "campaign": "CHIME objective-window scintillation diagnostics",
-                "figures": [figures[key] for key in sorted(figures)],
-            },
-            indent=2,
-        )
-        + "\n"
-    )
-
-
 def _windows_for(name):
     """(chosen, variants, source, off_snr, span) — objective rule with flagged fallback."""
     c = wr._base_config(name)
@@ -209,7 +175,14 @@ def run_burst(name, out):
     fig.tight_layout()
     fig.savefig(f"{out}/{name}_acf_fits.png", dpi=125, bbox_inches="tight")
     plt.close(fig)
-    _update_figure_manifest(out, name)
+    fm.register_figure(
+        out,
+        f"{name}_acf_fits.png",
+        "Per-subband ACF points are finite and the selected Lorentzian curve follows "
+        "the central peak without fitting broad envelope structure; legends and flags "
+        "agree with the campaign JSON.",
+        campaign="CHIME objective-window scintillation diagnostics",
+    )
 
     # weights are provenance, not payload: store the nonzero span compactly
     wjson = None
@@ -232,7 +205,11 @@ def run_burst(name, out):
     with open(f"{out}/{name}_campaign.json", "w") as fh:
         json.dump(rec, fh, indent=2, default=float)
     with open(f"{out}/campaign_results.jsonl", "a") as fh:
-        slim = {k: rec[k] for k in ("name", "window_source", "off_snr", "windows", "alpha")}
+        slim = {k: rec[k] for k in (
+            "name", "window_source", "off_snr", "windows", "alpha",
+            "alpha_unphysical", "science_status", "artifact_validation_status",
+            "figure_review_status",
+        )}
         slim["subbands"] = base
         fh.write(json.dumps(slim, default=float) + "\n")
     nres = sum(1 for b in base if b.get("resolved"))

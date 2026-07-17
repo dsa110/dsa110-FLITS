@@ -147,10 +147,27 @@ def _fit_subband(lags, acf):
     # envelope/noise pathology, never a physical modulation index
     railed = (gamma < 2 * glo) or (gamma > 0.9 * 20) or (gamma > 0.9 * LAG_MAX) \
         or (A > 0.9 * 10)
-    resolved = bool((amp_snr > 3) and (not railed) and (gamma > 2 * dlag) and (gerr < gamma))
+    # Shape gate: a smooth spectral envelope decays quasi-linearly across the fitted
+    # lag range and can pass every amplitude/rail gate with a physical m (zach_hi
+    # 622 MHz, m=0.26) — but a real scintle has a Lorentzian knee inside LAG_MAX.
+    # If a 2-param line is not decisively worse than the 3-param Lorentzian
+    # (dBIC >= 6, Kass-Raftery "strong"), the decorrelation scale is not actually
+    # constrained within the fitted lags and the subband is not a resolved gamma.
+    # This also correctly demotes genuinely broad gamma ~ LAG_MAX fits, which are
+    # indistinguishable from an envelope at this lag range.
+    model = lorentz(lp, *p)
+    npts = lp.size
+    rss_lor = float(np.sum((ap - model) ** 2))
+    rss_lin = float(np.sum((ap - np.polyval(np.polyfit(lp, ap, 1), lp)) ** 2))
+    dbic = (npts * np.log(max(rss_lin, 1e-30) / npts) + 2 * np.log(npts)) \
+        - (npts * np.log(max(rss_lor, 1e-30) / npts) + 3 * np.log(npts))
+    shape_ok = bool(dbic >= 6.0)
+    resolved = bool((amp_snr > 3) and (not railed) and (gamma > 2 * dlag)
+                    and (gerr < gamma) and shape_ok)
     return dict(ok=True, A=float(A), gamma=float(gamma), gamma_err=float(gerr), c0=float(c0),
                 m=m, noise=noise, amp_snr=float(amp_snr), resolved=resolved,
-                lp=lp, ap=ap, model=lorentz(lp, *p))
+                shape_ok=shape_ok, dbic_line=float(dbic),
+                lp=lp, ap=ap, model=model)
 
 
 def refit(name, burst_lims, off_lims, rfi_bands_mhz=None, first_fit_lag=1,

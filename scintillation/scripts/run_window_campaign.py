@@ -81,7 +81,9 @@ def _fit_table(r):
         row = dict(center_mhz=round(float(r["center_freqs"][i]), 1), ok=bool(f.get("ok")))
         if f.get("ok"):
             row.update(gamma=f["gamma"], gamma_err=f["gamma_err"], m=f["m"],
-                       amp_snr=f["amp_snr"], resolved=bool(f["resolved"]))
+                       amp_snr=f["amp_snr"], resolved=bool(f["resolved"]),
+                       shape_ok=bool(f.get("shape_ok", True)),
+                       dbic_line=f.get("dbic_line"))
         else:
             row["reason"] = f.get("reason")
         rows.append(row)

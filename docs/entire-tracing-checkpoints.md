@@ -5534,3 +5534,18 @@ preserving for future agents.
 - `origin` `entire/*` refs:
   - entire/checkpoints/v1 -> a90492d
 - note: `.entire/` remains host-local runtime state; only this ledger is tracked.
+
+## 2026-07-17T02:28:38-07:00 — jakob
+- repo: `/Users/jakobfaber/Developer/scratch/worktrees/flits-joint-tf-fits`
+- branch: `joint/tf-fit-window-resolution`
+- head: `b8795fdd`
+- origin/main: `8e545892`
+- worktree: clean
+- note: watched path changed: analysis/scattering-refit-2026-06/dump_jointmodel.py
+- tracked status: clean
+- local `entire/*` refs:
+  - entire/565ccf0-bcad3a -> 525751f0
+  - entire/checkpoints/v1 -> a90492d7
+- `origin` `entire/*` refs:
+  - entire/checkpoints/v1 -> a90492d
+- note: `.entire/` remains host-local runtime state; only this ledger is tracked.

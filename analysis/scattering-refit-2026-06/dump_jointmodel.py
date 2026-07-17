@@ -119,7 +119,7 @@ def main():
     if joint_tf_prep._env_auto():
         # Same S/N-driven resolution + robust common window the fit used, so the
         # dumped data/model grid matches the fit's grid (no per-band hatch mismatch).
-        (mC, mkC), (mD, mkD) = joint_tf_prep.prepare_pair(cC, cD, b, out, auto=True)
+        (mC, mkC), (mD, mkD) = joint_tf_prep.prepare_pair(cC, cD, b, out)
         mC.dm_init = float(yaml.safe_load(open(cC)).get("dm_init", 0.0))
         mD.dm_init = float(yaml.safe_load(open(cD)).get("dm_init", 0.0))
         print(f"{b}: AUTO-TF CHIME {mkC.caption()} | DSA {mkD.caption()}")

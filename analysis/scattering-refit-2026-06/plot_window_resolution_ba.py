@@ -125,7 +125,7 @@ def make(burst, out_dir):
     cD = RUNS / "configs" / f"{burst}_dsa_run.yaml"
     old_C = _old_band(cC, f"{burst}_chime")
     old_D = _old_band(cD, f"{burst}_dsa")
-    (mC, MC), (mD, MD) = J.prepare_pair(str(cC), str(cD), burst, "/tmp/ba_new", auto=True)
+    (mC, MC), (mD, MD) = J.prepare_pair(str(cC), str(cD), burst, "/tmp/ba_new")
     new_C = dict(data=np.asarray(mC.data), t=_peak_rel_time(np.asarray(mC.data), MC.dt_ms),
                  f=np.asarray(mC.freq) * 1e3, dt=MC.dt_ms, noise=np.asarray(mC.noise_std).reshape(-1))
     new_D = dict(data=np.asarray(mD.data), t=_peak_rel_time(np.asarray(mD.data), MD.dt_ms),

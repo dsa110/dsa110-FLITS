@@ -50,6 +50,19 @@ def test_window_stable_to_sharp_burst():
     assert hi - lo >= 20, f"sharp-burst window collapsed ({hi - lo} samples)"
 
 
+def test_window_does_not_follow_a_low_significance_leading_shelf():
+    rng = np.random.default_rng(5)
+    t = np.arange(4000)
+    prof = rng.normal(0, 1.0, t.size)
+    prof += 40.0 * np.exp(-0.5 * ((t - 2000) / 8.0) ** 2)
+    prof += 24.0 * np.exp(-(t - 2000) / 80.0) * (t >= 2000)
+    clean_bounds = J.robust_onpulse_bounds(prof, dt_ms=0.03)
+    prof[1800:1950] += 2.0
+    lo, hi = J.robust_onpulse_bounds(prof, dt_ms=0.03)
+    assert (lo, hi) == clean_bounds, "leading shelf changed the high-threshold core window"
+    assert hi > 2080, f"trailing edge clipped the scattering tail (hi={hi})"
+
+
 def test_resolution_finest_that_clears_floor():
     # bright, temporally-resolved burst -> should keep fine time bins (small t)
     rng = np.random.default_rng(2)

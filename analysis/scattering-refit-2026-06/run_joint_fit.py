@@ -77,9 +77,7 @@ def prepare_joint(cC, cD, burst, outdir):
     dm_C = float(yaml.safe_load(open(cC)).get("dm_init", 0.0))
     dm_D = float(yaml.safe_load(open(cD)).get("dm_init", 0.0))
     if joint_tf_prep._env_auto():
-        (model_C, mkC), (model_D, mkD) = joint_tf_prep.prepare_pair(
-            cC, cD, burst, outdir, auto=True
-        )
+        (model_C, mkC), (model_D, mkD) = joint_tf_prep.prepare_pair(cC, cD, burst, outdir)
         print(f"[{burst}] AUTO-TF CHIME: {mkC.caption()}", flush=True)
         print(f"[{burst}] AUTO-TF DSA  : {mkD.caption()}", flush=True)
         return model_C, _init_for(model_C, dm_C), model_D, _init_for(model_D, dm_D)
@@ -143,7 +141,7 @@ def main():
     ap.add_argument(
         "--gain-s2",
         dest="gain_s2",
-        type=float,
+        type=int,
         default=None,
         help="fix the per-channel gain-prior variance s2 instead of profiling it. "
         "REQUIRED for a valid cross-N Bayes factor (ADR-0003): the profiled-s2 lnZ "
@@ -344,7 +342,7 @@ def main():
         tag = ""
     if a.gain_s2 is not None:
         # _s2verdict.parse_tag expects an integer suffix; keep the fixed-s2 grid on ints.
-        tag += f"_s2-{int(a.gain_s2)}"
+        tag += f"_s2-{a.gain_s2}"
     out = f"{out_dir}/{a.burst}_joint_fit{tag}.json"
     json.dump(summary, open(out, "w"), indent=2)
 

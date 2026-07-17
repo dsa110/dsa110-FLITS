@@ -187,8 +187,8 @@ def robust_onpulse_bounds(
     # Core: contiguous body above the high threshold, anchored at the peak.
     core_lo = _grow_edge(excess, peak, -1, k_hi * sig, max_gap, cap)
     core_hi = _grow_edge(excess, peak, +1, k_hi * sig, max_gap, cap)
-    # Leading edge to the low threshold; trailing edge follows the tail down.
-    lo = _grow_edge(excess, core_lo, -1, k_lo * sig, max_gap, cap)
+    # Bursts rise quickly: keep the leading edge at the high-threshold core.
+    lo = core_lo
     hi = _grow_edge(excess, core_hi, +1, k_lo * sig, max_gap, cap)
     span = hi - lo + 1
     margin = int(round(margin_frac * span))
@@ -332,9 +332,7 @@ class _Probe:
     t_factor: int
 
 
-def _probe_band(
-    cfg_path: str, name: str, outdir: str, *, auto: bool, snr_target: float
-) -> _Probe:
+def _probe_band(cfg_path: str, name: str, outdir: str, *, snr_target: float) -> _Probe:
     """Native load (bandpass-corrected, trimmed, centered, uncropped) + decide the
     resolution factors and the robust on-pulse window. One decode per band."""
     cfg = yaml.safe_load(open(cfg_path))
@@ -354,10 +352,7 @@ def _probe_band(
     prof = _band_profile(native, dt_native)
     peak = int(np.argmax(prof - _baseline(prof)[0]))
     win = robust_onpulse_bounds(prof, dt_native)
-    if auto:
-        f_factor, t_factor = choose_resolution(native, win, native.shape[0], snr_target=snr_target)
-    else:
-        f_factor, t_factor = int(cfg["f_factor"]), int(cfg["t_factor"])
+    f_factor, t_factor = choose_resolution(native, win, native.shape[0], snr_target=snr_target)
     return _Probe(native, dt_native, tel, peak, win, f_factor, t_factor)
 
 
@@ -406,13 +401,12 @@ def prepare_band(
     name: str,
     outdir: str,
     *,
-    auto: bool = True,
     snr_target: float = SNR_TARGET,
 ) -> tuple[FRBModel, BandPrep]:
     """Single-band drop-in for the legacy ``prepare``: S/N resolution + robust
     per-band window. (The joint path uses :func:`prepare_pair`, which additionally
     reconciles the two bands onto a common display window.)"""
-    p = _probe_band(cfg_path, name, outdir, auto=auto, snr_target=snr_target)
+    p = _probe_band(cfg_path, name, outdir, snr_target=snr_target)
     return _build_model(p, p.win)
 
 
@@ -443,9 +437,7 @@ def prepare_pair(
     name: str,
     outdir: str,
     *,
-    auto: bool = True,
     snr_target: float = SNR_TARGET,
-    common_window: bool = True,
 ) -> tuple[tuple[FRBModel, BandPrep], tuple[FRBModel, BandPrep]]:
     """Prepare CHIME and DSA together for a joint fit/figure.
 
@@ -453,13 +445,10 @@ def prepare_pair(
     two windows are then unioned into a common peak-relative span so the joint
     figure never hatches one band where the other has signal (owner complaint #1),
     and the joint likelihood sees each band's full burst + scattering tail (no
-    clipping). Set ``common_window=False`` to keep strictly per-band windows."""
-    pC = _probe_band(cfg_C, f"{name}_chime", outdir, auto=auto, snr_target=snr_target)
-    pD = _probe_band(cfg_D, f"{name}_dsa", outdir, auto=auto, snr_target=snr_target)
-    if common_window:
-        winC, winD = _common_peak_relative_window([pC, pD])
-    else:
-        winC, winD = pC.win, pD.win
+    clipping)."""
+    pC = _probe_band(cfg_C, f"{name}_chime", outdir, snr_target=snr_target)
+    pD = _probe_band(cfg_D, f"{name}_dsa", outdir, snr_target=snr_target)
+    winC, winD = _common_peak_relative_window([pC, pD])
     return _build_model(pC, winC), _build_model(pD, winD)
 
 

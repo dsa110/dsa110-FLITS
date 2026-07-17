@@ -567,7 +567,12 @@ def calculate_acfs_for_subbands(masked_spectrum, config, burst_lims, noise_desc=
     n_rep = analysis_cfg.get("noise", {}).get("template_n_draws", 15)
     use_template = not analysis_cfg.get("noise", {}).get("disable_template", False)
 
-    n_sub = acf_cfg.get("num_subbands", 8)
+    fixed_slices = acf_cfg.get("subband_channel_slices")
+    if fixed_slices is not None:
+        fixed_slices = [(int(start), int(end)) for start, end in fixed_slices]
+        n_sub = len(fixed_slices)
+    else:
+        n_sub = acf_cfg.get("num_subbands", 8)
     use_snr = acf_cfg.get("use_snr_subbanding", False)
     max_lag_mhz_global = acf_cfg.get("max_lag_mhz", 45.0)
     first_fit_lag = acf_cfg.get("first_fit_lag", 1)
@@ -611,14 +616,24 @@ def calculate_acfs_for_subbands(masked_spectrum, config, burst_lims, noise_desc=
         "sigma_self_mhz": sigma_self_mhz,
     }
 
-    # Split burst‑integrated spectrum into sub‑bands (uniform or equal‑S/N)
-    burst_spec_full = masked_spectrum.get_spectrum(burst_lims)
+    # Split burst‑integrated spectrum into sub‑bands (uniform or equal‑S/N).
+    # Optional profile-proportional time weights (config: analysis.acf.time_weights)
+    # give the matched-filter spectrum estimator — see core.get_spectrum for why.
+    burst_spec_full = masked_spectrum.get_spectrum(
+        burst_lims, time_weights=acf_cfg.get("time_weights"))
     start_idx = 0
     total_signal = np.sum(burst_spec_full.compressed())
 
     for i in tqdm(range(n_sub), desc="ACF per sub‑band"):
         # Decide indices [start_idx:end_idx)
-        if not use_snr:
+        if fixed_slices is not None:
+            start_idx, end_idx = fixed_slices[i]
+            if not (0 <= start_idx < end_idx <= masked_spectrum.num_channels):
+                raise ValueError(
+                    f"invalid fixed sub-band slice {(start_idx, end_idx)} for "
+                    f"{masked_spectrum.num_channels} channels"
+                )
+        elif not use_snr:
             sub_len = masked_spectrum.num_channels // n_sub
             end_idx = start_idx + sub_len if i < n_sub - 1 else masked_spectrum.num_channels
         else:

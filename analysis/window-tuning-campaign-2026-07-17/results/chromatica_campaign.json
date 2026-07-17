@@ -1,0 +1,534 @@
+{
+  "name": "chromatica",
+  "window_source": "objective",
+  "off_snr": 2.925234550491525,
+  "valid_span": [
+    9,
+    369
+  ],
+  "windows": {
+    "burst_lims": [
+      177,
+      216
+    ],
+    "off_lims": [
+      255,
+      369
+    ],
+    "estimator": "matched-weight",
+    "weights": {
+      "t0": 177,
+      "t1": 216,
+      "values": [
+        0.000648,
+        0.000869,
+        0.001218,
+        0.000891,
+        0.000863,
+        0.000597,
+        0.000513,
+        0.001211,
+        0.005619,
+        0.019332,
+        0.042433,
+        0.069704,
+        0.092754,
+        0.107485,
+        0.1089,
+        0.097156,
+        0.078754,
+        0.062705,
+        0.049935,
+        0.040765,
+        0.034056,
+        0.029339,
+        0.024579,
+        0.020915,
+        0.017576,
+        0.014987,
+        0.012732,
+        0.011216,
+        0.00979,
+        0.008425,
+        0.007046,
+        0.005989,
+        0.005039,
+        0.004375,
+        0.003831,
+        0.003015,
+        0.002154,
+        0.001453,
+        0.001128
+      ]
+    }
+  },
+  "alpha": {
+    "alpha": 0.39558108548718174,
+    "alpha_err": 0.5535076247711536,
+    "n": 3,
+    "provisional": false
+  },
+  "alpha_unphysical": true,
+  "alpha_bounds": [
+    1.5,
+    6.0
+  ],
+  "science_status": "diagnostic_only",
+  "artifact_validation_status": "fail",
+  "figure_review_status": "fail",
+  "artifact_controls": {
+    "status": "fail",
+    "failed_checks": [
+      "off_pulse_null"
+    ],
+    "off_pulse_null": {
+      "null_pass": null,
+      "on_dnu_mhz": 0.04471017648239333,
+      "off_median_dnu_mhz": 0.140988152056009,
+      "off_n_fits": 2,
+      "ratio": null,
+      "reason": "only 2 off-pulse fits (< 3); cannot distinguish a white off-pulse from failed re-fits -> null inconclusive"
+    },
+    "low_lag_stability": {
+      "stable": true,
+      "dnu_full_mhz": 0.04471017648239333,
+      "dnu_by_excision": {
+        "1": 0.039627006428275095,
+        "2": 0.03676314509386063,
+        "3": 0.03735352559053697
+      },
+      "min_ratio": 0.8222545287500217,
+      "max_ratio": 0.8863084323516378,
+      "failed_ks": [],
+      "reason": "width survives low-lag excision (no collapse or runaway growth) -> wing is resolved"
+    },
+    "subband_support": {
+      "sufficient": true,
+      "n_valid_subbands": 3,
+      "min_subbands": 3,
+      "reason": "3 valid sub-bands >= 3"
+    },
+    "reference_subband_index": 1,
+    "reference_frequency_mhz": 524.3488182602804,
+    "off_pulse_slice_starts": [
+      257,
+      300
+    ]
+  },
+  "subbands": [
+    {
+      "center_mhz": 728.5,
+      "ok": true,
+      "gamma": 0.002952963959216681,
+      "gamma_err": 0.0036217322234527493,
+      "m": 2.3830166120094325,
+      "amp_snr": 111.37161438508483,
+      "resolved": false,
+      "shape_ok": true,
+      "dbic_line": 1015.055370655384,
+      "gamma_scintle_err": 3.9128657212895144e-05,
+      "subband_bw_mhz": 84.07721065079699,
+      "model_sel": "2L",
+      "gamma_b": 0.25109671566363784,
+      "A_b": 1.1574805481971233,
+      "dbic_2comp": 78.69204310294344,
+      "gamma_tail": 0.008856525012546381,
+      "gamma_win_sys": 0.002556908617540059,
+      "n_variants": 4
+    },
+    {
+      "center_mhz": 610.4,
+      "ok": true,
+      "gamma": 0.06124050253364836,
+      "gamma_err": 0.0034785038218245576,
+      "m": 0.4783961238085413,
+      "amp_snr": 12.83225644579813,
+      "resolved": true,
+      "shape_ok": true,
+      "dbic_line": 647.8958628496384,
+      "gamma_scintle_err": 0.004392372887591667,
+      "subband_bw_mhz": 59.2172121766993,
+      "model_sel": "2L",
+      "gamma_b": 5.3722160141671065,
+      "A_b": 0.07425814506681101,
+      "dbic_2comp": 203.52981416334842,
+      "gamma_tail": 0.07110297616996925,
+      "gamma_win_sys": 0.0026143783981357367,
+      "n_variants": 4
+    },
+    {
+      "center_mhz": 524.3,
+      "ok": true,
+      "gamma": 0.04471017648239333,
+      "gamma_err": 0.005159854743351591,
+      "m": 0.32586090826924957,
+      "amp_snr": 6.538787746851374,
+      "resolved": true,
+      "shape_ok": true,
+      "dbic_line": 214.22718065362187,
+      "gamma_scintle_err": 0.002707374649327271,
+      "subband_bw_mhz": 60.7431143663689,
+      "model_sel": "2L",
+      "gamma_b": 19.999999999999996,
+      "A_b": 0.720457618277798,
+      "dbic_2comp": 239.77199754989851,
+      "gamma_tail": 0.058135923071960985,
+      "gamma_win_sys": 0.009011383205215408,
+      "n_variants": 4
+    },
+    {
+      "center_mhz": 443.3,
+      "ok": true,
+      "gamma": 0.05908158252711462,
+      "gamma_err": 0.008454082026717246,
+      "m": 0.2538263355314455,
+      "amp_snr": 5.302581342780334,
+      "resolved": true,
+      "shape_ok": true,
+      "dbic_line": 149.9795729165453,
+      "gamma_scintle_err": 0.004101783444584793,
+      "subband_bw_mhz": 60.99336232547472,
+      "model_sel": "1L",
+      "gamma_b": null,
+      "A_b": null,
+      "dbic_2comp": -12.839989854322994,
+      "gamma_tail": 0.1385678536544703,
+      "gamma_win_sys": 0.028213009139381864,
+      "n_variants": 4
+    }
+  ],
+  "variants": [
+    {
+      "windows": {
+        "burst_lims": [
+          185,
+          214
+        ],
+        "off_lims": [
+          255,
+          369
+        ],
+        "label": "core"
+      },
+      "fits": [
+        {
+          "center_mhz": 728.5,
+          "ok": true,
+          "gamma": 0.007340711122324267,
+          "gamma_err": 0.00318150005212191,
+          "m": 3.1622776601683755,
+          "amp_snr": 97.21231064843502,
+          "resolved": false,
+          "shape_ok": true,
+          "dbic_line": 646.047363112647,
+          "gamma_scintle_err": 0.00015334099646489155,
+          "subband_bw_mhz": 84.07721065079699,
+          "model_sel": "2L",
+          "gamma_b": 0.5501426018917263,
+          "A_b": 6.033451473654737,
+          "dbic_2comp": 52.79264580848127
+        },
+        {
+          "center_mhz": 610.4,
+          "ok": true,
+          "gamma": 0.06559495313343469,
+          "gamma_err": 0.006657518957330417,
+          "m": 0.4807726807204702,
+          "amp_snr": 7.3367616686893244,
+          "resolved": true,
+          "shape_ok": true,
+          "dbic_line": 280.4157873256131,
+          "gamma_scintle_err": 0.0048681876446172645,
+          "subband_bw_mhz": 59.2172121766993,
+          "model_sel": "2L",
+          "gamma_b": 4.010131219850983,
+          "A_b": 0.11299286014657964,
+          "dbic_2comp": 232.57226305148788
+        },
+        {
+          "center_mhz": 524.3,
+          "ok": true,
+          "gamma": 0.041869979184850165,
+          "gamma_err": 0.00906607472785596,
+          "m": 0.312301927984172,
+          "amp_snr": 4.001553891102838,
+          "resolved": true,
+          "shape_ok": true,
+          "dbic_line": 54.82262795391398,
+          "gamma_scintle_err": 0.0024538244269516948,
+          "subband_bw_mhz": 60.7431143663689,
+          "model_sel": "2L",
+          "gamma_b": 19.999999999998387,
+          "A_b": 0.9194084994781607,
+          "dbic_2comp": 69.22218421029993
+        },
+        {
+          "center_mhz": 443.3,
+          "ok": true,
+          "gamma": 0.1097125367203351,
+          "gamma_err": 0.021008686241243517,
+          "m": 0.2075301580695917,
+          "amp_snr": 3.0549809322909764,
+          "resolved": true,
+          "shape_ok": true,
+          "dbic_line": 87.99992985833524,
+          "gamma_scintle_err": 0.010358189425060393,
+          "subband_bw_mhz": 60.99336232547472,
+          "model_sel": "1L",
+          "gamma_b": null,
+          "A_b": null,
+          "dbic_2comp": -12.83998985631115
+        }
+      ]
+    },
+    {
+      "windows": {
+        "burst_lims": [
+          185,
+          215
+        ],
+        "off_lims": [
+          255,
+          369
+        ]
+      },
+      "fits": [
+        {
+          "center_mhz": 728.5,
+          "ok": true,
+          "gamma": 0.007984928269221224,
+          "gamma_err": 0.003131492583093439,
+          "m": 3.162277660168379,
+          "amp_snr": 92.12248341295506,
+          "resolved": false,
+          "shape_ok": true,
+          "dbic_line": 637.3118535472186,
+          "gamma_scintle_err": 0.0001739599579038666,
+          "subband_bw_mhz": 84.07721065079699,
+          "model_sel": "2L",
+          "gamma_b": 0.5646396138051964,
+          "A_b": 6.279688872455974,
+          "dbic_2comp": 57.755295423035264
+        },
+        {
+          "center_mhz": 610.4,
+          "ok": true,
+          "gamma": 0.0633438549335242,
+          "gamma_err": 0.00655748020273946,
+          "m": 0.48556101688134395,
+          "amp_snr": 7.296858958241605,
+          "resolved": true,
+          "shape_ok": true,
+          "dbic_line": 268.65803997627427,
+          "gamma_scintle_err": 0.00462018595281941,
+          "subband_bw_mhz": 59.2172121766993,
+          "model_sel": "2L",
+          "gamma_b": 4.163251345775418,
+          "A_b": 0.12155891609542065,
+          "dbic_2comp": 240.82757943880506
+        },
+        {
+          "center_mhz": 524.3,
+          "ok": true,
+          "gamma": 0.043052012164334574,
+          "gamma_err": 0.009633576704422856,
+          "m": 0.30668673009593883,
+          "amp_snr": 3.811836408235864,
+          "resolved": true,
+          "shape_ok": true,
+          "dbic_line": 51.073321749999195,
+          "gamma_scintle_err": 0.002558341377890738,
+          "subband_bw_mhz": 60.7431143663689,
+          "model_sel": "2L",
+          "gamma_b": 19.999999999999996,
+          "A_b": 0.9001121225457378,
+          "dbic_2comp": 64.4138273769995
+        },
+        {
+          "center_mhz": 443.3,
+          "ok": true,
+          "gamma": 0.11550760080587835,
+          "gamma_err": 0.022619445183875066,
+          "m": 0.2064488812082609,
+          "amp_snr": 2.9400365444218486,
+          "resolved": false,
+          "shape_ok": true,
+          "dbic_line": 84.15123408192449,
+          "gamma_scintle_err": 0.011186986010469888,
+          "subband_bw_mhz": 60.99336232547472,
+          "model_sel": "1L",
+          "gamma_b": null,
+          "A_b": null,
+          "dbic_2comp": -12.839989856258399
+        }
+      ]
+    },
+    {
+      "windows": {
+        "burst_lims": [
+          185,
+          215
+        ],
+        "off_lims": [
+          248,
+          369
+        ]
+      },
+      "fits": [
+        {
+          "center_mhz": 728.5,
+          "ok": true,
+          "gamma": 0.0080667811942968,
+          "gamma_err": 0.00307288527184159,
+          "m": 3.162277660168379,
+          "amp_snr": 95.86000697694995,
+          "resolved": false,
+          "shape_ok": true,
+          "dbic_line": 637.5884352905741,
+          "gamma_scintle_err": 0.00017558064344494508,
+          "subband_bw_mhz": 85.0965133134963,
+          "model_sel": "2L",
+          "gamma_b": 0.5628723898609593,
+          "A_b": 6.1907561366748185,
+          "dbic_2comp": 60.46926931500688
+        },
+        {
+          "center_mhz": 610.4,
+          "ok": true,
+          "gamma": 0.06646925932991983,
+          "gamma_err": 0.007064073724679918,
+          "m": 0.4678419798206085,
+          "amp_snr": 6.97266543927497,
+          "resolved": true,
+          "shape_ok": true,
+          "dbic_line": 261.4322803967366,
+          "gamma_scintle_err": 0.004958803341492788,
+          "subband_bw_mhz": 59.38200961318362,
+          "model_sel": "2L",
+          "gamma_b": 3.8983624105852424,
+          "A_b": 0.10786466894050722,
+          "dbic_2comp": 223.9923987329912
+        },
+        {
+          "center_mhz": 524.3,
+          "ok": true,
+          "gamma": 0.05989274559528098,
+          "gamma_err": 0.008445867101368508,
+          "m": 0.33920338955262785,
+          "amp_snr": 5.141170342173774,
+          "resolved": true,
+          "shape_ok": true,
+          "dbic_line": 139.5181577347421,
+          "gamma_scintle_err": 0.004162435651927446,
+          "subband_bw_mhz": 61.70138094148143,
+          "model_sel": "2L",
+          "gamma_b": 19.99999999999995,
+          "A_b": 0.7185426701282976,
+          "dbic_2comp": 175.20870985541933
+        },
+        {
+          "center_mhz": 443.3,
+          "ok": true,
+          "gamma": 0.11195248817961807,
+          "gamma_err": 0.020461424838806506,
+          "m": 0.21575715112091606,
+          "amp_snr": 3.2239710399380814,
+          "resolved": true,
+          "shape_ok": true,
+          "dbic_line": 88.87660207920817,
+          "gamma_scintle_err": 0.010604782098669009,
+          "subband_bw_mhz": 61.823453116655,
+          "model_sel": "1L",
+          "gamma_b": null,
+          "A_b": null,
+          "dbic_2comp": -12.839989856263855
+        }
+      ]
+    },
+    {
+      "windows": {
+        "burst_lims": [
+          177,
+          216
+        ],
+        "off_lims": [
+          255,
+          369
+        ],
+        "label": "tail-expanded"
+      },
+      "fits": [
+        {
+          "center_mhz": 728.5,
+          "ok": true,
+          "gamma": 0.008856525012546381,
+          "gamma_err": 0.003063277904759785,
+          "m": 3.162277660168379,
+          "amp_snr": 85.98456398167592,
+          "resolved": false,
+          "shape_ok": true,
+          "dbic_line": 635.8543862385043,
+          "gamma_scintle_err": 0.00020320132977794144,
+          "subband_bw_mhz": 84.07721065079699,
+          "model_sel": "2L",
+          "gamma_b": 0.5813642778347389,
+          "A_b": 6.591295848534861,
+          "dbic_2comp": 67.06840813856542
+        },
+        {
+          "center_mhz": 610.4,
+          "ok": true,
+          "gamma": 0.07110297616996925,
+          "gamma_err": 0.008003208379163997,
+          "m": 0.48033404587486095,
+          "amp_snr": 6.115901567327645,
+          "resolved": true,
+          "shape_ok": true,
+          "dbic_line": 224.52981771358827,
+          "gamma_scintle_err": 0.005492789181846799,
+          "subband_bw_mhz": 59.2172121766993,
+          "model_sel": "2L",
+          "gamma_b": 4.433648239502553,
+          "A_b": 0.1606667307484787,
+          "dbic_2comp": 236.62755317434585
+        },
+        {
+          "center_mhz": 524.3,
+          "ok": true,
+          "gamma": 0.058135923071960985,
+          "gamma_err": 0.015638821094813037,
+          "m": 0.28469649897804744,
+          "amp_snr": 2.918666038568972,
+          "resolved": false,
+          "shape_ok": true,
+          "dbic_line": 29.169967453002755,
+          "gamma_scintle_err": 0.004012053145294325,
+          "subband_bw_mhz": 60.7431143663689,
+          "model_sel": "2L",
+          "gamma_b": 19.999999999999996,
+          "A_b": 0.8267202759512521,
+          "dbic_2comp": 42.204503901573844
+        },
+        {
+          "center_mhz": 443.3,
+          "ok": true,
+          "gamma": 0.1385678536544703,
+          "gamma_err": 0.03231141162816798,
+          "m": 0.20219121136681062,
+          "amp_snr": 2.2174978213921515,
+          "resolved": false,
+          "shape_ok": true,
+          "dbic_line": 61.02349903818413,
+          "gamma_scintle_err": 0.014685364240411407,
+          "subband_bw_mhz": 60.99336232547472,
+          "model_sel": "1L",
+          "gamma_b": null,
+          "A_b": null,
+          "dbic_2comp": -12.839989737817632
+        }
+      ]
+    }
+  ],
+  "rfi_new": 671,
+  "method": "off-pulse mean (bandpass_normalization) + matched time-weighting"
+}

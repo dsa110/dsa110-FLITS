@@ -1,0 +1,100 @@
+{
+  "gate_status": "pass",
+  "checks": {
+    "isolated_gamma": true,
+    "two_component_recovery": true,
+    "false_split_control": true,
+    "modulation_recovery": true
+  },
+  "criteria": {
+    "max_median_gamma_relative_error": 0.1,
+    "min_isolated_resolved_fraction": 0.95,
+    "min_two_component_adoption_fraction": 0.95,
+    "max_false_two_component_fraction": 0.05,
+    "max_median_modulation_relative_error": 0.05
+  },
+  "seed": 20260717,
+  "n_trials_per_point": 100,
+  "isolated": [
+    {
+      "truth_gamma_mhz": 0.02,
+      "median_gamma_mhz": 0.02005636881718371,
+      "median_relative_error": 0.002818440859185589,
+      "resolved_fraction": 1.0
+    },
+    {
+      "truth_gamma_mhz": 0.05,
+      "median_gamma_mhz": 0.05001206069837436,
+      "median_relative_error": 0.00024121396748721935,
+      "resolved_fraction": 1.0
+    },
+    {
+      "truth_gamma_mhz": 0.1,
+      "median_gamma_mhz": 0.10018636826701674,
+      "median_relative_error": 0.0018636826701672327,
+      "resolved_fraction": 1.0
+    },
+    {
+      "truth_gamma_mhz": 0.3,
+      "median_gamma_mhz": 0.2996518263617795,
+      "median_relative_error": 0.0011605787940682788,
+      "resolved_fraction": 1.0
+    },
+    {
+      "truth_gamma_mhz": 1.0,
+      "median_gamma_mhz": 0.9999659406516319,
+      "median_relative_error": 3.405934836808733e-05,
+      "resolved_fraction": 1.0
+    },
+    {
+      "truth_gamma_mhz": 3.0,
+      "median_gamma_mhz": 3.0023610749432934,
+      "median_relative_error": 0.0007870249810977281,
+      "resolved_fraction": 1.0
+    }
+  ],
+  "two_component": [
+    {
+      "broad_gamma_mhz": 1.0,
+      "adoption_fraction": 1.0,
+      "median_narrow_gamma_mhz": 0.08045273951496926,
+      "median_relative_error": 0.005659243937115699
+    },
+    {
+      "broad_gamma_mhz": 2.0,
+      "adoption_fraction": 1.0,
+      "median_narrow_gamma_mhz": 0.08014459055232462,
+      "median_relative_error": 0.0018073819040576034
+    },
+    {
+      "broad_gamma_mhz": 5.0,
+      "adoption_fraction": 1.0,
+      "median_narrow_gamma_mhz": 0.08011898464711253,
+      "median_relative_error": 0.0014873080889066248
+    }
+  ],
+  "false_splits": {
+    "envelope_only_fraction": 0.0,
+    "noise_only_fraction": 0.0
+  },
+  "modulation": [
+    {
+      "truth_modulation": 0.6,
+      "median_modulation": 0.6001267117815159,
+      "median_relative_error": 0.0002111863025264782
+    },
+    {
+      "truth_modulation": 0.9,
+      "median_modulation": 0.899923933326513,
+      "median_relative_error": 8.451852609669963e-05
+    }
+  ],
+  "provenance": {
+    "command": "FLITS_ROOT=$PWD uv run python analysis/window-tuning-campaign-2026-07-17/run_injection_gate.py",
+    "python": "3.13.13",
+    "numpy": "2.4.6",
+    "scipy": "1.18.0",
+    "git_head": "673dbcd56ec3315e581627b9b4ecebd188b73f34",
+    "window_refit_sha256": "c6002723a0321321cc36ab9ee1fb76f2053b58a360c0054cecbda9d50818ae39"
+  }
+}

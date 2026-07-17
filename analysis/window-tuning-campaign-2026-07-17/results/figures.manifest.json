@@ -1,0 +1,132 @@
+{
+  "directory": "/Users/jakobfaber/Developer/scratch/worktrees/flits-window-tuning/analysis/window-tuning-campaign-2026-07-17/results",
+  "generated": "2026-07-17",
+  "campaign": "CHIME objective-window scintillation diagnostics",
+  "figures": [
+    {
+      "file": "casey_acf_fits.png",
+      "expectation": "Per-subband ACF points are finite and the selected Lorentzian curve follows the central peak without fitting broad envelope structure; legends and flags agree with the campaign JSON.",
+      "review_status": "pending"
+    },
+    {
+      "file": "casey_hi_acf_fits.png",
+      "expectation": "Per-subband ACF points are finite and the selected Lorentzian curve follows the central peak without fitting broad envelope structure; legends and flags agree with the campaign JSON.",
+      "review_status": "pending"
+    },
+    {
+      "file": "chromatica_acf_fits.png",
+      "expectation": "Per-subband ACF points are finite and the selected Lorentzian curve follows the central peak without fitting broad envelope structure; legends and flags agree with the campaign JSON.",
+      "review_status": "pending"
+    },
+    {
+      "file": "chromatica_hi_acf_fits.png",
+      "expectation": "Per-subband ACF points are finite and the selected Lorentzian curve follows the central peak without fitting broad envelope structure; legends and flags agree with the campaign JSON.",
+      "review_status": "pending"
+    },
+    {
+      "file": "freya_acf_fits.png",
+      "expectation": "Per-subband ACF points are finite and the selected Lorentzian curve follows the central peak without fitting broad envelope structure; legends and flags agree with the campaign JSON.",
+      "review_status": "pending"
+    },
+    {
+      "file": "freya_hi_acf_fits.png",
+      "expectation": "Per-subband ACF points are finite and the selected Lorentzian curve follows the central peak without fitting broad envelope structure; legends and flags agree with the campaign JSON.",
+      "review_status": "pending"
+    },
+    {
+      "file": "hamilton_acf_fits.png",
+      "expectation": "Per-subband ACF points are finite and the selected Lorentzian curve follows the central peak without fitting broad envelope structure; legends and flags agree with the campaign JSON.",
+      "review_status": "pending"
+    },
+    {
+      "file": "hamilton_hi_acf_fits.png",
+      "expectation": "Per-subband ACF points are finite and the selected Lorentzian curve follows the central peak without fitting broad envelope structure; legends and flags agree with the campaign JSON.",
+      "review_status": "pending"
+    },
+    {
+      "file": "injection_recovery_gate.png",
+      "expectation": "Recovered isolated widths follow the identity line; the 2L adoption bars exceed the 0.95 guide for injected two-scale ACFs while both null false-split bars remain low.",
+      "review_status": "pending"
+    },
+    {
+      "file": "isha_acf_fits.png",
+      "expectation": "Per-subband ACF points are finite and the selected Lorentzian curve follows the central peak without fitting broad envelope structure; legends and flags agree with the campaign JSON.",
+      "review_status": "pending"
+    },
+    {
+      "file": "isha_hi_acf_fits.png",
+      "expectation": "Per-subband ACF points are finite and the selected Lorentzian curve follows the central peak without fitting broad envelope structure; legends and flags agree with the campaign JSON.",
+      "review_status": "pending"
+    },
+    {
+      "file": "johndoeII_acf_fits.png",
+      "expectation": "Per-subband ACF points are finite and the selected Lorentzian curve follows the central peak without fitting broad envelope structure; legends and flags agree with the campaign JSON.",
+      "review_status": "pending"
+    },
+    {
+      "file": "johndoeII_hi_acf_fits.png",
+      "expectation": "Per-subband ACF points are finite and the selected Lorentzian curve follows the central peak without fitting broad envelope structure; legends and flags agree with the campaign JSON.",
+      "review_status": "pending"
+    },
+    {
+      "file": "mahi_acf_fits.png",
+      "expectation": "Per-subband ACF points are finite and the selected Lorentzian curve follows the central peak without fitting broad envelope structure; legends and flags agree with the campaign JSON.",
+      "review_status": "pending"
+    },
+    {
+      "file": "mahi_hi_acf_fits.png",
+      "expectation": "Per-subband ACF points are finite and the selected Lorentzian curve follows the central peak without fitting broad envelope structure; legends and flags agree with the campaign JSON.",
+      "review_status": "pending"
+    },
+    {
+      "file": "oran_acf_fits.png",
+      "expectation": "Per-subband ACF points are finite and the selected Lorentzian curve follows the central peak without fitting broad envelope structure; legends and flags agree with the campaign JSON.",
+      "review_status": "pending"
+    },
+    {
+      "file": "oran_hi_acf_fits.png",
+      "expectation": "Per-subband ACF points are finite and the selected Lorentzian curve follows the central peak without fitting broad envelope structure; legends and flags agree with the campaign JSON.",
+      "review_status": "pending"
+    },
+    {
+      "file": "phineas_acf_fits.png",
+      "expectation": "Per-subband ACF points are finite and the selected Lorentzian curve follows the central peak without fitting broad envelope structure; legends and flags agree with the campaign JSON.",
+      "review_status": "pending"
+    },
+    {
+      "file": "phineas_hi_acf_fits.png",
+      "expectation": "Per-subband ACF points are finite and the selected Lorentzian curve follows the central peak without fitting broad envelope structure; legends and flags agree with the campaign JSON.",
+      "review_status": "pending"
+    },
+    {
+      "file": "whitney_acf_fits.png",
+      "expectation": "Per-subband ACF points are finite and the selected Lorentzian curve follows the central peak without fitting broad envelope structure; legends and flags agree with the campaign JSON.",
+      "review_status": "pending"
+    },
+    {
+      "file": "whitney_hi_acf_fits.png",
+      "expectation": "Per-subband ACF points are finite and the selected Lorentzian curve follows the central peak without fitting broad envelope structure; legends and flags agree with the campaign JSON.",
+      "review_status": "pending"
+    },
+    {
+      "file": "wilhelm_acf_fits.png",
+      "expectation": "Per-subband ACF points are finite and the selected Lorentzian curve follows the central peak without fitting broad envelope structure; legends and flags agree with the campaign JSON.",
+      "review_status": "pending"
+    },
+    {
+      "file": "wilhelm_hi_acf_fits.png",
+      "expectation": "Per-subband ACF points are finite and the selected Lorentzian curve follows the central peak without fitting broad envelope structure; legends and flags agree with the campaign JSON.",
+      "review_status": "pending"
+    },
+    {
+      "file": "zach_acf_fits.png",
+      "expectation": "Per-subband ACF points are finite and the selected Lorentzian curve follows the central peak without fitting broad envelope structure; legends and flags agree with the campaign JSON.",
+      "review_status": "pending"
+    },
+    {
+      "file": "zach_hi_acf_fits.png",
+      "expectation": "Per-subband ACF points are finite and the selected Lorentzian curve follows the central peak without fitting broad envelope structure; legends and flags agree with the campaign JSON.",
+      "review_status": "pending"
+    }
+  ]
+}

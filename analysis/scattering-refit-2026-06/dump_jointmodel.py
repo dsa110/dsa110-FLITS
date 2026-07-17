@@ -64,6 +64,11 @@ def recover(model, params_list):
     r = ((d - mod) / sig[:, None])[v]
     r = r[np.isfinite(r)]
     chi2 = float(np.sum(r**2)) / max(int(r.size) - 7, 1)
+    # Per-component integrated flux (valid channels only): weight for the
+    # fluence-weighted TOA centroid. Negative-gain channels are physical noise
+    # excursions of the OLS solve, not real emission, so clip at 0 before summing.
+    gval = np.where(v[:, None], g, 0.0)
+    fluence = np.einsum("fn,nft->n", np.clip(gval, 0.0, None), Ks)
     return dict(
         data=d,
         model=mod,
@@ -71,6 +76,7 @@ def recover(model, params_list):
         time=np.asarray(model.time, float),
         noise=sig,
         valid=v,
+        fluence=np.asarray(fluence, float),
     ), chi2
 
 
@@ -172,6 +178,8 @@ def main():
         chi2D=chiD,
         nC=nC,
         nD=nD,
+        fluenceC=C["fluence"],
+        fluenceD=D["fluence"],
         burst=b,
     )
     print(f"{b}: wrote {fp}  alpha={al:.3f} tau={tau:.4f} chiC={chiC:.2f} chiD={chiD:.2f}")

@@ -141,6 +141,18 @@ def main():
         "is normalization-matched to C2/D2 runs (model-selection baseline)",
     )
     ap.add_argument(
+        "--gain-s2",
+        dest="gain_s2",
+        type=float,
+        default=None,
+        help="fix the per-channel gain-prior variance s2 instead of profiling it. "
+        "REQUIRED for a valid cross-N Bayes factor (ADR-0003): the profiled-s2 lnZ "
+        "is not comparable across component count, so component-count model selection "
+        "must hold s2 fixed (and use the multi likelihood throughout, which this also "
+        "enables). Output is tagged _s2-<v>. Run a small grid (e.g. 10, 100) and accept "
+        "the extra component only if ΔlnZ(N+1 vs N) > 5 consistently across s2.",
+    )
+    ap.add_argument(
         "--fixed-delta-dm-C",
         type=float,
         default=None,
@@ -172,7 +184,9 @@ def main():
     if (a.beta_lo is None) != (a.beta_hi is None):
         ap.error("--beta-lo and --beta-hi must be given together")
     beta_bounds = (a.beta_lo, a.beta_hi) if a.beta_lo is not None else None
-    multi = a.components_C > 1 or a.components_D > 1 or a.force_multi
+    # gain_s2 fixed also forces the multi likelihood (burstfit_joint threads it there),
+    # so a fixed-s2 C1D1 is normalization-matched to the C2 rungs it is compared against.
+    multi = a.components_C > 1 or a.components_D > 1 or a.force_multi or a.gain_s2 is not None
 
     cfg_dir = f"{RUNS}/configs"
     out_dir = f"{RUNS}/data/joint"
@@ -208,6 +222,7 @@ def main():
         components_C=a.components_C,
         components_D=a.components_D,
         force_multi=a.force_multi,
+        gain_s2=a.gain_s2,
         fixed_delta_dm_C=a.fixed_delta_dm_C,
         fixed_delta_dm_D=a.fixed_delta_dm_D,
     )
@@ -238,6 +253,9 @@ def main():
         "alpha_bounds": list(res["alpha_bounds"]),
         "components_C": a.components_C,
         "components_D": a.components_D,
+        # None => s2 was profiled (lnZ NOT cross-N comparable; ADR-0003). A float =>
+        # fixed s2, so this lnZ IS a valid cross-N rung at that s2.
+        "gain_s2": a.gain_s2,
         "fixed_parameters": res.get("fixed_parameters", {}),
         "percentiles": pct,
         "ncall": res["ncall"],
@@ -324,6 +342,9 @@ def main():
         )
     else:
         tag = ""
+    if a.gain_s2 is not None:
+        # _s2verdict.parse_tag expects an integer suffix; keep the fixed-s2 grid on ints.
+        tag += f"_s2-{int(a.gain_s2)}"
     out = f"{out_dir}/{a.burst}_joint_fit{tag}.json"
     json.dump(summary, open(out, "w"), indent=2)
 

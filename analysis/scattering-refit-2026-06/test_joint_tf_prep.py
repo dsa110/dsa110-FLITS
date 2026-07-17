@@ -50,6 +50,17 @@ def test_window_stable_to_sharp_burst():
     assert hi - lo >= 20, f"sharp-burst window collapsed ({hi - lo} samples)"
 
 
+def test_native_chime_noise_does_not_chain_tail_to_cap():
+    for seed in range(8):
+        rng = np.random.default_rng(seed)
+        t = np.arange(16000)
+        prof = 35.0 * np.exp(-0.5 * ((t - 6000) / 5.0) ** 2)
+        prof += rng.normal(0, 1.0, t.size)
+        _lo, hi = J.robust_onpulse_bounds(prof, dt_ms=0.00256)
+        cap = int(round(J.WIN_TRAIL_CAP_MS / 0.00256))
+        assert hi < 6000 + cap // 4, f"noise chained toward the tail cap (seed={seed}, hi={hi})"
+
+
 def test_window_does_not_follow_a_low_significance_leading_shelf():
     rng = np.random.default_rng(5)
     t = np.arange(4000)
@@ -94,6 +105,17 @@ def test_resolution_coarsens_for_faint():
     assert t_faint > t_bright, (
         f"faint burst should bin coarser in time (bright t={t_bright}, faint t={t_faint})"
     )
+
+
+def test_unreachable_snr_floor_is_explicitly_unqualified():
+    rng = np.random.default_rng(31)
+    data = rng.normal(0, 1.0, (16, 512))
+    profile_snr, channel_snr, qualified = J.resolution_snr_status(
+        data, (200, 260), snr_target=1000.0
+    )
+    assert np.isfinite(profile_snr)
+    assert np.isfinite(channel_snr)
+    assert qualified is False
 
 
 def test_time_bin_cap_respected():

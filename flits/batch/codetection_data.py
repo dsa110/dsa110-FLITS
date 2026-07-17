@@ -92,6 +92,15 @@ def burst_cube_paths(data_dir: Path, burst: str) -> tuple[Path, Path]:
 
 
 def toa_offset_ms(burst: str, toa_json: Path | None = None) -> float | None:
+    """Offset used to align the two bands' *observed* cube peaks for display.
+
+    This is the peak-based CHIME-DSA offset, not the scatter-corrected model
+    offset: the codetection gallery overlays the observed (scattered) profiles,
+    so their peaks must be aligned. Since the model switch, the golden JSON's
+    ``measured_offset_ms`` is the intrinsic (de-scattered) offset and the peak
+    offset lives in ``peak_measured_offset_ms``. Prefer the peak key; fall back
+    to ``measured_offset_ms`` for older JSONs that predate the model extension.
+    """
     fp = toa_json or _TOA_JSON
     if not fp.exists():
         return None
@@ -99,7 +108,8 @@ def toa_offset_ms(burst: str, toa_json: Path | None = None) -> float | None:
     row = rows.get(burst) or rows.get(burst.lower())
     if not row:
         return None
-    return float(row["measured_offset_ms"])
+    offset = row.get("peak_measured_offset_ms", row.get("measured_offset_ms"))
+    return float(offset) if offset is not None else None
 
 
 def chime_toa_shift_ms(

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import asdict, dataclass
-from typing import Any
+from typing import Any, ClassVar
 
 import astropy.constants as const
 import astropy.units as u
@@ -12,6 +12,16 @@ from astropy.time import Time
 
 from flits.common.constants import K_DM
 from flits.common.utils import calculate_dm_timing_error
+
+# Observatory locations for the CHIME (DRAO) and DSA-110 (OVRO) sites. These
+# are held as explicit literals rather than EarthLocation.of_site(...) so the
+# crossmatch and its tests are deterministic and do not depend on astropy's
+# remote site registry (data.astropy.org). The values match the canonical
+# coordinates used throughout the pipeline; a site-position uncertainty of even
+# 1 km projects to < 3e-3 ms of geometric delay, far below any reported
+# precision and below the 1e-2 ms tolerance of the reproduction test.
+DRAO_LOCATION = EarthLocation(lat=49.3206 * u.deg, lon=-119.6236 * u.deg, height=545 * u.m)
+OVRO_LOCATION = EarthLocation(lat=37.2333 * u.deg, lon=-118.2834 * u.deg, height=1222 * u.m)
 
 # Assume these are defined elsewhere in your script
 # from baseband_analysis.core.bbdata import BBData
@@ -72,6 +82,33 @@ class CrossmatchInput:
     error_chime_ms: float | None = None
     error_dsa_ms: float | None = None
     fwhm_ms: float | None = None
+    # Joint-fit model scatter corrections (peak-shift, ms, >= 0) per band. When
+    # both are supplied, reproduce_model_result() subtracts them from the
+    # peak-based ToA to yield the intrinsic (de-scattered) model arrival.
+    scatter_corr_chime_ms: float | None = None
+    scatter_corr_dsa_ms: float | None = None
+    # Posterior localization error (t0 half-width, ms) per band, folded into
+    # the model error budget in quadrature with the DM-referral term.
+    loc_err_chime_ms: float | None = None
+    loc_err_dsa_ms: float | None = None
+    # Uncertainty ON the scatter correction, propagated from the tau/beta
+    # posteriors (ms, per band). Folded into the per-band arrival error.
+    scatter_corr_unc_chime_ms: float | None = None
+    scatter_corr_unc_dsa_ms: float | None = None
+    # Multi-component ToA ambiguity (ms, per band): flux-weighted spread of the
+    # candidate component-t0 arrivals, weighted by the observed profile
+    # amplitude at each component. Zero for single-component bursts. Folded into
+    # the per-band arrival error.
+    comp_ambig_chime_ms: float | None = None
+    comp_ambig_dsa_ms: float | None = None
+    # Inter-site geometric-delay error from source localization (ms). Projects
+    # the position uncertainty onto the DRAO-OVRO baseline; folded once into the
+    # combined offset error (it is not a per-band term).
+    geo_pos_err_ms: float | None = None
+    # A model correction may replace the peak ToA only after the fit passes the
+    # numerical gates and its diagnostic figure has been reviewed.
+    model_fit_quality: str | None = None
+    model_figure_reviewed: bool = False
 
 
 @dataclass(frozen=True)
@@ -91,12 +128,49 @@ class CrossmatchResult:
     measured_offset_ms: float
     combined_dm_uncertainty_ms: float | None
     geometric_delay_ms: float
+    # Model (scatter-corrected) extension. Populated by reproduce_model_result;
+    # left None by the legacy reproduce_notebook_result so to_legacy_dict is
+    # byte-for-byte unchanged.
+    scatter_corr_chime_ms: float | None = None
+    scatter_corr_dsa_ms: float | None = None
+    differential_scatter_shift_ms: float | None = None
+    peak_measured_offset_ms: float | None = None
+    loc_err_chime_ms: float | None = None
+    loc_err_dsa_ms: float | None = None
+    combined_error_ms: float | None = None
+    # Extended error budget. error_chime_ms/error_dsa_ms above carry the
+    # DM-referral + t0-localization terms; these add the scatter-correction
+    # uncertainty and the multi-component ambiguity per band, plus the
+    # inter-site geometric-position term, into combined_error_full_ms.
+    scatter_corr_unc_chime_ms: float | None = None
+    scatter_corr_unc_dsa_ms: float | None = None
+    comp_ambig_chime_ms: float | None = None
+    comp_ambig_dsa_ms: float | None = None
+    geo_pos_err_ms: float | None = None
+    error_chime_full_ms: float | None = None
+    error_dsa_full_ms: float | None = None
+    combined_error_full_ms: float | None = None
+    model_corrected_offset_ms: float | None = None
+    model_correction_status: str | None = None
+
+    _LEGACY_KEYS: ClassVar[tuple[str, ...]] = (
+        "chime_id", "dm", "fwhm_ms", "toa_chime_unix_400", "toa_chime_utc_400",
+        "dm_mjd", "toa_dsa_utc_400", "dm_uncertainty", "error_chime_ms",
+        "error_dsa_ms", "measured_offset_ms", "combined_dm_uncertainty_ms",
+        "geometric_delay_ms",
+    )
 
     def to_legacy_dict(self) -> dict[str, Any]:
+        """Legacy 13-key row; identical to the pre-model schema."""
+        d = asdict(self)
+        return {k: d[k] for k in self._LEGACY_KEYS}
+
+    def to_model_dict(self) -> dict[str, Any]:
+        """Full row including the model scatter-correction extension."""
         return asdict(self)
 
 
-def compute_toa(t0, offset, f_center, DM, f_ref):
+def compute_toa(t0, offset, f_center, DM, f_ref, scatter_correction=0.0 * u.s):
     """Compute a time of arrival referenced to a frequency.
 
     Parameters
@@ -112,6 +186,13 @@ def compute_toa(t0, offset, f_center, DM, f_ref):
         Dispersion measure.
     f_ref : astropy.units.Quantity
         Reference frequency in MHz.
+    scatter_correction : astropy.units.Quantity, optional
+        Scattering peak-shift for this band (>= 0). The peak of a scattered
+        profile lags the intrinsic arrival by this amount, so it is
+        *subtracted* to recover the model (de-scattered) time of arrival. The
+        default of zero reproduces the legacy peak-based ToA. See
+        :func:`reproduce_model_result` and the joint-fit scatter-correction
+        table for how the per-band value is derived.
 
     Returns
     -------
@@ -120,8 +201,8 @@ def compute_toa(t0, offset, f_center, DM, f_ref):
     """
     shift = K_DM * DM.value * (1 / f_ref.value**2 - 1 / f_center.value**2) * u.s
     if isinstance(t0, Time):
-        return t0 + offset + shift
-    toa = t0 + offset + shift
+        return t0 + offset + shift - scatter_correction
+    toa = t0 + offset + shift - scatter_correction
     return Time(toa.to_value(u.s), format="unix", scale="utc")
 
 
@@ -166,8 +247,8 @@ def reproduce_notebook_result(crossmatch: CrossmatchInput) -> CrossmatchResult:
     geometric_delay_ms = compute_geometric_delay(
         chime_toa,
         src,
-        EarthLocation.of_site("DRAO"),
-        EarthLocation.of_site("OVRO"),
+        DRAO_LOCATION,
+        OVRO_LOCATION,
     ).to_value(u.ms)
 
     combined_dm_uncertainty_ms = None
@@ -190,6 +271,157 @@ def reproduce_notebook_result(crossmatch: CrossmatchInput) -> CrossmatchResult:
         measured_offset_ms=measured_offset_ms,
         combined_dm_uncertainty_ms=combined_dm_uncertainty_ms,
         geometric_delay_ms=geometric_delay_ms,
+    )
+
+
+def reproduce_model_result(crossmatch: CrossmatchInput) -> CrossmatchResult:
+    """Model (scatter-corrected) crossmatch result.
+
+    Identical to :func:`reproduce_notebook_result` except that the per-band
+    joint-fit scattering peak-shift is subtracted from each band's ToA, so the
+    reported ``measured_offset_ms`` is the intrinsic (de-scattered) CHIME-DSA
+    offset at 400 MHz. The legacy peak-based offset is retained as
+    ``peak_measured_offset_ms``. The error budget folds the posterior
+    localization error into the DM-referral term in quadrature per band.
+
+    Requires ``scatter_corr_chime_ms``/``scatter_corr_dsa_ms`` on the input; if
+    absent it falls back to the legacy (zero-correction) result so callers can
+    use it uniformly.
+    """
+    if (
+        crossmatch.scatter_corr_chime_ms is None
+        or crossmatch.scatter_corr_dsa_ms is None
+    ):
+        return reproduce_notebook_result(crossmatch)
+
+    peak_result = reproduce_notebook_result(crossmatch)
+    dm = crossmatch.dm * (u.pc / u.cm**3)
+    scat_chime = crossmatch.scatter_corr_chime_ms * u.ms
+    scat_dsa = crossmatch.scatter_corr_dsa_ms * u.ms
+
+    # CHIME ToA is stored provenance already referred to 400 MHz; subtract its
+    # scattering peak-shift directly to recover the intrinsic arrival.
+    chime_model_toa = crossmatch.chime.toa_time_400 - scat_chime
+    dsa_model_toa = compute_toa(
+        crossmatch.dsa.curated_time,
+        0.0 * u.s,
+        crossmatch.dsa.native_frequency_mhz * u.MHz,
+        dm,
+        crossmatch.dsa.reference_frequency_mhz * u.MHz,
+        scatter_correction=scat_dsa,
+    )
+    model_corrected_offset_ms = (chime_model_toa - dsa_model_toa).to_value(u.ms)
+    peak_measured_offset_ms = peak_result.measured_offset_ms
+    differential_scatter_shift_ms = float(
+        crossmatch.scatter_corr_chime_ms - crossmatch.scatter_corr_dsa_ms
+    )
+
+    model_validated = (
+        crossmatch.model_fit_quality == "PASS" and crossmatch.model_figure_reviewed
+    )
+    if model_validated:
+        chime_toa = chime_model_toa
+        dsa_toa = dsa_model_toa
+        measured_offset_ms = model_corrected_offset_ms
+        correction_status = "validated"
+    else:
+        chime_toa = crossmatch.chime.toa_time_400
+        dsa_toa = Time(peak_result.toa_dsa_utc_400, format="iso", scale="utc")
+        measured_offset_ms = peak_measured_offset_ms
+        quality = crossmatch.model_fit_quality or "UNVALIDATED"
+        correction_status = f"diagnostic_only:{quality}"
+
+    src = SkyCoord(crossmatch.source_coord, unit=(u.hourangle, u.deg), frame="icrs")
+    geometric_delay_ms = compute_geometric_delay(
+        chime_toa,
+        src,
+        DRAO_LOCATION,
+        OVRO_LOCATION,
+    ).to_value(u.ms)
+
+    # Error budget: fold posterior localization into the DM-referral term.
+    err_chime = crossmatch.error_chime_ms
+    err_dsa = crossmatch.error_dsa_ms
+    loc_chime = crossmatch.loc_err_chime_ms
+    loc_dsa = crossmatch.loc_err_dsa_ms
+    err_chime_model = (
+        float(np.hypot(err_chime, loc_chime))
+        if err_chime is not None and loc_chime is not None
+        else err_chime
+    )
+    err_dsa_model = (
+        float(np.hypot(err_dsa, loc_dsa))
+        if err_dsa is not None and loc_dsa is not None
+        else err_dsa
+    )
+    combined_error_ms = None
+    if err_chime_model is not None and err_dsa_model is not None:
+        combined_error_ms = float(np.hypot(err_chime_model, err_dsa_model))
+    combined_dm_uncertainty_ms = None
+    if err_chime is not None and err_dsa is not None:
+        combined_dm_uncertainty_ms = float(np.hypot(err_chime, err_dsa))
+
+    # Extended per-band budget: add the scatter-correction uncertainty and the
+    # multi-component ToA ambiguity in quadrature onto the model per-band error.
+    def _extend(base, *terms):
+        if base is None:
+            return None
+        acc = base**2
+        for term in terms:
+            if term is not None:
+                acc += term**2
+        return float(acc**0.5)
+
+    err_chime_full = _extend(
+        err_chime_model,
+        crossmatch.scatter_corr_unc_chime_ms,
+        crossmatch.comp_ambig_chime_ms,
+    )
+    err_dsa_full = _extend(
+        err_dsa_model,
+        crossmatch.scatter_corr_unc_dsa_ms,
+        crossmatch.comp_ambig_dsa_ms,
+    )
+    # Combined offset error folds both full per-band errors and the single
+    # inter-site geometric-position term.
+    combined_error_full_ms = None
+    if err_chime_full is not None and err_dsa_full is not None:
+        combined_error_full_ms = _extend(
+            float(np.hypot(err_chime_full, err_dsa_full)),
+            crossmatch.geo_pos_err_ms,
+        )
+
+    return CrossmatchResult(
+        chime_id=crossmatch.chime_id,
+        dm=crossmatch.dm,
+        fwhm_ms=crossmatch.fwhm_ms,
+        toa_chime_unix_400=float(chime_toa.unix),
+        toa_chime_utc_400=chime_toa.iso,
+        dm_mjd=crossmatch.dsa.dsa_mjd,
+        toa_dsa_utc_400=dsa_toa.iso,
+        dm_uncertainty=crossmatch.dm_uncertainty,
+        error_chime_ms=err_chime_model,
+        error_dsa_ms=err_dsa_model,
+        measured_offset_ms=measured_offset_ms,
+        combined_dm_uncertainty_ms=combined_dm_uncertainty_ms,
+        geometric_delay_ms=geometric_delay_ms,
+        scatter_corr_chime_ms=crossmatch.scatter_corr_chime_ms,
+        scatter_corr_dsa_ms=crossmatch.scatter_corr_dsa_ms,
+        differential_scatter_shift_ms=differential_scatter_shift_ms,
+        peak_measured_offset_ms=peak_measured_offset_ms,
+        loc_err_chime_ms=loc_chime,
+        loc_err_dsa_ms=loc_dsa,
+        combined_error_ms=combined_error_ms,
+        scatter_corr_unc_chime_ms=crossmatch.scatter_corr_unc_chime_ms,
+        scatter_corr_unc_dsa_ms=crossmatch.scatter_corr_unc_dsa_ms,
+        comp_ambig_chime_ms=crossmatch.comp_ambig_chime_ms,
+        comp_ambig_dsa_ms=crossmatch.comp_ambig_dsa_ms,
+        geo_pos_err_ms=crossmatch.geo_pos_err_ms,
+        error_chime_full_ms=err_chime_full,
+        error_dsa_full_ms=err_dsa_full,
+        combined_error_full_ms=combined_error_full_ms,
+        model_corrected_offset_ms=model_corrected_offset_ms,
+        model_correction_status=correction_status,
     )
 
 

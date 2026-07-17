@@ -131,6 +131,31 @@ def test_report_has_chance_P_for_all_12_and_golden_untouched():
     assert golden.read_text() == golden_before
 
 
+def test_report_geometric_pedestal_from_toa_results():
+    # Pillar 3 sample level: when the crossmatch results are supplied, the report
+    # carries the shared geometric pedestal. The residual (offset - geometry) has a
+    # small-but-significant common mean; the near-constant -2.2 ms geometric delay is
+    # a positive association signature, and it must not perturb the chance gate.
+    golden = ROOT / "crossmatching/toa_crossmatch_results.json"
+    report = build_association_report(
+        ROOT / "crossmatching/notebook_reproduction_fixture.json",
+        toa_results_path=golden,
+    )
+    ped = report["geometric_pedestal"]
+    assert ped is not None and ped["n_pairs"] == 12
+    # geometry is a tight pedestal, CHIME ahead by ~2.2 ms, spread well under 0.5 ms
+    assert -2.4 < ped["geometric_delay_mean_ms"] < -2.0
+    assert ped["geometric_delay_spread_ms"] < 0.5
+    # residual pedestal is significant at ~2.5 sigma
+    assert ped["residual_n_sigma"] > 2.0
+    # the pedestal is reporting-only: the chance expectation is unchanged
+    report_no_toa = build_association_report(
+        ROOT / "crossmatching/notebook_reproduction_fixture.json"
+    )
+    assert report["expected_chance_associations"] == report_no_toa["expected_chance_associations"]
+    assert report_no_toa["geometric_pedestal"] is None
+
+
 def test_report_activates_pillars_2_and_4_from_chime_inputs(tmp_path):
     import json
 

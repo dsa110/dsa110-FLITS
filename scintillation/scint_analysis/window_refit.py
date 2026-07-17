@@ -125,21 +125,26 @@ def _fit_subband(lags, acf):
     # subbands can put ap[0] above the A<=10 bound, which makes curve_fit raise
     # ("initial guess outside bounds") instead of returning a gated non-detection
     A0 = float(np.clip(ap[0] - np.median(ap[outer]), 1e-3, 9.9))
+    # The narrow-gamma reach is set by the channel width (injection round 1), so the
+    # gamma fit floor and the low-side rail must scale with the lag grid, not sit at
+    # a fixed MHz value: a hardcoded 0.02 floor (tuned for 24.4 kHz products) rejected
+    # hamilton_hi's genuinely resolvable gamma~0.014 at 6.1 kHz channels.
+    dlag = float(np.median(np.diff(lp)))
+    glo = max(0.25 * dlag, 1e-4)
     try:
-        p, cov = curve_fit(lorentz, lp, ap, p0=[A0, 0.5, 0.0],
-                           bounds=([0, 0.01, -1], [10, 20, 1]), maxfev=20000)
+        p, cov = curve_fit(lorentz, lp, ap, p0=[A0, max(0.5, 2 * glo), 0.0],
+                           bounds=([0, glo, -1], [10, 20, 1]), maxfev=20000)
         perr = np.sqrt(np.diag(cov))
     except Exception as e:
         return dict(ok=False, reason=str(e), noise=noise)
     A, gamma, c0 = p; Aerr, gerr, _ = perr
     m = float(np.sqrt(max(A, 0)))
-    dlag = float(np.median(np.diff(lp)))
     amp_snr = A / noise if noise > 0 else np.inf
     # A railed at its upper bound is as diagnostic as a railed gamma: weak-burst
     # weighted spectra can drive the ACF amplitude to the A<=10 bound (m=sqrt(10)
     # =3.16 exactly — johndoeII/mahi 739-MHz artifact, 2026-07-17), which is an
     # envelope/noise pathology, never a physical modulation index
-    railed = (gamma < 0.02) or (gamma > 0.9 * 20) or (gamma > 0.9 * LAG_MAX) \
+    railed = (gamma < 2 * glo) or (gamma > 0.9 * 20) or (gamma > 0.9 * LAG_MAX) \
         or (A > 0.9 * 10)
     resolved = bool((amp_snr > 3) and (not railed) and (gamma > 2 * dlag) and (gerr < gamma))
     return dict(ok=True, A=float(A), gamma=float(gamma), gamma_err=float(gerr), c0=float(c0),

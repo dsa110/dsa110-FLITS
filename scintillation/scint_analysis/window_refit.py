@@ -37,7 +37,16 @@ _BASECFG = {}      # name -> base config dict (cheap; the npz load dominates and
 def _base_config(name):
     if name in _BASECFG:
         return copy.deepcopy(_BASECFG[name])
-    cfg = config_module.load_config(f"{R}/scintillation/configs/bursts/{name}_chime.yaml")
+    # "<burst>_hi" auto-derives from the standard config with the input swapped to the
+    # _hi product (600-800 MHz, per-burst upchannelization: 0.76-24.4 kHz channels).
+    # Deliberately NOT the hand-tuned casey/freya *_chime_hi.yaml files: those restrict
+    # band/subbands per burst, and the campaign requires one uniform rule sample-wide.
+    if name.endswith("_hi"):
+        cfg = config_module.load_config(f"{R}/scintillation/configs/bursts/{name[:-3]}_chime.yaml")
+        cfg["input_data_path"] = cfg["input_data_path"].replace("_chime.npz", "_chime_hi.npz")
+        cfg["burst_id"] = name
+    else:
+        cfg = config_module.load_config(f"{R}/scintillation/configs/bursts/{name}_chime.yaml")
     _BASECFG[name] = cfg
     return copy.deepcopy(cfg)
 

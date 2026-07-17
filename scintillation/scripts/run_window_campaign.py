@@ -29,6 +29,10 @@ from scint_analysis import freya_scintillation as fs
 
 BURSTS = ["casey", "chromatica", "freya", "hamilton", "isha", "johndoeII",
           "mahi", "oran", "phineas", "whitney", "wilhelm", "zach"]
+# "<name>_hi" runs the same uniform rule on the _hi product (600-800 MHz,
+# finer channels and/or time — the narrow-gamma reach is set by channel width,
+# so bursts whose standard-product gamma sits near 2x24.4 kHz need these);
+# "all_hi" sweeps every burst's _hi product.
 OFF_SNR_FLAG = 3.0        # off-window matched response above this = contaminated de-scallop
 
 
@@ -192,5 +196,8 @@ if __name__ == "__main__":
     target = sys.argv[1]
     out = sys.argv[2] if len(sys.argv) > 2 else os.path.expanduser("~/Developer/scratch/window_campaign")
     os.makedirs(out, exist_ok=True)
-    for n in (BURSTS if target == "all" else [target]):
+    names = (BURSTS if target == "all"
+             else [b + "_hi" for b in BURSTS] if target == "all_hi"
+             else [target])
+    for n in names:
         run_burst(n, out)

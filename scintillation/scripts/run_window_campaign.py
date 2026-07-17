@@ -102,7 +102,7 @@ def run_burst(name, out):
     if chosen["off_lims"] is None:
         raise SystemExit(f"{name}: no off window available (source={source})")
     r0 = wr.refit(name, chosen["burst_lims"], chosen["off_lims"], [],
-                  time_weights=chosen.get("weights"))
+                  time_weights=chosen.get("weights"), validate_artifacts=True)
     fixed_slices = r0["subband_channel_slices"]
     seen, var_tables = set(), []
     for v in variants:
@@ -198,8 +198,9 @@ def run_burst(name, out):
                alpha_unphysical=bool(r0["alpha"] and not wr.alpha_is_physical(r0["alpha"])),
                alpha_bounds=list(wr.ALPHA_BOUNDS),
                science_status="diagnostic_only",
-               artifact_validation_status="not_run",
+               artifact_validation_status=r0["artifact_controls"]["status"],
                figure_review_status="pending",
+               artifact_controls=r0["artifact_controls"],
                subbands=base,
                variants=var_tables, rfi_new=r0["rfi_new"], method=r0["method"])
     with open(f"{out}/{name}_campaign.json", "w") as fh:

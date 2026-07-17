@@ -101,3 +101,37 @@ def test_campaign_validation_requires_all_three_gates():
             "figure_review_status": "pass",
         }
     )
+
+
+def test_artifact_summary_fails_closed_and_requires_three_valid_subbands():
+    passed = window_refit.summarize_artifact_controls(
+        on_dnu_mhz=0.08,
+        off_dnu_mhz=[0.5, 0.6, 0.7],
+        excision_widths={1: 0.08, 2: 0.075, 3: 0.07},
+        n_valid_subbands=3,
+    )
+    assert passed["status"] == "pass"
+
+    inconclusive = window_refit.summarize_artifact_controls(
+        on_dnu_mhz=0.08,
+        off_dnu_mhz=[],
+        excision_widths={1: 0.08},
+        n_valid_subbands=2,
+    )
+    assert inconclusive["status"] == "fail"
+    assert "off_pulse_null" in inconclusive["failed_checks"]
+    assert "subband_support" in inconclusive["failed_checks"]
+
+
+def test_low_lag_excision_uses_the_campaign_fitter():
+    rng = np.random.default_rng(17)
+    lags = np.arange(1, 601) * 0.01
+    acf = window_refit.lorentz(lags, 0.49, 0.3, 0.0)
+    acf += rng.normal(0.0, 0.002, lags.size)
+
+    full = window_refit._fit_subband(lags, acf)
+    excised = window_refit._fit_subband(lags, acf, excision_bins=3)
+
+    assert full["resolved"]
+    assert excised["resolved"]
+    assert abs(excised["gamma"] / full["gamma"] - 1.0) < 0.1

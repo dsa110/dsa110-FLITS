@@ -1,0 +1,32 @@
+{
+  "status": "closed",
+  "injection_gate": "pass",
+  "figure_gate": "fail",
+  "n_records": 24,
+  "n_measurements": 1,
+  "n_diagnostic_only": 23,
+  "artifact_failures": [
+    "casey",
+    "casey_hi",
+    "chromatica",
+    "freya",
+    "freya_hi",
+    "hamilton_hi",
+    "isha",
+    "isha_hi",
+    "johndoeII",
+    "johndoeII_hi",
+    "mahi",
+    "mahi_hi",
+    "oran",
+    "oran_hi",
+    "phineas",
+    "phineas_hi",
+    "whitney",
+    "whitney_hi",
+    "wilhelm",
+    "wilhelm_hi",
+    "zach",
+    "zach_hi"
+  ]
+}

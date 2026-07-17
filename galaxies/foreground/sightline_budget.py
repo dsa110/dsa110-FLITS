@@ -77,7 +77,7 @@ _MEASURED_MASS_SOURCES = frozenset(MASS_PRIORITY[:-1])
 INTERIOR_B_OVER_RVIR = 0.1
 
 # In this sample z_frb == 1.0 exactly is a placeholder for an unmeasured host
-# redshift (Freya/Mahi/Johndoeii). Without a real z the Macquart <DM_cosmic> and
+# redshift (Freya/Mahi/Wilhelm). Without a real z the Macquart <DM_cosmic> and
 # the foreground/background split are meaningless, so those budgets are flagged
 # and the cosmic/host terms are withheld rather than presented as if real.
 PLACEHOLDER_Z = 1.0

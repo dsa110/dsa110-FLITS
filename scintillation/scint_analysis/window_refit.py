@@ -130,11 +130,17 @@ def _fit_subband(lags, acf):
                 lp=lp, ap=ap, model=lorentz(lp, *p))
 
 
-def refit(name, burst_lims, off_lims, rfi_bands_mhz=None, first_fit_lag=1):
+def refit(name, burst_lims, off_lims, rfi_bands_mhz=None, first_fit_lag=1,
+          time_weights=None):
     """first_fit_lag=1 keeps the lag-1 bin, which carries most of the constraint for
     gamma near the channel width (FFL=2 in the drifted configs railed chromatica's
     517 MHz subband; FFL=1 reproduces the archived resolved fit). Uniform for all
-    bursts; the 1-vs-2 bias is under injection-harness validation."""
+    bursts; the 1-vs-2 bias is under injection-harness validation.
+
+    time_weights (full-time-length array, optional): profile-proportional weights for
+    the burst-spectrum extraction (matched estimator — see core.get_spectrum). When
+    given, burst_lims should be the tail-expanded burst extent so de-scalloping and
+    RFI statistics exclude the whole burst; the weights handle tail down-weighting."""
     burst = (int(burst_lims[0]), int(burst_lims[1]))
     off = (int(off_lims[0]), int(off_lims[1]))
     # The off-pulse window feeds the off-pulse-only RFI statistics and the de-scallop gain.
@@ -148,6 +154,9 @@ def refit(name, burst_lims, off_lims, rfi_bands_mhz=None, first_fit_lag=1):
     rfi_bands_mhz = rfi_bands_mhz or []
     spec, c, method = _build_spec(name, burst, off)
     c["analysis"]["acf"]["first_fit_lag"] = int(first_fit_lag)
+    if time_weights is not None:
+        c["analysis"]["acf"]["time_weights"] = np.asarray(time_weights, float)
+        method += " + matched time-weighting"
     freqs = np.asarray(spec.frequencies, float)
     # user painted RFI bands (whole-channel) on top of pipeline + auto flag
     band_mask = np.zeros(spec.power.shape[0], bool)

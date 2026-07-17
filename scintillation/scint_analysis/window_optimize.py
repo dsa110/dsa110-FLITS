@@ -144,17 +144,26 @@ def select_windows(profile, k_sat=3.0, k_edge=0.75, guard_frac=1.0, min_snr=5.0)
     w_s = max(3, width // 2) | 1
     s = _box_smooth(prof, w_s)
     mu, sig = _mad_stats(s[keep]) if keep.sum() >= 16 else _mad_stats(s)
-    lo, hi = max(0, center - width // 2), min(n, center + (width + 1) // 2)
 
-    # satellite components: runs above k_sat*sig at the matched scale, merged within a
-    # width-scaled gap (multi-component bursts are one window, not the peak component)
-    for r in _runs_above(s > mu + k_sat * sig):
+    # Burst CORE = the k_sat-significance envelope around the matched peak, not
+    # center +/- width/2: scattered profiles are asymmetric (fast rise, exponential
+    # tail), so a symmetric matched window clips to 2-4 bins on narrow bursts and
+    # throws away most of the burst spectrum S/N (batch-1 regression, 2026-07-17).
+    sat = _runs_above(s > mu + k_sat * sig)
+    main = next((r for r in sat if r[0] <= center < r[1]), None)
+    if main is None and sat:
+        main = min(sat, key=lambda r: min(abs(r[0] - center), abs(r[1] - center)))
+    lo, hi = main if main else (max(0, center - width // 2),
+                                min(n, center + (width + 1) // 2))
+    # satellite components merged within a width-scaled gap (multi-component bursts
+    # are one window, not the peak component)
+    for r in sat:
         if 0 < r[0] - hi <= width:
             hi = r[1]
         elif 0 < lo - r[1] <= width:
             lo = r[0]
 
-    core = (int(lo), int(hi))                          # matched core + satellites, no tail
+    core = (int(lo), int(hi))                          # significance envelope, no tail
 
     floor = mu + k_edge * sig                          # scattering-tail edge expansion
     while lo > 0 and s[lo - 1] > floor:
@@ -184,8 +193,20 @@ def select_windows(profile, k_sat=3.0, k_edge=0.75, guard_frac=1.0, min_snr=5.0)
     op = prof[off[0]:off[1]]
     off_snr = float(matched_peak(op, max_width=min(width * 2, max(4, op.size // 2)))[2]) \
         if op.size >= 8 else np.inf
+    # Matched (profile-proportional) time weights: the injection harness (round 2,
+    # 2026-07-17) found weighting the burst spectrum by the time profile is the least
+    # biased gamma estimator (x1.05-1.18 of truth, best resolved rate) — it keeps the
+    # scattering tail's S/N without letting its diluted scintle contrast dominate.
+    # Data-driven analogue of the harness's noiseless-profile weights: the baseline-
+    # subtracted smoothed profile, clipped at zero, zeroed outside the tail-expanded
+    # window (noise bins get exactly zero weight instead of noisy small weights).
+    wts = np.clip(s - mu, 0.0, None)
+    wts[:burst[0]] = 0.0
+    wts[burst[1]:] = 0.0
+    tot = wts.sum()
+    weights = (wts / tot) if tot > 0 else None
     return dict(burst_lims=[burst[0], burst[1]], burst_core=[core[0], core[1]],
-                off_lims=[int(off[0]), int(off[1])],
+                off_lims=[int(off[0]), int(off[1])], weights=weights,
                 matched=dict(center=int(center), width=int(width), snr=float(snr)),
                 off_snr=off_snr, smoothed=s, sigma_smooth=sig, guard=guard,
                 params=dict(k_sat=k_sat, k_edge=k_edge, guard_frac=guard_frac,

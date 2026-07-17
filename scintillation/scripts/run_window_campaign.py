@@ -48,12 +48,22 @@ def _windows_for(name):
                        off_lims=[int(ol_def[0]), int(ol_def[1])] if ol_def else None)
         return default, [], "pipeline-default-fallback", None, span
     shift = lambda w: [int(w[0] + t0), int(w[1] + t0)]
-    # matched CORE is the primary ACF window (tail inclusion inflates gamma 2-4x —
-    # see window_optimize.select_windows); the tail-expanded window rides along as an
-    # explicit variant so the systematic stays measured, not hidden
-    chosen = dict(burst_lims=shift(sel["burst_core"]), off_lims=shift(sel["off_lims"]))
-    variants = [dict(burst_lims=shift(v["burst_core"]), off_lims=shift(v["off_lims"]))
-                for v in wo.window_variants(prof)]
+    # PRIMARY = matched (profile-weighted) estimator over the tail-expanded extent —
+    # the injection round-2 winner (x1.05-1.18 of truth, best resolved rate; boxcar
+    # core second; tail-expanded boxcar never resolves under scattering). Weights are
+    # in the validity-span frame; embed into the full time axis for refit.
+    weights = None
+    if sel.get("weights") is not None:
+        weights = np.zeros(spec.power.shape[1])
+        weights[t0:t0 + sel["weights"].size] = sel["weights"]
+    chosen = dict(burst_lims=shift(sel["burst_lims"]), off_lims=shift(sel["off_lims"]),
+                  weights=weights, estimator="matched-weight")
+    # Boxcar variants measure the selection-rule systematic: the base core, the
+    # SCAN_GRID cores, and the tail-expanded boxcar (known-biased, reported apart).
+    variants = [dict(burst_lims=shift(sel["burst_core"]), off_lims=shift(sel["off_lims"]),
+                     label="core")]
+    variants += [dict(burst_lims=shift(v["burst_core"]), off_lims=shift(v["off_lims"]))
+                 for v in wo.window_variants(prof)]
     variants.append(dict(burst_lims=shift(sel["burst_lims"]), off_lims=shift(sel["off_lims"]),
                          label="tail-expanded"))
     return chosen, variants, "objective", float(sel["off_snr"]), span
@@ -78,19 +88,22 @@ def run_burst(name, out):
     chosen, variants, source, off_snr, span = _windows_for(name)
     if chosen["off_lims"] is None:
         raise SystemExit(f"{name}: no off window available (source={source})")
-    r0 = wr.refit(name, chosen["burst_lims"], chosen["off_lims"], [])
-    var_tables = []
+    r0 = wr.refit(name, chosen["burst_lims"], chosen["off_lims"], [],
+                  time_weights=chosen.get("weights"))
+    seen, var_tables = set(), []
     for v in variants:
         key = (tuple(v["burst_lims"]), tuple(v["off_lims"]))
-        if key == (tuple(chosen["burst_lims"]), tuple(chosen["off_lims"])):
+        if key in seen:            # primary is weighted, so no boxcar duplicates it
             continue
+        seen.add(key)
         rv = wr.refit(name, v["burst_lims"], v["off_lims"], [])
         var_tables.append(dict(windows=v, fits=_fit_table(rv)))
 
-    # window systematic per subband: half-range of gamma across chosen + CORE variants,
-    # matched by subband rank (equal-S/N subbanding keeps ranks comparable). The
-    # tail-expanded variant is a known ~2-4x biased configuration — report its gamma
-    # separately (gamma_tail) instead of letting it blow up sigma_win.
+    # window systematic per subband: half-range of gamma across the matched primary +
+    # boxcar CORE variants, matched by subband rank (equal-S/N subbanding keeps ranks
+    # comparable). The tail-expanded boxcar is a known-biased configuration (never
+    # resolves under scattering in injection) — report its gamma separately
+    # (gamma_tail) instead of letting it blow up sigma_win.
     base = _fit_table(r0)
     for k, row in enumerate(base):
         gs = [row.get("gamma")]
@@ -103,6 +116,12 @@ def run_burst(name, out):
         gs = [g for g in gs if g is not None]
         row["gamma_win_sys"] = float((max(gs) - min(gs)) / 2) if len(gs) > 1 else None
         row["n_variants"] = len(gs)
+        # Physicality flags (both are envelope-contamination signatures, not fit
+        # failures: m>1 cannot arise from point-source scintillation, and the
+        # injection harness shows a smooth envelope both inflates m and fakes
+        # resolved fits). Flag, do not delete — the owner vets by eye.
+        if row.get("resolved") and row.get("m", 0) > 1.2:
+            row["flag_m_unphysical"] = True
 
     # per-subband ACF figure at the chosen windows (visual vetting is the accept gate)
     order = r0["order"]
@@ -125,15 +144,32 @@ def run_burst(name, out):
     axes[0].set_ylabel("ACF (norm)")
     flagtxt = "" if (off_snr is None or off_snr <= OFF_SNR_FLAG) else \
         f"  [OFF CONTAMINATED off_snr={off_snr:.1f}]"
-    fig.suptitle(f"{name}: per-subband fits, {source} windows "
+    alpha_flag = ""
+    if r0["alpha"] and r0["alpha"]["alpha"] < 0:
+        # gamma falling with frequency is backwards for scintillation (expect ~nu^+4):
+        # an envelope/scattering-contamination signature at the sample level
+        alpha_flag = f"  [ALPHA<0: {r0['alpha']['alpha']:+.2f}]"
+    est = chosen.get("estimator", "boxcar")
+    fig.suptitle(f"{name}: per-subband fits ({est}), {source} windows "
                  f"{chosen['burst_lims']}/{chosen['off_lims']}, "
-                 f"{len(var_tables)} variants{flagtxt}", fontsize=10)
+                 f"{len(var_tables)} variants{flagtxt}{alpha_flag}", fontsize=10)
     fig.tight_layout()
     fig.savefig(f"{out}/{name}_acf_fits.png", dpi=125, bbox_inches="tight")
     plt.close(fig)
 
+    # weights are provenance, not payload: store the nonzero span compactly
+    wjson = None
+    if chosen.get("weights") is not None:
+        nz = np.flatnonzero(chosen["weights"])
+        wjson = dict(t0=int(nz[0]), t1=int(nz[-1]) + 1,
+                     values=[round(float(x), 6) for x in
+                             chosen["weights"][nz[0]:nz[-1] + 1]])
+    win_rec = dict(burst_lims=chosen["burst_lims"], off_lims=chosen["off_lims"],
+                   estimator=chosen.get("estimator", "boxcar"), weights=wjson)
     rec = dict(name=name, window_source=source, off_snr=off_snr, valid_span=list(span),
-               windows=chosen, alpha=r0["alpha"], subbands=base,
+               windows=win_rec, alpha=r0["alpha"],
+               alpha_unphysical=bool(r0["alpha"] and r0["alpha"]["alpha"] < 0),
+               subbands=base,
                variants=var_tables, rfi_new=r0["rfi_new"], method=r0["method"])
     with open(f"{out}/{name}_campaign.json", "w") as fh:
         json.dump(rec, fh, indent=2, default=float)
@@ -142,9 +178,13 @@ def run_burst(name, out):
         slim["subbands"] = base
         fh.write(json.dumps(slim, default=float) + "\n")
     nres = sum(1 for b in base if b.get("resolved"))
+    nflag = sum(1 for b in base if b.get("flag_m_unphysical"))
     print(f"{name}: {nres}/{len(base)} resolved, source={source}, "
+          f"est={win_rec['estimator']}, "
           f"off_snr={off_snr if off_snr is None else round(off_snr, 1)}, "
-          f"variants={len(var_tables)}")
+          f"variants={len(var_tables)}"
+          + (f", m-flags={nflag}" if nflag else "")
+          + ("  ALPHA<0" if rec["alpha_unphysical"] else ""))
     return rec
 
 

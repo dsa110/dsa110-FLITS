@@ -611,8 +611,11 @@ def calculate_acfs_for_subbands(masked_spectrum, config, burst_lims, noise_desc=
         "sigma_self_mhz": sigma_self_mhz,
     }
 
-    # Split burst‑integrated spectrum into sub‑bands (uniform or equal‑S/N)
-    burst_spec_full = masked_spectrum.get_spectrum(burst_lims)
+    # Split burst‑integrated spectrum into sub‑bands (uniform or equal‑S/N).
+    # Optional profile-proportional time weights (config: analysis.acf.time_weights)
+    # give the matched-filter spectrum estimator — see core.get_spectrum for why.
+    burst_spec_full = masked_spectrum.get_spectrum(
+        burst_lims, time_weights=acf_cfg.get("time_weights"))
     start_idx = 0
     total_signal = np.sum(burst_spec_full.compressed())
 

@@ -104,6 +104,9 @@ def _detrend(x, width):
 OFF_SNR_MAX = 3.0   # off-window purity threshold: a candidate off run whose matched-filter
                     # response at the burst scale exceeds this carries residual burst/tail
                     # power and is rejected as a de-scalloping/RFI reference (see gate below)
+OFF_MIN_BINS = 50   # minimum off-run length (time bins) for the pre-burst preference to
+                    # accept it; matches the bandpass-norm off-bin floor (_MIN_OFF) below
+                    # which the refit falls back to a time-median flat-field anyway
 
 
 def select_windows(profile, k_sat=3.0, k_edge=0.75, guard_frac=1.0, min_snr=5.0):
@@ -208,11 +211,32 @@ def select_windows(profile, k_sat=3.0, k_edge=0.75, guard_frac=1.0, min_snr=5.0)
         off = max(off_runs, key=lambda r: r[1] - r[0])
         off_snr = _osnr(off)
     else:
-        clean = [t for t in scored if t[2] <= OFF_SNR_MAX]
-        if clean:
-            off, _, off_snr = max(clean, key=lambda t: t[1])
-        else:                                        # all contaminated: least-bad wins
-            off, _, off_snr = min(scored, key=lambda t: t[2])
+        # Pre-burst preference (ENFORCED, PRIMARY over the off_snr gate). The post-burst
+        # region is where the scattering tail lives, so its channels carry frequency-
+        # correlated scattered burst power that corrupts the per-channel de-scalloping
+        # gain — the exact failure that collapsed chromatica (+1.87 -> -0.05). A pre-burst
+        # run physically CANNOT contain the tail, so it is the safe de-scalloping/RFI
+        # reference. Critically, the time-domain off_snr gate does NOT capture this
+        # frequency-correlated contamination: for chromatica the pre run scores off_snr
+        # 5.9 (fails the gate) yet yields the clean 4-subband ladder alpha=+1.66 n=4,
+        # while the post run scores 2.9 (passes) yet rails the top subband to alpha=+2.9
+        # n=2. So off_snr cannot be the arbiter of the pre/post choice; the physical
+        # ordering is. Verified 2026-07-17 (injection + real): chromatica pre -> +1.66 n4
+        # vs post -> +1.19 n2; freya pre -> +1.63 vs post -> -0.56.
+        # RULE: take the LARGEST adequate (>= OFF_MIN_BINS) pre-burst run outright. Only
+        # when none exists fall back to the off_snr purity gate on the remaining runs
+        # (largest with off_snr <= OFF_SNR_MAX; least-contaminated otherwise) — this
+        # preserves the oran fix, where the offending run rode the rising burst envelope
+        # and off_snr is the right guard.
+        pre_adequate = [t for t in scored if t[0][1] <= burst[0] and t[1] >= OFF_MIN_BINS]
+        if pre_adequate:
+            off, _, off_snr = max(pre_adequate, key=lambda t: t[1])
+        else:
+            clean = [t for t in scored if t[2] <= OFF_SNR_MAX]
+            if clean:
+                off, _, off_snr = max(clean, key=lambda t: t[1])
+            else:                                    # all contaminated: least-bad wins
+                off, _, off_snr = min(scored, key=lambda t: t[2])
     # Matched (profile-proportional) time weights: the injection harness (round 2,
     # 2026-07-17) found weighting the burst spectrum by the time profile is the least
     # biased gamma estimator (x1.05-1.18 of truth, best resolved rate) — it keeps the

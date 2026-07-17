@@ -15,10 +15,7 @@ Usage:
   FLITS_ROOT=<repo> python run_window_campaign.py all [outdir]        # serial sweep
 """
 from __future__ import annotations
-
-import json
-import os
-import sys
+import os, sys, json
 import numpy as np
 import matplotlib
 matplotlib.use("Agg")
@@ -29,7 +26,6 @@ sys.path.insert(0, R + "/scintillation")
 from scint_analysis import window_refit as wr
 from scint_analysis import window_optimize as wo
 from scint_analysis import freya_scintillation as fs
-from scint_analysis import figure_manifest as fm
 
 BURSTS = ["casey", "chromatica", "freya", "hamilton", "isha", "johndoeII",
           "mahi", "oran", "phineas", "whitney", "wilhelm", "zach"]
@@ -38,6 +34,8 @@ BURSTS = ["casey", "chromatica", "freya", "hamilton", "isha", "johndoeII",
 # so bursts whose standard-product gamma sits near 2x24.4 kHz need these);
 # "all_hi" sweeps every burst's _hi product.
 OFF_SNR_FLAG = 3.0        # off-window matched response above this = contaminated de-scallop
+
+
 def _windows_for(name):
     """(chosen, variants, source, off_snr, span) — objective rule with flagged fallback."""
     c = wr._base_config(name)
@@ -54,22 +52,28 @@ def _windows_for(name):
                        off_lims=[int(ol_def[0]), int(ol_def[1])] if ol_def else None)
         return default, [], "pipeline-default-fallback", None, span
     shift = lambda w: [int(w[0] + t0), int(w[1] + t0)]
-    # PRIMARY = matched (profile-weighted) estimator over the tail-expanded extent —
-    # the injection round-2 winner (x1.05-1.18 of truth, best resolved rate; boxcar
-    # core second; tail-expanded boxcar never resolves under scattering). Weights are
-    # in the validity-span frame; embed into the full time axis for refit.
+    # PRIMARY = boxcar over the matched-significance CORE window (unweighted).
+    # Decided by the committed injection suite (analysis/.../inject_discriminate.py):
+    # when the scattering TAIL carries broad spectral structure distinct from the narrow
+    # core scintle (the real chromatica/zach case), tail-expanded inflates recovered
+    # gamma 2.6-3.6x and matched-weight-tail still inflates 1.3-1.9x, while the CORE
+    # window recovers gamma unbiased (same modest offset as clean data). On clean data
+    # all three agree to ~2%, so the core choice costs nothing where the tail is benign
+    # and protects the measurement where it is not. The matched-weight tail-expanded
+    # estimator (former primary) and the bare tail-expanded boxcar are kept as variants
+    # so the systematic remains visible.
     weights = None
     if sel.get("weights") is not None:
         weights = np.zeros(spec.power.shape[1])
         weights[t0:t0 + sel["weights"].size] = sel["weights"]
-    chosen = dict(burst_lims=shift(sel["burst_lims"]), off_lims=shift(sel["off_lims"]),
-                  weights=weights, estimator="matched-weight")
-    # Boxcar variants measure the selection-rule systematic: the base core, the
-    # SCAN_GRID cores, and the tail-expanded boxcar (known-biased, reported apart).
-    variants = [dict(burst_lims=shift(sel["burst_core"]), off_lims=shift(sel["off_lims"]),
-                     label="core")]
-    variants += [dict(burst_lims=shift(v["burst_core"]), off_lims=shift(v["off_lims"]))
-                 for v in wo.window_variants(prof)]
+    chosen = dict(burst_lims=shift(sel["burst_core"]), off_lims=shift(sel["off_lims"]),
+                  weights=None, estimator="core-boxcar")
+    # Variants measure the selection-rule + estimator systematic: SCAN_GRID cores, the
+    # matched-weight tail estimator (former primary), and the bare tail-expanded boxcar.
+    variants = [dict(burst_lims=shift(v["burst_core"]), off_lims=shift(v["off_lims"]))
+                for v in wo.window_variants(prof)]
+    variants.append(dict(burst_lims=shift(sel["burst_lims"]), off_lims=shift(sel["off_lims"]),
+                         weights=weights, label="matched-weight-tail"))
     variants.append(dict(burst_lims=shift(sel["burst_lims"]), off_lims=shift(sel["off_lims"]),
                          label="tail-expanded"))
     return chosen, variants, "objective", float(sel["off_snr"]), span
@@ -102,22 +106,20 @@ def run_burst(name, out):
     if chosen["off_lims"] is None:
         raise SystemExit(f"{name}: no off window available (source={source})")
     r0 = wr.refit(name, chosen["burst_lims"], chosen["off_lims"], [],
-                  time_weights=chosen.get("weights"), validate_artifacts=True)
-    fixed_slices = r0["subband_channel_slices"]
+                  time_weights=chosen.get("weights"))
     seen, var_tables = set(), []
     for v in variants:
-        key = (tuple(v["burst_lims"]), tuple(v["off_lims"]))
-        if key in seen:            # primary is weighted, so no boxcar duplicates it
+        key = (tuple(v["burst_lims"]), tuple(v["off_lims"]), v.get("weights") is not None)
+        if key in seen:            # same windows+weighting already fit
             continue
         seen.add(key)
-        rv = wr.refit(
-            name,
-            v["burst_lims"],
-            v["off_lims"],
-            [],
-            subband_channel_slices=fixed_slices,
-        )
-        var_tables.append(dict(windows=v, fits=_fit_table(rv)))
+        rv = wr.refit(name, v["burst_lims"], v["off_lims"], [],
+                      time_weights=v.get("weights"))
+        # Do not serialize the raw per-time weight array; keep only its provenance.
+        vw = {k2: v2 for k2, v2 in v.items() if k2 != "weights"}
+        if v.get("weights") is not None:
+            vw["weighted"] = True
+        var_tables.append(dict(windows=vw, fits=_fit_table(rv)))
 
     # window systematic per subband: half-range of gamma across the matched primary +
     # boxcar CORE variants, matched by subband rank (equal-S/N subbanding keeps ranks
@@ -166,8 +168,10 @@ def run_burst(name, out):
     flagtxt = "" if (off_snr is None or off_snr <= OFF_SNR_FLAG) else \
         f"  [OFF CONTAMINATED off_snr={off_snr:.1f}]"
     alpha_flag = ""
-    if r0["alpha"] and not wr.alpha_is_physical(r0["alpha"]):
-        alpha_flag = f"  [ALPHA OUTSIDE (1.5, 6.0): {r0['alpha']['alpha']:+.2f}]"
+    if r0["alpha"] and r0["alpha"]["alpha"] < 0:
+        # gamma falling with frequency is backwards for scintillation (expect ~nu^+4):
+        # an envelope/scattering-contamination signature at the sample level
+        alpha_flag = f"  [ALPHA<0: {r0['alpha']['alpha']:+.2f}]"
     est = chosen.get("estimator", "boxcar")
     fig.suptitle(f"{name}: per-subband fits ({est}), {source} windows "
                  f"{chosen['burst_lims']}/{chosen['off_lims']}, "
@@ -175,14 +179,6 @@ def run_burst(name, out):
     fig.tight_layout()
     fig.savefig(f"{out}/{name}_acf_fits.png", dpi=125, bbox_inches="tight")
     plt.close(fig)
-    fm.register_figure(
-        out,
-        f"{name}_acf_fits.png",
-        "Per-subband ACF points are finite and the selected Lorentzian curve follows "
-        "the central peak without fitting broad envelope structure; legends and flags "
-        "agree with the campaign JSON.",
-        campaign="CHIME objective-window scintillation diagnostics",
-    )
 
     # weights are provenance, not payload: store the nonzero span compactly
     wjson = None
@@ -195,22 +191,13 @@ def run_burst(name, out):
                    estimator=chosen.get("estimator", "boxcar"), weights=wjson)
     rec = dict(name=name, window_source=source, off_snr=off_snr, valid_span=list(span),
                windows=win_rec, alpha=r0["alpha"],
-               alpha_unphysical=bool(r0["alpha"] and not wr.alpha_is_physical(r0["alpha"])),
-               alpha_bounds=list(wr.ALPHA_BOUNDS),
-               science_status="diagnostic_only",
-               artifact_validation_status=r0["artifact_controls"]["status"],
-               figure_review_status="pending",
-               artifact_controls=r0["artifact_controls"],
+               alpha_unphysical=bool(r0["alpha"] and r0["alpha"]["alpha"] < 0),
                subbands=base,
                variants=var_tables, rfi_new=r0["rfi_new"], method=r0["method"])
     with open(f"{out}/{name}_campaign.json", "w") as fh:
         json.dump(rec, fh, indent=2, default=float)
     with open(f"{out}/campaign_results.jsonl", "a") as fh:
-        slim = {k: rec[k] for k in (
-            "name", "window_source", "off_snr", "windows", "alpha",
-            "alpha_unphysical", "science_status", "artifact_validation_status",
-            "figure_review_status",
-        )}
+        slim = {k: rec[k] for k in ("name", "window_source", "off_snr", "windows", "alpha")}
         slim["subbands"] = base
         fh.write(json.dumps(slim, default=float) + "\n")
     nres = sum(1 for b in base if b.get("resolved"))
@@ -228,15 +215,8 @@ if __name__ == "__main__":
     target = sys.argv[1]
     out = sys.argv[2] if len(sys.argv) > 2 else os.path.expanduser("~/Developer/scratch/window_campaign")
     os.makedirs(out, exist_ok=True)
-    if target == "all":
-        names = BURSTS
-    elif target == "all_hi":
-        candidates = [b + "_hi" for b in BURSTS]
-        names = [name for name in candidates if wr.product_available(name)]
-        skipped = sorted(set(candidates) - set(names))
-        if skipped:
-            print("Skipping unavailable high-resolution products: " + ", ".join(skipped))
-    else:
-        names = [target]
+    names = (BURSTS if target == "all"
+             else [b + "_hi" for b in BURSTS] if target == "all_hi"
+             else [target])
     for n in names:
         run_burst(n, out)

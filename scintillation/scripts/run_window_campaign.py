@@ -85,7 +85,10 @@ def _fit_table(r):
                        shape_ok=bool(f.get("shape_ok", True)),
                        dbic_line=f.get("dbic_line"),
                        gamma_scintle_err=f.get("gamma_scintle_err"),
-                       subband_bw_mhz=f.get("subband_bw_mhz"))
+                       subband_bw_mhz=f.get("subband_bw_mhz"),
+                       model_sel=f.get("model_sel", "1L"),
+                       gamma_b=f.get("gamma_b"), A_b=f.get("A_b"),
+                       dbic_2comp=f.get("dbic_2comp"))
         else:
             row["reason"] = f.get("reason")
         rows.append(row)
@@ -140,7 +143,8 @@ def run_burst(name, out):
         if f.get("ok"):
             ax.plot(f["lp"], f["ap"], color="#c0392b", lw=0.9)
             col = "#1e8449" if f["resolved"] else "#7f8c8d"
-            lab = (f"γ={f['gamma']:.3f}±{f['gamma_err']:.3f}\n"
+            lab = (f"γ={f['gamma']:.3f}±{f['gamma_err']:.3f} [{f.get('model_sel','1L')}]"
+                   + (f" γb={f['gamma_b']:.2f}" if f.get("gamma_b") else "") + "\n"
                    f"m={f['m']:.2f} snr={f['amp_snr']:.1f}"
                    + ("" if base[list(order).index(i)]["gamma_win_sys"] is None else
                       f"\nσ_win={base[list(order).index(i)]['gamma_win_sys']:.3f}"))

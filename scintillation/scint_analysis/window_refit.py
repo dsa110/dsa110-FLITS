@@ -103,6 +103,21 @@ def _build_spec(name, burst, off):
 lorentz = fs._lorentzian_with_baseline
 
 
+def _lorentz2(l, A_n, g_n, A_b, g_b, c0):
+    """Narrow scintle + broad envelope: two Lorentzians sharing one baseline. The CHIME
+    ACFs superpose a narrow scintillation component on a broad intrinsic-envelope/
+    scattering component (zach_hi 622 MHz: unfit narrow feature at lag<0.15 MHz under a
+    ~5-MHz ramp, owner-identified 2026-07-17); a single Lorentzian latches onto whichever
+    dominates the least-squares and the other is censored or folded into m."""
+    return A_n / (1 + (l / g_n) ** 2) + A_b / (1 + (l / g_b) ** 2) + c0
+
+
+DBIC_2COMP = 6.0   # M2 must beat M1 by this (Kass-Raftery "strong"); injection round 4
+                   # measures the false-positive rate of exactly this threshold
+SCALE_SEP = 4.0    # required gamma_b/gamma_n separation for the 2-comp decomposition
+                   # to be identifiable rather than a degenerate split of one scale
+
+
 def _fit_subband(lags, acf):
     lags = np.asarray(lags, float); acf = np.asarray(acf, float)
     # No renormalization: calculate_acf already divides by (mean_on - mean_off)^2, so the
@@ -139,6 +154,45 @@ def _fit_subband(lags, acf):
     except Exception as e:
         return dict(ok=False, reason=str(e), noise=noise)
     A, gamma, c0 = p; Aerr, gerr, _ = perr
+    npts = lp.size
+    model = lorentz(lp, *p)
+    rss1 = float(np.sum((ap - model) ** 2))
+    bic1 = npts * np.log(max(rss1, 1e-30) / npts) + 3 * np.log(npts)
+
+    # Two-component candidate: narrow scintle + broad envelope (see _lorentz2). Multi-
+    # start on the narrow scale — 2-comp Lorentzian fits are initialization-sensitive
+    # and a single bad start would silently fall back to the censoring single-component
+    # behavior this model exists to fix.
+    best2 = None
+    for gn0 in (max(4 * glo, 0.02), 0.1, 0.3):
+        if gn0 >= LAG_MAX:
+            continue
+        p0 = [max(A0 / 2, 1e-3), gn0, max(A0 / 2, 1e-3), max(3.0, min(gamma, 19.0)), 0.0]
+        try:
+            p2, cov2 = curve_fit(_lorentz2, lp, ap, p0=p0,
+                                 bounds=([0, glo, 0, glo, -1], [10, 20, 10, 20, 1]),
+                                 maxfev=40000)
+        except Exception:
+            continue
+        r2 = float(np.sum((ap - _lorentz2(lp, *p2)) ** 2))
+        if best2 is None or r2 < best2[0]:
+            best2 = (r2, p2, cov2)
+    model_sel, gamma_b, gamma_b_err, A_b, dbic2 = "1L", None, None, None, None
+    if best2 is not None:
+        rss2, p2, cov2 = best2
+        perr2 = np.sqrt(np.diag(cov2))
+        if p2[1] > p2[3]:   # enforce gamma_n < gamma_b, permuting errors with params
+            p2 = [p2[2], p2[3], p2[0], p2[1], p2[4]]
+            perr2 = [perr2[2], perr2[3], perr2[0], perr2[1], perr2[4]]
+        bic2 = npts * np.log(max(rss2, 1e-30) / npts) + 5 * np.log(npts)
+        dbic2 = float(bic1 - bic2)
+        # adopt only a decisively better AND identifiable decomposition
+        if dbic2 >= DBIC_2COMP and p2[3] > SCALE_SEP * p2[1] and p2[0] > 0 and p2[2] > 0:
+            model_sel = "2L"
+            A, gamma, c0 = float(p2[0]), float(p2[1]), float(p2[4])
+            Aerr, gerr = float(perr2[0]), float(perr2[1])
+            A_b, gamma_b, gamma_b_err = float(p2[2]), float(p2[3]), float(perr2[3])
+            model = _lorentz2(lp, *p2)
     m = float(np.sqrt(max(A, 0)))
     amp_snr = A / noise if noise > 0 else np.inf
     # A railed at its upper bound is as diagnostic as a railed gamma: weak-burst
@@ -147,26 +201,24 @@ def _fit_subband(lags, acf):
     # envelope/noise pathology, never a physical modulation index
     railed = (gamma < 2 * glo) or (gamma > 0.9 * 20) or (gamma > 0.9 * LAG_MAX) \
         or (A > 0.9 * 10)
-    # Shape gate: a smooth spectral envelope decays quasi-linearly across the fitted
-    # lag range and can pass every amplitude/rail gate with a physical m (zach_hi
-    # 622 MHz, m=0.26) — but a real scintle has a Lorentzian knee inside LAG_MAX.
-    # If a 2-param line is not decisively worse than the 3-param Lorentzian
-    # (dBIC >= 6, Kass-Raftery "strong"), the decorrelation scale is not actually
-    # constrained within the fitted lags and the subband is not a resolved gamma.
-    # This also correctly demotes genuinely broad gamma ~ LAG_MAX fits, which are
-    # indistinguishable from an envelope at this lag range.
-    model = lorentz(lp, *p)
-    npts = lp.size
-    rss_lor = float(np.sum((ap - model) ** 2))
+    # Shape gate (single-component winners only): a smooth envelope decays quasi-
+    # linearly across the fitted lags and can pass every amplitude/rail gate with a
+    # physical m — require the Lorentzian to beat a 2-param line by dBIC >= 6 or the
+    # scale is not constrained within LAG_MAX. When the two-component model wins, the
+    # narrow component's reality is already established by beating the (broad-capable)
+    # single-Lorentzian by dBIC >= DBIC_2COMP, so the line test does not apply to it.
+    rss_sel = float(np.sum((ap - model) ** 2))
     rss_lin = float(np.sum((ap - np.polyval(np.polyfit(lp, ap, 1), lp)) ** 2))
+    k_sel = 5 if model_sel == "2L" else 3
     dbic = (npts * np.log(max(rss_lin, 1e-30) / npts) + 2 * np.log(npts)) \
-        - (npts * np.log(max(rss_lor, 1e-30) / npts) + 3 * np.log(npts))
-    shape_ok = bool(dbic >= 6.0)
+        - (npts * np.log(max(rss_sel, 1e-30) / npts) + k_sel * np.log(npts))
+    shape_ok = bool(dbic >= 6.0) if model_sel == "1L" else True
     resolved = bool((amp_snr > 3) and (not railed) and (gamma > 2 * dlag)
                     and (gerr < gamma) and shape_ok)
     return dict(ok=True, A=float(A), gamma=float(gamma), gamma_err=float(gerr), c0=float(c0),
                 m=m, noise=noise, amp_snr=float(amp_snr), resolved=resolved,
-                shape_ok=shape_ok, dbic_line=float(dbic),
+                shape_ok=shape_ok, dbic_line=float(dbic), model_sel=model_sel,
+                A_b=A_b, gamma_b=gamma_b, gamma_b_err=gamma_b_err, dbic_2comp=dbic2,
                 lp=lp, ap=ap, model=model)
 
 

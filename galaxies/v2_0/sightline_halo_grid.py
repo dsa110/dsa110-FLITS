@@ -24,7 +24,6 @@ from __future__ import annotations
 
 import math
 import os
-import sys
 
 import matplotlib
 import numpy as np
@@ -149,6 +148,20 @@ def _crossing_mask(sub: pd.DataFrame) -> np.ndarray:
     return strict & massive
 
 
+def _contributor_mask(sub) -> np.ndarray:
+    """Rows flagged as vetted budget contributors (optional overlay column).
+
+    The remediated input builder (build_remediated_halo_grid_input.py) marks
+    the systems whose two-phase columns actually enter Table tab:budget with
+    ``budget_contributor=True``; they are drawn with an open diamond so the
+    reader can separate the budget's vetted contributor set from the broader
+    discovery-stage environment. Inputs without the column draw nothing extra.
+    """
+    if "budget_contributor" not in sub:
+        return np.zeros(len(sub), dtype=bool)
+    return sub["budget_contributor"].astype(str).str.lower().isin(["true", "1"]).to_numpy()
+
+
 def make_grid(halo_csv: str = DEFAULT_HALO_CSV):
     fg, roster = _load(halo_csv)
     # One panel per z-known sightline, ordered by FRB redshift.
@@ -235,6 +248,7 @@ def make_grid(halo_csv: str = DEFAULT_HALO_CSV):
         y_per_px = (y1 - y0) / bbox.height
         sub = fg[fg["frb_name"] == name].reset_index(drop=True)
         cross = _crossing_mask(sub)
+        contrib = _contributor_mask(sub)
         # Draw largest disks first so small halos sit on top (readability).
         draw_order = sub["r_delta_computed"].astype(float).fillna(0).argsort()[::-1]
         for idx in draw_order:
@@ -258,6 +272,9 @@ def make_grid(halo_csv: str = DEFAULT_HALO_CSV):
             if is_cross:
                 ax.scatter([x], [y], s=90, facecolors="none", edgecolors=ink,
                            linewidths=1.1, zorder=6)
+            if bool(contrib[idx]):
+                ax.scatter([x], [y], s=120, marker="D", facecolors="none",
+                           edgecolors=ink, linewidths=1.0, zorder=6)
             ax.scatter([x], [y], c=[col], s=26, edgecolors=ink,
                        linewidths=0.4, zorder=4)
 
@@ -298,9 +315,14 @@ def make_grid(halo_csv: str = DEFAULT_HALO_CSV):
                           color=ink, zorder=4)
         legend_ax.text(0.88 * x_hi, 300, "FRB\nhost", fontsize=8.5, color=ink,
                        va="center", ha="left", linespacing=1.3)
-        legend_ax.scatter([0.82 * x_hi], [-120], s=90, facecolors="none",
+        legend_ax.scatter([0.82 * x_hi], [-80], s=90, facecolors="none",
                           edgecolors=ink, linewidths=1.1, zorder=4)
-        legend_ax.text(0.88 * x_hi, -120, "cluster\ncrossing", fontsize=8.5,
+        legend_ax.text(0.88 * x_hi, -80, "cluster\ncrossing", fontsize=8.5,
+                       color=ink, va="center", ha="left", linespacing=1.3)
+        legend_ax.scatter([0.82 * x_hi], [-420], s=120, marker="D",
+                          facecolors="none", edgecolors=ink, linewidths=1.0,
+                          zorder=4)
+        legend_ax.text(0.88 * x_hi, -420, "budget\ncontributor", fontsize=8.5,
                        color=ink, va="center", ha="left", linespacing=1.3)
 
     for ax in axes[n + 1 :]:

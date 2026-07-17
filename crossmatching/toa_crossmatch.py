@@ -278,11 +278,16 @@ def reproduce_model_result(crossmatch: CrossmatchInput) -> CrossmatchResult:
     """Model (scatter-corrected) crossmatch result.
 
     Identical to :func:`reproduce_notebook_result` except that the per-band
-    joint-fit scattering peak-shift is subtracted from each band's ToA, so the
-    reported ``measured_offset_ms`` is the intrinsic (de-scattered) CHIME-DSA
-    offset at 400 MHz. The legacy peak-based offset is retained as
-    ``peak_measured_offset_ms``. The error budget folds the posterior
-    localization error into the DM-referral term in quadrature per band.
+    joint-fit scattering peak-shift is subtracted from each band's ToA to form
+    the candidate intrinsic (de-scattered) offset in
+    ``model_corrected_offset_ms``. Promotion into the canonical
+    ``measured_offset_ms`` field is fail-closed: it occurs only when
+    ``model_fit_quality == "PASS"`` and ``model_figure_reviewed`` is true.
+    Otherwise ``measured_offset_ms`` retains the observed peak-based offset,
+    also exposed as ``peak_measured_offset_ms``, and
+    ``model_correction_status`` marks the candidate diagnostic-only. The model
+    error budget folds the posterior localization error into the DM-referral
+    term in quadrature per band regardless of promotion status.
 
     Requires ``scatter_corr_chime_ms``/``scatter_corr_dsa_ms`` on the input; if
     absent it falls back to the legacy (zero-correction) result so callers can

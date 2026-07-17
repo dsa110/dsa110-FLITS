@@ -22,9 +22,12 @@ import yaml
 REPO = os.environ.get("FLITS_REPO", "/home/jfaber/flits/dsa110-FLITS")
 RUNS = os.environ.get("FLITS_RUNS", "/central/scratch/jfaber/flits-runs")
 sys.path.insert(0, f"{REPO}/scattering")
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))  # so joint_tf_prep imports
 from scat_analysis.burstfit import FRBParams
 from scat_analysis.config_utils import load_telescope_block
 from scat_analysis.pipeline.io import BurstDataset
+
+import joint_tf_prep
 
 
 def prepare(cfg_path, name, outdir):
@@ -61,6 +64,11 @@ def recover(model, params_list):
     r = ((d - mod) / sig[:, None])[v]
     r = r[np.isfinite(r)]
     chi2 = float(np.sum(r**2)) / max(int(r.size) - 7, 1)
+    # Per-component integrated flux (valid channels only): weight for the
+    # fluence-weighted TOA centroid. Negative-gain channels are physical noise
+    # excursions of the OLS solve, not real emission, so clip at 0 before summing.
+    gval = np.where(v[:, None], g, 0.0)
+    fluence = np.einsum("fn,nft->n", np.clip(gval, 0.0, None), Ks)
     return dict(
         data=d,
         model=mod,
@@ -68,6 +76,7 @@ def recover(model, params_list):
         time=np.asarray(model.time, float),
         noise=sig,
         valid=v,
+        fluence=np.asarray(fluence, float),
     ), chi2
 
 
@@ -105,8 +114,18 @@ def main():
     tau, beta = p["tau_1ghz"], p["beta"]
     al = d["alpha"]["median"]
     nC, nD = int(d.get("components_C", 1)), int(d.get("components_D", 1))
-    mC = prepare(f"{RUNS}/configs/{b}_chime_run.yaml", f"{b}_chime", out)
-    mD = prepare(f"{RUNS}/configs/{b}_dsa_run.yaml", f"{b}_dsa", out)
+    cC = f"{RUNS}/configs/{b}_chime_run.yaml"
+    cD = f"{RUNS}/configs/{b}_dsa_run.yaml"
+    if joint_tf_prep._env_auto():
+        # Same S/N-driven resolution + robust common window the fit used, so the
+        # dumped data/model grid matches the fit's grid (no per-band hatch mismatch).
+        (mC, mkC), (mD, mkD) = joint_tf_prep.prepare_pair(cC, cD, b, out)
+        mC.dm_init = float(yaml.safe_load(open(cC)).get("dm_init", 0.0))
+        mD.dm_init = float(yaml.safe_load(open(cD)).get("dm_init", 0.0))
+        print(f"{b}: AUTO-TF CHIME {mkC.caption()} | DSA {mkD.caption()}")
+    else:
+        mC = prepare(cC, f"{b}_chime", out)
+        mD = prepare(cD, f"{b}_dsa", out)
     if d.get("shared_zeta"):
         zC = p["zeta_1ghz"] * np.asarray(mC.freq, float) ** p["x_zeta"]
         zD = p["zeta_1ghz"] * np.asarray(mD.freq, float) ** p["x_zeta"]
@@ -159,6 +178,8 @@ def main():
         chi2D=chiD,
         nC=nC,
         nD=nD,
+        fluenceC=C["fluence"],
+        fluenceD=D["fluence"],
         burst=b,
     )
     print(f"{b}: wrote {fp}  alpha={al:.3f} tau={tau:.4f} chiC={chiC:.2f} chiD={chiD:.2f}")

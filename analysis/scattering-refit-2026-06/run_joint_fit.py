@@ -21,6 +21,7 @@ import sys
 REPO = os.environ.get("FLITS_REPO", "/home/jfaber/flits/dsa110-FLITS")
 RUNS = os.environ.get("FLITS_RUNS", "/central/scratch/jfaber/flits-runs")
 sys.path.insert(0, f"{REPO}/scattering")  # so `scat_analysis` imports
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))  # so joint_tf_prep imports
 
 import numpy as np
 import yaml
@@ -30,6 +31,8 @@ from scat_analysis.burstfit_joint import fit_joint_scattering
 from scat_analysis.config_utils import load_telescope_block
 from scat_analysis.pipeline.io import BurstDataset
 from scat_analysis.pipeline.optimization import refine_initial_guess_mle
+
+import joint_tf_prep
 
 
 def prepare(cfg_path, name, outdir):
@@ -50,6 +53,12 @@ def prepare(cfg_path, name, outdir):
     model = ds.model
     dm_init = float(cfg.get("dm_init", 0.0))
     model.dm_init = dm_init
+    return model, _init_for(model, dm_init)
+
+
+def _init_for(model, dm_init):
+    """Data-driven initial guess + MLE refine for a prepared band model."""
+    model.dm_init = dm_init
     init = data_driven_initial_guess(
         data=model.data,
         freq=model.freq,
@@ -57,8 +66,24 @@ def prepare(cfg_path, name, outdir):
         dm=dm_init,
         verbose=False,
     ).params
-    init = refine_initial_guess_mle(model, init)
-    return model, init
+    return refine_initial_guess_mle(model, init)
+
+
+def prepare_joint(cC, cD, burst, outdir):
+    """CHIME + DSA prepared together with the S/N-driven resolution + robust common
+    window (joint_tf_prep.prepare_pair). Returns (model_C, init_C, model_D, init_D)
+    and logs the chosen per-band resolution/window. Set FLITS_JOINT_AUTO_TF=0 to
+    fall back to the config's fixed f_factor/t_factor + legacy per-band crop."""
+    dm_C = float(yaml.safe_load(open(cC)).get("dm_init", 0.0))
+    dm_D = float(yaml.safe_load(open(cD)).get("dm_init", 0.0))
+    if joint_tf_prep._env_auto():
+        (model_C, mkC), (model_D, mkD) = joint_tf_prep.prepare_pair(cC, cD, burst, outdir)
+        print(f"[{burst}] AUTO-TF CHIME: {mkC.caption()}", flush=True)
+        print(f"[{burst}] AUTO-TF DSA  : {mkD.caption()}", flush=True)
+        return model_C, _init_for(model_C, dm_C), model_D, _init_for(model_D, dm_D)
+    model_C, init_C = prepare(cC, f"{burst}_chime", outdir)
+    model_D, init_D = prepare(cD, f"{burst}_dsa", outdir)
+    return model_C, init_C, model_D, init_D
 
 
 def main():
@@ -114,6 +139,18 @@ def main():
         "is normalization-matched to C2/D2 runs (model-selection baseline)",
     )
     ap.add_argument(
+        "--gain-s2",
+        dest="gain_s2",
+        type=int,
+        default=None,
+        help="fix the per-channel gain-prior variance s2 instead of profiling it. "
+        "REQUIRED for a valid cross-N Bayes factor (ADR-0003): the profiled-s2 lnZ "
+        "is not comparable across component count, so component-count model selection "
+        "must hold s2 fixed (and use the multi likelihood throughout, which this also "
+        "enables). Output is tagged _s2-<v>. Run a small grid (e.g. 10, 100) and accept "
+        "the extra component only if ΔlnZ(N+1 vs N) > 5 consistently across s2.",
+    )
+    ap.add_argument(
         "--fixed-delta-dm-C",
         type=float,
         default=None,
@@ -145,7 +182,9 @@ def main():
     if (a.beta_lo is None) != (a.beta_hi is None):
         ap.error("--beta-lo and --beta-hi must be given together")
     beta_bounds = (a.beta_lo, a.beta_hi) if a.beta_lo is not None else None
-    multi = a.components_C > 1 or a.components_D > 1 or a.force_multi
+    # gain_s2 fixed also forces the multi likelihood (burstfit_joint threads it there),
+    # so a fixed-s2 C1D1 is normalization-matched to the C2 rungs it is compared against.
+    multi = a.components_C > 1 or a.components_D > 1 or a.force_multi or a.gain_s2 is not None
 
     cfg_dir = f"{RUNS}/configs"
     out_dir = f"{RUNS}/data/joint"
@@ -158,8 +197,7 @@ def main():
             sys.exit(f"missing config: {c}")
 
     print(f"[{a.burst}] preparing CHIME + DSA models ...", flush=True)
-    model_C, init_C = prepare(cC, f"{a.burst}_chime", out_dir)
-    model_D, init_D = prepare(cD, f"{a.burst}_dsa", out_dir)
+    model_C, init_C, model_D, init_D = prepare_joint(cC, cD, a.burst, out_dir)
     print(
         f"[{a.burst}] CHIME init: tau={init_C.tau_1ghz:.3g} a={init_C.alpha:.2g} | "
         f"DSA init: tau={init_D.tau_1ghz:.3g} a={init_D.alpha:.2g}",
@@ -182,6 +220,7 @@ def main():
         components_C=a.components_C,
         components_D=a.components_D,
         force_multi=a.force_multi,
+        gain_s2=a.gain_s2,
         fixed_delta_dm_C=a.fixed_delta_dm_C,
         fixed_delta_dm_D=a.fixed_delta_dm_D,
     )
@@ -212,6 +251,9 @@ def main():
         "alpha_bounds": list(res["alpha_bounds"]),
         "components_C": a.components_C,
         "components_D": a.components_D,
+        # None => s2 was profiled (lnZ NOT cross-N comparable; ADR-0003). A float =>
+        # fixed s2, so this lnZ IS a valid cross-N rung at that s2.
+        "gain_s2": a.gain_s2,
         "fixed_parameters": res.get("fixed_parameters", {}),
         "percentiles": pct,
         "ncall": res["ncall"],
@@ -298,6 +340,9 @@ def main():
         )
     else:
         tag = ""
+    if a.gain_s2 is not None:
+        # _s2verdict.parse_tag expects an integer suffix; keep the fixed-s2 grid on ints.
+        tag += f"_s2-{a.gain_s2}"
     out = f"{out_dir}/{a.burst}_joint_fit{tag}.json"
     json.dump(summary, open(out, "w"), indent=2)
 

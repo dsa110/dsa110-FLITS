@@ -30,9 +30,9 @@
       "regime": "none",
       "mass": "",
       "dm_host": [
-        120,
+        115,
         26,
-        31
+        32
       ],
       "tau_int": "0"
     },
@@ -49,7 +49,7 @@
       "regime": "CGM",
       "mass": "measured",
       "dm_host": [
-        -5,
+        -10,
         87,
         106
       ],
@@ -68,9 +68,9 @@
       "regime": "none",
       "mass": "",
       "dm_host": [
-        48,
-        65,
-        80
+        42,
+        66,
+        81
       ],
       "tau_int": "0"
     },
@@ -87,8 +87,8 @@
       "regime": "none",
       "mass": "",
       "dm_host": [
-        97,
-        58,
+        90,
+        59,
         74
       ],
       "tau_int": "0"
@@ -106,9 +106,9 @@
       "regime": "none",
       "mass": "",
       "dm_host": [
-        79,
+        73,
         93,
-        112
+        113
       ],
       "tau_int": "0"
     },
@@ -125,9 +125,9 @@
       "regime": "CGM",
       "mass": "measured",
       "dm_host": [
-        88,
-        88,
-        108
+        69,
+        81,
+        98
       ],
       "tau_int": "0.015"
     },
@@ -174,9 +174,9 @@
       "regime": "none",
       "mass": "",
       "dm_host": [
-        177,
-        64,
-        80
+        171,
+        65,
+        81
       ],
       "tau_int": "0"
     },
@@ -208,9 +208,9 @@
       "regime": "CGM",
       "mass": "measured",
       "dm_host": [
-        80,
-        32,
-        38
+        72,
+        33,
+        39
       ],
       "tau_int": "0.0034"
     },
@@ -227,9 +227,9 @@
       "regime": "CGM",
       "mass": "measured",
       "dm_host": [
-        81,
-        74,
-        92
+        66,
+        70,
+        86
       ],
       "tau_int": "0.073"
     }

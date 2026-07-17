@@ -1,5 +1,5 @@
 {
-  "_comment": "Single source of truth for foreground_table.tex. Edit VALUES in 'rows' (each row is the list of 10 deluxetable cells, verbatim LaTeX); regenerate the .tex with the emitter (do NOT hand-edit the .tex). Object IDs and verdicts are cross-checked against galaxies/foreground/data/intervening_census_registry.csv by the parity test. Only confirmed+inconclusive systems are tabulated (refuted omitted); the cluster row (FRB 20230307A) draws its cluster ID from the WenHan2024 catalog, not the registry. Census-empty sightlines (FRB 20221113A, FRB 20230814B, FRB 20240122A) carry an explicit no-candidates row so every co-detection appears (2026-07-15). Census remediation 2026-07-15: five confirmed cross-listed duplicate pairs merged (both IDs shown on one row) and confirmed-system impact parameters uniformly recomputed from burst position + coordinates + adopted z.",
+  "_comment": "Single source of truth for foreground_table.tex. Edit VALUES in 'rows' (each row is the list of 10 deluxetable cells, verbatim LaTeX); regenerate the .tex with the emitter (do NOT hand-edit the .tex). Object IDs and verdicts are cross-checked against galaxies/foreground/data/intervening_census_registry.csv by the parity test. Only confirmed+inconclusive systems are tabulated (refuted omitted). Census-empty sightlines (FRB 20230814B, FRB 20240122A) carry an explicit no-candidates row so every co-detection appears. Census remediation 2026-07-15: five confirmed cross-listed duplicate pairs merged; confirmed-system impact parameters uniformly recomputed; three discovery-to-validation omissions promoted through v4-extension-2026-07-15 without changing budget eligibility.",
   "columns": [
     "burst",
     "type",
@@ -62,16 +62,28 @@
       "STRM unsure"
     ],
     [
+      "",
+      "halo",
+      "WISEA J211150.32+724807.8",
+      "208",
+      "\\nodata",
+      "$0.084$",
+      "WISExSCOS phot",
+      "galaxy cand.",
+      "inconclusive",
+      "low-quality photo-z"
+    ],
+    [
       "FRB 20221113A",
+      "halo",
+      "WISEA J044538.83+701843.3",
+      "16",
       "\\nodata",
       "\\nodata",
-      "\\nodata",
-      "\\nodata",
-      "\\nodata",
-      "\\nodata",
-      "\\nodata",
-      "no candidates",
-      "outside deep footprints"
+      "GLADE+ dist.",
+      "galaxy cand.",
+      "inconclusive",
+      "no validated z"
     ],
     [
       "FRB 20221203A",
@@ -96,6 +108,18 @@
       "cluster",
       "confirmed",
       "DESI spec < host"
+    ],
+    [
+      "",
+      "cluster",
+      "WHL J115048.0+714428",
+      "614",
+      "\\nodata",
+      "0.189",
+      "WHL12/NED",
+      "cluster",
+      "confirmed",
+      "no WH24 $M_{500}$"
     ],
     [
       "",

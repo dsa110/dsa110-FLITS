@@ -62,6 +62,10 @@ Thumbs.db
 !galaxies/foreground/data/frozen_census/*.csv
 # ...and the census-remediation mass/dedupe adjudications (owner decisions, small)
 !galaxies/foreground/data/census_masses/*.csv
+# ...and append-only census extensions promoted from discovery-stage vetting
+!galaxies/foreground/data/census_extensions/*.csv
+# July DM-locked adjudication table (CI + manuscript gate; small)
+!/analysis/scattering-dm-locked-2026-07-14/results/fit_adjudication.csv
 # FITS (astronomy images)
 *.fits
 *.fit
@@ -406,4 +410,22 @@ test_output/
 /analysis/scattering-refit-2026-06/**/*.pdf
 /analysis/scattering-refit-2026-06/**/*.npz
 /analysis/scattering-refit-2026-06/**/*.csv
+# Keep curated joint JSON tracked (FLITS CI / fit-generation gates)
+!/analysis/scattering-refit-2026-06/_a1_fits/
+!/analysis/scattering-refit-2026-06/_a1_fits/**
+!/analysis/scattering-refit-2026-06/joint_json/
+!/analysis/scattering-refit-2026-06/joint_json/**
 /.superpowers/
+
+# Results-library Phase B — bulk under FABER2026_RESULTS_LIBRARY.
+# Curated CI/manuscript JSON (+ oran_qualified, fit_adjudication, joint summary)
+# stay tracked. Recreate local bulk links:
+#   python3 ../scripts/materialize_results_library.py
+/results/*
+!/results/joint_fit_summary.md
+!/results/README.md
+/analysis/scattering-dm-locked-2026-07-14/results/fit_summaries
+/analysis/scattering-dm-locked-2026-07-14/results/ppc
+/analysis/scintillation-dsa-lorentzian-2026-07-07/results/*
+!/analysis/scintillation-dsa-lorentzian-2026-07-07/results/oran_qualified/
+!/analysis/scintillation-dsa-lorentzian-2026-07-07/results/oran_qualified/**

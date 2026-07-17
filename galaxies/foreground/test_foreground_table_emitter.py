@@ -14,7 +14,6 @@ from __future__ import annotations
 
 import csv
 import json
-import re
 
 from galaxies.foreground.foreground_table_emitter import (
     DATA_PATH,
@@ -45,19 +44,22 @@ def test_emitted_tex_matches_committed_export():
 
 def test_rows_have_ten_cells():
     data = json.loads(DATA_PATH.read_text())
-    # 23 tabulated physical census systems (28 rows minus the five confirmed
-    # cross-listed duplicate pairs merged by the 2026-07-15 remediation)
-    # + 3 explicit no-candidate sightline rows (FRB 20221113A, FRB 20230814B,
-    # FRB 20240122A) so every co-detection sightline appears in the table.
-    assert len(data["rows"]) == 26
+    # 26 tabulated physical systems plus two explicit no-candidate sightlines
+    # (FRB 20230814B and FRB 20240122A) so every co-detection appears.
+    assert len(data["rows"]) == 28
     for r in data["rows"]:
         assert len(r) == 10, f"row has {len(r)} cells, expected 10: {r!r}"
     empties = [r for r in data["rows"] if r[8] == "no candidates"]
     assert [r[0] for r in empties] == [
-        "FRB 20221113A",
         "FRB 20230814B",
         "FRB 20240122A",
     ]
+    objects = {r[2] for r in data["rows"]}
+    assert {
+        "WISEA J044538.83+701843.3",
+        "WISEA J211150.32+724807.8",
+        "WHL J115048.0+714428",
+    } <= objects
     merged = [r for r in data["rows"] if "," in r[2] and not r[2].startswith("J")]
     assert len(merged) == 5  # the five dual-listed confirmed systems
 
@@ -79,12 +81,12 @@ def test_verdicts_match_census_registry():
     checked = 0
     for cells in data["rows"]:
         obj_field, verdict = cells[2], cells[8]
-        for tok in re.split(r"[,\s]+", obj_field):
+        for tok in obj_field.split(","):
             tok = tok.strip()
-            if not tok.isdigit() or tok not in reg:
+            if tok not in reg:
                 continue  # cluster-catalog id or non-registry token
             assert reg[tok] == verdict, (
                 f"obj {tok}: table '{verdict}' vs registry '{reg[tok]}'"
             )
             checked += 1
-    assert checked == 27  # 27 of 28 rows are registry-resident intervening halos
+    assert checked == 30  # 27 numeric census IDs + 3 named V4-extension IDs

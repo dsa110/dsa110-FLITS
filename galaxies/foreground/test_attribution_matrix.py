@@ -2,7 +2,7 @@
 
 import math
 
-from galaxies.foreground.attribution_matrix import build_attribution_matrix
+from galaxies.foreground.attribution_matrix import DATA_DIR, build_attribution_matrix
 from galaxies.foreground.tau_consistency import (
     consistency_status,
     scale_tau_1ghz_ms,
@@ -69,3 +69,10 @@ def test_wilhelm_two_screen_coherence_computed():
     df = build_attribution_matrix()
     wilhelm = df[df.nickname == "wilhelm"].iloc[0]
     assert "kpc^2" in str(wilhelm.two_screen_coherence)
+
+
+def test_committed_attribution_matrix_matches_builder():
+    """Generated-artifact criterion: the committed CSV equals a fresh build."""
+    expected = build_attribution_matrix().to_csv(index=False)
+    committed = (DATA_DIR / "sightline_attribution_matrix.csv").read_text()
+    assert committed == expected

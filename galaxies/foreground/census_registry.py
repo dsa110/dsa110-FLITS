@@ -11,6 +11,7 @@ import pandas as pd
 PACKAGE_DIR = Path(__file__).resolve().parent
 DATA_DIR = PACKAGE_DIR / "data"
 DEFAULT_SCRATCH_CODETECTION = PACKAGE_DIR.parents[1] / "scratch" / "codetection"
+CENSUS_EXTENSIONS_CSV = DATA_DIR / "census_extensions" / "v4_extension.csv"
 
 SURVEY_SHORT = {
     "WISE, PS1, STRM": "WISE/PS1/STRM",
@@ -82,6 +83,52 @@ def budget_eligible(final_verdict: str, obj_type: str, b_over_r500: float) -> bo
     return True
 
 
+def load_census_extensions(path: Path | str | None = None) -> pd.DataFrame:
+    """Load manually adjudicated rows omitted by the frozen validation handoff.
+
+    The extension is append-only provenance, not a second validation engine.
+    Registry and budget booleans are recomputed here so the CSV cannot promote
+    a row by carrying a stale hand-entered flag.
+    """
+    csv_path = Path(path) if path is not None else CENSUS_EXTENSIONS_CSV
+    ext = pd.read_csv(csv_path, dtype={"obj": str})
+    keys = ext[["nickname", "type", "obj"]].astype(str).agg(tuple, axis=1)
+    if not keys.is_unique:
+        raise ValueError(f"duplicate census-extension key in {csv_path}")
+    ext["registry_tier"] = ext.final_verdict == "confirmed"
+    ext["budget_eligible"] = [
+        budget_eligible(verdict, obj_type, b_over_r500)
+        for verdict, obj_type, b_over_r500 in zip(
+            ext.final_verdict,
+            ext.type,
+            pd.to_numeric(ext.b_over_r500, errors="coerce"),
+            strict=True,
+        )
+    ]
+    return ext
+
+
+def _append_census_extensions(registry: pd.DataFrame) -> pd.DataFrame:
+    """Append the V4 extension idempotently, with the extension as authority."""
+    ext = load_census_extensions()
+    missing = set(registry.columns) - set(ext.columns)
+    extra = set(ext.columns) - set(registry.columns)
+    if missing or extra:
+        raise ValueError(
+            f"census-extension schema mismatch: missing={sorted(missing)}, extra={sorted(extra)}"
+        )
+    ext_keys = set(ext[["nickname", "type", "obj"]].astype(str).agg(tuple, axis=1))
+    base_keys = registry[["nickname", "type", "obj"]].astype(str).agg(tuple, axis=1)
+    combined = pd.concat(
+        [registry.loc[~base_keys.isin(ext_keys)], ext[registry.columns]],
+        ignore_index=True,
+    )
+    keys = combined[["nickname", "type", "obj"]].astype(str).agg(tuple, axis=1)
+    if not keys.is_unique:
+        raise ValueError("duplicate stable key after appending census extension")
+    return combined
+
+
 def build_intervening_census_registry(scratch_dir: Path | str | None = None) -> pd.DataFrame:
     """Assemble the 49-object registry from validated scratch/codetection CSVs."""
     here = scratch_codetection_dir(scratch_dir)
@@ -94,7 +141,7 @@ def build_intervening_census_registry(scratch_dir: Path | str | None = None) -> 
     if any(not path.exists() for path in required):
         checked_in = DATA_DIR / "intervening_census_registry.csv"
         if scratch_dir is None and checked_in.exists():
-            return pd.read_csv(checked_in)
+            return _append_census_extensions(pd.read_csv(checked_in, dtype={"obj": str}))
     fin = pd.read_csv(here / "foreground_final.csv")
     fgr = pd.read_csv(here / "foreground.csv")
     val = pd.read_csv(here / "foreground_validated.csv")
@@ -160,7 +207,7 @@ def build_intervening_census_registry(scratch_dir: Path | str | None = None) -> 
             }
         )
 
-    return pd.DataFrame(rows)
+    return _append_census_extensions(pd.DataFrame(rows))
 
 
 def load_intervening_census_registry(path: Path | str | None = None) -> pd.DataFrame:

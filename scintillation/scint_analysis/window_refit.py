@@ -30,6 +30,7 @@ COMB_SPACING_MHZ = 0.390625
 COMB_HALFWIDTH_MHZ = 0.05
 _MIN_OFF = 50
 SIGMA_RFI = 5.0
+M_PHYS = 1.2       # max physical modulation index admitted to the alpha power-law fit
 
 _BASECFG = {}      # name -> base config dict (cheap; the npz load dominates and is cached by the OS)
 
@@ -192,8 +193,15 @@ def refit(name, burst_lims, off_lims, rfi_bands_mhz=None, first_fit_lag=1,
     cf = np.asarray(res["subband_center_freqs_mhz"], float)
     order = np.argsort(cf)[::-1]
     fits = {int(i): _fit_subband(res["subband_lags_mhz"][i], res["subband_acfs"][i]) for i in order}
+    # The alpha fit additionally requires a physical modulation index: m>M_PHYS
+    # passes the resolved gate but is envelope-contaminated (point-source strong
+    # scintillation has m<=1; the margin absorbs self-/finite-scintle noise), and
+    # one contaminated subband can swing a 3-4 point slope wildly (hamilton_hi's
+    # flagged 751-MHz band produced alpha=+33). The per-subband fit is still
+    # reported — only the power-law selection excludes it.
     resolved = [(cf[i], fits[int(i)]["gamma"], fits[int(i)]["gamma_err"]) for i in order
-                if fits[int(i)]["ok"] and fits[int(i)]["resolved"]]
+                if fits[int(i)]["ok"] and fits[int(i)]["resolved"]
+                and fits[int(i)]["m"] <= M_PHYS]
     alpha = None
     if len(resolved) >= 2:
         fr = np.array([r[0] for r in resolved]); gm = np.array([r[1] for r in resolved])

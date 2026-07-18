@@ -30,6 +30,11 @@ from numpy.typing import NDArray
 from scipy import stats
 from scipy.linalg import eigh
 from scipy.special import erfcx
+try:
+    from scipy.fft import next_fast_len as _next_fast_len
+except Exception:  # scipy.fft.next_fast_len missing on very old scipy
+    def _next_fast_len(n):
+        return 1 << int(np.ceil(np.log2(max(n, 1))))
 
 from .turbulence import (
     BETA_EXP_EPS,
@@ -242,7 +247,11 @@ def gaussian_powerlaw_convolution(t, mu, sig, tau, beta):
 
     # *dt makes the discrete linear convolution the sampled continuous one, so
     # the returned profile integrates to ~1 like analytic_gaussian_exp_convolution.
-    L = 2 * T
+    # A pocketfft-fast transform length (composite of primes <=11) avoids the
+    # O(N^2) fallback when 2*T has a large prime factor (e.g. T=257 prime ->
+    # 2*T=514=2*257 -> 525); the result is exact because L >= 2*T still captures
+    # the full linear convolution and the extra tail is dropped by the [:T] slice.
+    L = _next_fast_len(2 * T)
     conv = np.fft.irfft(np.fft.rfft(g, L, axis=1) * np.fft.rfft(h, L, axis=1), L, axis=1)
     return conv[:, :T] * dt
 

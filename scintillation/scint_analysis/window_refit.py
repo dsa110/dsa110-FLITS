@@ -317,7 +317,8 @@ def _artifact_controls(spec, res, fits, order, burst, off):
 
 
 def refit(name, burst_lims, off_lims, rfi_bands_mhz=None, first_fit_lag=1,
-          time_weights=None, subband_channel_slices=None, validate_artifacts=False):
+          time_weights=None, subband_channel_slices=None, validate_artifacts=False,
+          off_pulse_null=False):
     """first_fit_lag=1 keeps the lag-1 bin, which carries most of the constraint for
     gamma near the channel width (FFL=2 in the drifted configs railed chromatica's
     517 MHz subband; FFL=1 reproduces the archived resolved fit). Uniform for all
@@ -360,6 +361,40 @@ def refit(name, burst_lims, off_lims, rfi_bands_mhz=None, first_fit_lag=1,
     cf = np.asarray(res["subband_center_freqs_mhz"], float)
     order = np.argsort(cf)[::-1]
     fits = {int(i): _fit_subband(res["subband_lags_mhz"][i], res["subband_acfs"][i]) for i in order}
+
+    # Per-subband off-pulse ACF null (experiment arm A). Run the IDENTICAL subband machinery
+    # on burst-free noise slices inside the off-pulse window (same channels, same subbanding,
+    # same fitter) and compare, subband-by-subband, against the on-pulse gamma. A real
+    # scintillation scale lives only in the burst; if the off-pulse noise reproduces the
+    # on-pulse gamma (within off_pulse_null_verdict's bracket), that subband's scale is
+    # instrumental. This is the reviewer-approved (R5) stronger control: it tests exactly the
+    # subbands that enter the alpha fit, not the single reference subband of _artifact_controls.
+    null_by_sub = {}
+    if off_pulse_null:
+        on_dur = max(1, burst[1] - burst[0])
+        o0, o1 = off
+        starts = list(range(o0, max(o0, o1 - on_dur) + 1, on_dur))[:8]   # cap 8 tiles
+        off_widths = {int(i): [] for i in order}
+        for s0 in starts:
+            slc = (s0, s0 + on_dur)
+            try:
+                ro = ana.calculate_acfs_for_subbands(spec, c, burst_lims=slc, noise_desc=None)
+            except Exception:
+                continue
+            cfo = np.asarray(ro.get("subband_center_freqs_mhz", []), float)
+            if cfo.size == 0:
+                continue
+            for i in order:                       # match off subbands to on by nearest center
+                j = int(np.argmin(np.abs(cfo - cf[i])))
+                if abs(cfo[j] - cf[i]) > 30.0:     # no comparable subband on this noise slice
+                    continue
+                fo = _fit_subband(ro["subband_lags_mhz"][j], ro["subband_acfs"][j])
+                if fo.get("ok") and fo.get("resolved"):
+                    off_widths[int(i)].append(float(fo["gamma"]))
+        for i in order:
+            f = fits[int(i)]
+            on_g = f["gamma"] if (f.get("ok") and f.get("resolved")) else None
+            null_by_sub[int(i)] = guards.off_pulse_null_verdict(on_g, off_widths[int(i)])
     # Finite-scintle error: with N_ISS ~ 1 + eta*BW/gamma independent scintles per
     # subband (eta=0.2, Cordes & Lazio estimator-filling convention), the fractional
     # gamma uncertainty from sampling a finite number of scintles is 1/sqrt(N_ISS) —
@@ -405,4 +440,4 @@ def refit(name, burst_lims, off_lims, rfi_bands_mhz=None, first_fit_lag=1,
                 fits=fits, alpha=alpha, rfi_new=int((flag & ~already).sum()),
                 rfi_total=int(flag.sum()), ntime=spec.power.shape[1], nchan=spec.power.shape[0],
                 subband_channel_slices=res["subband_channel_slices"],
-                artifact_controls=artifact_controls)
+                artifact_controls=artifact_controls, off_pulse_null=null_by_sub)

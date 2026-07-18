@@ -1,6 +1,6 @@
 {
   "name": "phineas",
-  "window_source": "objective",
+  "window_source": "pre-burst",
   "off_snr": 9.15081376629711,
   "valid_span": [
     65,
@@ -20,6 +20,8 @@
   },
   "alpha": null,
   "alpha_unphysical": false,
+  "science_status": "non_detection",
+  "status_basis": "n_resolved_physical=1 (<2: no measurable slope)",
   "subbands": [
     {
       "center_mhz": 730.4,
@@ -39,7 +41,15 @@
       "dbic_2comp": -1.3695764932217571,
       "gamma_tail": 0.19718355342307145,
       "gamma_win_sys": 0.01738076243391909,
-      "n_variants": 5
+      "n_variants": 5,
+      "off_pulse_null": {
+        "null_pass": null,
+        "on_dnu_mhz": null,
+        "off_median_dnu_mhz": null,
+        "off_n_fits": 0,
+        "ratio": null,
+        "reason": "no valid on-pulse width; null inconclusive"
+      }
     },
     {
       "center_mhz": 612.4,
@@ -59,7 +69,15 @@
       "dbic_2comp": -9.925689235111463,
       "gamma_tail": 0.33208071098824965,
       "gamma_win_sys": 0.03705198439507629,
-      "n_variants": 5
+      "n_variants": 5,
+      "off_pulse_null": {
+        "null_pass": true,
+        "on_dnu_mhz": 0.30660488552173304,
+        "off_median_dnu_mhz": null,
+        "off_n_fits": 0,
+        "ratio": null,
+        "reason": "only 0 off-pulse fits (< 3); off-pulse too white to fit a consistent scale -> null passes"
+      }
     },
     {
       "center_mhz": 526.6,
@@ -79,7 +97,15 @@
       "dbic_2comp": -9.906961980772735,
       "gamma_tail": 2.111345142902113,
       "gamma_win_sys": 0.3119470652317837,
-      "n_variants": 5
+      "n_variants": 5,
+      "off_pulse_null": {
+        "null_pass": null,
+        "on_dnu_mhz": null,
+        "off_median_dnu_mhz": null,
+        "off_n_fits": 0,
+        "ratio": null,
+        "reason": "no valid on-pulse width; null inconclusive"
+      }
     },
     {
       "center_mhz": 444.9,
@@ -99,7 +125,15 @@
       "dbic_2comp": -9.618976388554984,
       "gamma_tail": 0.2803792222217724,
       "gamma_win_sys": 0.3585948590972772,
-      "n_variants": 5
+      "n_variants": 5,
+      "off_pulse_null": {
+        "null_pass": null,
+        "on_dnu_mhz": null,
+        "off_median_dnu_mhz": null,
+        "off_n_fits": 0,
+        "ratio": null,
+        "reason": "no valid on-pulse width; null inconclusive"
+      }
     }
   ],
   "variants": [

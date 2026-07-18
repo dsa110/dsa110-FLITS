@@ -76,7 +76,7 @@ def _windows_for(name):
                          weights=weights, label="matched-weight-tail"))
     variants.append(dict(burst_lims=shift(sel["burst_lims"]), off_lims=shift(sel["off_lims"]),
                          label="tail-expanded"))
-    return chosen, variants, "objective", float(sel["off_snr"]), span
+    return chosen, variants, sel.get("off_source", "objective"), float(sel["off_snr"]), span
 
 
 def _fit_table(r):
@@ -276,5 +276,14 @@ if __name__ == "__main__":
     names = (BURSTS if target == "all"
              else [b + "_hi" for b in BURSTS] if target == "all_hi"
              else [target])
+    # all/all_hi are sweeps: a missing product (e.g. a burst with no _hi npz) must SKIP,
+    # not abort the whole sweep. Probe config availability first for the sweep targets (M5).
+    is_sweep = target in ("all", "all_hi")
     for n in names:
+        if is_sweep:
+            try:
+                wr._base_config(n)
+            except Exception as exc:
+                print(f"{n}: SKIP (no product/config available: {exc})")
+                continue
         run_burst(n, out)

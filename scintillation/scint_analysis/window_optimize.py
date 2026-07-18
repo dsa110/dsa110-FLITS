@@ -210,6 +210,7 @@ def select_windows(profile, k_sat=3.0, k_edge=0.75, guard_frac=1.0, min_snr=5.0)
     if not scored:                                   # no run long enough to characterize
         off = max(off_runs, key=lambda r: r[1] - r[0])
         off_snr = _osnr(off)
+        off_source = "longest-uncharacterized"
     else:
         # Pre-burst preference (ENFORCED, PRIMARY over the off_snr gate). The post-burst
         # region is where the scattering tail lives, so its channels carry frequency-
@@ -218,11 +219,12 @@ def select_windows(profile, k_sat=3.0, k_edge=0.75, guard_frac=1.0, min_snr=5.0)
         # run physically CANNOT contain the tail, so it is the safe de-scalloping/RFI
         # reference. Critically, the time-domain off_snr gate does NOT capture this
         # frequency-correlated contamination: for chromatica the pre run scores off_snr
-        # 5.9 (fails the gate) yet yields the clean 4-subband ladder alpha=+1.66 n=4,
-        # while the post run scores 2.9 (passes) yet rails the top subband to alpha=+2.9
-        # n=2. So off_snr cannot be the arbiter of the pre/post choice; the physical
-        # ordering is. Verified 2026-07-17 (injection + real): chromatica pre -> +1.66 n4
-        # vs post -> +1.19 n2; freya pre -> +1.63 vs post -> -0.56.
+        # ~6.8 (fails the gate) yet yields the clean 4-subband ladder alpha=+1.68 n=4,
+        # while the post run scores ~2.9 (passes) yet rails the top subband to a 2-point
+        # slope. So off_snr cannot be the arbiter of the pre/post choice; the physical
+        # ordering is. Verified 2026-07-17 (injection + real): chromatica pre[0,131] ->
+        # +1.66 n4 vs post[269,452] -> +1.19 n2; freya pre[0,227] -> +1.63 n2 vs
+        # post[302,446] -> -0.56 n2. (Pinned config-path chromatica off[9,138] -> +1.68 n4.)
         # RULE: take the LARGEST adequate (>= OFF_MIN_BINS) pre-burst run outright. Only
         # when none exists fall back to the off_snr purity gate on the remaining runs
         # (largest with off_snr <= OFF_SNR_MAX; least-contaminated otherwise) — this
@@ -231,12 +233,15 @@ def select_windows(profile, k_sat=3.0, k_edge=0.75, guard_frac=1.0, min_snr=5.0)
         pre_adequate = [t for t in scored if t[0][1] <= burst[0] and t[1] >= OFF_MIN_BINS]
         if pre_adequate:
             off, _, off_snr = max(pre_adequate, key=lambda t: t[1])
+            off_source = "pre-burst"                  # primary rule fired
         else:
             clean = [t for t in scored if t[2] <= OFF_SNR_MAX]
             if clean:
                 off, _, off_snr = max(clean, key=lambda t: t[1])
+                off_source = "purity-gate"            # off_snr <= OFF_SNR_MAX fallback
             else:                                    # all contaminated: least-bad wins
                 off, _, off_snr = min(scored, key=lambda t: t[2])
+                off_source = "least-contaminated"
     # Matched (profile-proportional) time weights: the injection harness (round 2,
     # 2026-07-17) found weighting the burst spectrum by the time profile is the least
     # biased gamma estimator (x1.05-1.18 of truth, best resolved rate) — it keeps the
@@ -252,7 +257,7 @@ def select_windows(profile, k_sat=3.0, k_edge=0.75, guard_frac=1.0, min_snr=5.0)
     return dict(burst_lims=[burst[0], burst[1]], burst_core=[core[0], core[1]],
                 off_lims=[int(off[0]), int(off[1])], weights=weights,
                 matched=dict(center=int(center), width=int(width), snr=float(snr)),
-                off_snr=off_snr, smoothed=s, sigma_smooth=sig, guard=guard,
+                off_snr=off_snr, off_source=off_source, smoothed=s, sigma_smooth=sig, guard=guard,
                 params=dict(k_sat=k_sat, k_edge=k_edge, guard_frac=guard_frac,
                             min_snr=min_snr))
 

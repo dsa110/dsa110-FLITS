@@ -1,6 +1,6 @@
 {
   "name": "chromatica",
-  "window_source": "objective",
+  "window_source": "pre-burst",
   "off_snr": 6.761321202228763,
   "valid_span": [
     9,
@@ -25,6 +25,8 @@
     "provisional": false
   },
   "alpha_unphysical": false,
+  "science_status": "detection",
+  "status_basis": "n_resolved_physical=4>=3, alpha=+1.68 in (0.0,6.0], off_pulse_null not majority-fail (0/4)",
   "subbands": [
     {
       "center_mhz": 720.5,
@@ -44,7 +46,15 @@
       "dbic_2comp": 192.95312585862757,
       "gamma_tail": 0.10380778785175865,
       "gamma_win_sys": 0.0018650338098751967,
-      "n_variants": 4
+      "n_variants": 4,
+      "off_pulse_null": {
+        "null_pass": true,
+        "on_dnu_mhz": 0.09318499491955032,
+        "off_median_dnu_mhz": null,
+        "off_n_fits": 0,
+        "ratio": null,
+        "reason": "only 0 off-pulse fits (< 3); off-pulse too white to fit a consistent scale -> null passes"
+      }
     },
     {
       "center_mhz": 585.2,
@@ -64,7 +74,15 @@
       "dbic_2comp": 103.25729490100366,
       "gamma_tail": 0.11752863245965106,
       "gamma_win_sys": 0.002437250442139001,
-      "n_variants": 4
+      "n_variants": 4,
+      "off_pulse_null": {
+        "null_pass": true,
+        "on_dnu_mhz": 0.07382731596669562,
+        "off_median_dnu_mhz": null,
+        "off_n_fits": 0,
+        "ratio": null,
+        "reason": "only 0 off-pulse fits (< 3); off-pulse too white to fit a consistent scale -> null passes"
+      }
     },
     {
       "center_mhz": 496.8,
@@ -84,7 +102,15 @@
       "dbic_2comp": 81.97948804349744,
       "gamma_tail": 0.03281818202484641,
       "gamma_win_sys": 0.0140262009235808,
-      "n_variants": 4
+      "n_variants": 4,
+      "off_pulse_null": {
+        "null_pass": true,
+        "on_dnu_mhz": 0.03144197638009004,
+        "off_median_dnu_mhz": null,
+        "off_n_fits": 0,
+        "ratio": null,
+        "reason": "only 0 off-pulse fits (< 3); off-pulse too white to fit a consistent scale -> null passes"
+      }
     },
     {
       "center_mhz": 432.8,
@@ -104,7 +130,15 @@
       "dbic_2comp": -7.768194974702965,
       "gamma_tail": 0.09865010404821736,
       "gamma_win_sys": 0.006620574762525734,
-      "n_variants": 4
+      "n_variants": 4,
+      "off_pulse_null": {
+        "null_pass": true,
+        "on_dnu_mhz": 0.0496275492362156,
+        "off_median_dnu_mhz": null,
+        "off_n_fits": 0,
+        "ratio": null,
+        "reason": "only 0 off-pulse fits (< 3); off-pulse too white to fit a consistent scale -> null passes"
+      }
     }
   ],
   "variants": [

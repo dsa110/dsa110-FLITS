@@ -44,6 +44,15 @@ power there corrupts every downstream quantity. Two enforced rules in
    candidate at the burst scale and take the largest with `off_snr ≤ OFF_SNR_MAX`; this
    guards the oran case, where the offending run rode the rising burst envelope.
 
+A pre-burst run bypasses the `off_snr` gate entirely, which is safe because `off_snr` was
+never an RFI guard: RFI is handled separately (pipeline channel mask + `auto_rfi_flag` on
+the off-pulse statistics + user bands), and `off_snr` only measures residual *burst*
+(time-domain) power in the candidate window. A pre-burst run cannot contain the burst or
+its scattering tail, so the quantity `off_snr` scores is structurally absent there; the
+per-channel de-scalloping robustness that actually matters (a clean off-pulse mean) is
+better served by the pre-burst region than by a post-burst window that passes the gate but
+sits in the scattering tail.
+
 ## Grid regularization
 
 `analysis.grid_regularization` is **ON** in the γ path: `window_refit._build_spec` enables

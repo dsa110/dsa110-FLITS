@@ -285,8 +285,16 @@ def refit(name, burst_lims, off_lims, rfi_bands_mhz=None, first_fit_lag=1,
                 ro = ana.calculate_acfs_for_subbands(spec, c, burst_lims=slc, noise_desc=None)
             except Exception:
                 continue
+            # Match off-pulse subbands to the on-pulse ones by nearest center frequency
+            # (the S/N-driven subbanding can pick a different band count on a noise slice).
+            cfo = np.asarray(ro.get("subband_center_freqs_mhz", []), float)
+            if cfo.size == 0:
+                continue
             for i in order:
-                fo = _fit_subband(ro["subband_lags_mhz"][i], ro["subband_acfs"][i])
+                j = int(np.argmin(np.abs(cfo - cf[i])))
+                if abs(cfo[j] - cf[i]) > 30.0:        # no comparable subband on this slice
+                    continue
+                fo = _fit_subband(ro["subband_lags_mhz"][j], ro["subband_acfs"][j])
                 if fo.get("ok") and fo.get("resolved"):
                     off_widths[int(i)].append(float(fo["gamma"]))
         for i in order:

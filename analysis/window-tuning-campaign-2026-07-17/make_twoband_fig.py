@@ -3,14 +3,20 @@ One panel per triad burst; CHIME (400-800) + DSA (~1320-1470) Delta-nu_d points;
 power-law overlays; forced single-screen joint fit drawn as the REJECTED hypothesis
 (dashed grey) annotated with tau*dnu_d and the different_screens verdict."""
 import json, numpy as np, matplotlib
+from pathlib import Path
 matplotlib.use("Agg"); import matplotlib.pyplot as plt
 try:
     from kernel import apply_figure_style; apply_figure_style(sizes=(10,9,8))
 except Exception: pass
 
-TR=json.load(open("/Users/jakobfaber/Developer/scratch/two_band_tracks.json"))
-# tau*dnu_d verdicts from committed two_screen_consistency.md (authoritative)
-TAUDNU={"chromatica":93.9,"zach":23.9,"freya":2.6,"hamilton":1.64}
+HERE=Path(__file__).resolve().parent
+TR=json.load(open(str(HERE/"results"/"two_band_tracks.json")))
+# tau*dnu_d verdicts come from the tracks JSON, recomputed at the PINNED dnu_d values via
+# the committed check_tau_deltanu_consistency (two_band_joint.tau_dnu_consistency) - same
+# provenance as the plotted DSA points (B2).
+def taudnu(nm):
+    c=(TR.get(nm) or {}).get("tau_delta_nu") or {}
+    return c.get("tau_delta_nu_product"), c.get("screen_verdict")
 CH="#c1272d"; DS="#2166ac"; JT="#888888"
 bursts=["zach","chromatica","freya"]  # hamilton diagnostic-only, excluded from headline
 fig,axes=plt.subplots(1,len(bursts),figsize=(3.1*len(bursts),3.4),sharey=True)
@@ -31,16 +37,21 @@ for ax,nm in zip(axes,bursts):
                    label=f"forced joint (rejected)")
     ax.set_xscale("log"); ax.set_yscale("log")
     ax.set_xlabel("frequency (MHz)")
+    # per-band alpha errors are inflated by sqrt(max(1,redchi)) so a poor intra-band fit
+    # (e.g. chromatica DSA redchi~34) is not quoted with a deceptively tight error (M3).
+    def aerr(f): return f["alpha_err"]*np.sqrt(max(1.0, f.get("redchi",1.0)))
     # annotations
     fc=d["chime"]; fd=d["dsa"]
-    lines=[f"{nm}"]
-    if fc: lines.append(rf"$\alpha_{{\rm CHIME}}$={fc['alpha']:+.2f}$\pm${fc['alpha_err']:.2f}")
-    else: lines.append(r"$\alpha_{\rm CHIME}$: 1 pt")
-    if fd: lines.append(rf"$\alpha_{{\rm DSA}}$={fd['alpha']:+.2f}$\pm${fd['alpha_err']:.2f}")
-    else: lines.append(r"$\alpha_{\rm DSA}$: 1 pt")
-    td=TAUDNU.get(nm)
-    lines.append(rf"$\tau\!\cdot\!\Delta\nu_d$={td:g}")
-    lines.append("different screens" if td>2 else "same screen")
+    marginal = (d.get("n_chime",0) < 2) or (d.get("n_dsa",0) < 2)
+    lines=[f"{nm}" + ("  (marginal: 1 pt/band)" if marginal else "")]
+    if fc: lines.append(rf"$\alpha_{{\rm CHIME}}$={fc['alpha']:+.2f}$\pm${aerr(fc):.2f}")
+    else: lines.append(rf"$\alpha_{{\rm CHIME}}$: {d.get('n_chime',0)} pt")
+    if fd: lines.append(rf"$\alpha_{{\rm DSA}}$={fd['alpha']:+.2f}$\pm${aerr(fd):.2f}")
+    else: lines.append(rf"$\alpha_{{\rm DSA}}$: {d.get('n_dsa',0)} pt")
+    td,verdict=taudnu(nm)
+    if td is not None:
+        lines.append(rf"$\tau\!\cdot\!\Delta\nu_d$={td:.0f}")
+        lines.append((verdict or "").replace("_"," "))
     ax.text(0.04,0.04,"\n".join(lines),transform=ax.transAxes,ha="left",va="bottom",fontsize=7.5,
             bbox=dict(boxstyle="round,pad=0.3",fc="white",ec="0.8",alpha=0.9))
     ax.set_title(nm,fontsize=9)
@@ -49,7 +60,10 @@ h,l=axes[0].get_legend_handles_labels()
 fig.legend(h,l,loc="upper center",ncol=4,fontsize=7.5,frameon=False,bbox_to_anchor=(0.5,1.06))
 fig.suptitle("Two-band scintillation scaling: single screen rejected across the triad",y=1.13,fontsize=10)
 fig.tight_layout()
-fig.savefig("/Users/jakobfaber/Developer/scratch/twoband_scint_summary.png",dpi=200,bbox_inches="tight")
-print("saved twoband_scint_summary.png")
+OUT=HERE/"figures"/"twoband_scint_summary.png"; OUT.parent.mkdir(parents=True,exist_ok=True)
+fig.savefig(str(OUT),dpi=200,bbox_inches="tight")
+print(f"saved {OUT.relative_to(HERE)}")
 for nm in bursts:
-    d=TR[nm]; print(nm,"CHIME",d["chime"]["alpha"] if d["chime"] else None,"DSA",d["dsa"]["alpha"] if d["dsa"] else None,"joint",d["joint"]["alpha"] if d["joint"] else None,"taudnu",TAUDNU[nm])
+    d=TR[nm]; td,verdict=taudnu(nm)
+    print(nm,"CHIME",d["chime"]["alpha"] if d["chime"] else None,"DSA",d["dsa"]["alpha"] if d["dsa"] else None,
+          "joint",d["joint"]["alpha"] if d["joint"] else None,"taudnu",td,verdict)

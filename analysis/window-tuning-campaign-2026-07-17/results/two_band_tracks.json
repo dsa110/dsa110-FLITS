@@ -70,7 +70,16 @@
         0.6722223525432387,
         0.08536759456413967
       ]
-    ]
+    ],
+    "tau_delta_nu": {
+      "tau_1ghz_ms": 0.1864021408460393,
+      "dsa_dnu_ref_mhz": 0.5502591276918801,
+      "tau_delta_nu_product": 26.699677067326263,
+      "tau_delta_nu_product_err": 1.6222857062568197,
+      "screen_verdict": "different_screens",
+      "interpretation": "Resolved \u0394\u03bd_d implies a near-screen \u03c4\u22483.36e-04 ms \u226a fitted pulse-broadening \u03c4=0.049 ms \u2192 different screens (resolved near vs far scattering screen)",
+      "nu_ref_mhz": 1400.0
+    }
   },
   "chromatica": {
     "n_chime": 4,
@@ -148,7 +157,16 @@
         1.389181721571465,
         0.1008411574931894
       ]
-    ]
+    ],
+    "tau_delta_nu": {
+      "tau_1ghz_ms": 0.22022872243262984,
+      "dsa_dnu_ref_mhz": 1.0643249814151052,
+      "tau_delta_nu_product": 61.014923706315386,
+      "tau_delta_nu_product_err": 3.16865050358539,
+      "screen_verdict": "different_screens",
+      "interpretation": "Resolved \u0394\u03bd_d implies a near-screen \u03c4\u22481.73e-04 ms \u226a fitted pulse-broadening \u03c4=0.057 ms \u2192 different screens (resolved near vs far scattering screen)",
+      "nu_ref_mhz": 1400.0
+    }
   },
   "freya": {
     "n_chime": 1,
@@ -178,7 +196,16 @@
         11.914664957701838,
         4.378555326673515
       ]
-    ]
+    ],
+    "tau_delta_nu": {
+      "tau_1ghz_ms": 0.1193849491889905,
+      "dsa_dnu_ref_mhz": 13.873677822538857,
+      "tau_delta_nu_product": 386.71051841743866,
+      "tau_delta_nu_product_err": 142.16647678657665,
+      "screen_verdict": "different_screens",
+      "interpretation": "Resolved \u0394\u03bd_d implies a near-screen \u03c4\u22481.33e-05 ms \u226a fitted pulse-broadening \u03c4=0.028 ms \u2192 different screens (resolved near vs far scattering screen)",
+      "nu_ref_mhz": 1400.0
+    }
   },
   "hamilton": {
     "n_chime": 2,
@@ -246,6 +273,15 @@
         0.23874580023782,
         0.10871444736792081
       ]
-    ]
+    ],
+    "tau_delta_nu": {
+      "tau_1ghz_ms": 0.024470729413943397,
+      "dsa_dnu_ref_mhz": 0.2058551251759021,
+      "tau_delta_nu_product": 1.301510128752459,
+      "tau_delta_nu_product_err": 0.2847177586271854,
+      "screen_verdict": "same_screen",
+      "interpretation": "Consistent with extended medium (C \u2248 1.0)",
+      "nu_ref_mhz": 1400.0
+    }
   }
 }

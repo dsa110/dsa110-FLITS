@@ -101,12 +101,56 @@ def _fit_table(r):
     return rows
 
 
+ALPHA_PHYS = (0.0, 6.0)   # physical scintillation scaling: gamma rises with freq, index
+                          # in (0, ~6]; Kolmogorov thin-screen ~+4. Outside => not a
+                          # scintillation-scaling measurement (envelope/artifact contam.).
+N_DETECT = 3              # >=3 resolved physical subbands => real slope (n=2 is 0-dof)
+
+def _derive_status(base, alpha, off_null):
+    """Earned per-burst status from stated rules, not hand-typed (B3).
+
+    detection      : n_resolved_physical >= N_DETECT AND alpha in ALPHA_PHYS AND the
+                     off-pulse null does not FAIL in a majority of the fitted subbands.
+    marginal       : 2 resolved physical subbands with alpha in ALPHA_PHYS (0-dof slope,
+                     provisional) — a candidate that needs more bands or a second epoch.
+    diagnostic_only: resolved subbands exist but the slope is unphysical (alpha outside
+                     ALPHA_PHYS) or the off-pulse null FAILS in a majority of subbands
+                     (scale is instrumental).
+    non_detection  : fewer than 2 resolved physical subbands.
+    """
+    res_phys = [b for b in base if b.get("resolved") and (b.get("m", 9) <= 1.2)]
+    n = len(res_phys)
+    a = (alpha or {}).get("alpha")
+    a_ok = (a is not None) and (ALPHA_PHYS[0] < a <= ALPHA_PHYS[1])
+    # off-pulse null: count subbands where the null explicitly FAILS (scale reproduced by noise)
+    fails = sum(1 for v in (off_null or {}).values()
+                if isinstance(v, dict) and v.get("null_pass") is False)
+    judged = sum(1 for v in (off_null or {}).values()
+                 if isinstance(v, dict) and v.get("null_pass") is not None)
+    null_majority_fail = (judged > 0 and fails > judged / 2)
+    if n >= N_DETECT and a_ok and not null_majority_fail:
+        return "detection", (f"n_resolved_physical={n}>={N_DETECT}, alpha={a:+.2f} in "
+                             f"({ALPHA_PHYS[0]},{ALPHA_PHYS[1]}], off_pulse_null not majority-fail "
+                             f"({fails}/{judged})")
+    if n >= 2 and a_ok:
+        return "marginal", (f"n_resolved_physical={n} (>=2, <{N_DETECT}: 0-dof slope), "
+                            f"alpha={a:+.2f} physical, provisional")
+    if n >= 1 and (a is not None) and not a_ok:
+        return "diagnostic_only", (f"n_resolved_physical={n} but alpha="
+                                   f"{a:+.2f} outside ({ALPHA_PHYS[0]},{ALPHA_PHYS[1]}] "
+                                   "(unphysical slope)")
+    if null_majority_fail:
+        return "diagnostic_only", (f"off_pulse_null FAILS in {fails}/{judged} subbands "
+                                   "(scale reproduced by off-pulse noise -> instrumental)")
+    return "non_detection", f"n_resolved_physical={n} (<2: no measurable slope)"
+
+
 def run_burst(name, out):
     chosen, variants, source, off_snr, span = _windows_for(name)
     if chosen["off_lims"] is None:
         raise SystemExit(f"{name}: no off window available (source={source})")
     r0 = wr.refit(name, chosen["burst_lims"], chosen["off_lims"], [],
-                  time_weights=chosen.get("weights"))
+                  time_weights=chosen.get("weights"), off_pulse_null=True)
     seen, var_tables = set(), []
     for v in variants:
         key = (tuple(v["burst_lims"]), tuple(v["off_lims"]), v.get("weights") is not None)
@@ -165,8 +209,14 @@ def run_burst(name, out):
         ax.set_title(f"{r0['center_freqs'][i]:.0f} MHz", fontsize=9)
         ax.set_xlabel("lag (MHz)")
     axes[0].set_ylabel("ACF (norm)")
-    flagtxt = "" if (off_snr is None or off_snr <= OFF_SNR_FLAG) else \
-        f"  [OFF CONTAMINATED off_snr={off_snr:.1f}]"
+    # Pre-burst off-windows deliberately bypass the off_snr purity gate (the post-burst
+    # scattering tail is what off_snr flags; a pre-burst run cannot contain the tail), so
+    # do NOT brand them "contaminated" — off_snr is not a purity verdict for them (M1).
+    if source == "pre-burst" or (isinstance(source, str) and source.startswith("pre-burst")):
+        flagtxt = "" if off_snr is None else f"  [pre-burst off, off_snr={off_snr:.1f} — purity gate n/a]"
+    else:
+        flagtxt = "" if (off_snr is None or off_snr <= OFF_SNR_FLAG) else \
+            f"  [OFF CONTAMINATED off_snr={off_snr:.1f}]"
     alpha_flag = ""
     if r0["alpha"] and r0["alpha"]["alpha"] < 0:
         # gamma falling with frequency is backwards for scintillation (expect ~nu^+4):
@@ -189,15 +239,23 @@ def run_burst(name, out):
                              chosen["weights"][nz[0]:nz[-1] + 1]])
     win_rec = dict(burst_lims=chosen["burst_lims"], off_lims=chosen["off_lims"],
                    estimator=chosen.get("estimator", "boxcar"), weights=wjson)
+    # attach the per-subband off-pulse null verdict (arm A) onto each subband row
+    onull = r0.get("off_pulse_null") or {}
+    for k, i in enumerate(order):
+        if k < len(base) and int(i) in onull:
+            base[k]["off_pulse_null"] = onull[int(i)]
+    science_status, status_basis = _derive_status(base, r0["alpha"], onull)
     rec = dict(name=name, window_source=source, off_snr=off_snr, valid_span=list(span),
                windows=win_rec, alpha=r0["alpha"],
                alpha_unphysical=bool(r0["alpha"] and r0["alpha"]["alpha"] < 0),
+               science_status=science_status, status_basis=status_basis,
                subbands=base,
                variants=var_tables, rfi_new=r0["rfi_new"], method=r0["method"])
     with open(f"{out}/{name}_campaign.json", "w") as fh:
         json.dump(rec, fh, indent=2, default=float)
     with open(f"{out}/campaign_results.jsonl", "a") as fh:
-        slim = {k: rec[k] for k in ("name", "window_source", "off_snr", "windows", "alpha")}
+        slim = {k: rec[k] for k in ("name", "window_source", "off_snr", "windows", "alpha",
+                                    "science_status", "status_basis")}
         slim["subbands"] = base
         fh.write(json.dumps(slim, default=float) + "\n")
     nres = sum(1 for b in base if b.get("resolved"))

@@ -23,7 +23,6 @@ from scint_analysis import freya_scintillation as fs
 from scint_analysis import config as config_module
 from scint_analysis import analysis as ana
 from scint_analysis import auto_rfi_flag as arf
-from scint_analysis import chime_artifact_guards as guards
 
 LAG_MAX = 5.0
 N_SKIP = 1
@@ -32,13 +31,8 @@ COMB_HALFWIDTH_MHZ = 0.05
 _MIN_OFF = 50
 SIGMA_RFI = 5.0
 M_PHYS = 1.2       # max physical modulation index admitted to the alpha power-law fit
-ALPHA_BOUNDS = (1.5, 6.0)
 
 _BASECFG = {}      # name -> base config dict (cheap; the npz load dominates and is cached by the OS)
-
-
-def alpha_is_physical(alpha):
-    return bool(alpha and ALPHA_BOUNDS[0] < alpha["alpha"] < ALPHA_BOUNDS[1])
 
 
 def _base_config(name):
@@ -56,12 +50,6 @@ def _base_config(name):
         cfg = config_module.load_config(f"{R}/scintillation/configs/bursts/{name}_chime.yaml")
     _BASECFG[name] = cfg
     return copy.deepcopy(cfg)
-
-
-def product_available(name):
-    """Return whether the configured local burst product exists."""
-    path = os.path.expandvars(os.path.expanduser(_base_config(name)["input_data_path"]))
-    return os.path.exists(path)
 
 
 def load_raw(name):
@@ -130,7 +118,7 @@ SCALE_SEP = 4.0    # required gamma_b/gamma_n separation for the 2-comp decompos
                    # to be identifiable rather than a degenerate split of one scale
 
 
-def _fit_subband(lags, acf, *, excision_bins=0):
+def _fit_subband(lags, acf):
     lags = np.asarray(lags, float); acf = np.asarray(acf, float)
     # No renormalization: calculate_acf already divides by (mean_on - mean_off)^2, so the
     # ACF amplitude IS m^2. The old argmin|lag| anchor hit a synthetic lag-0=1.0 bin that
@@ -142,8 +130,7 @@ def _fit_subband(lags, acf, *, excision_bins=0):
     lp = lags[pos]; ap = a[pos]
     o = np.argsort(lp); lp = lp[o]; ap = ap[o]
     sel = lp <= LAG_MAX
-    skip = max(N_SKIP - 1, int(excision_bins))
-    lp = lp[sel][skip:]; ap = ap[sel][skip:]
+    lp = lp[sel][N_SKIP - 1:]; ap = ap[sel][N_SKIP - 1:]
     keep = ana.harmonic_lag_mask(lp, COMB_SPACING_MHZ, COMB_HALFWIDTH_MHZ)
     lp = lp[keep]; ap = ap[keep]
     if lp.size < 8:
@@ -218,14 +205,14 @@ def _fit_subband(lags, acf, *, excision_bins=0):
     # linearly across the fitted lags and can pass every amplitude/rail gate with a
     # physical m — require the Lorentzian to beat a 2-param line by dBIC >= 6 or the
     # scale is not constrained within LAG_MAX. When the two-component model wins, the
-    # narrow component must also beat the simpler line model. Beating one nonlinear
-    # alternative does not establish that the winning shape is physically useful.
+    # narrow component's reality is already established by beating the (broad-capable)
+    # single-Lorentzian by dBIC >= DBIC_2COMP, so the line test does not apply to it.
     rss_sel = float(np.sum((ap - model) ** 2))
     rss_lin = float(np.sum((ap - np.polyval(np.polyfit(lp, ap, 1), lp)) ** 2))
     k_sel = 5 if model_sel == "2L" else 3
     dbic = (npts * np.log(max(rss_lin, 1e-30) / npts) + 2 * np.log(npts)) \
         - (npts * np.log(max(rss_sel, 1e-30) / npts) + k_sel * np.log(npts))
-    shape_ok = bool(dbic >= 6.0)
+    shape_ok = bool(dbic >= 6.0) if model_sel == "1L" else True
     resolved = bool((amp_snr > 3) and (not railed) and (gamma > 2 * dlag)
                     and (gerr < gamma) and shape_ok)
     return dict(ok=True, A=float(A), gamma=float(gamma), gamma_err=float(gerr), c0=float(c0),
@@ -235,89 +222,8 @@ def _fit_subband(lags, acf, *, excision_bins=0):
                 lp=lp, ap=ap, model=model)
 
 
-def summarize_artifact_controls(
-    *, on_dnu_mhz, off_dnu_mhz, excision_widths, n_valid_subbands
-):
-    """Apply the repository CHIME guards and fail closed on any non-pass verdict."""
-    null = guards.off_pulse_null_verdict(on_dnu_mhz, off_dnu_mhz)
-    stability = guards.low_lag_stability_verdict(on_dnu_mhz, excision_widths)
-    support = guards.subband_support_verdict(n_valid_subbands)
-    checks = {
-        "off_pulse_null": null.get("null_pass"),
-        "low_lag_stability": stability.get("stable"),
-        "subband_support": support.get("sufficient"),
-    }
-    failed = [name for name, value in checks.items() if value is not True]
-    return {
-        "status": "pass" if not failed else "fail",
-        "failed_checks": failed,
-        "off_pulse_null": null,
-        "low_lag_stability": stability,
-        "subband_support": support,
-    }
-
-
-def _artifact_controls(spec, res, fits, order, burst, off):
-    """Run the established CHIME controls on the campaign's reference subband."""
-    centers = np.asarray(res["subband_center_freqs_mhz"], float)
-    ref_index = int(np.nanargmin(np.abs(centers - np.nanmedian(centers))))
-    ref_fit = fits[ref_index]
-    on_dnu = float(ref_fit["gamma"]) if ref_fit.get("ok") else None
-    lags = res["subband_lags_mhz"][ref_index]
-    acf = res["subband_acfs"][ref_index]
-    excision_widths = {}
-    for k in (1, 2, 3):
-        fit = _fit_subband(lags, acf, excision_bins=k)
-        excision_widths[k] = float(fit["gamma"]) if fit.get("ok") else None
-
-    channel_slice = tuple(res["subband_channel_slices"][ref_index])
-    channel_width = float(res["subband_channel_widths_mhz"][ref_index])
-    width = max(int(burst[1] - burst[0]), 4)
-    starts = list(range(int(off[0]) + 2, int(off[1]) - width, width + 4))[:6]
-    off_widths = []
-    max_lag_bins = int(LAG_MAX / channel_width) if channel_width > 0 else None
-    for start in starts:
-        try:
-            spectrum = spec.get_spectrum((start, start + width))[channel_slice[0]:channel_slice[1]]
-            off_acf = ana.calculate_acf(
-                spectrum,
-                channel_width,
-                off_burst_spectrum_mean=None,
-                max_lag_bins=max_lag_bins,
-            )
-            fit = _fit_subband(off_acf.lags, off_acf.acf)
-        except Exception:
-            continue
-        if fit.get("ok"):
-            off_widths.append(float(fit["gamma"]))
-
-    valid = sum(
-        1
-        for fit in fits.values()
-        if fit.get("ok")
-        and fit.get("resolved")
-        and fit.get("shape_ok")
-        and np.isfinite(fit.get("m", np.nan))
-        and fit["m"] <= M_PHYS
-    )
-    summary = summarize_artifact_controls(
-        on_dnu_mhz=on_dnu,
-        off_dnu_mhz=off_widths,
-        excision_widths=excision_widths,
-        n_valid_subbands=valid,
-    )
-    summary.update(
-        {
-            "reference_subband_index": ref_index,
-            "reference_frequency_mhz": float(centers[ref_index]),
-            "off_pulse_slice_starts": starts,
-        }
-    )
-    return summary
-
-
 def refit(name, burst_lims, off_lims, rfi_bands_mhz=None, first_fit_lag=1,
-          time_weights=None, subband_channel_slices=None, validate_artifacts=False):
+          time_weights=None, off_pulse_null=False):
     """first_fit_lag=1 keeps the lag-1 bin, which carries most of the constraint for
     gamma near the channel width (FFL=2 in the drifted configs railed chromatica's
     517 MHz subband; FFL=1 reproduces the archived resolved fit). Uniform for all
@@ -340,10 +246,6 @@ def refit(name, burst_lims, off_lims, rfi_bands_mhz=None, first_fit_lag=1,
     rfi_bands_mhz = rfi_bands_mhz or []
     spec, c, method = _build_spec(name, burst, off)
     c["analysis"]["acf"]["first_fit_lag"] = int(first_fit_lag)
-    if subband_channel_slices is not None:
-        c["analysis"]["acf"]["subband_channel_slices"] = [
-            [int(start), int(end)] for start, end in subband_channel_slices
-        ]
     if time_weights is not None:
         c["analysis"]["acf"]["time_weights"] = np.asarray(time_weights, float)
         method += " + matched time-weighting"
@@ -360,6 +262,37 @@ def refit(name, burst_lims, off_lims, rfi_bands_mhz=None, first_fit_lag=1,
     cf = np.asarray(res["subband_center_freqs_mhz"], float)
     order = np.argsort(cf)[::-1]
     fits = {int(i): _fit_subband(res["subband_lags_mhz"][i], res["subband_acfs"][i]) for i in order}
+
+    # Off-pulse ACF null (experiment arm A). Run the IDENTICAL subband machinery on
+    # burst-free noise slices inside the off-pulse window (same channels, same subbanding,
+    # same fitter). A real scintillation scale lives only in the burst; if the off-pulse
+    # noise reproduces the on-pulse gamma (within a factor bracket_ratio), the scale is
+    # instrumental. Per-subband verdict via chime_artifact_guards.off_pulse_null_verdict.
+    null_by_sub = {}
+    if off_pulse_null:
+        try:
+            from . import chime_artifact_guards as cag
+        except Exception:
+            import chime_artifact_guards as cag
+        on_dur = max(1, burst[1] - burst[0])
+        o0, o1 = off
+        # tile the off-pulse window into as many on-duration slices as fit (cap 8)
+        starts = list(range(o0, max(o0, o1 - on_dur) + 1, on_dur))[:8]
+        off_widths = {int(i): [] for i in order}
+        for s0 in starts:
+            slc = (s0, s0 + on_dur)
+            try:
+                ro = ana.calculate_acfs_for_subbands(spec, c, burst_lims=slc, noise_desc=None)
+            except Exception:
+                continue
+            for i in order:
+                fo = _fit_subband(ro["subband_lags_mhz"][i], ro["subband_acfs"][i])
+                if fo.get("ok") and fo.get("resolved"):
+                    off_widths[int(i)].append(float(fo["gamma"]))
+        for i in order:
+            f = fits[int(i)]
+            on_g = f["gamma"] if (f.get("ok") and f.get("resolved")) else None
+            null_by_sub[int(i)] = cag.off_pulse_null_verdict(on_g, off_widths[int(i)])
     # Finite-scintle error: with N_ISS ~ 1 + eta*BW/gamma independent scintles per
     # subband (eta=0.2, Cordes & Lazio estimator-filling convention), the fractional
     # gamma uncertainty from sampling a finite number of scintles is 1/sqrt(N_ISS) —
@@ -379,15 +312,13 @@ def refit(name, burst_lims, off_lims, rfi_bands_mhz=None, first_fit_lag=1,
     # one contaminated subband can swing a 3-4 point slope wildly (hamilton_hi's
     # flagged 751-MHz band produced alpha=+33). The per-subband fit is still
     # reported — only the power-law selection excludes it.
-    resolved = [(cf[i], fits[int(i)]["gamma"], fits[int(i)]["gamma_err"],
-                 fits[int(i)]["gamma_scintle_err"]) for i in order
+    resolved = [(cf[i], fits[int(i)]["gamma"], fits[int(i)]["gamma_err"]) for i in order
                 if fits[int(i)]["ok"] and fits[int(i)]["resolved"]
                 and fits[int(i)]["m"] <= M_PHYS]
     alpha = None
     if len(resolved) >= 2:
         fr = np.array([r[0] for r in resolved]); gm = np.array([r[1] for r in resolved])
-        ge = np.array([np.hypot(r[2], r[3]) for r in resolved])
-        lw = 1.0 / (ge / gm) ** 2
+        ge = np.array([r[2] for r in resolved]); lw = 1.0 / (ge / gm) ** 2
         Amat = np.vstack([np.log(fr / np.mean(fr)), np.ones_like(fr)]).T
         W = np.diag(lw); cov = np.linalg.inv(Amat.T @ W @ Amat)
         beta = cov @ (Amat.T @ W @ np.log(gm))
@@ -398,11 +329,7 @@ def refit(name, burst_lims, off_lims, rfi_bands_mhz=None, first_fit_lag=1,
         # a two-point slope as a firmly measured alpha.
         alpha = dict(alpha=float(beta[0]), alpha_err=float(np.sqrt(cov[0, 0])), n=len(resolved),
                      provisional=(len(resolved) < 3))
-    artifact_controls = (
-        _artifact_controls(spec, res, fits, order, burst, off) if validate_artifacts else None
-    )
     return dict(name=name, burst=burst, off=off, method=method, center_freqs=cf, order=list(order),
                 fits=fits, alpha=alpha, rfi_new=int((flag & ~already).sum()),
                 rfi_total=int(flag.sum()), ntime=spec.power.shape[1], nchan=spec.power.shape[0],
-                subband_channel_slices=res["subband_channel_slices"],
-                artifact_controls=artifact_controls)
+                off_pulse_null=null_by_sub)

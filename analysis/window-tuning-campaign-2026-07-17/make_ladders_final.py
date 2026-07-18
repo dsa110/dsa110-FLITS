@@ -2,13 +2,19 @@
 pre-burst off rule). Rejected subbands (m>1.2 or gamma-railed) are drawn and ANNOTATED as
 rejected, not silently dropped (owner ruling #5)."""
 import sys, os, json, numpy as np, matplotlib
-sys.path.insert(0,"scint_analysis"); matplotlib.use("Agg")
+from pathlib import Path
+HERE=Path(__file__).resolve().parent
+REPO=HERE.parents[1]
+# window_refit lives in the scintillation submodule; add it to the path repo-relatively
+sys.path.insert(0, str(REPO/"scintillation"/"scint_analysis"))
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt, matplotlib as mpl
 import window_refit as wr
 try:
     from kernel import apply_figure_style; apply_figure_style(sizes=(9,8,7))
 except Exception: pass
-CAMP="/Users/jakobfaber/Developer/scratch/campaign_final"
+CAMP=str(HERE/"results")
+FIGDIR=HERE/"figures"; FIGDIR.mkdir(parents=True, exist_ok=True)
 FOCAL="#c1272d"; DATA="#2b2b2b"; ENV="#4877b0"; REJ="#999999"
 M_PHYS=1.2
 def ladder(nm, out):
@@ -69,5 +75,5 @@ def ladder(nm, out):
     fig.tight_layout(rect=[0,0,1,0.96]); fig.savefig(out,dpi=200); plt.close(fig)
     return al,a.get("n")
 for nm in ["chromatica","zach","freya","hamilton"]:
-    out=f"/Users/jakobfaber/Developer/scratch/{nm}_acf_ladder.png"
-    al,nn=ladder(nm,out); print(f"{nm}: alpha={al} n={nn} -> {os.path.basename(out)}")
+    out=str(FIGDIR/f"{nm}_acf_ladder.png")
+    al,nn=ladder(nm,out); print(f"{nm}: alpha={al} n={nn} -> figures/{os.path.basename(out)}")

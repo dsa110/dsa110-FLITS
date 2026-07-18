@@ -22,6 +22,84 @@
   "alpha_unphysical": false,
   "science_status": "non_detection",
   "status_basis": "n_resolved_physical=1 (<2: no measurable slope)",
+  "artifact_controls": {
+    "status": "fail",
+    "failed_checks": [
+      "off_pulse_null",
+      "subband_support"
+    ],
+    "off_pulse_null": {
+      "null_pass": false,
+      "on_dnu_mhz": 0.30660488552173304,
+      "off_median_dnu_mhz": 0.44358314701229923,
+      "off_n_fits": 6,
+      "ratio": 1.446758248021644,
+      "reason": "off-pulse median 443.6 kHz brackets on-pulse 306.6 kHz (ratio 1.45 <= 2.0); scale is instrumental -> null FAILS"
+    },
+    "low_lag_stability": {
+      "stable": true,
+      "dnu_full_mhz": 0.30660488552173304,
+      "dnu_by_excision": {
+        "1": 0.3350305137705502,
+        "2": 0.33355882368846884,
+        "3": 0.3036536571881159
+      },
+      "min_ratio": 0.9903744901892375,
+      "max_ratio": 1.0927109435991107,
+      "failed_ks": [],
+      "reason": "width survives low-lag excision (no collapse or runaway growth) -> wing is resolved"
+    },
+    "subband_support": {
+      "sufficient": false,
+      "n_valid_subbands": 1,
+      "min_subbands": 3,
+      "reason": "only 1 valid sub-band(s) < 3 -> no cross-band consistency; diagnostic only"
+    },
+    "reference_subband_index": 2,
+    "reference_frequency_mhz": 612.3664655244282,
+    "off_pulse_slice_starts": [
+      67,
+      196,
+      325,
+      454,
+      583,
+      712
+    ]
+  },
+  "off_pulse_null": {
+    "3": {
+      "null_pass": null,
+      "on_dnu_mhz": null,
+      "off_median_dnu_mhz": null,
+      "off_n_fits": 0,
+      "ratio": null,
+      "reason": "no valid on-pulse width; null inconclusive"
+    },
+    "2": {
+      "null_pass": null,
+      "on_dnu_mhz": 0.30660488552173304,
+      "off_median_dnu_mhz": null,
+      "off_n_fits": 0,
+      "ratio": null,
+      "reason": "only 0 off-pulse fits (< 3); cannot distinguish a white off-pulse from failed re-fits -> null inconclusive"
+    },
+    "1": {
+      "null_pass": null,
+      "on_dnu_mhz": null,
+      "off_median_dnu_mhz": null,
+      "off_n_fits": 0,
+      "ratio": null,
+      "reason": "no valid on-pulse width; null inconclusive"
+    },
+    "0": {
+      "null_pass": null,
+      "on_dnu_mhz": null,
+      "off_median_dnu_mhz": null,
+      "off_n_fits": 0,
+      "ratio": null,
+      "reason": "no valid on-pulse width; null inconclusive"
+    }
+  },
   "subbands": [
     {
       "center_mhz": 730.4,
@@ -41,15 +119,7 @@
       "dbic_2comp": -1.3695764932217571,
       "gamma_tail": 0.19718355342307145,
       "gamma_win_sys": 0.01738076243391909,
-      "n_variants": 5,
-      "off_pulse_null": {
-        "null_pass": null,
-        "on_dnu_mhz": null,
-        "off_median_dnu_mhz": null,
-        "off_n_fits": 0,
-        "ratio": null,
-        "reason": "no valid on-pulse width; null inconclusive"
-      }
+      "n_variants": 5
     },
     {
       "center_mhz": 612.4,
@@ -69,15 +139,7 @@
       "dbic_2comp": -9.925689235111463,
       "gamma_tail": 0.33208071098824965,
       "gamma_win_sys": 0.03705198439507629,
-      "n_variants": 5,
-      "off_pulse_null": {
-        "null_pass": true,
-        "on_dnu_mhz": 0.30660488552173304,
-        "off_median_dnu_mhz": null,
-        "off_n_fits": 0,
-        "ratio": null,
-        "reason": "only 0 off-pulse fits (< 3); off-pulse too white to fit a consistent scale -> null passes"
-      }
+      "n_variants": 5
     },
     {
       "center_mhz": 526.6,
@@ -97,15 +159,7 @@
       "dbic_2comp": -9.906961980772735,
       "gamma_tail": 2.111345142902113,
       "gamma_win_sys": 0.3119470652317837,
-      "n_variants": 5,
-      "off_pulse_null": {
-        "null_pass": null,
-        "on_dnu_mhz": null,
-        "off_median_dnu_mhz": null,
-        "off_n_fits": 0,
-        "ratio": null,
-        "reason": "no valid on-pulse width; null inconclusive"
-      }
+      "n_variants": 5
     },
     {
       "center_mhz": 444.9,
@@ -125,15 +179,7 @@
       "dbic_2comp": -9.618976388554984,
       "gamma_tail": 0.2803792222217724,
       "gamma_win_sys": 0.3585948590972772,
-      "n_variants": 5,
-      "off_pulse_null": {
-        "null_pass": null,
-        "on_dnu_mhz": null,
-        "off_median_dnu_mhz": null,
-        "off_n_fits": 0,
-        "ratio": null,
-        "reason": "no valid on-pulse width; null inconclusive"
-      }
+      "n_variants": 5
     }
   ],
   "variants": [

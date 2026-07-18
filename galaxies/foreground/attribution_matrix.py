@@ -1,4 +1,8 @@
-"""Per-burst sightline attribution matrix (two-screen × foreground cross-check)."""
+"""Historical sightline-attribution matrix, retained only in quarantine.
+
+The calculation consumes revoked free-alpha tau values and legacy bandwidths.
+It is reproducible for audit purposes but is not a current attribution source.
+"""
 
 from __future__ import annotations
 
@@ -26,6 +30,15 @@ from galaxies.foreground.tau_consistency import (
 
 PACKAGE_DIR = Path(__file__).resolve().parent
 DATA_DIR = PACKAGE_DIR / "data"
+QUARANTINE_SNAPSHOT_PATH = (
+    PACKAGE_DIR.parents[1] / "quarantine" / "2026-07-17-outdated-science" /
+    "galaxies" / "foreground" / "data" / "sightline_attribution_matrix.csv"
+)
+QUARANTINE_REGENERATED_PATH = (
+    PACKAGE_DIR.parents[1] / "quarantine" / "2026-07-17-outdated-science" /
+    "regenerated" / "galaxies" / "foreground" / "data" /
+    "sightline_attribution_matrix.csv"
+)
 
 # Legacy ACF measurements (casey, freya, wilhelm). Others: not_attempted until scint campaign.
 _LEGACY_DNU_MHZ: dict[str, dict[str, float]] = {
@@ -217,14 +230,14 @@ def build_attribution_matrix(
 
 
 def write_attribution_matrix(path: Path | str | None = None) -> Path:
-    out = Path(path) if path is not None else DATA_DIR / "sightline_attribution_matrix.csv"
+    out = Path(path) if path is not None else QUARANTINE_REGENERATED_PATH
     out.parent.mkdir(parents=True, exist_ok=True)
     build_attribution_matrix().to_csv(out, index=False)
     return out
 
 
 def main() -> int:
-    """Regenerate the committed attribution-matrix artifact."""
+    """Regenerate the quarantined attribution-matrix artifact."""
     out = write_attribution_matrix()
     print(f"wrote {out}")
     return 0

@@ -12,6 +12,7 @@ Driver scripts stay in this `analysis/` tree.
 | `beta_campaign/fits` (+ verdicts JSON) | `scattering/2026-07_beta-campaign/` |
 | `scintillation-dsa-lorentzian-2026-07-07/results` | `scintillation/2026-07-07_dsa-lorentzian` (DSA-only catalog; predates the CHIME objective-window rerun) |
 | `window-tuning-campaign-2026-07-17/results` | committed in-tree (PR #192 final objective-window campaign; one `chromatica_hi` measurement, 23 diagnostic records) |
+| `../quarantine/2026-07-17-outdated-science/` | committed in-tree quarantine; obsolete science bytes retained for re-examination, never current claims |
 
 Recreate local symlinks from the Faber2026 parent checkout:
 

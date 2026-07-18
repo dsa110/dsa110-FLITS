@@ -1,4 +1,4 @@
-"""Drift guard: results/joint_fit_summary.md must be byte-reproducible from the
+"""Drift guard: the quarantined joint-fit summary remains reproducible from the
 committed joint-fit JSONs via the in-repo generator. Fails if a JSON or the
 generator changed without regenerating the summary."""
 
@@ -7,7 +7,8 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
 GEN = REPO / "analysis" / "scattering-refit-2026-06" / "gen_joint_summary.py"
-SUMMARY = REPO / "results" / "joint_fit_summary.md"
+SUMMARY = (REPO / "quarantine" / "2026-07-17-outdated-science" /
+           "results" / "joint_fit_summary.md")
 
 
 def _load_generator():
@@ -20,6 +21,6 @@ def _load_generator():
 def test_summary_matches_generator_output():
     gen = _load_generator()
     assert SUMMARY.read_text() == gen.render(), (
-        "results/joint_fit_summary.md is stale — re-run "
+        "quarantined joint_fit_summary.md is stale — re-run "
         "`python analysis/scattering-refit-2026-06/gen_joint_summary.py`"
     )

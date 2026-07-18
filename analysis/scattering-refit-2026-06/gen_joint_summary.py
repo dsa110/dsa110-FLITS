@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Lift the committed joint-fit JSONs into the trusted/untrusted summary table.
+"""Reproduce the quarantined legacy joint-fit summary table.
 
 Reads the in-repo `joint_json/*_joint_fit.json` (sibling dir) and writes
-`results/joint_fit_summary.md`. Both the source JSONs and this generator are
+`quarantine/2026-07-17-outdated-science/results/joint_fit_summary.md`. Both the source JSONs and this generator are
 committed, so the summary is reproducible from a clean checkout:
 
     python analysis/scattering-refit-2026-06/gen_joint_summary.py
@@ -17,7 +17,11 @@ import json
 from pathlib import Path
 
 JOINT_DIR = Path(__file__).parent / "joint_json"
-OUT = Path(__file__).resolve().parents[2] / "results" / "joint_fit_summary.md"
+OUT = (
+    Path(__file__).resolve().parents[2] / "quarantine" /
+    "2026-07-17-outdated-science" / "regenerated" /
+    "results" / "joint_fit_summary.md"
+)
 
 # Explicit human verdict — see flits-joint-fit-shallow-alpha memory.
 TRUST = {

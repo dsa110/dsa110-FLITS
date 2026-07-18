@@ -77,33 +77,11 @@ strongly structured data) and is excluded from all citable products.
 
 ## Two-screen consistency (`two_screen_consistency.{json,md}`, DSA band)
 
-Statistic: τ(1.4 GHz)[s] × Δν_d(1.4 GHz)[Hz] = C₁/(2π); one screen gives
-0.159 (thin) … 1.0 (extended), accepted range [0.1, 2]; ≫2 ⇒ the resolved
-Δν_d samples a **nearer** screen than the scattering one. Δν_d from stored
-subband ACF fits, lowest-BIC model, detection-cut γ > σ(γ) (whitney's
-subband_1 BIC winner rails a γ at its 0.06 MHz bound with σ > value — a
-non-detection that would otherwise dominate the inverse-variance mean).
-
-| burst | product | verdict |
-|---|---|---|
-| hamilton | 1.64 | **same_screen** |
-| freya | 2.60 | different_screens (marginal) |
-| wilhelm | 8.98 | different_screens |
-| casey | 60.5 | different_screens |
-| oran | 74.6 | different_screens |
-| mahi | 87.2 | different_screens |
-| chromatica | 93.9 | different_screens (τ not citable — gate FAIL) |
-| isha | 39.0 | different_screens |
-| zach | 23.9 | different_screens |
-| johndoeII | 281 | different_screens |
-| phineas | 624 | different_screens |
-| whitney_fine | 6259 | different_screens |
-
-Only hamilton is consistent with a single screen doing both the scattering
-and the scintillation; everywhere else the resolved DSA scintillation comes
-from a nearer (plausibly Galactic) screen, wilhelm's known pattern. CHIME-band
-Δν_d is not in stored_fits (needs a fresh ACF pass) — recorded as `@decision`
-in `.agents/deferred-tasks.md`.
+**SUPERSEDED / SCIENTIFICALLY INVALID.** This calculation paired free-alpha
+joint-fit tau with DSA bandwidths. The accepted policy requires fixed-index
+`tau_consistency` refits, so none of the former same-screen/different-screen
+verdicts is current. Exact JSON/Markdown outputs are preserved under
+`quarantine/2026-07-17-outdated-science/analysis/beta_campaign/` for audit.
 
 ## Sightline budget integration (`results/sightline_dm_scattering_budget.*`)
 
@@ -124,7 +102,7 @@ above); chromatica carries no measured τ.
 - `citable_alpha_roster.json` — re-locked roster (7A / 3B / exemplar / 1 excluded)
 - `beta_table_rows.tex` — manuscript tab:beta rows (11 rows; chromatica in the
   excluded comment)
-- `two_screen_consistency.{json,md}` — τ×Δν table + Δν_d provenance
+- `quarantine/2026-07-17-outdated-science/analysis/beta_campaign/two_screen_consistency.{json,md}` — invalid historical τ×Δν calculation retained for provenance
 - `fits/` — citable fit JSONs + PPC summaries
 - `fleet_status.json` — per-burst fit/PPC completion ledger
 - `results/sightline_dm_scattering_budget.{csv,md,svg,png,pdf}` — regenerated

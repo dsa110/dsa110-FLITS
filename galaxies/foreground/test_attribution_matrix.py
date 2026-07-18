@@ -2,7 +2,12 @@
 
 import math
 
-from galaxies.foreground.attribution_matrix import DATA_DIR, build_attribution_matrix
+import pandas as pd
+
+from galaxies.foreground.attribution_matrix import (
+    QUARANTINE_SNAPSHOT_PATH,
+    build_attribution_matrix,
+)
 from galaxies.foreground.tau_consistency import (
     consistency_status,
     scale_tau_1ghz_ms,
@@ -66,13 +71,16 @@ def test_dm_budget_wired_to_registry():
 
 
 def test_wilhelm_two_screen_coherence_computed():
-    df = build_attribution_matrix()
+    # Preserve what the historical artifact claimed without treating a fresh
+    # build from drifted inputs as current science.
+    df = pd.read_csv(QUARANTINE_SNAPSHOT_PATH)
     wilhelm = df[df.nickname == "wilhelm"].iloc[0]
     assert "kpc^2" in str(wilhelm.two_screen_coherence)
 
 
-def test_committed_attribution_matrix_matches_builder():
-    """Generated-artifact criterion: the committed CSV equals a fresh build."""
-    expected = build_attribution_matrix().to_csv(index=False)
-    committed = (DATA_DIR / "sightline_attribution_matrix.csv").read_text()
-    assert committed == expected
+def test_quarantined_attribution_matrix_snapshot_is_complete():
+    """The preserved snapshot remains inspectable without claiming freshness."""
+    archived = pd.read_csv(QUARANTINE_SNAPSHOT_PATH)
+    assert len(archived) == 12
+    assert archived.nickname.nunique() == 12
+    assert {"tau_joint_1ghz_ms", "dnu_chime_mhz", "dnu_dsa_mhz"} <= set(archived)

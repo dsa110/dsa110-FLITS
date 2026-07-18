@@ -1,5 +1,9 @@
 #!/usr/bin/env python
-"""Two-screen (tau x delta_nu_d) consistency for the beta-campaign fits (Phase 8).
+"""Reproduce the quarantined beta-campaign two-screen calculation.
+
+SCIENCE STATUS: INVALID FOR CURRENT USE. This historical calculation pairs
+free-alpha joint-fit tau with DSA bandwidths. Current screen consistency
+requires fixed-index tau_consistency refits. Outputs are forced into quarantine.
 
 For each fleet output {burst}_joint_fit{suffix}.json, join the campaign
 tau_1ghz / beta-derived alpha with the DSA decorrelation bandwidth recorded in
@@ -16,8 +20,8 @@ burst's own campaign alpha (delta_nu ~ nu^alpha), then inverse-variance
 average across subbands. CHIME configs carry no stored_fits, so this table is
 DSA-band only; CHIME ACFs (4 bursts) would need a fresh ACF pass.
 
-Writes two_screen_consistency.{json,md} beside this script. Re-runnable while
-the fleet is in flight; bursts without a campaign fit yet are listed missing.
+Writes two_screen_consistency.{json,md} to the dated quarantine. Bursts without
+a campaign fit are listed missing.
 
   FLITS_RUNS=... conda run -n flits python analysis/beta_campaign/two_screen.py
 """
@@ -36,6 +40,10 @@ import pandas as pd
 import yaml
 
 REPO = Path(__file__).resolve().parents[2]
+QUARANTINE_DIR = (
+    REPO / "quarantine" / "2026-07-17-outdated-science" / "regenerated" /
+    "analysis" / "beta_campaign"
+)
 RUNS = Path(os.environ.get("FLITS_RUNS", "/Users/jakobfaber/Developer/scratch/flits-local-runs"))
 sys.path.insert(0, str(REPO))
 
@@ -177,7 +185,8 @@ def main() -> int:
     if missing_dnu:
         print(f"[two-screen] no stored DSA delta_nu_d: {missing_dnu}", flush=True)
 
-    out = Path(__file__).parent / "two_screen_consistency.json"
+    QUARANTINE_DIR.mkdir(parents=True, exist_ok=True)
+    out = QUARANTINE_DIR / "two_screen_consistency.json"
     out.write_text(
         json.dumps(
             {
@@ -218,7 +227,7 @@ def main() -> int:
         "",
         "CHIME-band delta_nu_d is not in stored_fits (needs a fresh ACF pass; 4 bursts have CHIME ACF pkls).",
     ]
-    (Path(__file__).parent / "two_screen_consistency.md").write_text("\n".join(md) + "\n")
+    (QUARANTINE_DIR / "two_screen_consistency.md").write_text("\n".join(md) + "\n")
     print(f"[two-screen] wrote {out} (+.md); {len(out_rows)} bursts", flush=True)
     return 0 if not missing_fit else 1
 

@@ -67,7 +67,7 @@ Canonical machine-readable SSOT at `galaxies/foreground/data/intervening_census_
 _Avoid_: `sightline_budget` reading `{nickname}_galaxies.csv` without registry join, or `make_catalog_table` merging scratch CSVs ad hoc.
 
 **Sightline attribution matrix**:
-Per-burst machine-readable cross-check at `galaxies/foreground/data/sightline_attribution_matrix.csv` — one row per co-detected burst. Joins scattering measurements (`tau_obs`, per-band Δν), two-screen handles (consistency, ν-scaling, optional `D_eff`, Nimmo coherence), foreground registry counts/predictions, and an attribution verdict (Galactic / host / intervening / multi / undetermined). Gap flags use explicit `N/A — <reason>` tokens, not silent blanks.
+The former per-burst attribution matrix used revoked free-alpha scattering fits and legacy bandwidths. It is preserved only at `quarantine/2026-07-17-outdated-science/galaxies/foreground/data/sightline_attribution_matrix.csv` and is not a canonical science surface. Current screen attribution fails closed pending fixed-index `tau_consistency` refits and qualified same-sightline bandwidths.
 _Avoid_: prose-only cross-checks that cannot be validated against the matrix.
 
 **Multi-screen triggers** (two-screen analysis entry points):

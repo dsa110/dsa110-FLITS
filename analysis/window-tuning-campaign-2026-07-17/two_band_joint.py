@@ -49,7 +49,12 @@ def load_chime(campaign_jsonl):
         d=json.loads(line); nm=d["name"]; pts=[]
         for s in d.get("subbands",[]):
             if s.get("ok") and s.get("resolved") and s.get("m",9)<=1.2:
-                ge=s.get("gamma_err") or s.get("gamma_scintle_err")
+                # Combined error: curve_fit statistical + finite-scintle (1/sqrt(N_ISS)) in
+                # quadrature, IDENTICAL to window_refit's alpha weighting (R5-1). Using only
+                # one term would make the two-band CHIME slope disagree with the campaign JSON.
+                import math
+                gstat=s.get("gamma_err") or 0.0; gscint=s.get("gamma_scintle_err") or 0.0
+                ge=math.hypot(float(gstat), float(gscint))
                 if ge and ge>0:
                     pts.append((float(s["center_mhz"]), float(s["gamma"]), float(ge)))
         out[nm]=dict(points=pts, alpha=(d.get("alpha") or {}))

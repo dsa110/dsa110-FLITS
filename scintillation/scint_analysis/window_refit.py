@@ -320,7 +320,14 @@ def refit(name, burst_lims, off_lims, rfi_bands_mhz=None, first_fit_lag=1,
     # one contaminated subband can swing a 3-4 point slope wildly (hamilton_hi's
     # flagged 751-MHz band produced alpha=+33). The per-subband fit is still
     # reported — only the power-law selection excludes it.
-    resolved = [(cf[i], fits[int(i)]["gamma"], fits[int(i)]["gamma_err"]) for i in order
+    # Combined per-subband gamma error for the alpha fit: the curve_fit statistical error
+    # AND the finite-scintle sampling error (1/sqrt(N_ISS)) added in quadrature. The
+    # finite-scintle term is the dominant one for broad gamma (few scintles across the
+    # band), so dropping it deflates alpha_err. hypot restores it (matches the archived
+    # run_persubband_fits weighting).
+    resolved = [(cf[i], fits[int(i)]["gamma"],
+                 float(np.hypot(fits[int(i)]["gamma_err"],
+                                fits[int(i)].get("gamma_scintle_err", 0.0)))) for i in order
                 if fits[int(i)]["ok"] and fits[int(i)]["resolved"]
                 and fits[int(i)]["m"] <= M_PHYS]
     alpha = None

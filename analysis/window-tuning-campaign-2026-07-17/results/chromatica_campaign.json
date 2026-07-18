@@ -19,14 +19,14 @@
     "weights": null
   },
   "alpha": {
-    "alpha": 1.6842901403603912,
-    "alpha_err": 0.3511378304878439,
+    "alpha": 1.7167868972666627,
+    "alpha_err": 0.39917371610217406,
     "n": 4,
     "provisional": false
   },
   "alpha_unphysical": false,
   "science_status": "detection",
-  "status_basis": "n_resolved_physical=4>=3, alpha=+1.68 in (0.0,6.0], off_pulse_null not majority-fail (0/4)",
+  "status_basis": "n_resolved_physical=4>=3, alpha=+1.72 in (0.0,6.0], off_pulse_null not majority-fail (0/4)",
   "subbands": [
     {
       "center_mhz": 720.5,

@@ -74,9 +74,9 @@ burst-finder and never feeds γ. The warning is therefore not a caveat on any re
 
 | burst | α (CHIME, 400–800 MHz) | resolved subbands | status |
 |---|---|---|---|
-| zach | +1.99 ± 0.48 | 3/4 | detection |
-| chromatica | +1.68 ± 0.35 | 4/4 | detection (cleanest) |
-| freya | — (top subband rails) | 1 physical | marginal, sensitive to analysis choices |
+| zach | +3.03 ± 0.65 | 3/4 | detection |
+| chromatica | +1.72 ± 0.40 | 4/4 | detection (cleanest) |
+| freya | — (top subband rails) | 1 physical | non_detection (candidate structure under some analysis choices) |
 | hamilton | +8.94 ± 3.16 | 2/4 | diagnostic-only (unphysical) |
 
 ## Two-band scaling and the two-screen result
@@ -84,11 +84,12 @@ burst-finder and never feeds γ. The warning is therefore not a caveat on any re
 A single power law across the 400→1530 MHz (3.8×) lever assumes one dominant screen in
 both bands. The committed one-screen statistic
 (`flits.batch.analysis_logic.check_tau_deltanu_consistency`, product τ·Δν_d = C₁/2π,
-single-screen range [0.1, 2]) rejects that for the whole triad: chromatica τ·Δν_d = 93.9,
-zach 23.9, freya 2.6 — all `different_screens` (the DSA-band Δν_d samples a nearer screen
+single-screen range [0.1, 2]) rejects that for the whole triad, recomputed at the pinned
+Δν_d values (this campaign's DSA components scaled to 1.4 GHz): chromatica τ·Δν_d = 61.0,
+zach 26.7, freya 386.7 — all `different_screens` (the DSA-band Δν_d samples a nearer screen
 than the CHIME-band scattering). The forced joint fit agrees: joint reduced-χ² = 7.8
 (zach) and 18.0 (chromatica), and chromatica's per-band slopes disagree outright
-(CHIME +1.68 vs DSA +6.48).
+(CHIME +1.72 vs DSA +6.48).
 
 Per the manuscript's standing rule (physically defensible presentation wins over a forced
 fit), the headline is the **per-band α + two-screen decomposition**; the forced joint α is

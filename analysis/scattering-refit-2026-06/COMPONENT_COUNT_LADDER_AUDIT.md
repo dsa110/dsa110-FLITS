@@ -153,3 +153,69 @@ version it was fitted under.
 
 Remediation (a) above is **LANDED** with v2. The C2D3/C2D4/C2D5 re-run (b) and
 the campaign-wide off-window audit are run under v2.
+
+## Campaign-wide off-window audit (2026-07-19)
+
+Ordered after the zach fine-pair INVALID verdict: every landed joint fit inherited
+the v1 ±20 ms t0 prior, so any could carry off-window ghost components. Test: each
+component's t0 median (and 95% CI) vs its band's fitted window `[time.min, time.max]`,
+reconstructed from the `<burst>_jointmodel_<count>.npz` `timeC`/`timeD` axes.
+Production count per burst from `joint_tf_toa_table.csv`. Verdict: **clean** (median
++ CI inside window), **edge** (median inside, CI pokes past an edge), **OFF** (median
+outside the sampled window — the ghost pathology). 56 fits swept; 12 carry an
+off-window component; 29 higher-count `s2-*` diagnostics have no saved jointmodel npz
+and are untestable from saved products (regen the window before trusting any).
+
+### Production 12/12 — landscape integrity
+
+| burst | count | verdict | detail |
+|---|---|---|---|
+| casey | C1D1 | clean | t0_C 3.44, t0_D 3.51, window [0, 13.9] |
+| chromatica | C1D1 | clean | t0 11.9/12.4, window [0, 35.4] |
+| freya | C1D1 | clean | t0 6.13/6.26, window [0, 21.0] |
+| wilhelm | C1D1 | clean | t0 5.39/5.62, window [0, 16.2] |
+| mahi | C1D1 | clean | t0 5.86/5.98, window [0, 19.2] |
+| whitney_fine | C2D2 | clean | t0_C 2.21/2.71, t0_D 2.80/3.14, window [0, 11.2] (base fit; the `s2-10` variant is broken, see below) |
+| **oran** | **C2D1** | **OFF — ESCALATED** | t0_C1 **−5.23** (CI [−11.1, 3.5], width 14.65), fluence 3.01 ≈ real C2 (9.13, fluence 2.50). 2nd CHIME comp is an active off-window ghost → real count likely C1D1. |
+| **johndoeII** | **C2D2** | **OFF — ESCALATED** | t0_C1 **−6.16** (CI [−11.6, 0.23], width 11.88), fluence 26.16 > real C2 (5.11, fluence 8.39). 2nd CHIME comp is an active ghost → real count likely C1D2. |
+| isha | C2D1 | edge | t0_C1 median 5.31 in-window but CI dips to −0.34; t0_C2 6.41, t0_D1 6.21 tight/clean. Soft — watch, likely fine. |
+| phineas | C3D3 | window-pending | no jointmodel npz; independently suspect — production fit is β-rail (β=3 floor / α=6 limit) and t0_D1 CI is [5.5, 13.8] (8.3 ms wide, unconstrained). Regen window on re-run. |
+| hamilton | — | unresolved | production TOA row empty (count not selected). |
+| zach | — | unresolved | production TOA row empty; count is the open D3/D4/D5 resolution. |
+
+**Escalations:** oran C2D1 and johndoeII C2D2 each have a production CHIME component
+whose median is off-window with real recovered fluence and an unconstrained CI (14.65 /
+11.88 ms), while their genuine components are tight and in-window — the exact zach
+signature. Their CHIME counts are likely inflated by a ghost (v1 prior) and should drop
+under the v2 windowed prior. Per the standing rule, these two rows stay quoted as-fitted
+only until the v2 re-run; the audit forces re-runs for oran and johndoeII. Structural
+(not GoF) diagnostic — final count-drop verdict awaits visual vet + v2 re-run.
+
+### Diagnostic / neighbor-test fits with off-window ghosts — evidences SUSPECT
+
+These are higher-count or gain-strength (`s2-*`) diagnostics, not production. Any count
+verdict or ΔlnZ that leaned on them under v1 is suspect and must be re-established under
+v2 before use.
+
+| fit | off-window components (window) |
+|---|---|
+| isha C2D2 | t0_C1 **−13.69** (hard CHIME ghost); t0_D1 −0.70 (DSA ref at edge) — window [0, 22.5] |
+| isha C2D1_s2-10 | t0_C1 −7.28 (hard); t0_D1 −0.50 (edge) |
+| isha C2D1_s2-100 / C2D2_s2-10 / C2D2_s2-100 | t0_D1 −0.05 / −0.47 / −0.74 — DSA reference component sitting at the window's left edge (windowing edge effect, recurs across isha s2 variants; not a hard ghost) |
+| johndoeII C2D2_s2-100 | t0_C1 −5.36 (hard CHIME ghost) |
+| whitney_fine C2D2_s2-10 | t0_C1 **+27.65**, t0_C2 **+31.80**, t0_D1 −10.79 — all off window [0, 11.2]; fit badly broken (production C2D2 base and C2D2_s2-100 are both clean) |
+| zach C2D3_s2-100_fine / C2D4_s2-100 / C2D4_s2-100_fine | t0_D1 −8.26 / −2.34 / −9.39, t0_D2 −1.36 — the fine-pair ghosts already ruled INVALID and snapshotted (`_invalid_zachfine_offwindow_20260718/`) |
+
+### Untestable from saved products (29 fits)
+
+Higher-count `s2-*` diagnostics and the `ab_*_dipolemask` mechanism-closure fits have no
+saved `_jointmodel` npz, so no window to test against. The dipolemask fits belong to the
+closed casey/wilhelm PL-PBF mechanism lane. For any others, regenerate the window
+(`dump_jointmodel.py <burst> <suffix>`) before reading a count verdict off them.
+
+### Disposition
+
+Production evidences fitted under v1 stay quoted as-fitted (per the standing rule) EXCEPT
+oran C2D1 and johndoeII C2D2, which the audit escalates for a v2 re-run. Clean production
+fits (casey, chromatica, freya, wilhelm, mahi, whitney C2D2) are confirmed ghost-free and
+need no re-run. All v2 re-runs use the window-clamped prior (PR #205).

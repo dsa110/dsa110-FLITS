@@ -515,6 +515,37 @@ def _joint_prior_spec_gain_multi(
     return spec
 
 
+def _clamp_t0_priors_to_window(
+    spec: list[tuple[str, tuple[float, float], bool]],
+    model_C: FRBModel,
+    model_D: FRBModel,
+) -> list[tuple[str, tuple[float, float], bool]]:
+    """Bound every component t0 prior to its band's fitted window [time.min, time.max].
+
+    build_priors' default t0 window is init.t0 +/- 2*max(tau_1ghz, 10.0) = +/- 20 ms
+    (the max(...,10) floor), untethered from the ~ms fitted window, so a global sampler
+    can place components far outside the data window where the gain marginal exploits
+    their kernels as per-channel baseline dof (zach fine-pair ghost components,
+    COMPONENT_COUNT_LADDER_AUDIT 2026-07-18). This clamps t0_C* to model_C's window and
+    t0_D* to model_D's window: a component must live in the window the count test is
+    defined on (the dual of the window-contains-all-candidates rule). Non-t0 entries and
+    already-in-window bounds are unchanged; matches t0_C / t0_D (single) and
+    t0_C{i} / t0_D{i} (multi) by prefix.
+    """
+    tC = np.asarray(model_C.time, dtype=float)
+    tD = np.asarray(model_D.time, dtype=float)
+    win_C = (float(tC.min()), float(tC.max()))
+    win_D = (float(tD.min()), float(tD.max()))
+    out: list[tuple[str, tuple[float, float], bool]] = []
+    for name, (lo, hi), is_log in spec:
+        if name.startswith("t0_C"):
+            lo, hi = max(lo, win_C[0]), min(hi, win_C[1])
+        elif name.startswith("t0_D"):
+            lo, hi = max(lo, win_D[0]), min(hi, win_D[1])
+        out.append((name, (lo, hi), is_log))
+    return out
+
+
 class _JointPriorTransform:
     """Picklable unit-cube -> parameter transform for the 12-vector.
 
@@ -1000,6 +1031,14 @@ def fit_joint_scattering(
         full_names = JOINT_PARAM_NAMES
         spec = _joint_prior_spec(init_C, init_D, beta_bounds)
         loglike = _JointLogLikelihood(model_C, model_D)
+
+    # GUARDRAIL (2026-07-18, COMPONENT_COUNT_LADDER_AUDIT): bound every component t0
+    # prior to its band's fitted window. build_priors' default t0 window is
+    # init.t0 +/- 2*max(tau_1ghz, 10.0) = +/- 20 ms (the max(...,10) floor), untethered
+    # from the ~ms fitted window -- which let the zach fine-pair place components 8-9 ms
+    # OFF-window, where the gain marginal exploits their kernels as per-channel baseline
+    # dof and manufactures a spurious count-test dlnZ. Applies to every spec variant above.
+    spec = _clamp_t0_priors_to_window(spec, model_C, model_D)
 
     fixed_parameters = {
         name: float(value)

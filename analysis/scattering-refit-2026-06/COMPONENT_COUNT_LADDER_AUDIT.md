@@ -219,3 +219,27 @@ Production evidences fitted under v1 stay quoted as-fitted (per the standing rul
 oran C2D1 and johndoeII C2D2, which the audit escalates for a v2 re-run. Clean production
 fits (casey, chromatica, freya, wilhelm, mahi, whitney C2D2) are confirmed ghost-free and
 need no re-run. All v2 re-runs use the window-clamped prior (PR #205).
+
+### STANDING GUARDRAIL — no count verdict off a window-untestable fit
+
+Any joint fit without a saved `_jointmodel` npz (the 29 higher-count `s2-*`
+diagnostics and the `ab_*_dipolemask` fits, per the table above) has no
+reconstructable window, so its component t0s cannot be tested for the off-window
+ghost pathology. **No component-count verdict or ΔlnZ may be read off such a fit
+until its window is regenerated** (`dump_jointmodel.py <burst> <suffix>`) and its
+t0s pass the in-window test. This is the dual of the "window must contain every
+candidate" rule at the level of the saved evidence.
+
+### TOA-table integrity note — oran + johndoeII CHIME counts SUSPECT (2026-07-19)
+
+The production oran C2D1 and johndoeII C2D2 rows in `joint_tf_toa_table.csv` carry
+a CHIME component that the v2 audit flags as an off-window ghost (owner/team-lead
+vetted the CHIME band-sum renders: no visible structure near either ghost t0,
+`/tmp/ghost_vet.png`, deck slide 11). Their CHIME **count structure is suspect**:
+the ghost may have inflated C1→C2. The count-drop (C2→C1) is a **provisional
+hypothesis**, adjudicated by the v2 windowed-prior re-runs launched 2026-07-19
+(oran C1D1-vs-C2D1, johndoeII C1D2-vs-C2D2, jobs 169–176; both arms under v2,
+`--force-multi` normalization, ADR-0003 fixed-s2 {10, 100}). Until those land and
+are visually vetted, **do not trust the CHIME structure of these two TOA rows and
+do not rewrite the counts**. The DSA structure of both is clean (in-window, tight).
+v1 as-fitted evidences snapshotted at `_v1_preclamp_20260719/`.

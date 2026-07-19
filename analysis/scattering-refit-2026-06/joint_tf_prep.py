@@ -58,13 +58,19 @@ from scipy.ndimage import gaussian_filter1d
 # Peak S/N floor the on-pulse must clear at the chosen binning. The rule picks
 # the FINEST binning still meeting this, so a higher floor -> coarser bins. 10 is
 # a conservative "structure is real, not noise" bar for the manuscript figures.
-SNR_TARGET = 10.0
+# FLITS_SNR_TARGET overrides the floor (opt-in): LOWER it to let a finer f clear
+# the per-channel S/N gate, so a bright/clean burst keeps more channels. Used by
+# the finest-vs-coarsest f A/B and, if that wins, the fleet mass-refit.
+SNR_TARGET = float(os.environ.get("FLITS_SNR_TARGET", 10.0))
 # Frequency channels kept per band are bounded: >= MIN so the intra-band
 # scattering slope (and the CHIME<->DSA alpha lever) is constrained; <= MAX so a
 # bright burst is not split into per-channel-starved bins. Native counts are
 # 1024 (CHIME) and 6144 (DSA); the block factor is chosen from these bounds.
+# FLITS_MAX_CHANNELS overrides the cap (opt-in): RAISE it to allow a finer f
+# (more, narrower channels -> less intra-channel scattering smearing) on a burst
+# already pinned at the default cap.
 MIN_CHANNELS = 8
-MAX_CHANNELS = 64
+MAX_CHANNELS = int(os.environ.get("FLITS_MAX_CHANNELS", 64))
 # Candidate block factors are powers of two (native counts are powers-of-two
 # multiples of these), so binning stays an exact block average.
 _POW2 = tuple(1 << k for k in range(0, 14))  # 1, 2, 4, ..., 8192
@@ -74,6 +80,19 @@ _POW2 = tuple(1 << k for k in range(0, 14))  # 1, 2, 4, ..., 8192
 # fit tractable and matches the sample counts the legacy fixed factors produced
 # (~90-875 bins); the S/N floor still coarsens below this for faint bursts.
 MAX_TIME_BINS = 512
+# Fraction of a coarse channel's fine channels that must survive upstream RFI
+# flagging for the channel to be kept. RFI-flagged fine channels arrive here as
+# exact all-zero rows (io.py off-pulse z-scores each fine channel and
+# nan_to_num's an all-NaN flagged channel to 0). The frequency block-average is
+# taken over the SURVIVING fine channels only (mask-aware), so a partially
+# flagged coarse channel keeps its true amplitude instead of being diluted by
+# the flagged fraction -- the plain block-mean's amplitude bias, worst at low
+# frequency where RFI is heaviest and the scattering lever arm lives, which
+# railed alpha/beta at the thin-screen prior corner. A coarse channel below this
+# floor is zeroed so FRBModel's noise>1e-9 valid mask drops it; between the floor
+# and 1.0 it keeps the mask-corrected amplitude and is down-weighted by its
+# (higher, fewer-fine-channel) measured off-pulse noise.
+MIN_VALID_FRAC = 0.25
 
 # --- Robust-window knobs ----------------------------------------------------
 WIN_K_HI = 5.0          # core threshold (sigma over baseline): bright burst body
@@ -220,6 +239,46 @@ def _channel_noise(data: np.ndarray, win: tuple[int, int]) -> np.ndarray:
     seg = data[:, off]
     med = np.median(seg, axis=1, keepdims=True)
     return 1.4826 * np.median(np.abs(seg - med), axis=1)
+
+
+def _masked_downsample(
+    data: np.ndarray, f_factor: int, t_factor: int
+) -> tuple[np.ndarray, np.ndarray]:
+    """Mask-aware block-average mirroring :func:`downsample`, but excluding
+    upstream-RFI-flagged fine channels from the FREQUENCY average.
+
+    Flagged fine channels reach the joint prep as exact all-zero rows (io.py
+    off-pulse z-scores each fine channel and nan_to_num's an all-NaN flagged
+    channel to 0). The stock ``downsample`` block-means over all fine channels
+    including those zeros, so a coarse channel's amplitude is diluted by its
+    flagged fraction -- worst at low frequency where RFI is heaviest, exactly
+    where the scattering lever arm lives, which drove alpha/beta to the
+    thin-screen prior corner. Here the time block-mean stays plain (a flagged
+    fine channel is zero at every time sample, so it only biases the frequency
+    direction) while the frequency average runs over the surviving fine channels
+    only. For a fully clean coarse block this reduces EXACTLY to ``downsample``.
+
+    Returns ``(binned, valid_frac)``: the coarse array (freq axis length
+    unchanged; fully-flagged blocks left as zero rows) and, per coarse channel,
+    the fraction of its ``f_factor`` fine channels that survived flagging.
+    """
+    if f_factor == 1 and t_factor == 1:
+        arr = np.asarray(data, float)
+        return arr, np.ones(arr.shape[0])
+    nf, nt = data.shape
+    nf_new = nf - (nf % f_factor)  # mirror downsample: drop the tail remainder
+    nt_new = nt - (nt % t_factor)
+    d = (
+        data[:nf_new, :nt_new]
+        .reshape(nf_new // f_factor, f_factor, nt_new // t_factor, t_factor)
+        .mean(axis=3)
+    )  # plain time block-mean -> (ncoarse, f_factor, ntime)
+    good = np.any(d != 0.0, axis=2)  # surviving fine channels per (coarse, fine-in-block)
+    cnt = good.sum(axis=1).astype(float)  # surviving fine channels per coarse channel
+    dsum = d.sum(axis=1)  # sum over fine channels (flagged rows contribute 0)
+    binned = np.where(cnt[:, None] > 0.0, dsum / np.clip(cnt[:, None], 1.0, None), 0.0)
+    valid_frac = cnt / float(f_factor)
+    return binned, valid_frac
 
 
 def _peak_pixel_snr(data_ds: np.ndarray, win_ds: tuple[int, int]) -> float:
@@ -383,7 +442,11 @@ def _build_model(p: _Probe, win_native: tuple[int, int]) -> tuple[FRBModel, Band
     span = max(1, win_native[1] - win_native[0])
     while span // t_factor > MAX_TIME_BINS:
         t_factor *= 2
-    binned = downsample(p.native, p.f_factor, t_factor)
+    binned, valid_frac = _masked_downsample(p.native, p.f_factor, t_factor)
+    # Zero (drop) coarse channels too heavily flagged to trust; FRBModel's
+    # noise>1e-9 valid mask then excludes them. The freq axis keeps its length so
+    # the linspace below stays a valid uniform f_min->f_max map for the survivors.
+    binned[valid_frac < MIN_VALID_FRAC] = 0.0
     win_ds = _downsample_window(win_native, t_factor, binned.shape[1])
     if win_ds[1] - win_ds[0] < 3:  # degenerate crop guard
         win_ds = (0, binned.shape[1])

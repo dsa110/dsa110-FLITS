@@ -1,0 +1,231 @@
+{
+  "burst": "chromatica (FRB 20240203A)",
+  "method": "per-subband harmonic-masked Lorentzian ACF fit (pipeline window_refit._fit_subband; LAG_MAX=5, COMB_SPACING=0.390625 MHz, first-fit-lag skip, 1L/2L model selection, resolution gates). alpha via weighted log-log fit of gamma vs nu, weights 1/(sigma_gamma/gamma)^2 with sigma_gamma=hypot(gamma_err, gamma_scintle_err), restricted to resolved subbands with m<=M_PHYS(1.2).",
+  "gamma_nu": {
+    "chime_hi": [
+      {
+        "freq_mhz": 749.2,
+        "gamma_mhz": 0.11355624617131926,
+        "gamma_err_mhz": 0.0077108400758600934,
+        "m": 0.7026031441293654,
+        "resolved": true,
+        "model_sel": "2L"
+      },
+      {
+        "freq_mhz": 687.2,
+        "gamma_mhz": 0.07789857571184326,
+        "gamma_err_mhz": 0.00495444466406383,
+        "m": 0.6113822788918554,
+        "resolved": true,
+        "model_sel": "2L"
+      },
+      {
+        "freq_mhz": 661.1,
+        "gamma_mhz": 0.07699702497168384,
+        "gamma_err_mhz": 0.006037924530578838,
+        "m": 0.4947441517911209,
+        "resolved": true,
+        "model_sel": "2L"
+      },
+      {
+        "freq_mhz": 623.6,
+        "gamma_mhz": 0.06406872771524634,
+        "gamma_err_mhz": 0.005207815532899521,
+        "m": 0.5421217124135136,
+        "resolved": true,
+        "model_sel": "2L"
+      }
+    ],
+    "chime_lo": [
+      {
+        "freq_mhz": 720.5,
+        "gamma_mhz": 0.09318499491955032,
+        "gamma_err_mhz": 0.0075121665854958105,
+        "m": 0.5692153583742804,
+        "resolved": true,
+        "model_sel": "2L"
+      },
+      {
+        "freq_mhz": 585.2,
+        "gamma_mhz": 0.07382731596669562,
+        "gamma_err_mhz": 0.008958173314990586,
+        "m": 0.39542865466725274,
+        "resolved": true,
+        "model_sel": "2L"
+      },
+      {
+        "freq_mhz": 496.8,
+        "gamma_mhz": 0.03144197638009004,
+        "gamma_err_mhz": 0.006270759536671252,
+        "m": 0.29096091486689035,
+        "resolved": true,
+        "model_sel": "2L"
+      },
+      {
+        "freq_mhz": 432.8,
+        "gamma_mhz": 0.0496275492362156,
+        "gamma_err_mhz": 0.009888222210515144,
+        "m": 0.24766409896898062,
+        "resolved": true,
+        "model_sel": "1L"
+      }
+    ],
+    "dsa": [
+      {
+        "freq_mhz": 1321.2003499918608,
+        "gamma_mhz": 0.42781203969543147,
+        "gamma_err_mhz": 0.055177092498078485,
+        "gamma_scintle_err_mhz": 0.1332787999531801,
+        "m": 0.7915392725402227,
+        "resolved": true,
+        "model_sel": "1L",
+        "m_phys_ok": true,
+        "bw_mhz": 19.900699983721324
+      },
+      {
+        "freq_mhz": 1351.4481930652776,
+        "gamma_mhz": 0.6666210839671592,
+        "gamma_err_mhz": 0.10139132169135087,
+        "gamma_scintle_err_mhz": 0.18381693309303693,
+        "m": 0.7747579398957569,
+        "resolved": true,
+        "model_sel": "1L",
+        "m_phys_ok": true,
+        "bw_mhz": 40.503418525150785
+      },
+      {
+        "freq_mhz": 1396.1637229366759,
+        "gamma_mhz": 1.3214519584414002,
+        "gamma_err_mhz": 0.13523204218794385,
+        "gamma_scintle_err_mhz": 0.4571890957498926,
+        "m": 0.9656830746080085,
+        "resolved": true,
+        "model_sel": "1L",
+        "m_phys_ok": true,
+        "bw_mhz": 48.5918932117857
+      },
+      {
+        "freq_mhz": 1459.6811411362528,
+        "gamma_mhz": 2.316710852249331,
+        "gamma_err_mhz": 0.20592865122484974,
+        "gamma_scintle_err_mhz": 0.8322833016619154,
+        "m": 1.690797174922742,
+        "resolved": true,
+        "model_sel": "1L",
+        "m_phys_ok": false,
+        "bw_mhz": 78.16824027348194
+      }
+    ]
+  },
+  "alpha_scint": {
+    "chime_hi_within_band": {
+      "alpha": 3.0876899745237774,
+      "alpha_err": 0.9917986082803428,
+      "n": 4,
+      "status": "measurement"
+    },
+    "chime_lo_within_band": {
+      "alpha": 1.7167868972666627,
+      "alpha_err": 0.39917371610217406,
+      "n": 4,
+      "status": "detection"
+    },
+    "dsa_within_band": {
+      "alpha": 20.465,
+      "alpha_err": 8.927,
+      "n": 3,
+      "status": "diagnostic_only",
+      "note": "UNPHYSICAL (>>ALPHA_BOUNDS ceiling 6.0). Only ~10% fractional bandwidth (1321-1460 MHz) with a steep local gamma trend; a within-band slope over such a narrow lever arm is not a scaling measurement."
+    },
+    "robustness": {
+      "two_band_incl_dsa_sb3_m_gt_1p2": {
+        "alpha": 3.403,
+        "alpha_err": 0.229,
+        "n": 8
+      },
+      "two_band_chime_lo_plus_dsa": {
+        "alpha": 2.483,
+        "alpha_err": 0.212,
+        "n": 7
+      },
+      "two_anchor_median": {
+        "alpha": 3.12,
+        "note": "median CHIME-hi gamma@680 MHz vs median DSA gamma@1356 MHz"
+      },
+      "verdict": "All variants cluster at alpha~2.5-3.4; joint single-screen null 3.13+/-0.29 (consistent scintle weighting) is stable in central value."
+    },
+    "two_band_joint_single_screen": {
+      "alpha": 3.133,
+      "alpha_err": 0.288,
+      "n": 7,
+      "bands": "CHIME-hi(4 resolved)+DSA(3 resolved,m<=1.2)",
+      "freq_range_mhz": [
+        623.6,
+        1396.2
+      ],
+      "status": "tested_and_rejected_single_screen_hypothesis",
+      "note": "Forced single power-law across both bands: alpha=3.13+/-0.29. REJECTED single-screen hypothesis (two-screen product=21.9>>2). Reported as the null only, NOT the headline.",
+      "weighting": "consistent finite-scintle error hypot(gamma_err, gamma_scintle_err) for BOTH bands (CHIME gamma_scintle_err 0.007-0.012 MHz pulled from campaign JSON; DSA 0.13-0.83 MHz). Previous 3.138+/-0.256 zeroed the CHIME scintle term; corrected value 3.133+/-0.288."
+    },
+    "HEADLINE": {
+      "framing": "per-band alpha + two-screen decomposition (single joint screen rejected)",
+      "chime_band_alpha": {
+        "alpha": 3.0876899745237774,
+        "alpha_err": 0.9917986082803428,
+        "n": 4,
+        "status": "measurement",
+        "band": "CHIME-hi 623-748 MHz"
+      },
+      "dsa_band_alpha": {
+        "alpha": 20.465,
+        "alpha_err": 8.927,
+        "n": 3,
+        "status": "diagnostic_only_unphysical",
+        "band": "DSA 1321-1460 MHz",
+        "note": "within-band slope over ~10% fractional BW is not a scaling measurement"
+      },
+      "two_screen": "scintillation (near screen, DSA Delta_nu_d 0.43-1.32 MHz) is DISTINCT from the pulse-broadening screen (Stage-2 thin-screen tau=0.126 ms, alpha=4); tau*Delta_nu=21.9>>2 rejects a common screen.",
+      "note_joint": "joint single-screen alpha (consistent weighting) = 3.13+/-0.29 \u2014 rejected null."
+    }
+  },
+  "physical_interpretation": "the joint single-screen (rejected-null) alpha = 3.13 +/- 0.29 is slightly below the Kolmogorov thin-screen expectation (4.0-4.4) but consistent within ~3sigma; it agrees with the independent CHIME-band value (3.09+/-0.99). NOTE the scattering (Stage 2) prefers a thin-screen alpha=4 in the temporal-broadening domain; the marginally shallower scintillation-bandwidth scaling may reflect either measurement scatter or a mildly non-Kolmogorov spectrum, and is not a firm tension given the uncertainties.",
+  "gates": {
+    "chime_hi": {
+      "n_resolved": 4,
+      "off_pulse_null": "pass (ratio 2.91)",
+      "subband_support": "pass (4>=3)",
+      "status": "measurement"
+    },
+    "dsa": {
+      "n_resolved": 4,
+      "n_physical": 3,
+      "note": "all 4 fit and resolved; sb3 (1460 MHz) m=1.69>1.2 excluded from alpha; within-band alpha unphysical -> diagnostic_only"
+    },
+    "two_band": {
+      "n": 7,
+      "status": "measurement",
+      "caveat": "DSA subbands span only ~10% fractional BW; the lever-arm alpha rests on the CHIME-DSA gamma ratio, which is well-determined."
+    }
+  },
+  "OWNER_RULING_APPLIED": "Standing manuscript rule (owner 2026-07-17): where the one-screen consistency test rejects a single joint alpha, report PER-BAND alphas + two-screen decomposition as the HEADLINE; the forced joint two-band alpha appears ONLY as the tested-and-rejected single-screen hypothesis. The repo test (flits.batch.analysis_logic.check_tau_deltanu_consistency) rejects a single screen for chromatica.",
+  "two_screen_consistency": {
+    "test": "flits.batch.analysis_logic.check_tau_deltanu_consistency: product = tau(nu_scint)*Delta_nu_d*1e3; single screen => product in [0.1,2.0] (thin 0.159, extended 1.0). product>>2 => scintillation samples a NEARER screen than the scattering screen.",
+    "inputs": {
+      "tau_1ghz_ms": 0.1259248138083148,
+      "alpha_scatt": 4.0,
+      "tau_at_1.4GHz_ms": 0.03278,
+      "dsa_delta_nu_d_mhz": 0.6666,
+      "dsa_freq_ghz": 1.4
+    },
+    "product": 21.851,
+    "accepted_range": [
+      0.1,
+      2.0
+    ],
+    "verdict": "different_screens",
+    "implied_near_screen_tau_ms": 0.277,
+    "interpretation": "tau*Delta_nu = 21.9 >> 2.0: the DSA-band resolved Delta_nu_d (0.67 MHz) implies a near-screen tau ~0.28 ms, far larger than the 0.033 ms pulse-broadening tau the Stage-2 scattering fit predicts at 1.4 GHz. So the scintillation and scattering sample DIFFERENT screens (nearer diffractive screen vs farther pulse-broadening screen). A single power-law gamma(nu) across 0.6-1.4 GHz is physically rejected.",
+    "note": "Consistent with the repo's standing verdict for chromatica (different_screens); the exact product differs from the archived 93.9 because this uses the fresh good-mode tau=0.126 ms (vs on-disk 0.196) but the same-screen hypothesis is rejected either way.",
+    "implied_near_screen_tau_note": "uses pipeline C1_THIN_KOLMOGOROV=1.16 (was mistakenly computed with C1~1 -> 0.239; correct value 0.2770 ms)"
+  }
+}

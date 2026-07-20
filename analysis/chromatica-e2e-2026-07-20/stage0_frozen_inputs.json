@@ -1,0 +1,134 @@
+{
+  "burst": "chromatica (FRB 20240203A)",
+  "chime_id": "356959136",
+  "dm_phase_v2": {
+    "chime": {
+      "dm": 272.6386987543787,
+      "sigma": 0.011918379848735847,
+      "product_dm": 272.6382,
+      "input_path": "/Users/jakobfaber/Data/Faber2026/dsa110/DSA_bursts/chromatica_chime_I_272_6382_32000b_cntr_bpc.npy",
+      "freq_mhz": [
+        400.5859375,
+        794.3359375
+      ],
+      "native_dt_s": 2.56e-06,
+      "n_dm_grid": 81
+    },
+    "dsa": {
+      "dm": 272.5614158929278,
+      "sigma": 0.0861742562298377,
+      "product_dm": 272.368,
+      "input_path": "/Users/jakobfaber/Data/Faber2026/dsa110/DSA_bursts/chromatica_dsa_I_272_368_2500b_cntr_bpc.npy",
+      "freq_mhz": [
+        1311.28051760884,
+        1498.75
+      ],
+      "native_dt_s": 3.2768e-05,
+      "n_dm_grid": 161
+    },
+    "joint": {
+      "dm": 272.6372482012704,
+      "sigma": 0.011805999590898808,
+      "between_band_sigma": 0.0,
+      "chime_minus_dsa": 0.07728286145089669,
+      "difference_sigma": 0.08699454129417819,
+      "tension_sigma": 0.8883644916243564,
+      "joint_q": 0.7891914699790012
+    }
+  },
+  "crossmatch": {
+    "dm": 272.664,
+    "geometric_delay_ms": -2.284541885429817,
+    "measured_offset_ms": -4.971029965261664,
+    "peak_measured_offset_ms": -4.971029965261664,
+    "model_corrected_offset_ms": -5.770729954690523,
+    "model_correction_status": "diagnostic_only:MARGINAL",
+    "scatter_corr_chime_ms": 0.8491,
+    "scatter_corr_dsa_ms": 0.0494,
+    "differential_scatter_shift_ms": 0.7997,
+    "error_chime_ms": 0.011359420397837253,
+    "error_dsa_ms": 2.4157811297309335,
+    "combined_error_full_ms": 2.4158176399937314
+  },
+  "scattering": {
+    "a1_sharedzeta_exp_exp": {
+      "alpha": {
+        "median": 3.28420838764534,
+        "err_minus": 0.040369985672480624,
+        "err_plus": 0.04048924076932048
+      },
+      "tau_1ghz": {
+        "median": 0.1957395759415959,
+        "err_minus": 0.005235419629807725,
+        "err_plus": 0.005537971433627387
+      },
+      "beta_C": 3.6666666666666665,
+      "beta_D": 3.6666666666666665,
+      "pbf_C": "exp",
+      "pbf_D": "exp",
+      "shared_zeta": true,
+      "log_evidence": -8526.335224657567,
+      "alpha_bounds": [
+        1.0,
+        6.0
+      ],
+      "components_C": 1,
+      "components_D": 1
+    },
+    "legacy_joint_json": {
+      "alpha": {
+        "median": 5.998641181041451,
+        "err_minus": 0.0020649944827813016,
+        "err_plus": 0.0010243018957982741
+      },
+      "tau_1ghz": {
+        "median": 0.02494037761763325,
+        "err_minus": 0.00018511078700194153,
+        "err_plus": 0.00019033927906086587
+      },
+      "log_evidence": -44072.3206368097,
+      "alpha_bounds": [
+        1.0,
+        6.0
+      ],
+      "gate": {
+        "burst": "chromatica",
+        "chi2_reduced": null,
+        "chi2_chime": null,
+        "chi2_dsa": null,
+        "tau": 0.02494037761763325,
+        "alpha": 5.998641181041451,
+        "alpha_railed": true,
+        "quality_flag": "MARGINAL",
+        "notes": [
+          "alpha prior-railed (within 0.1 of bound) -> unconstrained; L2 no PPC (chi2 unknown); L3 alpha=6.00 off Kolmogorov"
+        ]
+      }
+    }
+  },
+  "scintillation": {
+    "chime_hi": {
+      "alpha": {
+        "alpha": 3.0876899745237774,
+        "alpha_err": 0.9917986082803428,
+        "n": 4,
+        "provisional": false
+      },
+      "science_status": "measurement",
+      "artifact_validation_status": "pass",
+      "ref_freq_mhz": 661.0940688902841,
+      "n_subbands": 4
+    },
+    "chime_lo": {
+      "alpha": {
+        "alpha": 1.7167868972666627,
+        "alpha_err": 0.39917371610217406,
+        "n": 4,
+        "provisional": false
+      },
+      "science_status": "detection",
+      "ref_freq_mhz": 496.7605066710533,
+      "n_subbands": 4
+    }
+  }
+}

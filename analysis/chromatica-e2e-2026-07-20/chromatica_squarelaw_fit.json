@@ -1,0 +1,102 @@
+{
+  "burst": "chromatica",
+  "marginalize_gain": false,
+  "marginalize_gain_gp": false,
+  "shared_zeta": true,
+  "beta": {
+    "median": 4.0,
+    "err_minus": 0.0,
+    "err_plus": 0.0
+  },
+  "beta_bounds": [
+    4.0,
+    4.0
+  ],
+  "alpha": {
+    "median": 4.0,
+    "err_minus": 0.0,
+    "err_plus": 0.0
+  },
+  "tau_1ghz": {
+    "median": 0.1259248138083148,
+    "err_minus": 0.0008584806142235557,
+    "err_plus": 0.0009544546470040549
+  },
+  "log_evidence": -16574.47608774972,
+  "log_evidence_err": 0.5940020208340661,
+  "alpha_bounds": [
+    4.0,
+    4.0
+  ],
+  "components_C": 1,
+  "components_D": 1,
+  "gain_s2": null,
+  "fixed_parameters": {},
+  "percentiles": {
+    "tau_1ghz": {
+      "median": 0.1259248138083148,
+      "lower": 0.12506633319409124,
+      "upper": 0.12687926845531886,
+      "err_minus": 0.0008584806142235557,
+      "err_plus": 0.0009544546470040549
+    },
+    "beta": {
+      "median": 4.0,
+      "lower": 4.0,
+      "upper": 4.0,
+      "err_minus": 0.0,
+      "err_plus": 0.0
+    },
+    "zeta_1ghz": {
+      "median": 0.188767495290774,
+      "lower": 0.1861923486133017,
+      "upper": 0.1914112715853778,
+      "err_minus": 0.002575146677472301,
+      "err_plus": 0.0026437762946038
+    },
+    "x_zeta": {
+      "median": -1.494403041208198,
+      "lower": -1.520083197230187,
+      "upper": -1.467695796296181,
+      "err_minus": 0.02568015602198903,
+      "err_plus": 0.026707244912016925
+    },
+    "t0_C": {
+      "median": 4.680060568690364,
+      "lower": 4.676479690773132,
+      "upper": 4.683535374040226,
+      "err_minus": 0.0035808779172326055,
+      "err_plus": 0.003474805349862109
+    },
+    "delta_dm_C": {
+      "median": 0.01047105202462717,
+      "lower": 0.009842684684826963,
+      "upper": 0.011090312070514585,
+      "err_minus": 0.0006283673398002065,
+      "err_plus": 0.0006192600458874153
+    },
+    "t0_D": {
+      "median": 5.140020833484748,
+      "lower": 5.1334561004869785,
+      "upper": 5.146272526014965,
+      "err_minus": 0.006564732997769163,
+      "err_plus": 0.006251692530216957
+    },
+    "delta_dm_D": {
+      "median": 0.26869709103380757,
+      "lower": 0.25400880965197103,
+      "upper": 0.2845259254973911,
+      "err_minus": 0.014688281381836532,
+      "err_plus": 0.01582883446358352
+    },
+    "alpha": {
+      "median": 4.0,
+      "lower": 4.0,
+      "upper": 4.0,
+      "err_minus": 0.0,
+      "err_plus": 0.0
+    }
+  },
+  "ncall": 578620,
+  "gain_recovered": true
+}

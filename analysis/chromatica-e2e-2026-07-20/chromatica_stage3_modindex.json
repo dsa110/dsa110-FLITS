@@ -1,0 +1,205 @@
+{
+  "burst": "chromatica (FRB 20240203A)",
+  "definitions": {
+    "m_t": "temporal modulation index: sigma/mu of the frequency-averaged profile over sliding 3-bin windows (pipeline analysis.modulation_index_over_time, chunk_bins=3 overlap_bins=2). Measures light-curve burstiness.",
+    "m_nu": "spectral modulation index: sqrt(ACF amplitude) per subband from the harmonic-masked Lorentzian ACF fit. Measures scintillation depth vs frequency."
+  },
+  "m_t": {
+    "chime_hi": {
+      "burst_window": [
+        188,
+        194
+      ],
+      "time_ms": [
+        0.0,
+        0.32767999999999686,
+        0.6553600000000006,
+        0.9830400000000115,
+        1.14688000000001
+      ],
+      "m": [
+        0.07992668441780293,
+        0.03065766983017258,
+        0.0644957514768869,
+        0.05540832486633397,
+        0.024753471261929432
+      ],
+      "median": 0.05540975209541265,
+      "max": 0.07992571694178659,
+      "m_err": [
+        0.005094616981377534,
+        0.004714110022562506,
+        0.004479785895005786,
+        0.006442538864079808,
+        0.007561974327854884
+      ]
+    },
+    "dsa": {
+      "burst_window": [
+        1248,
+        1268
+      ],
+      "time_ms": [
+        0.0,
+        0.0327811124449795,
+        0.065562224889959,
+        0.0983433373349385,
+        0.13112444977991106,
+        0.16390556222489056,
+        0.19668667466987005,
+        0.22946778711484955,
+        0.26224889955982905,
+        0.2950300120048016,
+        0.3278111244497811,
+        0.3605922368947606,
+        0.3933733493397401,
+        0.42615446178471267,
+        0.45893557422969217,
+        0.49171668667467167,
+        0.5244977991196511,
+        0.5572789115646237,
+        0.5736694677871204
+      ],
+      "m": [
+        0.53949317048949,
+        0.34266823682465924,
+        0.16164744453375918,
+        0.16424313613390967,
+        0.13781274959042833,
+        0.08251739759788548,
+        0.051538983570426564,
+        0.14501723433056604,
+        0.1210819254939704,
+        0.08815235778706446,
+        0.14606933222376878,
+        0.1266701597108126,
+        0.1458937480061879,
+        0.18838018877550683,
+        0.23741396019380243,
+        0.293893430198014,
+        0.14460718778211154,
+        0.16053832828592723,
+        0.19637675801186133
+      ],
+      "median": 0.14606933222376878,
+      "max": 0.53949317048949,
+      "m_err": [
+        0.11631396533305337,
+        0.05454273976903971,
+        0.03793408712012941,
+        0.03470420311588008,
+        0.031170180127202574,
+        0.02572732771252768,
+        0.017742163058978924,
+        0.02779199881014636,
+        0.029579526095176552,
+        0.02745182519275165,
+        0.039584098197785925,
+        0.046875628644141555,
+        0.05846141576491404,
+        0.06348622966921642,
+        0.09354013629052625,
+        0.1164060275069397,
+        0.11846286413993412,
+        0.16963294100306597,
+        0.16500421371890808
+      ]
+    },
+    "error_method": "channel-bootstrap (150 resamples) of the frequency-averaged profile per sliding 3-bin window"
+  },
+  "m_nu": {
+    "chime_hi": [
+      {
+        "freq_mhz": 749.2,
+        "m": 0.7026031441293654,
+        "resolved": true,
+        "model_sel": "2L",
+        "m_err": 0.0303876017659791
+      },
+      {
+        "freq_mhz": 687.2,
+        "m": 0.6113822788918554,
+        "resolved": true,
+        "model_sel": "2L",
+        "m_err": 0.02574372013932488
+      },
+      {
+        "freq_mhz": 661.1,
+        "m": 0.4947441517911209,
+        "resolved": true,
+        "model_sel": "2L",
+        "m_err": 0.02942508454216384
+      },
+      {
+        "freq_mhz": 623.6,
+        "m": 0.5421217124135136,
+        "resolved": true,
+        "model_sel": "2L",
+        "m_err": 0.025022246648765862
+      }
+    ],
+    "chime_lo": [
+      {
+        "freq_mhz": 720.5,
+        "m": 0.5692153583742804,
+        "resolved": true,
+        "model_sel": "2L"
+      },
+      {
+        "freq_mhz": 585.2,
+        "m": 0.39542865466725274,
+        "resolved": true,
+        "model_sel": "2L"
+      },
+      {
+        "freq_mhz": 496.8,
+        "m": 0.29096091486689035,
+        "resolved": true,
+        "model_sel": "2L"
+      },
+      {
+        "freq_mhz": 432.8,
+        "m": 0.24766409896898062,
+        "resolved": true,
+        "model_sel": "1L"
+      }
+    ],
+    "dsa": [
+      {
+        "freq_mhz": 1321.2003499918608,
+        "m": 0.7915392725402227,
+        "resolved": true,
+        "model_sel": "1L",
+        "m_phys_ok": true,
+        "m_err": 0.06384434967930555
+      },
+      {
+        "freq_mhz": 1351.4481930652776,
+        "m": 0.7747579398957569,
+        "resolved": true,
+        "model_sel": "1L",
+        "m_phys_ok": true,
+        "m_err": 0.10095428847915175
+      },
+      {
+        "freq_mhz": 1396.1637229366759,
+        "m": 0.9656830746080085,
+        "resolved": true,
+        "model_sel": "1L",
+        "m_phys_ok": true,
+        "m_err": 0.07718357933579091
+      },
+      {
+        "freq_mhz": 1459.6811411362528,
+        "m": 1.690797174922742,
+        "resolved": true,
+        "model_sel": "1L",
+        "m_phys_ok": false,
+        "m_err": 0.12178621073335379
+      }
+    ],
+    "error_method": "dm/m = 0.5/amp_snr from the ACF-amplitude S/N"
+  },
+  "notes": "m(nu) rises toward higher nu in both bands (resolving scintillation pattern; fewer scintles per subband as gamma grows). DSA 1460 MHz m=1.69>M_PHYS(1.2) -> envelope-contaminated, excluded from the alpha power-law fit but reported.",
+  "figure_layout": "Triptych per band (CHIME magenta, DSA black): m(t) error-bar points above the on-pulse dynamic spectrum; time-integrated 1D spectrum sharing the frequency axis to the right; m(nu) error-bar points (disconnected) at far right. DSA 1460 MHz m(nu) drawn open (m>1.2). Fig-1 gallery color convention."
+}

@@ -1,0 +1,1447 @@
+{
+  "purpose": "Full 12-burst DM-phase crop-window sensitivity (user hypothesis: over-wide window dilutes the shallow DSA phase-coherence surface; tightening toward the on-pulse region gives a more accurate/stable DM).",
+  "method": "Reproduce dm-joint-phase-v2 fit_band per burst/band at crop windows [6,8,10,14,20,30] ms (production=30ms fixed). CHIME/DSA DM optima + gaussian_joint tension recomputed at each. Parity with fits.json verified at 30ms for chromatica.",
+  "headline": "CHIME DM is crop-ROBUST for all 12 (DM range <=0.007 pc/cm3, median ~0.001, << CHIME sigma ~0.01) -- the strong, uniform result. DSA DM is crop-SENSITIVE (range 0.004-0.119): its shallow phase-coherence surface (low DM leverage at 1.3-1.5 GHz) is diluted by off-pulse fluctuation-frequency noise in a wide window, so the DSA optimum wanders with crop width. The CHIME-DSA tension does NOT move in a single direction with crop (6 bursts increase, 5 decrease, 1 flat between 30ms and +/-4x; changes mostly small) -- so the fixed 30ms window is NOT uniformly inflating tension; rather it makes the DSA cross-check UNSTABLE per-burst. For chromatica specifically the tension does drop (0.89->0.33 at +/-4x). phineas is a GENUINE offset (tension stays 6.5->4.1 sigma). Practical consequence: adopted CHIME-primary DMs are unaffected by crop; only the DSA cross-check is crop-dependent and should use an adaptive window.",
+  "dsa_dm_range_sorted": {
+    "isha": 0.11845243771972491,
+    "hamilton": 0.08514683190810501,
+    "chromatica": 0.07786853254407333,
+    "mahi": 0.07559792627125717,
+    "johndoeII": 0.039892811792583416,
+    "oran": 0.03480424374396307,
+    "zach": 0.03421008807117687,
+    "freya": 0.011113050989024487,
+    "whitney": 0.008434858351904495,
+    "casey": 0.006640068477622663,
+    "phineas": 0.004676408367345175,
+    "wilhelm": 0.0041725840877688825
+  },
+  "chime_dm_range": {
+    "casey": 0.0007774226938295214,
+    "chromatica": 0.0013943572147354644,
+    "freya": 0.001270742964834426,
+    "hamilton": 0.0001893267526611453,
+    "isha": 0.0007836500497546695,
+    "johndoeII": 0.0012316950807189642,
+    "mahi": 0.0013172209908134391,
+    "oran": 0.0007940069112351011,
+    "phineas": 0.0007447536413565103,
+    "whitney": 0.0029010802256834722,
+    "wilhelm": 0.006823850645673701,
+    "zach": 0.0021379273374009244
+  },
+  "tension_30ms": {
+    "casey": 0.259091478440898,
+    "chromatica": 0.8883644916241127,
+    "freya": 3.0659595103829047,
+    "hamilton": 0.010482027115586804,
+    "isha": 1.6120442753173498,
+    "johndoeII": 0.7648549542497814,
+    "mahi": 0.6546511636603494,
+    "oran": 0.9011873516403922,
+    "phineas": 6.511724726720595,
+    "whitney": 0.13560864326526825,
+    "wilhelm": 0.09679747698832028,
+    "zach": 1.4565746347233954
+  },
+  "tension_8ms": {
+    "casey": 0.6048734306617257,
+    "chromatica": 0.332515017783373,
+    "freya": 3.5971613687712245,
+    "hamilton": 0.08620606997846027,
+    "isha": 2.221297059297397,
+    "johndoeII": 1.6604436584061966,
+    "mahi": 0.22014928461870303,
+    "oran": 2.1509013251137725,
+    "phineas": 4.083831281370223,
+    "whitney": 0.09194723004431622,
+    "wilhelm": 0.09722882645844845,
+    "zach": 0.5596010161107383
+  },
+  "notable": {
+    "isha": "largest DSA range (0.119); DSA optimum highly window-dependent. Tension actually INCREASES at tight crop (1.61->2.22) -- the DSA DM is simply unstable here, not cleanly 'de-inflated'.",
+    "phineas": "tension stays HIGH regardless of crop (6.5 sigma at 30ms -> 4.1 sigma at 8ms) -> GENUINE between-band offset, not a crop artifact; consistent with its known drifting/scattered structure",
+    "chromatica": "tension 0.89->0.33 at +/-4x (this burst's offset IS largely a crop artifact); but this is not the catalog-wide trend.",
+    "hamilton": "large DSA range (0.085) but tension near zero both crops (bands agree); DSA optimum wanders within a broad likelihood"
+  },
+  "recommendation": "Replace the fixed 30ms crop (crop_on_pulse window_s=0.030) with an ADAPTIVE window k*FWHM (k~4-8). CHIME DMs (the adopted values) are unaffected; DSA cross-check DMs become more stable and mostly more CHIME-consistent. Does NOT change any adopted DM (CHIME-primary policy). Genuine offsets (phineas) survive the tightening.",
+  "per_burst_full": {
+    "casey": {
+      "fwhm_xm_ms": 0.1798378111997433,
+      "windows": {
+        "6ms": {
+          "chime_dm": 491.2070488954315,
+          "chime_sigma": 0.005,
+          "chime_crop": [
+            14847,
+            17191
+          ],
+          "chime_prom": 21.81398002789735,
+          "dsa_dm": 491.19280351505506,
+          "dsa_sigma": 0.009406883301719562,
+          "dsa_crop": [
+            1170,
+            1353
+          ],
+          "dsa_prom": 1.1679966465884155,
+          "chime_minus_dsa": 0.014245380376451067,
+          "tension_sigma": 1.33719978436882
+        },
+        "8ms": {
+          "chime_dm": 491.2072119877018,
+          "chime_sigma": 0.005255902986864105,
+          "chime_crop": [
+            14457,
+            17582
+          ],
+          "chime_prom": 21.64692064921152,
+          "dsa_dm": 491.1994435835327,
+          "dsa_sigma": 0.011718308623354429,
+          "dsa_crop": [
+            1139,
+            1383
+          ],
+          "dsa_prom": 1.1484111657960796,
+          "chime_minus_dsa": 0.0077684041690986305,
+          "tension_sigma": 0.6048734306617257
+        },
+        "10ms": {
+          "chime_dm": 491.2073124498013,
+          "chime_sigma": 0.005288324203647649,
+          "chime_crop": [
+            14066,
+            17972
+          ],
+          "chime_prom": 21.871303732744778,
+          "dsa_dm": 491.19815693010355,
+          "dsa_sigma": 0.037210764335145516,
+          "dsa_crop": [
+            1109,
+            1414
+          ],
+          "dsa_prom": 1.1633609665937272,
+          "chime_minus_dsa": 0.00915551969774242,
+          "tension_sigma": 0.24359718747662956
+        },
+        "14ms": {
+          "chime_dm": 491.2074184901346,
+          "chime_sigma": 0.005293180938078094,
+          "chime_crop": [
+            13285,
+            18754
+          ],
+          "chime_prom": 22.011543310461075,
+          "dsa_dm": 491.19653096048495,
+          "dsa_sigma": 0.037786091292710926,
+          "dsa_crop": [
+            1048,
+            1475
+          ],
+          "dsa_prom": 1.1609821511846505,
+          "chime_minus_dsa": 0.010887529649664884,
+          "tension_sigma": 0.2853497718715004
+        },
+        "20ms": {
+          "chime_dm": 491.2075573608254,
+          "chime_sigma": 0.005285769174833,
+          "chime_crop": [
+            12113,
+            19925
+          ],
+          "chime_prom": 21.45610300316432,
+          "dsa_dm": 491.19597508133603,
+          "dsa_sigma": 0.03667905426036246,
+          "dsa_crop": [
+            956,
+            1566
+          ],
+          "dsa_prom": 1.1453556364495678,
+          "chime_minus_dsa": 0.011582279489346092,
+          "tension_sigma": 0.31254498582175533
+        },
+        "30ms": {
+          "chime_dm": 491.20782631812534,
+          "chime_sigma": 0.005165417619795133,
+          "chime_crop": [
+            10160,
+            21879
+          ],
+          "chime_prom": 19.763722807024475,
+          "dsa_dm": 491.1974921068789,
+          "dsa_sigma": 0.039550457858414316,
+          "dsa_crop": [
+            803,
+            1719
+          ],
+          "dsa_prom": 1.143240652840938,
+          "chime_minus_dsa": 0.010334211246458835,
+          "tension_sigma": 0.259091478440898
+        }
+      }
+    },
+    "chromatica": {
+      "fwhm_xm_ms": 0.8209283218365907,
+      "windows": {
+        "6ms": {
+          "chime_dm": 272.6380838681608,
+          "chime_sigma": 0.005,
+          "chime_crop": [
+            14881,
+            17225
+          ],
+          "chime_prom": 7.938526410219437,
+          "dsa_dm": 272.6172231125695,
+          "dsa_sigma": 0.05565067401675888,
+          "dsa_crop": [
+            1164,
+            1347
+          ],
+          "dsa_prom": 1.122447399793093,
+          "chime_minus_dsa": 0.020860755591286306,
+          "tension_sigma": 0.3733479388581211
+        },
+        "8ms": {
+          "chime_dm": 272.63747369384,
+          "chime_sigma": 0.022836962595222117,
+          "chime_crop": [
+            14491,
+            17616
+          ],
+          "chime_prom": 8.866212175029439,
+          "dsa_dm": 272.61121892059793,
+          "dsa_sigma": 0.07558348907788007,
+          "dsa_crop": [
+            1133,
+            1377
+          ],
+          "dsa_prom": 1.0434492577711867,
+          "chime_minus_dsa": 0.026254773242044394,
+          "tension_sigma": 0.332515017783373
+        },
+        "10ms": {
+          "chime_dm": 272.6379537785405,
+          "chime_sigma": 0.009522121397925363,
+          "chime_crop": [
+            14100,
+            18006
+          ],
+          "chime_prom": 10.150820111655602,
+          "dsa_dm": 272.6130010983631,
+          "dsa_sigma": 0.08324731856199641,
+          "dsa_crop": [
+            1103,
+            1408
+          ],
+          "dsa_prom": 1.0475205668075496,
+          "chime_minus_dsa": 0.024952680177420916,
+          "tension_sigma": 0.29779973458131226
+        },
+        "14ms": {
+          "chime_dm": 272.6382370745178,
+          "chime_sigma": 0.010750534859962291,
+          "chime_crop": [
+            13319,
+            18788
+          ],
+          "chime_prom": 4.07645827703026,
+          "dsa_dm": 272.62070868219143,
+          "dsa_sigma": 0.07423841358047169,
+          "dsa_crop": [
+            1042,
+            1469
+          ],
+          "dsa_prom": 1.0445080740300758,
+          "chime_minus_dsa": 0.017528392326369158,
+          "tension_sigma": 0.23367210306444114
+        },
+        "20ms": {
+          "chime_dm": 272.6388680510547,
+          "chime_sigma": 0.015433483173087523,
+          "chime_crop": [
+            12147,
+            19959
+          ],
+          "chime_prom": 4.0046433953339555,
+          "dsa_dm": 272.6392844254719,
+          "dsa_sigma": 0.05237463319442825,
+          "dsa_crop": [
+            950,
+            1560
+          ],
+          "dsa_prom": 1.0594737242366496,
+          "chime_minus_dsa": -0.000416374417170573,
+          "tension_sigma": 0.0076257329200769995
+        },
+        "30ms": {
+          "chime_dm": 272.6386987543787,
+          "chime_sigma": 0.011918379848735847,
+          "chime_crop": [
+            10194,
+            21913
+          ],
+          "chime_prom": 3.8708212192080063,
+          "dsa_dm": 272.5614158929278,
+          "dsa_sigma": 0.0861742562298618,
+          "dsa_crop": [
+            797,
+            1713
+          ],
+          "dsa_prom": 1.044017306491433,
+          "chime_minus_dsa": 0.07728286145089669,
+          "tension_sigma": 0.8883644916241127
+        }
+      }
+    },
+    "freya": {
+      "fwhm_xm_ms": 0.40065937342767416,
+      "windows": {
+        "6ms": {
+          "chime_dm": 912.4071751408746,
+          "chime_sigma": 0.01565924228431792,
+          "chime_crop": [
+            14853,
+            17197
+          ],
+          "chime_prom": 3.5614658840955045,
+          "dsa_dm": 912.4984219859441,
+          "dsa_sigma": 0.009050432664619761,
+          "dsa_crop": [
+            1190,
+            1373
+          ],
+          "dsa_prom": 1.1449121879035806,
+          "chime_minus_dsa": -0.09124684506946323,
+          "tension_sigma": 5.04501948517766
+        },
+        "8ms": {
+          "chime_dm": 912.4076430593815,
+          "chime_sigma": 0.023847426196299284,
+          "chime_crop": [
+            14463,
+            17588
+          ],
+          "chime_prom": 3.115315007078802,
+          "dsa_dm": 912.5022045072847,
+          "dsa_sigma": 0.011061127242308628,
+          "dsa_crop": [
+            1159,
+            1403
+          ],
+          "dsa_prom": 1.1673097537058084,
+          "chime_minus_dsa": -0.09456144790317467,
+          "tension_sigma": 3.5971613687712245
+        },
+        "10ms": {
+          "chime_dm": 912.407280983794,
+          "chime_sigma": 0.012453255030458361,
+          "chime_crop": [
+            14072,
+            17978
+          ],
+          "chime_prom": 2.7473473602305085,
+          "dsa_dm": 912.4940084978056,
+          "dsa_sigma": 0.015344279966908523,
+          "dsa_crop": [
+            1129,
+            1434
+          ],
+          "dsa_prom": 1.1486088757284352,
+          "chime_minus_dsa": -0.0867275140116135,
+          "tension_sigma": 4.388634626939024
+        },
+        "14ms": {
+          "chime_dm": 912.4069882666863,
+          "chime_sigma": 0.014781382678975614,
+          "chime_crop": [
+            13291,
+            18760
+          ],
+          "chime_prom": 3.458904606235581,
+          "dsa_dm": 912.4953399719891,
+          "dsa_sigma": 0.010860254430514088,
+          "dsa_crop": [
+            1068,
+            1495
+          ],
+          "dsa_prom": 1.1433560587622265,
+          "chime_minus_dsa": -0.08835170530278447,
+          "tension_sigma": 4.816867925774371
+        },
+        "20ms": {
+          "chime_dm": 912.4082590096511,
+          "chime_sigma": 0.02120920040768613,
+          "chime_crop": [
+            12119,
+            19931
+          ],
+          "chime_prom": 2.5389854600320807,
+          "dsa_dm": 912.4931683390791,
+          "dsa_sigma": 0.015259392248200455,
+          "dsa_crop": [
+            976,
+            1586
+          ],
+          "dsa_prom": 1.1564443695977213,
+          "chime_minus_dsa": -0.084909329428001,
+          "tension_sigma": 3.2497283930873997
+        },
+        "30ms": {
+          "chime_dm": 912.4075523534933,
+          "chime_sigma": 0.01566780599702754,
+          "chime_crop": [
+            10166,
+            21885
+          ],
+          "chime_prom": 2.893006356115821,
+          "dsa_dm": 912.4910914562956,
+          "dsa_sigma": 0.022292037419723222,
+          "dsa_crop": [
+            823,
+            1739
+          ],
+          "dsa_prom": 1.1491148098268233,
+          "chime_minus_dsa": -0.08353910280231958,
+          "tension_sigma": 3.0659595103829047
+        }
+      }
+    },
+    "hamilton": {
+      "fwhm_xm_ms": 0.20177869209009036,
+      "windows": {
+        "6ms": {
+          "chime_dm": 518.7969084994626,
+          "chime_sigma": 0.005,
+          "chime_crop": [
+            14850,
+            17194
+          ],
+          "chime_prom": 25.378702359072868,
+          "dsa_dm": 518.8115909535304,
+          "dsa_sigma": 0.050806336890596285,
+          "dsa_crop": [
+            1165,
+            1348
+          ],
+          "dsa_prom": 1.1718551085811977,
+          "chime_minus_dsa": -0.01468245406783808,
+          "tension_sigma": 0.28759927897281273
+        },
+        "8ms": {
+          "chime_dm": 518.7969627263426,
+          "chime_sigma": 0.005,
+          "chime_crop": [
+            14460,
+            17585
+          ],
+          "chime_prom": 24.73884125352474,
+          "dsa_dm": 518.8009114234609,
+          "dsa_sigma": 0.045531613945081956,
+          "dsa_crop": [
+            1134,
+            1378
+          ],
+          "dsa_prom": 1.1641776738905638,
+          "chime_minus_dsa": -0.003948697118289601,
+          "tension_sigma": 0.08620606997846027
+        },
+        "10ms": {
+          "chime_dm": 518.7968031820345,
+          "chime_sigma": 0.005,
+          "chime_crop": [
+            14069,
+            17975
+          ],
+          "chime_prom": 23.552414082597295,
+          "dsa_dm": 518.7900229534499,
+          "dsa_sigma": 0.05332204575981054,
+          "dsa_crop": [
+            1104,
+            1409
+          ],
+          "dsa_prom": 1.182167067320291,
+          "chime_minus_dsa": 0.00678022858460281,
+          "tension_sigma": 0.1266008288232589
+        },
+        "14ms": {
+          "chime_dm": 518.7968939296939,
+          "chime_sigma": 0.005,
+          "chime_crop": [
+            13288,
+            18757
+          ],
+          "chime_prom": 23.090762213209032,
+          "dsa_dm": 518.8658896062614,
+          "dsa_sigma": 0.05205531367983822,
+          "dsa_crop": [
+            1043,
+            1470
+          ],
+          "dsa_prom": 1.1651839986313242,
+          "chime_minus_dsa": -0.0689956765675106,
+          "tension_sigma": 1.3193578669253458
+        },
+        "20ms": {
+          "chime_dm": 518.7969476766627,
+          "chime_sigma": 0.005,
+          "chime_crop": [
+            12116,
+            19928
+          ],
+          "chime_prom": 21.915478981412324,
+          "dsa_dm": 518.7807427743533,
+          "dsa_sigma": 0.0410606226134083,
+          "dsa_crop": [
+            951,
+            1561
+          ],
+          "dsa_prom": 1.04385891168722,
+          "chime_minus_dsa": 0.01620490230948235,
+          "tension_sigma": 0.3917640851375444
+        },
+        "30ms": {
+          "chime_dm": 518.7969925087872,
+          "chime_sigma": 0.005,
+          "chime_crop": [
+            10163,
+            21882
+          ],
+          "chime_prom": 18.017504296239697,
+          "dsa_dm": 518.7976552053478,
+          "dsa_sigma": 0.06302415019809597,
+          "dsa_crop": [
+            798,
+            1714
+          ],
+          "dsa_prom": 1.1328736862705924,
+          "chime_minus_dsa": -0.0006626965606528756,
+          "tension_sigma": 0.010482027115586804
+        }
+      }
+    },
+    "isha": {
+      "fwhm_xm_ms": 1.8052781950282417,
+      "windows": {
+        "6ms": {
+          "chime_dm": 411.4363823359431,
+          "chime_sigma": 0.010067662396358595,
+          "chime_crop": [
+            14836,
+            17180
+          ],
+          "chime_prom": 9.465403523420413,
+          "dsa_dm": 411.52982222157283,
+          "dsa_sigma": 0.04516160730364332,
+          "dsa_crop": [
+            1163,
+            1346
+          ],
+          "dsa_prom": 1.1474488476052573,
+          "chime_minus_dsa": -0.09343988562972072,
+          "tension_sigma": 2.019441171625362
+        },
+        "8ms": {
+          "chime_dm": 411.4363251846831,
+          "chime_sigma": 0.005,
+          "chime_crop": [
+            14446,
+            17571
+          ],
+          "chime_prom": 13.225756688351636,
+          "dsa_dm": 411.5622672108933,
+          "dsa_sigma": 0.05647661776124685,
+          "dsa_crop": [
+            1132,
+            1376
+          ],
+          "dsa_prom": 1.172484882274487,
+          "chime_minus_dsa": -0.12594202621022532,
+          "tension_sigma": 2.221297059297397
+        },
+        "10ms": {
+          "chime_dm": 411.4357572975203,
+          "chime_sigma": 0.006604799961571696,
+          "chime_crop": [
+            14055,
+            17961
+          ],
+          "chime_prom": 8.63993439456166,
+          "dsa_dm": 411.5262057479988,
+          "dsa_sigma": 0.03853152685398761,
+          "dsa_crop": [
+            1102,
+            1407
+          ],
+          "dsa_prom": 1.0488089786520856,
+          "chime_minus_dsa": -0.09044845047850458,
+          "tension_sigma": 2.3136440713066007
+        },
+        "14ms": {
+          "chime_dm": 411.43559868589335,
+          "chime_sigma": 0.005,
+          "chime_crop": [
+            13274,
+            18743
+          ],
+          "chime_prom": 9.798605950851284,
+          "dsa_dm": 411.4438147731736,
+          "dsa_sigma": 0.08392790676671777,
+          "dsa_crop": [
+            1041,
+            1468
+          ],
+          "dsa_prom": 1.0455709808234432,
+          "chime_minus_dsa": -0.008216087280231932,
+          "tension_sigma": 0.09772131979610102
+        },
+        "20ms": {
+          "chime_dm": 411.43580609223744,
+          "chime_sigma": 0.005,
+          "chime_crop": [
+            12102,
+            19914
+          ],
+          "chime_prom": 9.506516386031343,
+          "dsa_dm": 411.52238657508457,
+          "dsa_sigma": 0.05075831143293743,
+          "dsa_crop": [
+            949,
+            1559
+          ],
+          "dsa_prom": 1.1572242347119357,
+          "chime_minus_dsa": -0.0865804828471255,
+          "tension_sigma": 1.697523986512882
+        },
+        "30ms": {
+          "chime_dm": 411.4357169198453,
+          "chime_sigma": 0.005,
+          "chime_crop": [
+            10149,
+            21868
+          ],
+          "chime_prom": 9.299895967386588,
+          "dsa_dm": 411.55270688982205,
+          "dsa_sigma": 0.07239998318050801,
+          "dsa_crop": [
+            796,
+            1712
+          ],
+          "dsa_prom": 1.048721029366898,
+          "chime_minus_dsa": -0.11698996997677114,
+          "tension_sigma": 1.6120442753173498
+        }
+      }
+    },
+    "johndoeII": {
+      "fwhm_xm_ms": 0.6957157720124573,
+      "windows": {
+        "6ms": {
+          "chime_dm": 696.5190251080186,
+          "chime_sigma": 0.005,
+          "chime_crop": [
+            14887,
+            17231
+          ],
+          "chime_prom": 20.160199254768678,
+          "dsa_dm": 696.4750454495598,
+          "dsa_sigma": 0.03602410099379669,
+          "dsa_crop": [
+            1175,
+            1358
+          ],
+          "dsa_prom": 1.1471695834597389,
+          "chime_minus_dsa": 0.04397965845873841,
+          "tension_sigma": 1.2092477549986849
+        },
+        "8ms": {
+          "chime_dm": 696.5188496973386,
+          "chime_sigma": 0.006117081971451042,
+          "chime_crop": [
+            14497,
+            17622
+          ],
+          "chime_prom": 10.004679802614227,
+          "dsa_dm": 696.4451436775124,
+          "dsa_sigma": 0.04396585010228669,
+          "dsa_crop": [
+            1144,
+            1388
+          ],
+          "dsa_prom": 1.1411272482281365,
+          "chime_minus_dsa": 0.07370601982620428,
+          "tension_sigma": 1.6604436584061966
+        },
+        "10ms": {
+          "chime_dm": 696.5181742472944,
+          "chime_sigma": 0.005,
+          "chime_crop": [
+            14106,
+            18012
+          ],
+          "chime_prom": 10.221783755715373,
+          "dsa_dm": 696.485036489305,
+          "dsa_sigma": 0.02875817006560046,
+          "dsa_crop": [
+            1114,
+            1419
+          ],
+          "dsa_prom": 1.1667013538155868,
+          "chime_minus_dsa": 0.03313775798937968,
+          "tension_sigma": 1.135259332748625
+        },
+        "14ms": {
+          "chime_dm": 696.5181035000368,
+          "chime_sigma": 0.005,
+          "chime_crop": [
+            13325,
+            18794
+          ],
+          "chime_prom": 9.778801340815752,
+          "dsa_dm": 696.4731716143732,
+          "dsa_sigma": 0.042804192413944946,
+          "dsa_crop": [
+            1053,
+            1480
+          ],
+          "dsa_prom": 1.1407078404496116,
+          "chime_minus_dsa": 0.04493188566357276,
+          "tension_sigma": 1.0426185261401908
+        },
+        "20ms": {
+          "chime_dm": 696.5177934129379,
+          "chime_sigma": 0.005,
+          "chime_crop": [
+            12153,
+            19965
+          ],
+          "chime_prom": 4.670067257542959,
+          "dsa_dm": 696.4754572448498,
+          "dsa_sigma": 0.053897030190303286,
+          "dsa_crop": [
+            961,
+            1571
+          ],
+          "dsa_prom": 1.1616474214398858,
+          "chime_minus_dsa": 0.04233616808801344,
+          "tension_sigma": 0.7821425252099621
+        },
+        "30ms": {
+          "chime_dm": 696.5180007154246,
+          "chime_sigma": 0.005,
+          "chime_crop": [
+            10200,
+            21919
+          ],
+          "chime_prom": 5.287529777297291,
+          "dsa_dm": 696.4655035884653,
+          "dsa_sigma": 0.06845434850353108,
+          "dsa_crop": [
+            808,
+            1724
+          ],
+          "dsa_prom": 1.1726838694270565,
+          "chime_minus_dsa": 0.05249712695933795,
+          "tension_sigma": 0.7648549542497814
+        }
+      }
+    },
+    "mahi": {
+      "fwhm_xm_ms": 24.286026730538882,
+      "windows": {
+        "6ms": {
+          "chime_dm": 960.1322585556701,
+          "chime_sigma": 0.005,
+          "chime_crop": [
+            14611,
+            16955
+          ],
+          "chime_prom": 19.338997966649767,
+          "dsa_dm": 960.1612560766146,
+          "dsa_sigma": 0.043610228620604374,
+          "dsa_crop": [
+            1168,
+            1351
+          ],
+          "dsa_prom": 1.157443158320255,
+          "chime_minus_dsa": -0.028997520944471944,
+          "tension_sigma": 0.6605971370612607
+        },
+        "8ms": {
+          "chime_dm": 960.1323248965401,
+          "chime_sigma": 0.005,
+          "chime_crop": [
+            14221,
+            17346
+          ],
+          "chime_prom": 19.872533033902016,
+          "dsa_dm": 960.1195817676712,
+          "dsa_sigma": 0.057667681534731445,
+          "dsa_crop": [
+            1137,
+            1381
+          ],
+          "dsa_prom": 1.168880034591609,
+          "chime_minus_dsa": 0.012743128868919484,
+          "tension_sigma": 0.22014928461870303
+        },
+        "10ms": {
+          "chime_dm": 960.131716480161,
+          "chime_sigma": 0.005,
+          "chime_crop": [
+            13830,
+            17736
+          ],
+          "chime_prom": 23.533721152035117,
+          "dsa_dm": 960.1052932534416,
+          "dsa_sigma": 0.11352897381385975,
+          "dsa_crop": [
+            1107,
+            1412
+          ],
+          "dsa_prom": 1.1569214396794827,
+          "chime_minus_dsa": 0.026423226719430204,
+          "tension_sigma": 0.23251895050698293
+        },
+        "14ms": {
+          "chime_dm": 960.1316734283538,
+          "chime_sigma": 0.005,
+          "chime_crop": [
+            13049,
+            18518
+          ],
+          "chime_prom": 6.535911855454621,
+          "dsa_dm": 960.1165247506119,
+          "dsa_sigma": 0.0598164491470683,
+          "dsa_crop": [
+            1046,
+            1473
+          ],
+          "dsa_prom": 1.168635045377607,
+          "chime_minus_dsa": 0.015148677741876782,
+          "tension_sigma": 0.25237256314668416
+        },
+        "20ms": {
+          "chime_dm": 960.1310076755493,
+          "chime_sigma": 0.005,
+          "chime_crop": [
+            11877,
+            19689
+          ],
+          "chime_prom": 7.467174345247906,
+          "dsa_dm": 960.0856581503433,
+          "dsa_sigma": 0.06880530350407937,
+          "dsa_crop": [
+            954,
+            1564
+          ],
+          "dsa_prom": 1.1805678879443782,
+          "chime_minus_dsa": 0.04534952520600655,
+          "tension_sigma": 0.6573658592160692
+        },
+        "30ms": {
+          "chime_dm": 960.1316106505848,
+          "chime_sigma": 0.005,
+          "chime_crop": [
+            9924,
+            21643
+          ],
+          "chime_prom": 6.082350719955858,
+          "dsa_dm": 960.0858345474597,
+          "dsa_sigma": 0.06974542677383554,
+          "dsa_crop": [
+            801,
+            1717
+          ],
+          "dsa_prom": 1.053583881972379,
+          "chime_minus_dsa": 0.04577610312503566,
+          "tension_sigma": 0.6546511636603494
+        }
+      }
+    },
+    "oran": {
+      "fwhm_xm_ms": 74.20172254439144,
+      "windows": {
+        "6ms": {
+          "chime_dm": 397.01519613748786,
+          "chime_sigma": 0.005,
+          "chime_crop": [
+            14469,
+            16813
+          ],
+          "chime_prom": 14.61472415566724,
+          "dsa_dm": 396.9273826589804,
+          "dsa_sigma": 0.04624627379089638,
+          "dsa_crop": [
+            1159,
+            1342
+          ],
+          "dsa_prom": 1.1822912726316115,
+          "chime_minus_dsa": 0.08781347850748489,
+          "tension_sigma": 1.8878212400615972
+        },
+        "8ms": {
+          "chime_dm": 397.01477221599754,
+          "chime_sigma": 0.005,
+          "chime_crop": [
+            14079,
+            17204
+          ],
+          "chime_prom": 17.412885491108554,
+          "dsa_dm": 396.90624171425316,
+          "dsa_sigma": 0.050209808838598234,
+          "dsa_crop": [
+            1128,
+            1372
+          ],
+          "dsa_prom": 1.0444138714479638,
+          "chime_minus_dsa": 0.10853050174438295,
+          "tension_sigma": 2.1509013251137725
+        },
+        "10ms": {
+          "chime_dm": 397.0152890410933,
+          "chime_sigma": 0.005,
+          "chime_crop": [
+            13688,
+            17594
+          ],
+          "chime_prom": 8.21980847767845,
+          "dsa_dm": 396.9066610639811,
+          "dsa_sigma": 0.0564498861300499,
+          "dsa_crop": [
+            1098,
+            1403
+          ],
+          "dsa_prom": 1.153003834590036,
+          "chime_minus_dsa": 0.10862797711217809,
+          "tension_sigma": 1.916821480990042
+        },
+        "14ms": {
+          "chime_dm": 397.01515221796654,
+          "chime_sigma": 0.005,
+          "chime_crop": [
+            12907,
+            18376
+          ],
+          "chime_prom": 7.522288702713833,
+          "dsa_dm": 396.9214098789215,
+          "dsa_sigma": 0.06428585417983082,
+          "dsa_crop": [
+            1037,
+            1464
+          ],
+          "dsa_prom": 1.1894284847607741,
+          "chime_minus_dsa": 0.09374233904503626,
+          "tension_sigma": 1.4538202813899819
+        },
+        "20ms": {
+          "chime_dm": 397.01474131566505,
+          "chime_sigma": 0.005,
+          "chime_crop": [
+            11735,
+            19547
+          ],
+          "chime_prom": 9.199284028244236,
+          "dsa_dm": 396.9242544951155,
+          "dsa_sigma": 0.05312306876294579,
+          "dsa_crop": [
+            945,
+            1555
+          ],
+          "dsa_prom": 1.1716367543991122,
+          "chime_minus_dsa": 0.09048682054952906,
+          "tension_sigma": 1.6958482421808845
+        },
+        "30ms": {
+          "chime_dm": 397.0155353225763,
+          "chime_sigma": 0.005,
+          "chime_crop": [
+            9782,
+            21501
+          ],
+          "chime_prom": 8.276672477283341,
+          "dsa_dm": 396.9410459579971,
+          "dsa_sigma": 0.08250554694876736,
+          "dsa_crop": [
+            792,
+            1708
+          ],
+          "dsa_prom": 1.219186928686173,
+          "chime_minus_dsa": 0.07448936457916489,
+          "tension_sigma": 0.9011873516403922
+        }
+      }
+    },
+    "phineas": {
+      "fwhm_xm_ms": 2.988627467948008,
+      "windows": {
+        "6ms": {
+          "chime_dm": 610.2887180228672,
+          "chime_sigma": 0.010836282607014127,
+          "chime_crop": [
+            15288,
+            17632
+          ],
+          "chime_prom": 16.780704459616445,
+          "dsa_dm": 610.2372192647599,
+          "dsa_sigma": 0.007869572805916719,
+          "dsa_crop": [
+            1164,
+            1347
+          ],
+          "dsa_prom": 1.1637640090233674,
+          "chime_minus_dsa": 0.05149875810730009,
+          "tension_sigma": 3.8453845196337944
+        },
+        "8ms": {
+          "chime_dm": 610.2893770238483,
+          "chime_sigma": 0.005,
+          "chime_crop": [
+            14898,
+            18023
+          ],
+          "chime_prom": 13.832881608795475,
+          "dsa_dm": 610.2361565569905,
+          "dsa_sigma": 0.01203465334070412,
+          "dsa_crop": [
+            1133,
+            1377
+          ],
+          "dsa_prom": 1.1431514354882821,
+          "chime_minus_dsa": 0.05322046685773785,
+          "tension_sigma": 4.083831281370223
+        },
+        "10ms": {
+          "chime_dm": 610.2892647460304,
+          "chime_sigma": 0.005,
+          "chime_crop": [
+            14507,
+            18413
+          ],
+          "chime_prom": 11.877747701139088,
+          "dsa_dm": 610.236939078775,
+          "dsa_sigma": 0.030084015205728478,
+          "dsa_crop": [
+            1103,
+            1408
+          ],
+          "dsa_prom": 1.1526658321203715,
+          "chime_minus_dsa": 0.052325667255445296,
+          "tension_sigma": 1.7157819722090197
+        },
+        "14ms": {
+          "chime_dm": 610.2890534739693,
+          "chime_sigma": 0.00762097105898527,
+          "chime_crop": [
+            13726,
+            19195
+          ],
+          "chime_prom": 9.559585443208304,
+          "dsa_dm": 610.235255548547,
+          "dsa_sigma": 0.013620524707737093,
+          "dsa_crop": [
+            1042,
+            1469
+          ],
+          "dsa_prom": 1.1667776033414614,
+          "chime_minus_dsa": 0.05379792542225914,
+          "tension_sigma": 3.4469006395068584
+        },
+        "20ms": {
+          "chime_dm": 610.2886322702069,
+          "chime_sigma": 0.0054945464092676696,
+          "chime_crop": [
+            12554,
+            20366
+          ],
+          "chime_prom": 11.234842323424717,
+          "dsa_dm": 610.2348462946981,
+          "dsa_sigma": 0.010126104434196061,
+          "dsa_crop": [
+            950,
+            1560
+          ],
+          "dsa_prom": 1.1572170245371451,
+          "chime_minus_dsa": 0.053785975508844786,
+          "tension_sigma": 4.668611370985388
+        },
+        "30ms": {
+          "chime_dm": 610.2890695404659,
+          "chime_sigma": 0.005,
+          "chime_crop": [
+            10601,
+            22320
+          ],
+          "chime_prom": 8.675065234349946,
+          "dsa_dm": 610.2325428563926,
+          "dsa_sigma": 0.007096160907139595,
+          "dsa_crop": [
+            797,
+            1713
+          ],
+          "dsa_prom": 1.1465670772111023,
+          "chime_minus_dsa": 0.056526684073332945,
+          "tension_sigma": 6.511724726720595
+        }
+      }
+    },
+    "whitney": {
+      "fwhm_xm_ms": 0.4865476390232406,
+      "windows": {
+        "6ms": {
+          "chime_dm": 462.18891251205594,
+          "chime_sigma": 0.005,
+          "chime_crop": [
+            14839,
+            17183
+          ],
+          "chime_prom": 21.470109745117718,
+          "dsa_dm": 462.1901172653772,
+          "dsa_sigma": 0.022509187764144928,
+          "dsa_crop": [
+            1168,
+            1351
+          ],
+          "dsa_prom": 1.1597518099167732,
+          "chime_minus_dsa": -0.0012047533212466988,
+          "tension_sigma": 0.05224920603940239
+        },
+        "8ms": {
+          "chime_dm": 462.18939079054064,
+          "chime_sigma": 0.005,
+          "chime_crop": [
+            14449,
+            17574
+          ],
+          "chime_prom": 15.959985500015282,
+          "dsa_dm": 462.1875863923017,
+          "dsa_sigma": 0.018976627398878884,
+          "dsa_crop": [
+            1137,
+            1381
+          ],
+          "dsa_prom": 1.1592334001814184,
+          "chime_minus_dsa": 0.0018043982389599478,
+          "tension_sigma": 0.09194723004431622
+        },
+        "10ms": {
+          "chime_dm": 462.1890538998609,
+          "chime_sigma": 0.005,
+          "chime_crop": [
+            14058,
+            17964
+          ],
+          "chime_prom": 14.151251332791777,
+          "dsa_dm": 462.184370935542,
+          "dsa_sigma": 0.01643357421871709,
+          "dsa_crop": [
+            1107,
+            1412
+          ],
+          "dsa_prom": 1.141399141767471,
+          "chime_minus_dsa": 0.004682964318874383,
+          "tension_sigma": 0.272623909696997
+        },
+        "14ms": {
+          "chime_dm": 462.1894356865523,
+          "chime_sigma": 0.005,
+          "chime_crop": [
+            13277,
+            18746
+          ],
+          "chime_prom": 17.92711014883654,
+          "dsa_dm": 462.18994899687726,
+          "dsa_sigma": 0.020598997569203293,
+          "dsa_crop": [
+            1046,
+            1473
+          ],
+          "dsa_prom": 1.1688421125340784,
+          "chime_minus_dsa": -0.0005133103249477244,
+          "tension_sigma": 0.024216019222147712
+        },
+        "20ms": {
+          "chime_dm": 462.18653460632663,
+          "chime_sigma": 0.005,
+          "chime_crop": [
+            12105,
+            19917
+          ],
+          "chime_prom": 7.356447482215626,
+          "dsa_dm": 462.19258521702636,
+          "dsa_sigma": 0.014623684075585628,
+          "dsa_crop": [
+            954,
+            1564
+          ],
+          "dsa_prom": 1.1456889356448008,
+          "chime_minus_dsa": -0.006050610699730896,
+          "tension_sigma": 0.3915025962019886
+        },
+        "30ms": {
+          "chime_dm": 462.1887733346075,
+          "chime_sigma": 0.005,
+          "chime_crop": [
+            10152,
+            21871
+          ],
+          "chime_prom": 10.7532480036843,
+          "dsa_dm": 462.1928057938939,
+          "dsa_sigma": 0.029312625094851896,
+          "dsa_crop": [
+            801,
+            1717
+          ],
+          "dsa_prom": 1.1639561530378695,
+          "chime_minus_dsa": -0.00403245928640672,
+          "tension_sigma": 0.13560864326526825
+        }
+      }
+    },
+    "wilhelm": {
+      "fwhm_xm_ms": 0.388705087251503,
+      "windows": {
+        "6ms": {
+          "chime_dm": 602.3819953607677,
+          "chime_sigma": 0.005,
+          "chime_crop": [
+            14868,
+            17212
+          ],
+          "chime_prom": 3.5219900868785294,
+          "dsa_dm": 602.380430790791,
+          "dsa_sigma": 0.011557612543811038,
+          "dsa_crop": [
+            1162,
+            1345
+          ],
+          "dsa_prom": 1.174833879461147,
+          "chime_minus_dsa": 0.0015645699767219412,
+          "tension_sigma": 0.12424329646334377
+        },
+        "8ms": {
+          "chime_dm": 602.3821277981874,
+          "chime_sigma": 0.005,
+          "chime_crop": [
+            14478,
+            17603
+          ],
+          "chime_prom": 4.15283134689491,
+          "dsa_dm": 602.383364172544,
+          "dsa_sigma": 0.011691875453212472,
+          "dsa_crop": [
+            1131,
+            1375
+          ],
+          "dsa_prom": 1.1483570210569563,
+          "chime_minus_dsa": -0.001236374356608394,
+          "tension_sigma": 0.09722882645844845
+        },
+        "10ms": {
+          "chime_dm": 602.3839023106009,
+          "chime_sigma": 0.005,
+          "chime_crop": [
+            14087,
+            17993
+          ],
+          "chime_prom": 4.957705961248388,
+          "dsa_dm": 602.3793333149592,
+          "dsa_sigma": 0.012191892774367627,
+          "dsa_crop": [
+            1101,
+            1406
+          ],
+          "dsa_prom": 1.1519738719018486,
+          "chime_minus_dsa": 0.004568995641648144,
+          "tension_sigma": 0.3467312954368216
+        },
+        "14ms": {
+          "chime_dm": 602.3770784599552,
+          "chime_sigma": 0.005551401958442856,
+          "chime_crop": [
+            13306,
+            18775
+          ],
+          "chime_prom": 5.374443728688765,
+          "dsa_dm": 602.382650322658,
+          "dsa_sigma": 0.010057735179128653,
+          "dsa_crop": [
+            1040,
+            1467
+          ],
+          "dsa_prom": 1.152910590658056,
+          "chime_minus_dsa": -0.0055718627028227274,
+          "tension_sigma": 0.48501230843449106
+        },
+        "20ms": {
+          "chime_dm": 602.3798418790047,
+          "chime_sigma": 0.014198278986319252,
+          "chime_crop": [
+            12134,
+            19946
+          ],
+          "chime_prom": 10.814783523675601,
+          "dsa_dm": 602.3797616938657,
+          "dsa_sigma": 0.012528430037376739,
+          "dsa_crop": [
+            948,
+            1558
+          ],
+          "dsa_prom": 1.1509162319101343,
+          "chime_minus_dsa": 8.018513904062274e-05,
+          "tension_sigma": 0.004234648788788337
+        },
+        "30ms": {
+          "chime_dm": 602.377821287377,
+          "chime_sigma": 0.006046706637459363,
+          "chime_crop": [
+            10181,
+            21900
+          ],
+          "chime_prom": 5.804687350681424,
+          "dsa_dm": 602.3791915884563,
+          "dsa_sigma": 0.012800007932188728,
+          "dsa_crop": [
+            795,
+            1711
+          ],
+          "dsa_prom": 1.1587299621529545,
+          "chime_minus_dsa": -0.0013703010793051362,
+          "tension_sigma": 0.09679747698832028
+        }
+      }
+    },
+    "zach": {
+      "fwhm_xm_ms": 0.9640310519211329,
+      "windows": {
+        "6ms": {
+          "chime_dm": 262.3629131512389,
+          "chime_sigma": 0.005,
+          "chime_crop": [
+            14829,
+            17173
+          ],
+          "chime_prom": 5.356171620431126,
+          "dsa_dm": 262.3429597274925,
+          "dsa_sigma": 0.029461670489708734,
+          "dsa_crop": [
+            1169,
+            1352
+          ],
+          "dsa_prom": 1.1536606394073499,
+          "chime_minus_dsa": 0.019953423746414956,
+          "tension_sigma": 0.66771959466932
+        },
+        "8ms": {
+          "chime_dm": 262.36251146205217,
+          "chime_sigma": 0.015115455639381334,
+          "chime_crop": [
+            14439,
+            17564
+          ],
+          "chime_prom": 3.778778564477127,
+          "dsa_dm": 262.3450769972894,
+          "dsa_sigma": 0.02724275345128965,
+          "dsa_crop": [
+            1138,
+            1382
+          ],
+          "dsa_prom": 1.1625546350963907,
+          "chime_minus_dsa": 0.017434464762743573,
+          "tension_sigma": 0.5596010161107383
+        },
+        "10ms": {
+          "chime_dm": 262.3638024793971,
+          "chime_sigma": 0.00595087449092376,
+          "chime_crop": [
+            14048,
+            17954
+          ],
+          "chime_prom": 3.054728795568662,
+          "dsa_dm": 262.35060662248105,
+          "dsa_sigma": 0.04622462080652137,
+          "dsa_crop": [
+            1108,
+            1413
+          ],
+          "dsa_prom": 1.143487220582126,
+          "chime_minus_dsa": 0.01319585691607017,
+          "tension_sigma": 0.2831358376481157
+        },
+        "14ms": {
+          "chime_dm": 262.3626981709251,
+          "chime_sigma": 0.00950136391374517,
+          "chime_crop": [
+            13267,
+            18736
+          ],
+          "chime_prom": 2.0616157396103043,
+          "dsa_dm": 262.3313218222953,
+          "dsa_sigma": 0.029332825214515863,
+          "dsa_crop": [
+            1047,
+            1474
+          ],
+          "dsa_prom": 1.1438740651790673,
+          "chime_minus_dsa": 0.03137634862980576,
+          "tension_sigma": 1.0176133905123887
+        },
+        "20ms": {
+          "chime_dm": 262.3633924216912,
+          "chime_sigma": 0.0113148557265193,
+          "chime_crop": [
+            12095,
+            19907
+          ],
+          "chime_prom": 1.6559279401980687,
+          "dsa_dm": 262.3285450699224,
+          "dsa_sigma": 0.03323234664897699,
+          "dsa_crop": [
+            955,
+            1565
+          ],
+          "dsa_prom": 1.1395587285002884,
+          "chime_minus_dsa": 0.03484735176874665,
+          "tension_sigma": 0.992638973377142
+        },
+        "30ms": {
+          "chime_dm": 262.3616645520597,
+          "chime_sigma": 0.010371823379894859,
+          "chime_crop": [
+            10142,
+            21861
+          ],
+          "chime_prom": 2.154767788833296,
+          "dsa_dm": 262.3163965344099,
+          "dsa_sigma": 0.029296631034990864,
+          "dsa_crop": [
+            802,
+            1718
+          ],
+          "dsa_prom": 1.1526012058769108,
+          "chime_minus_dsa": 0.045268017649846115,
+          "tension_sigma": 1.4565746347233954
+        }
+      }
+    }
+  },
+  "tension_direction_tally": {
+    "increase_at_tight": [
+      "casey",
+      "freya",
+      "hamilton",
+      "isha",
+      "johndoeII",
+      "oran"
+    ],
+    "decrease_at_tight": [
+      "chromatica",
+      "mahi",
+      "phineas",
+      "whitney",
+      "zach"
+    ],
+    "flat": [
+      "wilhelm"
+    ],
+    "note": "6 increase / 5 decrease / 1 flat -- NO directional majority. Most changes are small in absolute sigma."
+  }
+}

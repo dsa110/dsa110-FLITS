@@ -1,0 +1,102 @@
+{
+  "burst": "chromatica (FRB 20240203A)",
+  "conventions": {
+    "production": "CHIME ToA held at its 400-MHz provenance (product_dm=272.6382); DSA re-referred to 400 MHz at trial DM. d(offset)/dDM = -24.16 ms/(pc cm^-3).",
+    "shared_dm": "Both bands re-referred to 400 MHz at a single common trial DM. d(offset)/dDM = -9.74 ms/(pc cm^-3) (manuscript ~-9.4)."
+  },
+  "K_DM": 4148.808,
+  "band_centers_mhz": {
+    "chime": 600.39,
+    "dsa_native": 1530.0,
+    "reference": 400.0
+  },
+  "dm_phase_curves": {
+    "chime": {
+      "dm_peak": 272.6383393740947,
+      "score_peak": 821704649369.2601,
+      "dm_min": 272.58433937409444,
+      "dm_max": 272.7443393740952,
+      "n": 81,
+      "dm_fit": 272.6386987543787,
+      "sigma": 0.011918379848735847
+    },
+    "dsa": {
+      "dm_peak": 272.5618114728687,
+      "score_peak": 6728313268947.128,
+      "dm_min": 272.4978114728684,
+      "dm_max": 272.81781147286995,
+      "n": 161,
+      "dm_fit": 272.5614158929278,
+      "sigma": 0.0861742562298377
+    },
+    "joint": {
+      "dm": 272.6372482012704,
+      "sigma": 0.011805999590898808,
+      "chime_minus_dsa": 0.07728286145089669,
+      "tension_sigma": 0.8883644916243564,
+      "joint_q": 0.7891914699790012
+    }
+  },
+  "geometric_target_ms": -2.2845418854298165,
+  "measured_offset_ms": -4.971029965261664,
+  "slopes_ms_per_dm": {
+    "production": -24.157736787133153,
+    "shared": -9.737186241745302,
+    "d_chime400_dDM": 14.42055054538785,
+    "d_dsa400_dDM": 24.157736787133153
+  },
+  "dm_align": {
+    "production": {
+      "dm": 272.55279388398407,
+      "nearest_curve": "DSA",
+      "delta_vs_DSA": -0.008622008943746096,
+      "nsigma_vs_DSA": 0.10005318665878707,
+      "delta_vs_CHIME": -0.08590487039464278,
+      "nsigma_vs_CHIME": 7.20776409922482,
+      "delta_vs_joint": -0.08445431728631547,
+      "nsigma_vs_joint": 7.1535084035934515
+    },
+    "shared": {
+      "dm": 272.4263093762274,
+      "delta_vs_DSA": -0.13510651670043217,
+      "nsigma_vs_DSA": 1.567829217348693,
+      "delta_vs_CHIME": -0.21238937815132886,
+      "nsigma_vs_CHIME": 17.82032296729127
+    }
+  },
+  "residuals_at_measured_dm": {
+    "CHIME_curve": {
+      "dm": 272.6386987543787,
+      "sigma": 0.011918379848735847,
+      "offset_prod": -4.359809137710613,
+      "resid_prod": -2.0752672522807964,
+      "offset_shared": -4.352616820568755,
+      "resid_shared": -2.068074935138939
+    },
+    "DSA_curve": {
+      "dm": 272.5614158929278,
+      "sigma": 0.0861742562298377,
+      "offset_prod": -2.4928301055382462,
+      "resid_prod": -0.20828822010842973,
+      "offset_shared": -3.6000992043483393,
+      "resid_shared": -1.3155573189185228
+    },
+    "joint": {
+      "dm": 272.6372482012704,
+      "sigma": 0.011805999590898808,
+      "offset_prod": -4.324767053276446,
+      "resid_prod": -2.0402251678466294,
+      "offset_shared": -4.338492512445669,
+      "resid_shared": -2.053950627015852
+    },
+    "catalog": {
+      "dm": 272.664,
+      "sigma": 0.1,
+      "offset_prod": -4.971029965261664,
+      "resid_prod": -2.6864880798318476,
+      "offset_shared": -4.598979757020061,
+      "resid_shared": -2.3144378715902443
+    }
+  },
+  "verdict": "In the production convention the ToA-aligning DM = 272.5528 pc/cm^-3 lands on the DSA DM-phase optimum (0.10 sigma) and is 7.2 sigma below the CHIME/joint optimum. The observed CHIME-DSA offset (-4.97 ms) vs geometric (-2.28 ms) discrepancy is therefore explained by the CHIME-DSA DM difference (+0.0773 pc/cm^-3): adopting the lower DSA DM reduces the ToA residual to 0.21 ms (well within the 2.4 ms combined error). The offset does NOT require a DM outside the measured band; it is consistent with DSA-DM adoption for the geometric reference, while the manuscript's chime_primary catalog adoption leaves a ~2.0 ms (0.85x combined-error) residual."
+}

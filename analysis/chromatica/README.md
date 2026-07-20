@@ -11,7 +11,7 @@ co-detection pipeline, sorted by observable / technique.
 
 ```
 chromatica/
-  chromatica_e2e_status.md      # running status report + end-to-end verdict (start here)
+  chromatica_status.md      # running status report + end-to-end verdict (start here)
   stage0_frozen_inputs.json     # frozen canonical baselines
   dm-phase/                     # DM-phase <-> geometric ToA alignment
     chromatica_stage1_dm_toa.{json,png}

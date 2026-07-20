@@ -21,3 +21,7 @@ Welcome to the **FLITS** (Fitting Likelihoods In Time-Frequency Spectra) documen
 ## 👩‍💻 Development
 
 - See [Architecture Inventory](architecture/inventory.md) for the status of current components.
+
+## RSE / skill plans
+
+Orphan `docs/superpowers/` skill dumps were removed (2026-07-19). Thin FLITS workflow residue: [`docs/rse/`](rse/README.md). Manuscript execution authority is the Faber2026 parent `docs/rse/`.

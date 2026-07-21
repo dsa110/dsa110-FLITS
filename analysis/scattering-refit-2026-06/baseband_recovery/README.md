@@ -273,7 +273,10 @@ scratch run dir. The four `<name>_chime.npz` were produced by `npy_to_npz.py` fr
 
 ### Raw baseband (input) — h17 staged copies
 
-All at `/data/research/astrophysics/frbs/chime-dsa-codetections/chime_singlebeam/`.
+At production time these were staged under
+`/data/research/astrophysics/frbs/chime-dsa-codetections/chime_singlebeam/`.
+On 2026-07-21 the byte-identical files moved to
+`/data/Faber2026/data/chime-frb/<target>/`; the table below records the original run provenance.
 Source: CADC arc `arc:projects/chime_frb/data/chime/baseband/processed/<date>/astro_<id>/singlebeam_<id>.h5`.
 
 | target  | CHIME id  | DM (pc cm⁻³) | size | h5 sha256 (prefix) |
@@ -337,7 +340,7 @@ Do **not** pull the gigabyte `.h5` baseband files — they stay on h17 (staged c
 1. Ensure h17 has the docker image: `docker pull chimefrb/baseband-analysis:latest`.
 2. Stage the worker: `scp upchannelize_chime.py h17:/data/jfaber/`.
 3. Verify the 5 singlebeam `.h5` are staged under
-   `/data/research/astrophysics/frbs/chime-dsa-codetections/chime_singlebeam/` (or let the script
+   `/data/Faber2026/data/chime-frb/<target>/` (or let the script
    `vcp` them from arc — requires `~/.ssl/cadcproxy.pem`).
 4. Run the commands in "Exact run commands" above.
 5. Verify each output: `n_fine ≥ 1024`, `df = 0.390625/U MHz`, `finite_frac > 0.3` (the script's

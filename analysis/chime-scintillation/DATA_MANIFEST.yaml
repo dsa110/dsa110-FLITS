@@ -6,7 +6,7 @@ storage_roots:
     location: ${FABER2026_DATA_ROOT}/dsa110/upchan_codetections/crossacf-2026-07-14
   h17_raw:
     kind: ssh_external
-    location: ssh://h17/data/research/astrophysics/frbs/chime-dsa-codetections/chime_singlebeam
+    location: ssh://h17/data/Faber2026/data/chime-frb
   h17_producer:
     kind: ssh_external
     location: ssh://h17/data/jfaber
@@ -16,7 +16,7 @@ storage_roots:
 assets:
   - id: freya-raw-singlebeam-h5
     root: h17_raw
-    relative_path: singlebeam_278720455.h5
+    relative_path: freya/singlebeam_278720455.h5
     sha256: 676a9033c10926c213603939bee78c44d6d1a011c01e4279b41bccc97127df52
     used_by: [b3-highband-crossacf, b4-fourstream-crossacf]
   - id: crossacf-producer

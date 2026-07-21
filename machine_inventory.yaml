@@ -570,22 +570,33 @@ machines:
         path: /data/jfaber/chime_singlebeam
         kind: data
         size_human: 0
-        notes: absent 2026-06-26; stub removed; real baseband under compute workspace chime_singlebeam/
+        notes: absent 2026-06-26; stub removed; current baseband inputs are under /data/Faber2026/data/chime-frb/
+      - id: faber2026_source_inputs
+        path: /data/Faber2026/data
+        kind: source_data
+        migration_action: keep
+        migration_target: h17
+        size_human: 19G
+        file_count: 24
+        notes: scoped live update 2026-07-21; same-filesystem rename verified by size, SHA-256, device, inode, and modification time
+        children:
+          - path: /data/Faber2026/data/chime-frb
+            size_human: 13.33GiB
+            file_count: 12
+          - path: /data/Faber2026/data/dsa-110
+            size_human: 5.63GiB
+            file_count: 12
       - id: chime_dsa_codetections_research
         path: /data/research/astrophysics/frbs/chime-dsa-codetections
         kind: working_tree
         migration_action: keep
         migration_target: h17
-        size_human: 65G
-        file_count: 2275
-        notes: canonical h17 workspace; /data/jfaber/ cleared of codetect products 2026-06-27
+        size_human: null
+        file_count: null
+        notes: h17 compute and derived-product workspace; prior 65G/2275-file measurement invalidated when 24 canonical source inputs relocated to /data/Faber2026/data on 2026-07-21; full workspace size not remeasured
         children:
-          - path: /data/research/astrophysics/frbs/chime-dsa-codetections/chime_singlebeam
-            size_human: 14G
           - path: /data/research/astrophysics/frbs/chime-dsa-codetections/numpy
             size_human: 8.4G
-          - path: /data/research/astrophysics/frbs/chime-dsa-codetections/dsa_filterbanks
-            size_human: 6.6G
           - path: /data/research/astrophysics/frbs/chime-dsa-codetections/diagnostics
             size_human: 25M
           - path: /data/research/astrophysics/frbs/chime-dsa-codetections/baseband-analysis-canfar-src

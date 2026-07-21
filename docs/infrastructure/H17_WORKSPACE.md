@@ -1,8 +1,9 @@
 # h17 compute workspace
 
 **Host:** `h17` (`lxd110h17`)  
-**Root:** `/data/research/astrophysics/frbs/chime-dsa-codetections`  
-**Role:** CHIME/DSA co-detection **compute + artifact cache**. Not a third source of truth.
+**Compute root:** `/data/research/astrophysics/frbs/chime-dsa-codetections`  
+**Source-input root:** `/data/Faber2026/data`  
+**Role:** CHIME/DSA co-detection **compute + artifact cache** plus the canonical h17 source-input layout. Not the project data authority.
 
 Canonical code lives in GitHub (`jakobtfaber/dsa110-FLITS`, developed on `jakob-mbp`). The manuscript pin is `jakobtfaber/Faber2026` → submodule `pipeline/` → this fork. Data authority is **Google Drive** (`gdrive-jakob:Research/CHIME_DSA_Codetections`, verified drained 2026-07-13); the iacobus staging tree is quarantined move-only at `iacobus:~/Research/_quarantine/CHIME_DSA_Codetections-drained-20260713/` (see [`DATA_LOCATIONS.md`](../../DATA_LOCATIONS.md)).
 
@@ -15,8 +16,8 @@ Canonical code lives in GitHub (`jakobtfaber/dsa110-FLITS`, developed on `jakob-
 | `scripts/` | local only | Historical workers; prefer `dsa110-FLITS/scripts/h17_codetections/` |
 | `bin/` | local only | Docker wrappers + CANFAR download helpers |
 | `metadata/` | local only | Burst fixture used by download/upchan jobs |
-| `chime_singlebeam/` | **data** | 12× CHIME singlebeam `.h5` (~14G) |
-| `dsa_filterbanks/` | **data** | DSA SIGPROC `.fil` inputs |
+| `/data/Faber2026/data/chime-frb/<project-id>/` | **source data** | 12 CHIME/FRB singlebeam `.h5` (~14G) |
+| `/data/Faber2026/data/dsa-110/<project-id>/` | **source data** | 12 DSA-110 SIGPROC `.fil` inputs (~6G) |
 | `upchan_codetections/` | **product** | Upchannelized CHIME spectra (current) |
 | `results/`, `diagnostics/` | **product** | Small JSON/PNG/CSV — promote into FLITS when citable |
 | `manifest_cubes/`, `numpy/` | **product** | Large intermediates — stay here / stage to iacobus |
@@ -52,7 +53,7 @@ Checksum large products and list them in manifests (`codetections_manifest.yaml`
 
 Workers default to absolute h17 roots:
 
-- `LOCAL_H5_DIR=/data/research/astrophysics/frbs/chime-dsa-codetections/chime_singlebeam`
+- `LOCAL_H5_DIR=/data/Faber2026/data/chime-frb` (workers append `<project-id>/<filename>`)
 - `DEFAULT_OUT_DIR=.../upchan_codetections`
 
 Burst catalog / VOS URIs: workspace `metadata/notebook_reproduction_fixture.json` (mirrors FLITS `crossmatching/notebook_reproduction_fixture.json`). Prefer the FLITS copy when editing; sync to h17 `metadata/` for download scripts that still read the local path.

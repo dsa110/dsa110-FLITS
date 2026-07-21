@@ -1,0 +1,1140 @@
+{
+  "catalog": "gsc242",
+  "queries": [
+    {
+      "key": "zach|halo|195373100910393540",
+      "query_status": "ok",
+      "response_sha256": "3e3ac465807b4998d36030a9771adf4aeae7a35ae7c2bb110ae0c73dab5e31d7",
+      "rows": [
+        {
+          "Class": 4,
+          "GSC2": "N1IB037588",
+          "catalog_id": "N1IB037588",
+          "match_dec_deg": 72.810438,
+          "match_ra_deg": 310.0920431,
+          "objID": 1013220337588,
+          "separation_arcsec": 0.8044712338190156
+        }
+      ],
+      "target_dec_deg": 72.81041703,
+      "target_ra_deg": 310.0912903
+    },
+    {
+      "key": "whitney|halo|1472",
+      "query_status": "ok",
+      "response_sha256": "88e463b01e4b7d0487a2cab2a6282915752284622c9649268b7d2ea346f303c4",
+      "rows": [
+        {
+          "Class": 3,
+          "GSC2": "N7UO023653",
+          "catalog_id": "N7UO023653",
+          "match_dec_deg": 73.49105304,
+          "match_ra_deg": 134.73566257,
+          "objID": 1213300023653,
+          "separation_arcsec": 0.11375075783997214
+        }
+      ],
+      "target_dec_deg": 73.49103487,
+      "target_ra_deg": 134.7355716
+    },
+    {
+      "key": "whitney|halo|1473",
+      "query_status": "ok",
+      "response_sha256": "9db5349fbdafed5c7fa48bb5d2a144ff3164ab4ceafebc19f8a3db76a0a1673d",
+      "rows": [],
+      "target_dec_deg": 73.4908099,
+      "target_ra_deg": 134.7395241
+    },
+    {
+      "key": "whitney|halo|1582",
+      "query_status": "ok",
+      "response_sha256": "7bd30253af73deb1885e9512adf86446c76ab0a483946586e41eba435ec038ed",
+      "rows": [],
+      "target_dec_deg": 73.49765201,
+      "target_ra_deg": 134.7283841
+    },
+    {
+      "key": "whitney|halo|196191347354360083",
+      "query_status": "ok",
+      "response_sha256": "f8cf54e3edf1c85388c0d463eda5ea3c709e86105331830c2b38feecbdf01bf5",
+      "rows": [
+        {
+          "Class": 3,
+          "GSC2": "N7UO023653",
+          "catalog_id": "N7UO023653",
+          "match_dec_deg": 73.49105304,
+          "match_ra_deg": 134.73566257,
+          "objID": 1213300023653,
+          "separation_arcsec": 0.007612199769662467
+        }
+      ],
+      "target_dec_deg": 73.491054,
+      "target_ra_deg": 134.7356692
+    },
+    {
+      "key": "whitney|cluster|J085546.0+732230, 1160094",
+      "query_status": "ok",
+      "response_sha256": "d04ebf31a75bcac07ed296ba041a9c153acc831ee613573042bd4bd8c0a21c97",
+      "rows": [
+        {
+          "Class": 3,
+          "GSC2": "N7TS012164",
+          "catalog_id": "N7TS012164",
+          "match_dec_deg": 73.37493553,
+          "match_ra_deg": 133.94172281,
+          "objID": 1213220012164,
+          "separation_arcsec": 0.056724053371488045
+        },
+        {
+          "Class": 0,
+          "GSC2": "N7TS005319",
+          "catalog_id": "N7TS005319",
+          "match_dec_deg": 73.37495422363,
+          "match_ra_deg": 133.94218444824,
+          "objID": 121322005319,
+          "separation_arcsec": 0.5323431434011545
+        }
+      ],
+      "target_dec_deg": 73.37494,
+      "target_ra_deg": 133.94167
+    },
+    {
+      "key": "whitney|cluster|J085531.9+732432, 1159975",
+      "query_status": "ok",
+      "response_sha256": "518ef5644e9da934efb9516f1ad3fc784e4f0a8189d3ac06d5a590c71746ea32",
+      "rows": [
+        {
+          "Class": 3,
+          "GSC2": "N7TS009034",
+          "catalog_id": "N7TS009034",
+          "match_dec_deg": 73.40886574,
+          "match_ra_deg": 133.88272514,
+          "objID": 121322009034,
+          "separation_arcsec": 0.016220655767205557
+        },
+        {
+          "Class": 3,
+          "GSC2": "N7TS017369",
+          "catalog_id": "N7TS017369",
+          "match_dec_deg": 73.40893736,
+          "match_ra_deg": 133.88208439,
+          "objID": 1213220017369,
+          "separation_arcsec": 0.6969196081163254
+        },
+        {
+          "Class": 3,
+          "GSC2": "N7TS012441",
+          "catalog_id": "N7TS012441",
+          "match_dec_deg": 73.4089579,
+          "match_ra_deg": 133.88385997,
+          "objID": 1213220012441,
+          "separation_arcsec": 1.2137964571212796
+        }
+      ],
+      "target_dec_deg": 73.40887,
+      "target_ra_deg": 133.88272
+    },
+    {
+      "key": "whitney|cluster|J085808.2+731234, 1161367",
+      "query_status": "ok",
+      "response_sha256": "1079aa736f614303b7866902cfbbf0fd8c93e441c68cb575126d5925e2f7d3ef",
+      "rows": [
+        {
+          "Class": 3,
+          "GSC2": "N7UO006290",
+          "catalog_id": "N7UO006290",
+          "match_dec_deg": 73.20953495,
+          "match_ra_deg": 134.53416574,
+          "objID": 121330006290,
+          "separation_arcsec": 0.024196814673230295
+        },
+        {
+          "Class": 3,
+          "GSC2": "N7UO020865",
+          "catalog_id": "N7UO020865",
+          "match_dec_deg": 73.20952911,
+          "match_ra_deg": 134.53411938,
+          "objID": 1213300020865,
+          "separation_arcsec": 0.03200378626653822
+        }
+      ],
+      "target_dec_deg": 73.20953,
+      "target_ra_deg": 134.53415
+    },
+    {
+      "key": "oran|halo|195393180643665627",
+      "query_status": "ok",
+      "response_sha256": "4b165aaaffedbc734e0b7c9921a6291bf46661c5fff80712e4bffcff1ca0355f",
+      "rows": [
+        {
+          "Class": 4,
+          "GSC2": "N1G0052835",
+          "catalog_id": "N1G0052835",
+          "match_dec_deg": 72.8288933,
+          "match_ra_deg": 318.0652476,
+          "objID": 1013110052835,
+          "separation_arcsec": 1.026930387321511
+        }
+      ],
+      "target_dec_deg": 72.82904878,
+      "target_ra_deg": 318.0644375
+    },
+    {
+      "key": "wilhelm|halo|194453151328186646",
+      "query_status": "ok",
+      "response_sha256": "fae3511aa28d1aa1e59da16110b04a73c7e69fd6302015a52546e05ed9845248",
+      "rows": [
+        {
+          "Class": 3,
+          "GSC2": "N1J7038830",
+          "catalog_id": "N1J7038830",
+          "match_dec_deg": 72.04656504,
+          "match_ra_deg": 315.13291798,
+          "objID": 1013300338830,
+          "separation_arcsec": 0.033638334037637295
+        }
+      ],
+      "target_dec_deg": 72.04657361,
+      "target_ra_deg": 315.1329059
+    },
+    {
+      "key": "phineas|halo|832",
+      "query_status": "ok",
+      "response_sha256": "e8f6654fd4557067ba55ba19f03283ee5d1497b6e93a11af886b45ea671a963e",
+      "rows": [
+        {
+          "Class": 3,
+          "GSC2": "N77R002453",
+          "catalog_id": "N77R002453",
+          "match_dec_deg": 71.6848682,
+          "match_ra_deg": 177.76356877,
+          "objID": 121020132453,
+          "separation_arcsec": 0.015295470076492764
+        }
+      ],
+      "target_dec_deg": 71.68486398,
+      "target_ra_deg": 177.7635672
+    },
+    {
+      "key": "phineas|halo|953",
+      "query_status": "ok",
+      "response_sha256": "54dc1914b6cad48228251edf28fedd1f37d1620eaeb4ac25baf40b8162fa6bf4",
+      "rows": [
+        {
+          "Class": 3,
+          "GSC2": "N77R002501",
+          "catalog_id": "N77R002501",
+          "match_dec_deg": 71.6933698,
+          "match_ra_deg": 177.83137369,
+          "objID": 121020132501,
+          "separation_arcsec": 0.03253854764484442
+        },
+        {
+          "Class": 4,
+          "GSC2": "N77R041362",
+          "catalog_id": "N77R041362",
+          "match_dec_deg": 71.69286295404,
+          "match_ra_deg": 177.8314634647,
+          "objID": 1210201341362,
+          "separation_arcsec": 1.8237571258203993
+        }
+      ],
+      "target_dec_deg": 71.69336919,
+      "target_ra_deg": 177.8314024
+    },
+    {
+      "key": "phineas|halo|983",
+      "query_status": "ok",
+      "response_sha256": "5d00818592db8f4398c16af4752f940bab840a89a378475f060e2cb31099c334",
+      "rows": [
+        {
+          "Class": 3,
+          "GSC2": "N77R018963",
+          "catalog_id": "N77R018963",
+          "match_dec_deg": 71.69505217,
+          "match_ra_deg": 177.81629018,
+          "objID": 1210201318963,
+          "separation_arcsec": 0.15111536379756133
+        },
+        {
+          "Class": 3,
+          "GSC2": "N77R029696",
+          "catalog_id": "N77R029696",
+          "match_dec_deg": 71.69491101,
+          "match_ra_deg": 177.8164221,
+          "objID": 1210201329696,
+          "separation_arcsec": 0.3788106923917917
+        },
+        {
+          "Class": 3,
+          "GSC2": "N77R029842",
+          "catalog_id": "N77R029842",
+          "match_dec_deg": 71.69518813,
+          "match_ra_deg": 177.81559453,
+          "objID": 1210201329842,
+          "separation_arcsec": 1.0389974193197469
+        },
+        {
+          "Class": 4,
+          "GSC2": "N77R037377",
+          "catalog_id": "N77R037377",
+          "match_dec_deg": 71.695168,
+          "match_ra_deg": 177.8186362,
+          "objID": 1210201337377,
+          "separation_arcsec": 2.678025192010521
+        }
+      ],
+      "target_dec_deg": 71.69501131,
+      "target_ra_deg": 177.8163208
+    },
+    {
+      "key": "phineas|halo|986",
+      "query_status": "ok",
+      "response_sha256": "c8da0261c0bb9a8ccea646dbd0c05937dfb560294b23439d24b94f8b8ae4d834",
+      "rows": [
+        {
+          "Class": 3,
+          "GSC2": "N77R002535",
+          "catalog_id": "N77R002535",
+          "match_dec_deg": 71.69535559,
+          "match_ra_deg": 177.73099224,
+          "objID": 121020132535,
+          "separation_arcsec": 0.04943538237107985
+        }
+      ],
+      "target_dec_deg": 71.69534656,
+      "target_ra_deg": 177.7309593
+    },
+    {
+      "key": "phineas|halo|1072",
+      "query_status": "ok",
+      "response_sha256": "ef5f21cb6e907a6315b3c7b1e35965bfbaff8cabe370be7bcc90b325e656c446",
+      "rows": [
+        {
+          "Class": 3,
+          "GSC2": "N77R030545",
+          "catalog_id": "N77R030545",
+          "match_dec_deg": 71.70055353,
+          "match_ra_deg": 177.77033579,
+          "objID": 1210201330545,
+          "separation_arcsec": 0.2091870820347574
+        },
+        {
+          "Class": 3,
+          "GSC2": "N77R028742",
+          "catalog_id": "N77R028742",
+          "match_dec_deg": 71.70051374,
+          "match_ra_deg": 177.77069039,
+          "objID": 1210201328742,
+          "separation_arcsec": 0.27891746248975585
+        }
+      ],
+      "target_dec_deg": 71.70050655,
+      "target_ra_deg": 177.7704447
+    },
+    {
+      "key": "phineas|halo|1153",
+      "query_status": "ok",
+      "response_sha256": "a07166b6eb4ec0e8fa80515fd16366c44df96647aa5b69399618d60ee9d97b78",
+      "rows": [
+        {
+          "Class": 3,
+          "GSC2": "N77R002597",
+          "catalog_id": "N77R002597",
+          "match_dec_deg": 71.70558821,
+          "match_ra_deg": 177.77806686,
+          "objID": 121020132597,
+          "separation_arcsec": 0.020327514856280357
+        }
+      ],
+      "target_dec_deg": 71.70559219,
+      "target_ra_deg": 177.7780541
+    },
+    {
+      "key": "phineas|halo|1190",
+      "query_status": "ok",
+      "response_sha256": "9bd56662c0c7427142945269bce6e47d68ded344855447dd3dd0b62bd243d80c",
+      "rows": [
+        {
+          "Class": 0,
+          "GSC2": "N77R002619",
+          "catalog_id": "N77R002619",
+          "match_dec_deg": 71.70977540677,
+          "match_ra_deg": 177.78112162395,
+          "objID": 121020132619,
+          "separation_arcsec": 2.945115839345997e-05
+        }
+      ],
+      "target_dec_deg": 71.70977541,
+      "target_ra_deg": 177.7811216
+    },
+    {
+      "key": "phineas|halo|194021777634832653",
+      "query_status": "ok",
+      "response_sha256": "71d45e76ae857539b65edb289b9ada7d1f27101f68e934054fe9be9e4e1b3574",
+      "rows": [
+        {
+          "Class": 3,
+          "GSC2": "N77R002453",
+          "catalog_id": "N77R002453",
+          "match_dec_deg": 71.6848682,
+          "match_ra_deg": 177.76356877,
+          "objID": 121020132453,
+          "separation_arcsec": 0.0012564604938010817
+        }
+      ],
+      "target_dec_deg": 71.68486803,
+      "target_ra_deg": 177.7635678
+    },
+    {
+      "key": "phineas|halo|194031778315722893",
+      "query_status": "ok",
+      "response_sha256": "acaa9ba5623756a9d3ffc0e909aca6f0ae7e9e3ca068b9db033861ef14b8d5ff",
+      "rows": [
+        {
+          "Class": 3,
+          "GSC2": "N77R026264",
+          "catalog_id": "N77R026264",
+          "match_dec_deg": 71.7006471836,
+          "match_ra_deg": 177.83157664882,
+          "objID": 1210201326264,
+          "separation_arcsec": 2.3410280927481466
+        }
+      ],
+      "target_dec_deg": 71.7,
+      "target_ra_deg": 177.8313746
+    },
+    {
+      "key": "phineas|halo|194041777780157594",
+      "query_status": "ok",
+      "response_sha256": "7d9b41f0ad7de698c1ed3aca32f92741a90f47c45fabd907c62fe151e780873b",
+      "rows": [
+        {
+          "Class": 3,
+          "GSC2": "N77R002597",
+          "catalog_id": "N77R002597",
+          "match_dec_deg": 71.70558821,
+          "match_ra_deg": 177.77806686,
+          "objID": 121020132597,
+          "separation_arcsec": 0.005020366374626474
+        }
+      ],
+      "target_dec_deg": 71.70558959,
+      "target_ra_deg": 177.7780675
+    },
+    {
+      "key": "phineas|halo|194051777813062524",
+      "query_status": "ok",
+      "response_sha256": "7bdb7e5e99f8e6c121120ba05893acb4470f9a04a53d9ccd4e91f81c2c93091c",
+      "rows": [
+        {
+          "Class": 0,
+          "GSC2": "N77R002619",
+          "catalog_id": "N77R002619",
+          "match_dec_deg": 71.70977540677,
+          "match_ra_deg": 177.78112162395,
+          "objID": 121020132619,
+          "separation_arcsec": 0.012738762627833503
+        }
+      ],
+      "target_dec_deg": 71.70977418,
+      "target_ra_deg": 177.7811322
+    },
+    {
+      "key": "phineas|cluster|J115120.4+714435, 1254337",
+      "query_status": "ok",
+      "response_sha256": "3492389b96c89ff752ff2535666c72bb3fc8f01d77b963a4f9ff4ffa191e8391",
+      "rows": [
+        {
+          "Class": 3,
+          "GSC2": "N77R002800",
+          "catalog_id": "N77R002800",
+          "match_dec_deg": 71.74318354,
+          "match_ra_deg": 177.83491198,
+          "objID": 121020132800,
+          "separation_arcsec": 0.04291461925864794
+        },
+        {
+          "Class": 0,
+          "GSC2": "N77R011564",
+          "catalog_id": "N77R011564",
+          "match_dec_deg": 71.743217,
+          "match_ra_deg": 177.834518,
+          "objID": 1210201311564,
+          "separation_arcsec": 0.4196732104794073
+        }
+      ],
+      "target_dec_deg": 71.74319,
+      "target_ra_deg": 177.83488
+    },
+    {
+      "key": "phineas|cluster|J115128.2+713637, 1254415",
+      "query_status": "ok",
+      "response_sha256": "6efa445d8795c6b3d4727b0c0c95be5090e5e27906a4b4e0c2b53aa9b463a084",
+      "rows": [
+        {
+          "Class": 3,
+          "GSC2": "N77Q004575",
+          "catalog_id": "N77Q004575",
+          "match_dec_deg": 71.61023439,
+          "match_ra_deg": 177.86757655,
+          "objID": 121020124575,
+          "separation_arcsec": 0.04302466274346825
+        },
+        {
+          "Class": 0,
+          "GSC2": "N77Q009235",
+          "catalog_id": "N77Q009235",
+          "match_dec_deg": 71.610168,
+          "match_ra_deg": 177.867401,
+          "objID": 121020129235,
+          "separation_arcsec": 0.35146524773412996
+        },
+        {
+          "Class": 4,
+          "GSC2": "N77Q039489",
+          "catalog_id": "N77Q039489",
+          "match_dec_deg": 71.61046690056,
+          "match_ra_deg": 177.86952291508,
+          "objID": 1210201239489,
+          "separation_arcsec": 2.32102066077208
+        }
+      ],
+      "target_dec_deg": 71.61024,
+      "target_ra_deg": 177.86761
+    },
+    {
+      "key": "phineas|cluster|J114944.0+714348, 1253496",
+      "query_status": "ok",
+      "response_sha256": "92a14b9c573fde23fe7b4806ae31767a54002368ade2e285e9d8d2f22d86c3a9",
+      "rows": [
+        {
+          "Class": 3,
+          "GSC2": "N77R002778",
+          "catalog_id": "N77R002778",
+          "match_dec_deg": 71.73009779,
+          "match_ra_deg": 177.4332084,
+          "objID": 121020132778,
+          "separation_arcsec": 0.012376156446647232
+        }
+      ],
+      "target_dec_deg": 71.7301,
+      "target_ra_deg": 177.4332
+    },
+    {
+      "key": "phineas|cluster|J115140.5+712732, 1254506",
+      "query_status": "ok",
+      "response_sha256": "ebcf5964ff0859fa99ab2e28a3081c8c4c787e126e94ceeef7f3ed6551bb3a86",
+      "rows": [
+        {
+          "Class": 3,
+          "GSC2": "N77Q009300",
+          "catalog_id": "N77Q009300",
+          "match_dec_deg": 71.45895694,
+          "match_ra_deg": 177.91996322,
+          "objID": 121020129300,
+          "separation_arcsec": 1.4179698189386125
+        },
+        {
+          "Class": 3,
+          "GSC2": "N77Q022376",
+          "catalog_id": "N77Q022376",
+          "match_dec_deg": 71.4585356006,
+          "match_ra_deg": 177.91744341533,
+          "objID": 1210201222376,
+          "separation_arcsec": 2.0209455514172805
+        },
+        {
+          "Class": 0,
+          "GSC2": "N77Q003429",
+          "catalog_id": "N77Q003429",
+          "match_dec_deg": 71.45906066895,
+          "match_ra_deg": 177.92065429688,
+          "objID": 121020123429,
+          "separation_arcsec": 2.2602795759696863
+        }
+      ],
+      "target_dec_deg": 71.45892,
+      "target_ra_deg": 177.91873
+    },
+    {
+      "key": "phineas|cluster|J115400.9+713320, 1255773",
+      "query_status": "ok",
+      "response_sha256": "037c519df2779b651b7723ce4defda342b62e80767cd6a9a3f4521c625c0939f",
+      "rows": [
+        {
+          "Class": 3,
+          "GSC2": "N77Q004040",
+          "catalog_id": "N77Q004040",
+          "match_dec_deg": 71.55565066,
+          "match_ra_deg": 178.50372938,
+          "objID": 121020124040,
+          "separation_arcsec": 0.09778713959522481
+        },
+        {
+          "Class": 0,
+          "GSC2": "N77Q009222",
+          "catalog_id": "N77Q009222",
+          "match_dec_deg": 71.55555,
+          "match_ra_deg": 178.503601,
+          "objID": 121020129222,
+          "separation_arcsec": 0.4620417595351396
+        }
+      ],
+      "target_dec_deg": 71.55566,
+      "target_ra_deg": 178.50381
+    },
+    {
+      "key": "phineas|cluster|J115031.4+715735, 1253898",
+      "query_status": "ok",
+      "response_sha256": "92e887061e3bc0e81b644aa1821fa6f9e7edfddb82aca952a7338130d23ec096",
+      "rows": [
+        {
+          "Class": 3,
+          "GSC2": "N77R003886",
+          "catalog_id": "N77R003886",
+          "match_dec_deg": 71.9596548,
+          "match_ra_deg": 177.63064608,
+          "objID": 121020133886,
+          "separation_arcsec": 0.04157743093420389
+        }
+      ],
+      "target_dec_deg": 71.95965,
+      "target_ra_deg": 177.63068
+    },
+    {
+      "key": "phineas|cluster|J115436.9+713930, 1256077",
+      "query_status": "ok",
+      "response_sha256": "5b9cb88bf49aabbe846569ab7067c9a1e8440192ea84970a3ef2e1ccac68a63a",
+      "rows": [
+        {
+          "Class": 3,
+          "GSC2": "N77Q004772",
+          "catalog_id": "N77Q004772",
+          "match_dec_deg": 71.65821989,
+          "match_ra_deg": 178.65375338,
+          "objID": 121020124772,
+          "separation_arcsec": 0.030159463395431477
+        }
+      ],
+      "target_dec_deg": 71.65822,
+      "target_ra_deg": 178.65378
+    },
+    {
+      "key": "phineas|cluster|J114928.5+712526, 1253366",
+      "query_status": "ok",
+      "response_sha256": "e82f0cdd64eda68b77d24f3aabe65fa136f57327d939e5167797c380d3a3f769",
+      "rows": [
+        {
+          "Class": 0,
+          "GSC2": "N77Q009005",
+          "catalog_id": "N77Q009005",
+          "match_dec_deg": 71.42402841059,
+          "match_ra_deg": 177.36885885772,
+          "objID": 121020129005,
+          "separation_arcsec": 0.014000810579347137
+        },
+        {
+          "Class": 0,
+          "GSC2": "N77Q003303",
+          "catalog_id": "N77Q003303",
+          "match_dec_deg": 71.42399597168,
+          "match_ra_deg": 177.36894226074,
+          "objID": 121020123303,
+          "separation_arcsec": 0.14789934607746458
+        },
+        {
+          "Class": 0,
+          "GSC2": "N77Q009257",
+          "catalog_id": "N77Q009257",
+          "match_dec_deg": 71.42395,
+          "match_ra_deg": 177.369308,
+          "objID": 121020129257,
+          "separation_arcsec": 0.5790151969405677
+        },
+        {
+          "Class": 3,
+          "GSC2": "N77Q030994",
+          "catalog_id": "N77Q030994",
+          "match_dec_deg": 71.4245354,
+          "match_ra_deg": 177.37059117,
+          "objID": 1210201230994,
+          "separation_arcsec": 2.6844827261028303
+        }
+      ],
+      "target_dec_deg": 71.42403,
+      "target_ra_deg": 177.36887
+    },
+    {
+      "key": "freya|halo|197030881733398302",
+      "query_status": "ok",
+      "response_sha256": "eeaab2b1ecd621e6c788659a9ca3aa68c895434963bd94a8989c74d7a6d75174",
+      "rows": [
+        {
+          "Class": 3,
+          "GSC2": "NAE0022569",
+          "catalog_id": "NAE0022569",
+          "match_dec_deg": 74.19783956,
+          "match_ra_deg": 88.17298281,
+          "objID": 1310212022569,
+          "separation_arcsec": 0.005059448017999972
+        },
+        {
+          "Class": 0,
+          "GSC2": "NAE0006013",
+          "catalog_id": "NAE0006013",
+          "match_dec_deg": 74.19775584,
+          "match_ra_deg": 88.17298762,
+          "objID": 131021206013,
+          "separation_arcsec": 0.3045775585897431
+        }
+      ],
+      "target_dec_deg": 74.19784041,
+      "target_ra_deg": 88.1729787
+    },
+    {
+      "key": "freya|halo|197040882212782495",
+      "query_status": "ok",
+      "response_sha256": "fcb72011179165e563d989e9628f43f89265f6a96e961baaee5400063f062a33",
+      "rows": [
+        {
+          "Class": 3,
+          "GSC2": "NAE0023085",
+          "catalog_id": "NAE0023085",
+          "match_dec_deg": 74.20135941,
+          "match_ra_deg": 88.22143467,
+          "objID": 1310212023085,
+          "separation_arcsec": 0.01137558397460094
+        }
+      ],
+      "target_dec_deg": 74.20135627,
+      "target_ra_deg": 88.22143337
+    },
+    {
+      "key": "hamilton|halo|192943050854547067",
+      "query_status": "ok",
+      "response_sha256": "6a4288c89d84beb7c7e4dedadc9f013e246892e2123f852102d2a2f02635803a",
+      "rows": [
+        {
+          "Class": 3,
+          "GSC2": "N1IH008858",
+          "catalog_id": "N1IH008858",
+          "match_dec_deg": 70.78860783,
+          "match_ra_deg": 305.08537324,
+          "objID": 101322218858,
+          "separation_arcsec": 0.002166388592818742
+        }
+      ],
+      "target_dec_deg": 70.78860842,
+      "target_ra_deg": 305.0853736
+    },
+    {
+      "key": "hamilton|halo|192963050359413614",
+      "query_status": "ok",
+      "response_sha256": "40058057887b21cca354f181a8636af042bd8fd78f0992fe4c1e3f9f87043dc5",
+      "rows": [
+        {
+          "Class": 3,
+          "GSC2": "N1IH009163",
+          "catalog_id": "N1IH009163",
+          "match_dec_deg": 70.80240493,
+          "match_ra_deg": 305.03617242,
+          "objID": 101322219163,
+          "separation_arcsec": 0.0048703757241044645
+        }
+      ],
+      "target_dec_deg": 70.80240538,
+      "target_ra_deg": 305.0361763
+    },
+    {
+      "key": "chromatica|halo|196673126794497004",
+      "query_status": "ok",
+      "response_sha256": "5e69e412f012d99b7e0a51e4374fd8d42b0ccd89d2afec7061b2348917383974",
+      "rows": [
+        {
+          "Class": 4,
+          "GSC2": "N0UO030752",
+          "catalog_id": "N0UO030752",
+          "match_dec_deg": 73.8968285,
+          "match_ra_deg": 312.6796197,
+          "objID": 1010110030752,
+          "separation_arcsec": 0.3000543937296947
+        }
+      ],
+      "target_dec_deg": 73.89686576,
+      "target_ra_deg": 312.6793509
+    },
+    {
+      "key": "chromatica|halo|196723126173351736",
+      "query_status": "ok",
+      "response_sha256": "c958be11c49a69961f69cc0a5e41da779f804d78fa19a3fe627662fbbab3bbd0",
+      "rows": [
+        {
+          "Class": 0,
+          "GSC2": "N0UO004308",
+          "catalog_id": "N0UO004308",
+          "match_dec_deg": 73.93445953122,
+          "match_ra_deg": 312.61736736526,
+          "objID": 101011004308,
+          "separation_arcsec": 1.4647513765471232
+        }
+      ],
+      "target_dec_deg": 73.93405297,
+      "target_ra_deg": 312.6173096
+    },
+    {
+      "key": "chromatica|halo|196733128040225775",
+      "query_status": "ok",
+      "response_sha256": "5821bec9d55270d7e9255fd6440ff6f32e2092b1ed43c8f35c881b6dea7f5ec8",
+      "rows": [
+        {
+          "Class": 3,
+          "GSC2": "N0UO012099",
+          "catalog_id": "N0UO012099",
+          "match_dec_deg": 73.94584243,
+          "match_ra_deg": 312.80398919,
+          "objID": 1010110012099,
+          "separation_arcsec": 0.01175336945320374
+        },
+        {
+          "Class": 0,
+          "GSC2": "N0UO004450",
+          "catalog_id": "N0UO004450",
+          "match_dec_deg": 73.94582366943,
+          "match_ra_deg": 312.80419921875,
+          "objID": 101011004450,
+          "separation_arcsec": 0.2298701812040409
+        }
+      ],
+      "target_dec_deg": 73.94584168,
+      "target_ra_deg": 312.8039777
+    },
+    {
+      "key": "casey|halo|192821699728654764",
+      "query_status": "ok",
+      "response_sha256": "17fea9feebe06e9e9e8e8f21acec75c6ec7987afba4c4c556c2000dde36eaec4",
+      "rows": [
+        {
+          "Class": 3,
+          "GSC2": "N77T001639",
+          "catalog_id": "N77T001639",
+          "match_dec_deg": 70.68666149,
+          "match_ra_deg": 169.97273804,
+          "objID": 121020211639,
+          "separation_arcsec": 0.007380949323660373
+        }
+      ],
+      "target_dec_deg": 70.68666126,
+      "target_ra_deg": 169.9727442
+    },
+    {
+      "key": "casey|halo|192821700026167542",
+      "query_status": "ok",
+      "response_sha256": "d26cfe5552f6f5d4bceed677706ae42e61eb1f141b2f623a0f5c30a0e6393b23",
+      "rows": [
+        {
+          "Class": 0,
+          "GSC2": "N77T008668",
+          "catalog_id": "N77T008668",
+          "match_dec_deg": 70.6889707604,
+          "match_ra_deg": 170.00256086049,
+          "objID": 121020218668,
+          "separation_arcsec": 0.0035622884040925236
+        },
+        {
+          "Class": 0,
+          "GSC2": "N77T001648",
+          "catalog_id": "N77T001648",
+          "match_dec_deg": 70.68896484375,
+          "match_ra_deg": 170.00273132324,
+          "objID": 121020211648,
+          "separation_arcsec": 0.2073340647924738
+        }
+      ],
+      "target_dec_deg": 70.68897047,
+      "target_ra_deg": 170.002558
+    },
+    {
+      "key": "casey|halo|192831699797402822",
+      "query_status": "ok",
+      "response_sha256": "0c50aba3c6e360e2c270a0ea38ed9f76d802900d968cd5f437123546cc3958ce",
+      "rows": [
+        {
+          "Class": 0,
+          "GSC2": "N77T001679",
+          "catalog_id": "N77T001679",
+          "match_dec_deg": 70.6933983205,
+          "match_ra_deg": 169.97982997479,
+          "objID": 121020211679,
+          "separation_arcsec": 0.01253266696264087
+        }
+      ],
+      "target_dec_deg": 70.69339484,
+      "target_ra_deg": 169.9798302
+    },
+    {
+      "key": "casey|halo|660",
+      "query_status": "ok",
+      "response_sha256": "6d727f4b5f7baa6ae0b405f382481629bb2b8b440f879b0dee797b089129bf33",
+      "rows": [
+        {
+          "Class": 3,
+          "GSC2": "N77T022725",
+          "catalog_id": "N77T022725",
+          "match_dec_deg": 70.67629386,
+          "match_ra_deg": 169.98531683,
+          "objID": 1210202122725,
+          "separation_arcsec": 0.010810495138979463
+        }
+      ],
+      "target_dec_deg": 70.67629673,
+      "target_ra_deg": 169.9853195
+    },
+    {
+      "key": "casey|halo|795",
+      "query_status": "ok",
+      "response_sha256": "291cd2fd051c7d7a59566db58b9bc54544c840e3cd6d1beef0f29086ae2bded6",
+      "rows": [
+        {
+          "Class": 3,
+          "GSC2": "N77T001639",
+          "catalog_id": "N77T001639",
+          "match_dec_deg": 70.68666149,
+          "match_ra_deg": 169.97273804,
+          "objID": 121020211639,
+          "separation_arcsec": 0.04528606465369448
+        }
+      ],
+      "target_dec_deg": 70.68665467,
+      "target_ra_deg": 169.97277
+    },
+    {
+      "key": "casey|halo|796",
+      "query_status": "ok",
+      "response_sha256": "ecfcfb7842a86c565ec2d19dec449418440bac85d03f6384209564d7527805b3",
+      "rows": [],
+      "target_dec_deg": 70.6861149,
+      "target_ra_deg": 169.976151
+    },
+    {
+      "key": "casey|halo|827",
+      "query_status": "ok",
+      "response_sha256": "0394dab91d67daabe59dd1b11055c129bdfdb2d1c634ccafd3092fc8ac250adb",
+      "rows": [
+        {
+          "Class": 0,
+          "GSC2": "N77T001679",
+          "catalog_id": "N77T001679",
+          "match_dec_deg": 70.6933983205,
+          "match_ra_deg": 169.97982997479,
+          "objID": 121020211679,
+          "separation_arcsec": 3.0059972444694845e-05
+        }
+      ],
+      "target_dec_deg": 70.69339832,
+      "target_ra_deg": 169.97983
+    },
+    {
+      "key": "casey|halo|824",
+      "query_status": "ok",
+      "response_sha256": "137f389da5eb1d323267d4c51a251adad8c90c9726e695c26fa930835329ee59",
+      "rows": [
+        {
+          "Class": 0,
+          "GSC2": "N77T008668",
+          "catalog_id": "N77T008668",
+          "match_dec_deg": 70.6889707604,
+          "match_ra_deg": 170.00256086049,
+          "objID": 121020218668,
+          "separation_arcsec": 0.009462431232632825
+        },
+        {
+          "Class": 0,
+          "GSC2": "N77T001648",
+          "catalog_id": "N77T001648",
+          "match_dec_deg": 70.68896484375,
+          "match_ra_deg": 170.00273132324,
+          "objID": 121020211648,
+          "separation_arcsec": 0.2096814020748769
+        }
+      ],
+      "target_dec_deg": 70.68896879,
+      "target_ra_deg": 170.0025556
+    },
+    {
+      "key": "casey|halo|825",
+      "query_status": "ok",
+      "response_sha256": "3ac67e8d0bcaa44324d1eb2e1bc1739721b510e910a8278746e67bdc6391bac0",
+      "rows": [],
+      "target_dec_deg": 70.69033887,
+      "target_ra_deg": 170.0000823
+    },
+    {
+      "key": "casey|cluster|J111929.5+705441, 1237905",
+      "query_status": "ok",
+      "response_sha256": "3766326a31b05c17f12a1fe5572747b2243a0b476a4fcb42391f41305e2e279b",
+      "rows": [
+        {
+          "Class": 0,
+          "GSC2": "N77T002980",
+          "catalog_id": "N77T002980",
+          "match_dec_deg": 70.911314762,
+          "match_ra_deg": 169.87290432533,
+          "objID": 121020212980,
+          "separation_arcsec": 0.02404850966091986
+        },
+        {
+          "Class": 0,
+          "GSC2": "N77T009153",
+          "catalog_id": "N77T009153",
+          "match_dec_deg": 70.911209,
+          "match_ra_deg": 169.873108,
+          "objID": 121020219153,
+          "separation_arcsec": 0.4450580645827606
+        }
+      ],
+      "target_dec_deg": 70.91131,
+      "target_ra_deg": 169.87289
+    },
+    {
+      "key": "casey|cluster|J112235.5+705438, 1239515",
+      "query_status": "ok",
+      "response_sha256": "9ec598c25c72ab5039b2bd3986840f9dc8c0a9b5d989d40d036049f0902a13bf",
+      "rows": [
+        {
+          "Class": 3,
+          "GSC2": "N77T002984",
+          "catalog_id": "N77T002984",
+          "match_dec_deg": 70.91057515,
+          "match_ra_deg": 170.64790833,
+          "objID": 121020212984,
+          "separation_arcsec": 0.020025890200155643
+        }
+      ],
+      "target_dec_deg": 70.91058,
+      "target_ra_deg": 170.6479
+    },
+    {
+      "key": "casey|cluster|J112350.9+704142, 1240175",
+      "query_status": "ok",
+      "response_sha256": "4df43c26b285cb95f9e23cc3458a43a63af674465278dccbe09b72c862f45ccf",
+      "rows": [
+        {
+          "Class": 3,
+          "GSC2": "N77T001731",
+          "catalog_id": "N77T001731",
+          "match_dec_deg": 70.69498889,
+          "match_ra_deg": 170.96192235,
+          "objID": 121020211731,
+          "separation_arcsec": 0.015231848136443219
+        }
+      ],
+      "target_dec_deg": 70.69499,
+      "target_ra_deg": 170.96191
+    },
+    {
+      "key": "casey|cluster|J111930.9+702041, 1237924",
+      "query_status": "ok",
+      "response_sha256": "2b91ab24ce3dcfbf2fede22e1efd6b3d548233b4ef0362da1c912958a945aff4",
+      "rows": [
+        {
+          "Class": 3,
+          "GSC2": "N7RA003713",
+          "catalog_id": "N7RA003713",
+          "match_dec_deg": 70.34473845,
+          "match_ra_deg": 169.87856751,
+          "objID": 121310123713,
+          "separation_arcsec": 0.0497044782409419
+        }
+      ],
+      "target_dec_deg": 70.34475,
+      "target_ra_deg": 169.87859
+    },
+    {
+      "key": "isha|halo|WISEA J044538.83+701843.3",
+      "query_status": "ok",
+      "response_sha256": "84cccff08b6adb4020d68ca746f822fc207d829cbd25a30ad4e627936a8c26fb",
+      "rows": [
+        {
+          "Class": 0,
+          "GSC2": "NAYJ000955",
+          "catalog_id": "NAYJ000955",
+          "match_dec_deg": 70.31208033885,
+          "match_ra_deg": 71.41106093925,
+          "objID": 13131323955,
+          "separation_arcsec": 0.9123030188194913
+        }
+      ],
+      "target_dec_deg": 70.312048,
+      "target_ra_deg": 71.411807
+    },
+    {
+      "key": "oran|halo|WISEA J211150.32+724807.8",
+      "query_status": "ok",
+      "response_sha256": "fded83481c9b229d4b2df3a8488a3c54ef023cfd1648ff05d237b2d5642ed02e",
+      "rows": [
+        {
+          "Class": 3,
+          "GSC2": "N1G0001534",
+          "catalog_id": "N1G0001534",
+          "match_dec_deg": 72.80217617,
+          "match_ra_deg": 317.95968315,
+          "objID": 101311001534,
+          "separation_arcsec": 0.03832562576044978
+        },
+        {
+          "Class": 0,
+          "GSC2": "N1G0023428",
+          "catalog_id": "N1G0023428",
+          "match_dec_deg": 72.802094,
+          "match_ra_deg": 317.959961,
+          "objID": 1013110023428,
+          "separation_arcsec": 0.4082017184294051
+        }
+      ],
+      "target_dec_deg": 72.8021667,
+      "target_ra_deg": 317.9596667
+    },
+    {
+      "key": "phineas|cluster|WHL J115048.0+714428",
+      "query_status": "ok",
+      "response_sha256": "e7df2be5256db99d1682955b0d18dca01adbf19c7ef2755340a678a1f2cb2836",
+      "rows": [
+        {
+          "Class": 0,
+          "GSC2": "N77R011236",
+          "catalog_id": "N77R011236",
+          "match_dec_deg": 71.74118456683,
+          "match_ra_deg": 177.69997126259,
+          "objID": 1210201311236,
+          "separation_arcsec": 0.19980260483256787
+        },
+        {
+          "Class": 0,
+          "GSC2": "N77R011562",
+          "catalog_id": "N77R011562",
+          "match_dec_deg": 71.741196,
+          "match_ra_deg": 177.699768,
+          "objID": 1210201311562,
+          "separation_arcsec": 0.28682370717178707
+        },
+        {
+          "Class": 0,
+          "GSC2": "N77R002803",
+          "catalog_id": "N77R002803",
+          "match_dec_deg": 71.74109649658,
+          "match_ra_deg": 177.70014953613,
+          "objID": 121020132803,
+          "separation_arcsec": 0.5508669308908668
+        }
+      ],
+      "target_dec_deg": 71.74124,
+      "target_ra_deg": 177.69998
+    }
+  ],
+  "release": "GSC 2.4.2",
+  "retrieved_at_utc": "2026-07-21T07:38:07+00:00",
+  "schema_version": 1,
+  "search_radius_arcsec": 3.0,
+  "table": "I/353/gsc242"
+}

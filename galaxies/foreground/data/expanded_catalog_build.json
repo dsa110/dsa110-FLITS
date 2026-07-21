@@ -1,0 +1,27 @@
+{
+  "builder": "galaxies.foreground.build_expanded_catalog",
+  "match_policy": {
+    "ambiguity_rule": "second_separation_minus_nearest_lte_0.3_arcsec",
+    "search_radius_arcsec": 3.0,
+    "sort": [
+      "exact_spherical_separation",
+      "catalog_identifier"
+    ]
+  },
+  "output_sha256": "0b7c80077d51b16e7939e37929adc89066e5cb90faddf018fdf25d797eac2653",
+  "physics": {
+    "concentration": "Dutton and Maccio 2014 Planck c200c",
+    "halo_mass": "Moster et al. 2013 Table 1 redshift-dependent M200c",
+    "radius": "R200c at 200 times Planck18 critical density",
+    "stellar_mass_authority": "adjudicated census masses plus overrides"
+  },
+  "registry_sha256": "8e1998fd41b42e982cb2cdf4967e69eb028df1037caa1cf061578bb6ec2cab97",
+  "row_count": 52,
+  "schema_version": 1,
+  "snapshot_sha256": {
+    "allwise": "20295cc123cf937d02c9017a0dcda948a89d3661d6c4b08916d8acdb63a89a8b",
+    "catwise2020": "8aeb923d8bd6c8d4509d8f9891a55939989ad97e64dd6c51a6727ba8bb7e4847",
+    "gsc242": "a99cd53bda21ec244c5b763e1a511a4c1fd9176efb38feb4d2fc470e2d9e0fe2",
+    "unwise": "24cc34b65f34ddc9ed88401882219761fa2498ccb9e6b799fe0beaf2c3a0c7f8"
+  }
+}

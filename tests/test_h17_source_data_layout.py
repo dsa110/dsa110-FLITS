@@ -24,3 +24,12 @@ def test_local_h5_path_uses_project_directory():
     assert worker._local_h5_path(
         "freya", "2023/03/25/astro_278720455/singlebeam_278720455.h5"
     ) == Path("/data/Faber2026/data/chime-frb/freya/singlebeam_278720455.h5")
+
+
+def test_promoted_h17_workers_do_not_construct_the_retired_flat_path():
+    worker_root = Path(__file__).parents[1] / "scripts" / "h17_codetections"
+    sources = [path.read_text() for path in worker_root.rglob("*.py")]
+
+    assert sum("/data/Faber2026/data/chime-frb" in source for source in sources) >= 19
+    assert not any('/chime_singlebeam/singlebeam_' in source for source in sources)
+    assert not any('SB = ROOT + "/chime_singlebeam"' in source for source in sources)

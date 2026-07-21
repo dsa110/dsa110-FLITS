@@ -32,7 +32,7 @@ from baseband_analysis.core.dedispersion import coherent_dedisp
 from dmphase_standalone import K_DM, DMPhaseEstimator
 
 ROOT = "/data/research/astrophysics/frbs/chime-dsa-codetections"
-SB = ROOT + "/chime_singlebeam"
+SB = "/data/Faber2026/data/chime-frb"
 DIAG = ROOT + "/diagnostics/chime_side_dm"
 os.makedirs(DIAG, exist_ok=True)
 
@@ -128,7 +128,7 @@ def main():
         r["chime_id"]: r for r in json.load(open(ROOT + "/scripts/burst_inputs.json"))["bursts"]
     }
     out, manifest = [], []
-    for path in sorted(__import__("glob").glob(SB + "/singlebeam_*.h5")):
+    for path in sorted(__import__("glob").glob(SB + "/*/singlebeam_*.h5")):
         cid = os.path.basename(path).split("_")[-1].split(".")[0]
         meta = by_id.get(cid)
         if meta is None:

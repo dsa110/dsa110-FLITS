@@ -19,7 +19,7 @@ from baseband_analysis.core.dedispersion import coherent_dedisp
 from dmphase_standalone import K_DM, DMPhaseEstimator
 
 ROOT = "/data/research/astrophysics/frbs/chime-dsa-codetections"
-H5 = ROOT + "/chime_singlebeam/singlebeam_{id}.h5"
+H5 = "/data/Faber2026/data/chime-frb/{name}/singlebeam_{id}.h5"
 
 TARGETS = {
     "zach": ("210456524", 262.368),
@@ -35,7 +35,7 @@ TARGETS = {
 
 
 def run(name, hid, dm_c, grid_hw=50.0, grid_step=0.25):
-    bb = BBData.from_file(H5.format(id=hid))
+    bb = BBData.from_file(H5.format(name=nm.lower(), id=hid))
     dt = float(bb.attrs["delta_time"])
     freq = np.asarray(bb.index_map["freq"]["centre"], float)  # descending
     ref = freq.max()

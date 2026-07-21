@@ -14,7 +14,9 @@ from extract_chime_side_inputs import extract_one
 ROOT = "/data/research/astrophysics/frbs/chime-dsa-codetections"
 cases = [("isha", "252069198", 411.568), ("whitney", "215063905", 462.174)]
 for name, cid, dm in cases:
-    rec, fig = extract_one(f"{ROOT}/chime_singlebeam/singlebeam_{cid}.h5", dm)
+    rec, fig = extract_one(
+        f"/data/Faber2026/data/chime-frb/{name.lower()}/singlebeam_{cid}.h5", dm
+    )
     fig.savefig(f"{ROOT}/diagnostics/validate_{name}.png", dpi=110)
     print(
         f"[{name}] DM_chime={rec['dm_chime']:.3f}±{rec['dm_chime_err']:.2f} "

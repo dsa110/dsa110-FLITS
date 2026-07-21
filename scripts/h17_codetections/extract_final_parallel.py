@@ -21,7 +21,7 @@ from baseband_analysis.core.dedispersion import coherent_dedisp
 from chime_dm import K_DM, _fit_subband_arrival
 
 ROOT = "/data/research/astrophysics/frbs/chime-dsa-codetections"
-SB = ROOT + "/chime_singlebeam"
+SB = "/data/Faber2026/data/chime-frb"
 DIAG = ROOT + "/diagnostics/chime_dm_final"
 os.makedirs(DIAG, exist_ok=True)
 TDS, N_SB, MIN_SNR, MIN_GOOD = 32, 6, 4.0, 3
@@ -137,7 +137,7 @@ def _figure(name, dm_dsa, r, dm):
 def work(name):
     m = {b["name"]: b for b in json.load(open(ROOT + "/scripts/burst_inputs.json"))["bursts"]}[name]
     dm_dsa = float(m["dm"])
-    bb = BBData.from_file(f"{SB}/singlebeam_{m['chime_id']}.h5")
+    bb = BBData.from_file(f"{SB}/{name.lower()}/singlebeam_{m['chime_id']}.h5")
     dt0 = float(bb.attrs["delta_time"])
     freq = np.asarray(bb.index_map["freq"]["centre"], float)
     bbdd = coherent_dedisp(bb, dm_dsa)

@@ -28,7 +28,7 @@ from baseband_analysis.core.dedispersion import coherent_dedisp
 from chime_dm import K_DM, _fit_subband_arrival
 
 ROOT = "/data/research/astrophysics/frbs/chime-dsa-codetections"
-SB = ROOT + "/chime_singlebeam"
+SB = "/data/Faber2026/data/chime-frb"
 DIAG = ROOT + "/diagnostics/chime_dm_v4b"
 os.makedirs(DIAG, exist_ok=True)
 TDS = int(os.environ.get("DM_TDS","16"))
@@ -175,7 +175,7 @@ def main():
         if meta is None:
             continue
         cid, dm = meta["chime_id"], float(meta["dm"])
-        path = f"{SB}/singlebeam_{cid}.h5"
+        path = f"{SB}/{name.lower()}/singlebeam_{cid}.h5"
         if not os.path.exists(path):
             continue
         try:

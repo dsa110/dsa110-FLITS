@@ -34,7 +34,7 @@ from baseband_analysis.core.bbdata import BBData
 from baseband_analysis.core.dedispersion import coherent_dedisp, incoherent_dedisp
 
 ROOT = Path("/data/research/astrophysics/frbs/chime-dsa-codetections")
-SB_DIR = ROOT / "chime_singlebeam"
+SB_DIR = Path("/data/Faber2026/data/chime-frb")
 SCRIPTS = ROOT / "scripts"
 RESULTS = ROOT / "results"
 DIAG = ROOT / "diagnostics" / "chime_singlebeam_toa"
@@ -182,7 +182,7 @@ def main() -> int:
     inputs = json.load(open(SCRIPTS / "burst_inputs.json"))["bursts"]
     by_id = {r["chime_id"]: r for r in inputs}
     out = []
-    for path in sorted(SB_DIR.glob("singlebeam_*.h5")):
+    for path in sorted(SB_DIR.glob("*/singlebeam_*.h5")):
         cid = path.stem.split("_")[-1]
         meta = by_id.get(cid)
         if meta is None:

@@ -26,7 +26,9 @@ CASES = [("zach", "210456524", 262.368), ("freya", "278720455", 912.4)]
 
 
 def run(name, cid, dm_c):
-    bb = BBData.from_file(f"{ROOT}/chime_singlebeam/singlebeam_{cid}.h5")
+    bb = BBData.from_file(
+        f"/data/Faber2026/data/chime-frb/{name.lower()}/singlebeam_{cid}.h5"
+    )
     dt = float(bb.attrs["delta_time"])
     freq = np.asarray(bb.index_map["freq"]["centre"], float)
     bbdd = coherent_dedisp(bb, dm_c)

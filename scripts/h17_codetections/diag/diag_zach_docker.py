@@ -15,7 +15,7 @@ from baseband_analysis.core.bbdata import BBData
 from baseband_analysis.core.dedispersion import coherent_dedisp, incoherent_dedisp
 
 ROOT = "/data/research/astrophysics/frbs/chime-dsa-codetections"
-F = ROOT + "/chime_singlebeam/singlebeam_210456524.h5"
+F = "/data/Faber2026/data/chime-frb/zach/singlebeam_210456524.h5"
 OUT = ROOT + "/diagnostics/diag_zach_docker.png"
 DM_C = 262.368
 

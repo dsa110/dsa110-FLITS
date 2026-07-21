@@ -14,7 +14,7 @@ from baseband_analysis.core.dedispersion import coherent_dedisp
 from dmphase_standalone import K_DM, DMPhaseEstimator
 
 ROOT = "/data/research/astrophysics/frbs/chime-dsa-codetections"
-F = ROOT + "/chime_singlebeam/singlebeam_210456524.h5"
+F = "/data/Faber2026/data/chime-frb/zach/singlebeam_210456524.h5"
 DM_C = 262.368
 
 bb = BBData.from_file(F)

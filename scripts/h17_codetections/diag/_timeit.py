@@ -6,7 +6,7 @@ from dm_envelope import fit_waterfall
 import json
 b=json.load(open("scripts/burst_inputs.json"))["bursts"]
 m={x["name"]:x for x in b}["zach"]; dm=float(m["dm"])
-bb=BBData.from_file(f"chime_singlebeam/singlebeam_{m['chime_id']}.h5")
+bb=BBData.from_file(f"/data/Faber2026/data/chime-frb/zach/singlebeam_{m['chime_id']}.h5")
 dt=float(bb.attrs["delta_time"]); freq=np.asarray(bb.index_map["freq"]["centre"],float)
 t=time.time(); bbdd=coherent_dedisp(bb,dm); print("coherent_dedisp: %.1fs"%(time.time()-t),flush=True)
 TDS=16

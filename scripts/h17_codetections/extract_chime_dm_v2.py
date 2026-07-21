@@ -25,7 +25,7 @@ from baseband_analysis.core.dedispersion import coherent_dedisp
 from chime_dm import K_DM, measure_dm
 
 ROOT = "/data/research/astrophysics/frbs/chime-dsa-codetections"
-SB = ROOT + "/chime_singlebeam"
+SB = "/data/Faber2026/data/chime-frb"
 DIAG = ROOT + "/diagnostics/chime_dm_v2"
 os.makedirs(DIAG, exist_ok=True)
 TDS = 16  # time-downsample (2.56us -> 41us); bursts are ms-scale, keeps the coarse search cheap
@@ -119,7 +119,7 @@ def main():
     out, manifest = [], []
     for meta in bursts:
         cid, name, dm = meta["chime_id"], meta["name"], float(meta["dm"])
-        path = f"{SB}/singlebeam_{cid}.h5"
+        path = f"{SB}/{name.lower()}/singlebeam_{cid}.h5"
         if not os.path.exists(path):
             continue
         try:

@@ -15,9 +15,9 @@ spread above and below the sightline as in the reference figure -- the catalog
 stores only the unsigned impact parameter b_kpc, which we use for the magnitude
 and R_vir geometry and sign by sky position.
 
-Data: results/chime_dsa_gladep_candidates_ranked.csv (per-halo z, b_kpc,
-m_delta, r_delta_computed, sky position, frb_z), the same ranked candidate set
-the foreground census is built from. Only is_foreground rows enter.
+Data: the checked-in ``galaxies/foreground/data/sightline_halo_grid.csv`` built
+from the expanded foreground catalog. Only confirmed, deduplicated systems with
+source-bearing geometry are drawn.
 """
 
 from __future__ import annotations
@@ -52,9 +52,6 @@ if os.path.exists(_RC):
 plt.rcParams["savefig.bbox"] = "standard"
 plt.rcParams["savefig.pad_inches"] = 0.05
 DEFAULT_RESULTS_DIR = os.path.join(_REPO, "results")
-DEFAULT_HALO_CSV = os.path.expanduser(
-    "~/Data/frb-foreground-halos/results/chime_dsa_gladep_candidates_ranked.csv"
-)
 # Derived from this file's location, not a machine path: when FLITS is checked
 # out as the `pipeline` submodule of Faber2026, _REPO's parent is the manuscript
 # root and this resolves to Faber2026/figures. Override with --out-dir for a
@@ -81,16 +78,21 @@ def _load(halo_csv: str):
     dropped.
     """
     df = pd.read_csv(halo_csv)
-    z_known = df[df["frb_z"].notna()].drop_duplicates("frb_name")
+    z_known = df[(df["row_kind"] == "host") & df["frb_z"].notna()].drop_duplicates("frb_name")
     roster = dict(zip(z_known["frb_name"], z_known["frb_z"].astype(float)))
 
-    fg = df[df["is_foreground"].astype(str).str.lower().isin(["true", "1"])].copy()
-    fg = fg[fg["z"].notna() & fg["b_kpc"].notna() & fg["m_delta"].notna()]
+    fg = df[(df["row_kind"] == "system") & (df["geometry_status"] == "pass")].copy()
+    fg = fg[
+        fg["system_z"].notna()
+        & fg["impact_kpc"].notna()
+        & fg["mass_msun"].notna()
+        & fg["radius_kpc"].notna()
+    ]
     fg = fg[fg["frb_name"].isin(roster)]
     # Signed projected offset: magnitude = b_kpc, sign from declination diff.
-    ddec = fg["dec"].to_numpy(float) - fg["frb_dec"].to_numpy(float)
-    fg["b_signed"] = np.where(ddec >= 0, 1.0, -1.0) * fg["b_kpc"].to_numpy(float)
-    fg["logM"] = np.log10(fg["m_delta"].astype(float))
+    ddec = fg["candidate_dec_deg"].to_numpy(float) - fg["frb_dec_deg"].to_numpy(float)
+    fg["b_signed"] = np.where(ddec >= 0, 1.0, -1.0) * fg["impact_kpc"].to_numpy(float)
+    fg["logM"] = np.log10(fg["mass_msun"].astype(float))
     return fg, roster
 
 
@@ -141,11 +143,9 @@ def _crossing_mask(sub: pd.DataFrame) -> np.ndarray:
     mass strict intersections are galaxy halos already carried in the galaxy
     budget, so they are not singled out here.
     """
-    if "intersects_strict" not in sub:
-        return np.zeros(len(sub), dtype=bool)
-    strict = sub["intersects_strict"].astype(str).str.lower().isin(["true", "1"]).to_numpy()
-    massive = sub["m_delta"].astype(float).to_numpy() > CLUSTER_MASS
-    return strict & massive
+    cluster = sub["system_type"].astype(str).eq("cluster").to_numpy()
+    intersects = sub["impact_kpc"].astype(float).to_numpy() <= sub["radius_kpc"].astype(float).to_numpy()
+    return cluster & intersects
 
 
 def _contributor_mask(sub) -> np.ndarray:
@@ -157,12 +157,12 @@ def _contributor_mask(sub) -> np.ndarray:
     reader can separate the budget's vetted contributor set from the broader
     discovery-stage environment. Inputs without the column draw nothing extra.
     """
-    if "budget_contributor" not in sub:
+    if "budget_eligible" not in sub:
         return np.zeros(len(sub), dtype=bool)
-    return sub["budget_contributor"].astype(str).str.lower().isin(["true", "1"]).to_numpy()
+    return sub["budget_eligible"].astype(str).str.lower().isin(["true", "1"]).to_numpy()
 
 
-def make_grid(halo_csv: str = DEFAULT_HALO_CSV):
+def make_grid(halo_csv: str):
     fg, roster = _load(halo_csv)
     # One panel per z-known sightline, ordered by FRB redshift.
     order = sorted(roster, key=lambda k: roster[k])
@@ -250,12 +250,12 @@ def make_grid(halo_csv: str = DEFAULT_HALO_CSV):
         cross = _crossing_mask(sub)
         contrib = _contributor_mask(sub)
         # Draw largest disks first so small halos sit on top (readability).
-        draw_order = sub["r_delta_computed"].astype(float).fillna(0).argsort()[::-1]
+        draw_order = sub["radius_kpc"].astype(float).fillna(0).argsort()[::-1]
         for idx in draw_order:
             row = sub.iloc[idx]
-            r_kpc = float(row.get("r_delta_computed", float("nan")))
+            r_kpc = float(row.get("radius_kpc", float("nan")))
             y = float(row["b_signed"])
-            x = float(row["z"])
+            x = float(row["system_z"])
             col = cmap(norm(row["logM"]))
             is_cross = bool(cross[idx])
             if math.isfinite(r_kpc) and r_kpc > 0:
@@ -361,7 +361,7 @@ def main():
     import argparse
 
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("--halo-csv", default=DEFAULT_HALO_CSV)
+    p.add_argument("--halo-csv", required=True)
     p.add_argument("--out-dir", default=DEFAULT_OUT_DIR)
     args = p.parse_args()
 

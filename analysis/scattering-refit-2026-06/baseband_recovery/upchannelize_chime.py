@@ -57,6 +57,9 @@ import numpy as np
 
 CHIME_COARSE_DF_MHZ = 0.390625  # CHIME coarse channel width (400 MHz / 1024)
 CHIME_NATIVE_DT_S = 2.56e-6  # CHIME single-pol baseband sample time
+CHIME_NOMINAL_COARSE_CHANNELS = 1024
+CHIME_TOP_EDGE_MHZ = 800.1953125
+CHIME_BOTTOM_EDGE_MHZ = 400.1953125
 
 ARC_VOS_ROOT = "arc:projects/chime_frb/data/chime/baseband/processed"  # vcp source (CADC vos URI)
 # All 12 singlebeam .h5 are staged by project ID on h17 -> use in place, no vcp / no arc dependency.
@@ -237,6 +240,68 @@ def _detected_products(spec: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     return np.sum(per_pol, axis=0), per_pol
 
 
+def _restore_nominal_fine_grid(
+    stokes_i: np.ndarray,
+    per_pol: np.ndarray,
+    package_freq_mhz: np.ndarray,
+    fine_channel_ids: np.ndarray,
+    upchan_factor: int,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """Scatter retained fine channels onto the nominal CHIME frequency grid.
+
+    Integer channel identifiers are authoritative.  Missing measurements remain
+    NaN and are also represented by an explicit Boolean validity mask.  Preserve
+    the package-reported frequency coordinate separately: baseband-analysis 1.9.0
+    uses an inclusive linspace whose values differ by at most half a fine channel
+    from the exact nominal-bin centers.
+    """
+    values = np.asarray(stokes_i)
+    polarizations = np.asarray(per_pol)
+    package_freq = np.asarray(package_freq_mhz, dtype=np.float64)
+    raw_ids = np.asarray(fine_channel_ids)
+    if not isinstance(upchan_factor, (int, np.integer)) or upchan_factor < 1:
+        raise ValueError("upchan_factor must be a positive integer")
+    if raw_ids.ndim != 1 or not np.issubdtype(raw_ids.dtype, np.integer):
+        raise ValueError("fine channel identifiers must be a 1-D integer array")
+    ids = raw_ids.astype(np.int64, copy=False)
+    if values.ndim != 2 or values.shape[0] != ids.size:
+        raise ValueError("Stokes-I rows must match fine channel identifiers")
+    if polarizations.ndim != 3 or polarizations.shape[1:] != values.shape:
+        raise ValueError("polarization rows and time bins must match Stokes I")
+    if package_freq.shape != ids.shape:
+        raise ValueError("package frequency rows must match fine channel identifiers")
+    if np.unique(ids).size != ids.size:
+        raise ValueError("fine channel identifiers must be unique")
+
+    total = CHIME_NOMINAL_COARSE_CHANNELS * int(upchan_factor)
+    if ids.size and (ids.min() < 0 or ids.max() >= total):
+        raise ValueError(f"fine channel identifiers outside nominal range 0:{total}")
+
+    full_package_freq = np.linspace(
+        CHIME_TOP_EDGE_MHZ, CHIME_BOTTOM_EDGE_MHZ, total
+    )
+    if not np.allclose(
+        package_freq, full_package_freq[ids], rtol=0.0, atol=1e-10
+    ):
+        raise ValueError("package frequency coordinate does not match fine identifiers")
+    fine_width_mhz = CHIME_COARSE_DF_MHZ / int(upchan_factor)
+    nominal_freq = CHIME_TOP_EDGE_MHZ - (
+        np.arange(total, dtype=np.float64) + 0.5
+    ) * fine_width_mhz
+
+    full_stokes = np.full((total, values.shape[1]), np.nan, dtype=values.dtype)
+    full_per_pol = np.full(
+        (polarizations.shape[0], total, values.shape[1]),
+        np.nan,
+        dtype=polarizations.dtype,
+    )
+    valid = np.zeros(total, dtype=bool)
+    full_stokes[ids] = values
+    full_per_pol[:, ids] = polarizations
+    valid[ids] = True
+    return full_stokes, full_per_pol, nominal_freq, full_package_freq, valid
+
+
 def _waterfall(
     h5_path: str,
     dm: float,
@@ -278,7 +343,7 @@ def _waterfall(
     # fine-channel centres (MHz) ordered high->low. upchan factor U = fftsize/downfreq.
     freq_id = data.index_map["freq"]["id"][:]
     if fine_window is None and fine_oversample is None:
-        spec, freq, _ = _upchannel(
+        spec, freq, fine_channel_ids = _upchannel(
             dedispersed,
             freq_id=freq_id,
             fftsize=2 * U,
@@ -300,7 +365,7 @@ def _waterfall(
     else:
         from windowed_upchan import windowed_upchannel  # noqa: PLC0415
 
-        spec, freq, _, channelizer_metadata = windowed_upchannel(
+        spec, freq, fine_channel_ids, channelizer_metadata = windowed_upchannel(
             dedispersed,
             freq_id,
             upchan_factor=U,
@@ -312,6 +377,7 @@ def _waterfall(
         stokes_i,
         per_pol,
         np.asarray(freq, dtype=np.float64),
+        np.asarray(fine_channel_ids, dtype=np.int64),
         source_metadata,
         channelizer_metadata,
     )
@@ -344,7 +410,14 @@ def recover_target(
 
     h5_path = _fetch_h5(name, t["h5_relpath"], scratch)
     U = t["upchan"]
-    stokes_i, per_pol, freq, source_metadata, channelizer_metadata = _waterfall(
+    (
+        stokes_i,
+        per_pol,
+        package_freq,
+        fine_channel_ids,
+        source_metadata,
+        channelizer_metadata,
+    ) = _waterfall(
         h5_path,
         t["dm"],
         U,
@@ -353,11 +426,27 @@ def recover_target(
         fine_oversample=fine_oversample,
     )
 
+    (
+        stokes_i,
+        per_pol,
+        freq,
+        package_freq,
+        source_valid,
+    ) = _restore_nominal_fine_grid(
+        stokes_i,
+        per_pol,
+        package_freq,
+        fine_channel_ids,
+        U,
+    )
+
     # Ascending frequency to match the FLITS BurstDataset convention.
     if freq[0] > freq[-1]:
         freq = freq[::-1]
+        package_freq = package_freq[::-1]
         stokes_i = stokes_i[::-1, :]
         per_pol = per_pol[:, ::-1, :]
+        source_valid = source_valid[::-1]
 
     df_fine = CHIME_COARSE_DF_MHZ / U
     n_fine, n_time = stokes_i.shape
@@ -366,7 +455,17 @@ def recover_target(
     # NaN channels are EXPECTED (CHIME masks RFI/missing channels); the downstream ACF uses nansum.
     # So require a healthy finite FRACTION, not all-finite -- only an all-NaN/empty result is a failure.
     assert n_time > 0, f"{name}: empty time axis"
-    assert n_fine >= 1024, f"{name}: only {n_fine} channels -- not upchannelized beyond native 1024"
+    expected_fine = CHIME_NOMINAL_COARSE_CHANNELS * U
+    assert n_fine == expected_fine, (
+        f"{name}: {n_fine} fine positions != nominal {expected_fine} (U={U})"
+    )
+    expected_measured = len(source_metadata["freq_id"]) * U
+    assert int(source_valid.sum()) == expected_measured, (
+        f"{name}: {source_valid.sum()} measured positions != expected {expected_measured}"
+    )
+    assert not np.isfinite(stokes_i[~source_valid]).any(), (
+        f"{name}: missing source positions contain finite Stokes-I values"
+    )
     finite_frac = float(np.isfinite(stokes_i).mean())
     assert finite_frac > 0.3, f"{name}: only {finite_frac:.1%} finite Stokes-I -- effectively empty"
     measured_df = abs(np.nanmedian(np.diff(freq)))
@@ -387,36 +486,68 @@ def recover_target(
             polarization_paths.append(path)
     frequency_path = out / f"{name}_chime_freq{suffix}.npy"
     np.save(frequency_path, freq)
-    if save_polarizations:
-        metadata = {
-            **source_metadata,
-            "schema_version": 1,
-            "target": name,
-            "dm_pc_cm3": float(t["dm"]),
-            "upchannel_factor": int(U),
-            "time_shift": bool(time_shift),
-            "channelizer": channelizer_metadata,
-            "source_h5": str(h5_path),
-            "source_h5_sha256": _sha256(h5_path),
-            "producer": str(Path(__file__).resolve()),
-            "producer_sha256": _sha256(Path(__file__).resolve()),
-            "products": {
-                "stokes_i": {"path": spec_path.name, "sha256": _sha256(spec_path)},
-                "polarizations": [
-                    {"path": path.name, "sha256": _sha256(path)} for path in polarization_paths
-                ],
-                "frequencies": {
-                    "path": frequency_path.name,
-                    "sha256": _sha256(frequency_path),
-                },
+    package_frequency_path = out / f"{name}_chime_package_freq{suffix}.npy"
+    np.save(package_frequency_path, package_freq)
+    source_valid_path = out / f"{name}_chime_source_valid{suffix}.npy"
+    np.save(source_valid_path, source_valid)
+    metadata = {
+        **source_metadata,
+        "schema_version": 2,
+        "target": name,
+        "dm_pc_cm3": float(t["dm"]),
+        "upchannel_factor": int(U),
+        "time_shift": bool(time_shift),
+        "channelizer": channelizer_metadata,
+        "channel_grid": {
+            "nominal_coarse_channels": CHIME_NOMINAL_COARSE_CHANNELS,
+            "nominal_fine_positions": int(n_fine),
+            "measured_fine_positions": int(source_valid.sum()),
+            "missing_fine_positions": int((~source_valid).sum()),
+            "authoritative_coordinate": "integer fine_channel_id",
+            "nominal_frequency_formula_mhz": (
+                "800.1953125 - (fine_channel_id + 0.5) * (0.390625 / upchannel_factor)"
+            ),
+            "package_frequency_convention": (
+                "baseband_analysis_1.9.0 inclusive linspace(800.1953125, "
+                "400.1953125, 1024 * upchannel_factor)"
+            ),
+            "max_package_nominal_offset_mhz": float(
+                np.max(np.abs(package_freq - freq))
+            ),
+            "missing_value": "NaN",
+        },
+        "source_h5": str(h5_path),
+        "source_h5_sha256": _sha256(h5_path),
+        "producer": str(Path(__file__).resolve()),
+        "producer_sha256": _sha256(Path(__file__).resolve()),
+        "products": {
+            "stokes_i": {"path": spec_path.name, "sha256": _sha256(spec_path)},
+            "polarizations": [
+                {"path": path.name, "sha256": _sha256(path)} for path in polarization_paths
+            ],
+            "nominal_frequencies": {
+                "path": frequency_path.name,
+                "sha256": _sha256(frequency_path),
             },
+            "package_frequencies": {
+                "path": package_frequency_path.name,
+                "sha256": _sha256(package_frequency_path),
+            },
+            "source_valid": {
+                "path": source_valid_path.name,
+                "sha256": _sha256(source_valid_path),
+            },
+        },
+    }
+    if fine_window is not None:
+        companion = Path(__file__).with_name("windowed_upchan.py")
+        metadata["channelizer_producer"] = {
+            "path": str(companion.resolve()),
+            "sha256": _sha256(companion),
         }
-        if fine_window is not None:
-            companion = Path(__file__).with_name("windowed_upchan.py")
-            metadata["channelizer_producer"] = {
-                "path": str(companion.resolve()),
-                "sha256": _sha256(companion),
-            }
+    metadata_path = out / f"{name}_chime_preprocessing_metadata{suffix}.json"
+    metadata_path.write_text(json.dumps(metadata, indent=2, sort_keys=True) + "\n")
+    if save_polarizations:
         (out / f"{name}_crossacf_metadata{suffix}.json").write_text(
             json.dumps(metadata, indent=2, sort_keys=True) + "\n"
         )

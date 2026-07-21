@@ -73,6 +73,60 @@ def test_detected_products_rejects_missing_polarization_axis():
         module._detected_products(np.ones((8, 16), dtype=complex))
 
 
+def test_nominal_grid_restoration_preserves_measured_values_and_masks_gaps():
+    module = _module()
+    upchan = 2
+    fine_ids = np.array([2, 3, 8, 9])
+    package_grid = np.linspace(800.1953125, 400.1953125, 1024 * upchan)
+    package_freq = package_grid[fine_ids]
+    stokes = np.arange(12, dtype=np.float32).reshape(4, 3)
+    per_pol = np.stack((stokes, stokes + 100.0))
+
+    restored = module._restore_nominal_fine_grid(
+        stokes, per_pol, package_freq, fine_ids, upchan
+    )
+    full_stokes, full_per_pol, nominal_freq, full_package_freq, valid = restored
+
+    assert full_stokes.shape == (2048, 3)
+    assert full_per_pol.shape == (2, 2048, 3)
+    assert valid.shape == (2048,)
+    assert valid.sum() == 4
+    np.testing.assert_array_equal(full_stokes[fine_ids], stokes)
+    np.testing.assert_array_equal(full_per_pol[:, fine_ids], per_pol)
+    assert np.isnan(full_stokes[~valid]).all()
+    assert np.isnan(full_per_pol[:, ~valid]).all()
+    np.testing.assert_array_equal(full_package_freq, package_grid)
+    expected_nominal = 800.1953125 - (np.arange(2048) + 0.5) * (0.390625 / upchan)
+    np.testing.assert_array_equal(nominal_freq, expected_nominal)
+
+
+def test_nominal_grid_restoration_rejects_bad_fine_identifiers():
+    module = _module()
+    stokes = np.ones((2, 3))
+    per_pol = np.ones((2, 2, 3))
+    package_grid = np.linspace(800.1953125, 400.1953125, 2048)
+
+    with np.testing.assert_raises_regex(ValueError, "unique"):
+        module._restore_nominal_fine_grid(
+            stokes, per_pol, package_grid[[2, 2]], np.array([2, 2]), 2
+        )
+    with np.testing.assert_raises_regex(ValueError, "range"):
+        module._restore_nominal_fine_grid(
+            stokes, per_pol, np.array([1.0, 2.0]), np.array([2, 2048]), 2
+        )
+
+
+def test_nominal_grid_restoration_checks_package_frequency_mapping():
+    module = _module()
+    stokes = np.ones((2, 3))
+    per_pol = np.ones((2, 2, 3))
+
+    with np.testing.assert_raises_regex(ValueError, "package frequency"):
+        module._restore_nominal_fine_grid(
+            stokes, per_pol, np.array([700.0, 600.0]), np.array([2, 3]), 2
+        )
+
+
 def test_variant_suffix_preserves_historical_names_and_separates_variants():
     module = _module()
 

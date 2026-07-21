@@ -8,12 +8,15 @@ non-detections.
 
 from __future__ import annotations
 
+import inspect
 import numpy as np
 import pytest
 
 from dispersion.chime_dm import K_DM
 from dispersion.dm_power_analysis import (
+    CHIME_FULL_ROOT_DEFAULT,
     DEFAULT_DM_STEP,
+    DSA_FULL_ROOT_DEFAULT,
     _dm_ref_source,
     _freq_grid_source,
     _orient_waterfall_to_ascending_frequency,
@@ -21,8 +24,29 @@ from dispersion.dm_power_analysis import (
     mark_diagnostic_candidate_only,
     measure_dm_power,
     residual_delay_s,
+    root_for_telescope,
     shift_waterfall_residual_dm,
 )
+
+
+def test_full_resolution_roots_are_instrument_specific(tmp_path):
+    chime = tmp_path / "chime"
+    dsa = tmp_path / "dsa"
+    assert root_for_telescope("chime", chime, dsa) == chime
+    assert root_for_telescope("dsa", chime, dsa) == dsa
+    with pytest.raises(ValueError, match="unknown telescope"):
+        root_for_telescope("other", chime, dsa)
+    assert CHIME_FULL_ROOT_DEFAULT.name == "CHIME_bursts"
+    assert DSA_FULL_ROOT_DEFAULT.name == "DSA_bursts"
+
+
+def test_dm_phase_batch_requires_split_roots():
+    from dispersion.dm_phase_analysis import run_all
+
+    parameters = inspect.signature(run_all).parameters
+    assert "chime_full_root" in parameters
+    assert "dsa_full_root" in parameters
+    assert "data_dir" not in parameters
 
 
 def _inject_structured_waterfall(

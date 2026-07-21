@@ -2,14 +2,32 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
+from pathlib import Path
 
 from flits.batch.codetection_data import (
     SUBBURST_PAD_MS,
     band_peak_time,
+    burst_cube_paths,
     chime_toa_shift_ms,
     crop_bands_to_subburst_window,
     subburst_time_window,
 )
+
+
+def test_burst_cube_paths_use_distinct_instrument_roots(tmp_path: Path):
+    chime_root = tmp_path / "chime"
+    dsa_root = tmp_path / "dsa"
+    chime_root.mkdir()
+    dsa_root.mkdir()
+    chime = chime_root / "zach_chime_I_1_2_3b_cntr_bpc.npy"
+    dsa = dsa_root / "zach_dsa_I_1_2_3b_cntr_bpc.npy"
+    chime.touch()
+    dsa.touch()
+
+    assert burst_cube_paths(chime_root, dsa_root, "zach") == (chime, dsa)
+    chime.unlink()
+    with pytest.raises(FileNotFoundError, match="no CHIME cube"):
+        burst_cube_paths(chime_root, dsa_root, "zach")
 from flits.batch.codetection_plots import BandSpectrum, _interp_along_time
 
 

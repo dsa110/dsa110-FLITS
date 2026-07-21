@@ -32,6 +32,7 @@ import yaml  # noqa: E402
 from dispersion.dm_campaign.adaptive_arrival import (  # noqa: E402
     combine_event_measurements,
     evaluate_product,
+    product_path,
     select_stable_candidate,
 )
 from dispersion.dm_power_analysis import load_manifest_rows  # noqa: E402
@@ -52,10 +53,9 @@ def write_run_provenance(rows: list[dict], config: dict, config_path: Path,
     import numpy
     import scipy
 
-    data_dir = Path(config["data_dir"]).expanduser()
     inputs = []
     for row in rows:
-        path = data_dir / row["filename"]
+        path = product_path(row, config)
         inputs.append({
             "burst": row["burst"], "telescope": row["telescope"],
             "path": str(path), "bytes": path.stat().st_size,

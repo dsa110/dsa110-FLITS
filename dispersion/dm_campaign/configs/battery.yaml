@@ -1,6 +1,7 @@
 # Phase-1 uniform battery config -- ONE config for every burst and adapter
 # (uniform-methodology constraint: no per-burst or per-instrument tuning).
-data_dir: ~/Data/Faber2026/dsa110/DSA_bursts
+chime_full_root: ~/Data/Faber2026/chimefrb/CHIME_bursts
+dsa_full_root: ~/Data/Faber2026/dsa110/DSA_bursts
 out_dir: results/dm_campaign/battery
 # Downsampling matches the injection-validation geometry (256 ch, ~1k samples)
 # so Phase-0 verdicts transfer to the battery runs.

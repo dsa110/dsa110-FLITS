@@ -81,7 +81,11 @@ Verify: `rclone about gdrive-jakob:` · `rclone lsd gdrive-jakob:Research/`
 |------|------|------|
 | **arc** | `arc:home/jfaber/baseband_morphologies/chime_dsa_codetections/data/DSA_bursts` | CANFAR primary (~2.9G) |
 | **arc** | `.../CHIME_bursts` | Separate namespace from iacobus burst_npys |
-| **jakob-mbp** | `~/Data/Faber2026/dsa110/DSA_bursts` | Offline replica (gap-synced Phase 3; moved from `~/Developer/dsa110-local-data/DSA_bursts` 2026-06-30 — see `DATA_SOURCES.md`) |
+| **jakob-mbp** | `~/Data/Faber2026/chimefrb/CHIME_bursts` | Current CHIME/FRB full-resolution replica |
+| **jakob-mbp** | `~/Data/Faber2026/dsa110/DSA_bursts` | Current DSA-110 full-resolution replica (moved from `~/Developer/dsa110-local-data/DSA_bursts` 2026-06-30) |
+
+Current dual-band producers require both local roots explicitly. They do not
+search for CHIME/FRB products under the DSA-110 root.
 
 ## Compute workspace (h17)
 

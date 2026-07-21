@@ -231,10 +231,10 @@ them to `$COD/results/dsa_scint_npz/`, then `rsync` to
   refetch was needed.
 - vcp fallback landing (historical): `$COD/chime_singlebeam/`.
 
-**Raw intensity spectra (native resolution, used by the SCATTERING pipeline, not scint):**
-`~/Data/Faber2026/dsa110/DSA_bursts/*.npy` — 24 cubes (12 bursts × {chime,dsa}),
-shape `(n_freq, n_time)`, from arc
-`/arc/home/jfaber/baseband_morphologies/chime_dsa_codetections/data/DSA_bursts/`.
+**Intensity spectra (native resolution, used by the scattering pipeline, not scint):**
+12 CHIME/FRB cubes are under `~/Data/Faber2026/chimefrb/CHIME_bursts/`; 12
+DSA-110 cubes are under `~/Data/Faber2026/dsa110/DSA_bursts/`. They have shape
+`(n_freq, n_time)`. Their historical CANFAR namespaces remain recorded below.
 **[verified]** These are *not* up-channelized.
 
 **`$COD/archive/arc_trash_2026-06/`** — cleanup-era holding area. Treat it as

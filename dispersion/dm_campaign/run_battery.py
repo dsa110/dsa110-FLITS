@@ -28,6 +28,7 @@ import numpy as np
 import yaml
 
 from dispersion.dm_campaign.adapters import ADAPTERS
+from dispersion.dm_campaign.adaptive_arrival import product_path
 from dispersion.dm_power_analysis import (
     CHIME_DT_S,
     DSA_DT_S,
@@ -44,7 +45,7 @@ _CFG_PATH = Path(__file__).parent / "configs" / "battery.yaml"
 
 
 def _load_product(row, cfg):
-    path = Path(cfg["data_dir"]).expanduser() / row["filename"]
+    path = product_path(row, cfg)
     if not path.exists():
         return None
     wf = _orient_waterfall_to_ascending_frequency(

@@ -18,8 +18,21 @@ DSA_DT_S = 3.2768e-5
 DSA_FCH1_MHZ = 1498.75
 DSA_FOFF_MHZ = -0.03051757812
 DEFAULT_DM_STEP = 0.05
-DEFAULT_DATA_DIR = Path("~/Data/Faber2026/dsa110/DSA_bursts").expanduser()
+CHIME_FULL_ROOT_DEFAULT = Path("~/Data/Faber2026/chimefrb/CHIME_bursts").expanduser()
+DSA_FULL_ROOT_DEFAULT = Path("~/Data/Faber2026/dsa110/DSA_bursts").expanduser()
 FREQ_DESCENDING_TELESCOPES = frozenset({"chime", "dsa"})
+
+
+def root_for_telescope(
+    telescope: str,
+    chime_full_root: Path,
+    dsa_full_root: Path,
+) -> Path:
+    roots = {"chime": Path(chime_full_root), "dsa": Path(dsa_full_root)}
+    try:
+        return roots[telescope]
+    except KeyError as exc:
+        raise ValueError(f"unknown telescope {telescope!r}") from exc
 
 
 def residual_delay_s(
@@ -320,7 +333,8 @@ def load_manifest_rows(root: Path) -> list[dict[str, Any]]:
 def run_all(
     *,
     root: Path,
-    data_dir: Path,
+    chime_full_root: Path,
+    dsa_full_root: Path,
     output_json: Path,
     figure_dir: Path,
     memo_path: Path,
@@ -344,7 +358,8 @@ def run_all(
     for row in rows:
         result = _measure_manifest_row(
             row,
-            data_dir=data_dir,
+            chime_full_root=chime_full_root,
+            dsa_full_root=dsa_full_root,
             residual_grid=residual_grid,
             n_boot=n_boot,
             max_channels=max_channels,
@@ -362,14 +377,15 @@ def run_all(
 def _measure_manifest_row(
     row: dict[str, Any],
     *,
-    data_dir: Path,
+    chime_full_root: Path,
+    dsa_full_root: Path,
     residual_grid: np.ndarray,
     n_boot: int,
     max_channels: int,
     max_time: int,
 ) -> dict[str, Any]:
-    path = data_dir / row["filename"]
     telescope = row["telescope"]
+    path = root_for_telescope(telescope, chime_full_root, dsa_full_root) / row["filename"]
     burst = row["burst"]
     dm_ref = _dm_ref(row)
     dm_ref_source = _dm_ref_source(row)
@@ -784,7 +800,8 @@ def _write_memo(
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Run DM-power residual fits for co-detections.")
-    parser.add_argument("--data-dir", type=Path, default=DEFAULT_DATA_DIR)
+    parser.add_argument("--chime-full-root", type=Path, default=CHIME_FULL_ROOT_DEFAULT)
+    parser.add_argument("--dsa-full-root", type=Path, default=DSA_FULL_ROOT_DEFAULT)
     parser.add_argument("--output-json", type=Path, default=Path("results/dm_power_results.json"))
     parser.add_argument("--figure-dir", type=Path, default=Path("results/dm_power_figures"))
     parser.add_argument("--memo", type=Path, default=None)
@@ -802,7 +819,8 @@ def main(argv: list[str] | None = None) -> int:
     telescopes = {"chime", "dsa"} if args.telescope == "both" else {args.telescope}
     run_all(
         root=root,
-        data_dir=args.data_dir.expanduser(),
+        chime_full_root=args.chime_full_root.expanduser(),
+        dsa_full_root=args.dsa_full_root.expanduser(),
         output_json=args.output_json,
         figure_dir=args.figure_dir,
         memo_path=memo_path,

@@ -325,7 +325,13 @@ machines:
         migration_action: keep
         migration_target: jakob-mbp
         size_human: 2.8G
-        notes: local replica of arc DSA_bursts for offline fits
+        notes: current DSA-110 full-resolution replica for offline fits; not a CHIME product root
+      - id: local_chime_bursts
+        path: /Users/jakobfaber/Data/Faber2026/chimefrb/CHIME_bursts
+        kind: burst_data
+        migration_action: keep
+        migration_target: jakob-mbp
+        notes: current CHIME/FRB full-resolution replica; separate from the DSA-110 root
       - id: local_flits_runs
         path: /Users/jakobfaber/Data/Faber2026/dsa110/flits-runs
         kind: run_artifacts

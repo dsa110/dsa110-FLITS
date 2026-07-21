@@ -27,6 +27,8 @@ __all__ = [
     "center_bands_at_peak",
     "chime_toa_shift_ms",
     "crop_bands_to_subburst_window",
+    "default_chime_full_root",
+    "default_dsa_full_root",
     "load_codetection_bands",
     "on_pulse_window",
     "subburst_time_window",
@@ -63,31 +65,41 @@ def _t_factor(telescope: str) -> int:
     return max(1, int(round(_TARGET_DT_MS / dt_raw)))
 
 
-def default_data_dir() -> Path:
-    env = os.environ.get("FLITS_DATA")
-    if env:
-        p = Path(env)
-        return p if p.name == "DSA_bursts" else p / "DSA_bursts"
-    home = Path.home()
-    for candidate in (
-        home / "Data/Faber2026/dsa110/DSA_bursts",
-        home / "Developer/dsa110-local-data/DSA_bursts",
-    ):
-        if candidate.is_dir():
-            return candidate
-    raise FileNotFoundError(
-        "Set FLITS_DATA to the DSA_bursts directory (CHIME+DSA .npy cubes)."
+def _default_full_root(env_name: str, default: Path, label: str) -> Path:
+    root = Path(os.environ.get(env_name, default)).expanduser()
+    if root.is_dir():
+        return root
+    raise FileNotFoundError(f"Set {env_name} to the {label} full-resolution directory.")
+
+
+def default_chime_full_root() -> Path:
+    return _default_full_root(
+        "FLITS_CHIME_FULL_ROOT",
+        Path.home() / "Data/Faber2026/chimefrb/CHIME_bursts",
+        "CHIME/FRB",
     )
 
 
-def burst_cube_paths(data_dir: Path, burst: str) -> tuple[Path, Path]:
+def default_dsa_full_root() -> Path:
+    return _default_full_root(
+        "FLITS_DSA_FULL_ROOT",
+        Path.home() / "Data/Faber2026/dsa110/DSA_bursts",
+        "DSA-110",
+    )
+
+
+def burst_cube_paths(
+    chime_full_root: Path,
+    dsa_full_root: Path,
+    burst: str,
+) -> tuple[Path, Path]:
     """Return (chime_npy, dsa_npy) for a nickname."""
-    chime = sorted(data_dir.glob(f"{burst}_chime_I_*.npy"))
-    dsa = sorted(data_dir.glob(f"{burst}_dsa_I_*.npy"))
+    chime = sorted(chime_full_root.glob(f"{burst}_chime_I_*.npy"))
+    dsa = sorted(dsa_full_root.glob(f"{burst}_dsa_I_*.npy"))
     if not chime:
-        raise FileNotFoundError(f"no CHIME cube for {burst} under {data_dir}")
+        raise FileNotFoundError(f"no CHIME cube for {burst} under {chime_full_root}")
     if not dsa:
-        raise FileNotFoundError(f"no DSA cube for {burst} under {data_dir}")
+        raise FileNotFoundError(f"no DSA cube for {burst} under {dsa_full_root}")
     return chime[0], dsa[0]
 
 
@@ -295,8 +307,9 @@ def center_bands_at_peak(
 
 def load_codetection_bands(
     burst: str,
-    data_dir: Path | None = None,
     *,
+    chime_full_root: Path | None = None,
+    dsa_full_root: Path | None = None,
     cache_dir: Path | None = None,
     align_toa: bool = True,
     center_time: bool = True,
@@ -305,11 +318,12 @@ def load_codetection_bands(
     """Raw CHIME + DSA bands on a shared frequency axis (TOA-aligned)."""
     from .codetection_joint import crop_band_dict
 
-    data_dir = data_dir or default_data_dir()
-    cache_dir = cache_dir or (data_dir.parent / ".codetection_cache" / burst)
+    chime_full_root = chime_full_root or default_chime_full_root()
+    dsa_full_root = dsa_full_root or default_dsa_full_root()
+    cache_dir = cache_dir or (dsa_full_root.parent / ".codetection_cache" / burst)
     cache_dir.mkdir(parents=True, exist_ok=True)
 
-    chime_fp, dsa_fp = burst_cube_paths(data_dir, burst)
+    chime_fp, dsa_fp = burst_cube_paths(chime_full_root, dsa_full_root, burst)
     dsa = _load_dataset(dsa_fp, telescope="dsa", name=f"{burst}_dsa", outdir=cache_dir)
     chime = _load_dataset(chime_fp, telescope="chime", name=f"{burst}_chime", outdir=cache_dir)
 

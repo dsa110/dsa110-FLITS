@@ -24,6 +24,7 @@ from dispersion.dm_power_analysis import (
     _downsample_for_fit,
     _freq_grid_mhz,
     _orient_waterfall_to_ascending_frequency,
+    root_for_telescope,
 )
 
 
@@ -46,9 +47,18 @@ def resolution_grid(config: dict) -> list[dict]:
     ]
 
 
+def product_path(row: dict, config: dict) -> Path:
+    root = root_for_telescope(
+        row["telescope"],
+        Path(config["chime_full_root"]).expanduser(),
+        Path(config["dsa_full_root"]).expanduser(),
+    )
+    return root / row["filename"]
+
+
 def evaluate_product(row: dict, config: dict) -> list[dict]:
     """Run the uniform adaptive grid on one product."""
-    path = Path(config["data_dir"]).expanduser() / row["filename"]
+    path = product_path(row, config)
     if not path.exists():
         return []
     telescope = row["telescope"]

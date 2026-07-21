@@ -19,7 +19,10 @@ CANFAR / OVRO lxd where this is mounted):
 /arc/home/jfaber/baseband_morphologies/chime_dsa_codetections/data/DSA_bursts/
 ```
 
-The 24 expected files (12 CHIME + 12 DSA) and their DMs are listed in
+The historical CANFAR layout placed both bands in this namespace. Current local
+fits use separate roots: `~/Data/Faber2026/chimefrb/CHIME_bursts/` for the 12
+CHIME/FRB products and `~/Data/Faber2026/dsa110/DSA_bursts/` for the 12 DSA-110
+products. The 24 expected files and their DMs are listed in
 [`data-manifest.csv`](data-manifest.csv). Fill `sha256`/`bytes` once the data is
 reachable with `scattering/scripts/fill_data_manifest.sh` (see below); commit the
 filled manifest for reproducibility + corruption detection.
@@ -62,10 +65,9 @@ export DATA_DIR=~/Data/Faber2026/dsa110/DSA_bursts
 ```
 
 **Moved 2026-06-30** from `~/Developer/dsa110-local-data/DSA_bursts/` to
-`~/Data/Faber2026/dsa110/DSA_bursts/` (the machine-wide canonical location for
-Faber2026 project data). `data/dsa/` and `data/chime/` in this repo, and
-`overleaf/Faber2026/pipeline/data/{dsa,chime}/`, are now symlinks into that
-location — no code changes needed, relative paths still resolve.
+`~/Data/Faber2026/dsa110/DSA_bursts/`. This relocation record applies to the
+DSA-110 products only. Current CHIME/FRB products live separately at
+`~/Data/Faber2026/chimefrb/CHIME_bursts/`; current code must name both roots.
 
 Keep any local replica **out of git** (`*.npy` is already ignored; a top-level
 `/Data/Faber2026/dsa110/` or `/data/` replica stays untracked). Do **not** use
@@ -90,7 +92,8 @@ Surfaced while building the manifest. CHIME configs are clean; DSA needs care:
 - **OPEN: stored scintillation does not reproduce from the current arc files +
   committed joint fits** (investigated 2026-06-22; root cause NOT yet isolated —
   do not trust a one-line explanation). All 24 arc spectra were fetched to
-  `~/Data/Faber2026/dsa110/DSA_bursts/` (formerly `~/Developer/dsa110-local-data/DSA_bursts/`, moved 2026-06-30) and load with correct shapes
+  their current split roots (DSA-110 under `~/Data/Faber2026/dsa110/DSA_bursts/`;
+  CHIME/FRB under `~/Data/Faber2026/chimefrb/CHIME_bursts/`) and load with correct shapes
   (DSA `(6144, 2500)`, CHIME `(1024, 32000)`). Re-running the scint chain
   (`gain_ladder.py` → `multiscale_fit.py`) on those files using the committed
   `joint_json/*_joint_fit.json` reproduces the stored Δν for **freya CHIME**

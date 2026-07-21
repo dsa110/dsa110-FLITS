@@ -8,6 +8,7 @@ from dispersion.dm_campaign.adaptive_arrival import (
     combine_event_measurements,
     evaluate_waterfall,
     product_dm_from_filename,
+    product_path,
     select_stable_candidate,
 )
 from dispersion.dm_campaign.injection import standard_bright_case
@@ -29,6 +30,17 @@ def _candidate(dm, sigma, *, time_factor, n_subband, n_good=4):
 
 def test_product_dm_comes_from_actual_dedispersion_filename():
     assert product_dm_from_filename("chromatica_dsa_I_272_368_2500b_cntr_bpc.npy") == 272.368
+
+
+def test_product_path_uses_telescope_specific_root(tmp_path):
+    config = {
+        "chime_full_root": str(tmp_path / "chime"),
+        "dsa_full_root": str(tmp_path / "dsa"),
+    }
+    assert product_path({"telescope": "chime", "filename": "c.npy"}, config) == tmp_path / "chime/c.npy"
+    assert product_path({"telescope": "dsa", "filename": "d.npy"}, config) == tmp_path / "dsa/d.npy"
+    with pytest.raises(ValueError, match="unknown telescope"):
+        product_path({"telescope": "other", "filename": "x.npy"}, config)
 
 
 def test_provenance_hashes_file_bytes(tmp_path):

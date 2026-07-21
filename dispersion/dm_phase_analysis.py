@@ -11,8 +11,9 @@ import numpy as np
 
 from dispersion.dm_power_analysis import (
     CHIME_DT_S,
-    DEFAULT_DATA_DIR,
+    CHIME_FULL_ROOT_DEFAULT,
     DEFAULT_DM_STEP,
+    DSA_FULL_ROOT_DEFAULT,
     DSA_DT_S,
     _dm_ref,
     _dm_ref_source,
@@ -21,6 +22,7 @@ from dispersion.dm_power_analysis import (
     _freq_grid_source,
     _orient_waterfall_to_ascending_frequency,
     load_manifest_rows,
+    root_for_telescope,
     shift_waterfall_residual_dm,
 )
 from dispersion.dmphasev2 import DMPhaseEstimator, dmphase_trial_to_physical_residual_dm
@@ -113,7 +115,8 @@ def measure_dm_phase(
 def run_all(
     *,
     root: Path,
-    data_dir: Path,
+    chime_full_root: Path,
+    dsa_full_root: Path,
     output_json: Path,
     figure_dir: Path,
     sheet_path: Path,
@@ -138,7 +141,8 @@ def run_all(
     for row in rows:
         result = _measure_manifest_row(
             row,
-            data_dir=data_dir,
+            chime_full_root=chime_full_root,
+            dsa_full_root=dsa_full_root,
             residual_grid=residual_grid,
             f_cut_hz=f_cut_hz,
             n_boot=n_boot,
@@ -158,14 +162,15 @@ def run_all(
 def _measure_manifest_row(
     row: dict[str, Any],
     *,
-    data_dir: Path,
+    chime_full_root: Path,
+    dsa_full_root: Path,
     residual_grid: np.ndarray,
     f_cut_hz: tuple[float, float],
     n_boot: int,
     max_time: int,
 ) -> dict[str, Any]:
-    path = data_dir / row["filename"]
     telescope = row["telescope"]
+    path = root_for_telescope(telescope, chime_full_root, dsa_full_root) / row["filename"]
     burst = row["burst"]
     dm_ref = _dm_ref(row)
     if not path.exists():
@@ -524,7 +529,8 @@ def _stable_seed(burst: str, telescope: str) -> int:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[1])
-    parser.add_argument("--data-dir", type=Path, default=DEFAULT_DATA_DIR)
+    parser.add_argument("--chime-full-root", type=Path, default=CHIME_FULL_ROOT_DEFAULT)
+    parser.add_argument("--dsa-full-root", type=Path, default=DSA_FULL_ROOT_DEFAULT)
     parser.add_argument("--output-json", type=Path, default=Path("results/dm_phase_results.json"))
     parser.add_argument("--figure-dir", type=Path, default=Path("results/dm_phase_figures"))
     parser.add_argument("--sheet", type=Path, default=Path("results/dm_phase_contact_sheet.png"))
@@ -543,7 +549,8 @@ def main(argv: list[str] | None = None) -> int:
     bursts = set(args.burst) if args.burst else None
     run_all(
         root=args.root,
-        data_dir=args.data_dir,
+        chime_full_root=args.chime_full_root.expanduser(),
+        dsa_full_root=args.dsa_full_root.expanduser(),
         output_json=args.output_json,
         figure_dir=args.figure_dir,
         sheet_path=args.sheet,

@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-from astropy.cosmology import Planck18
-from astropy.cosmology.core import Cosmology
+from astropy.cosmology import Cosmology, Planck18
 
 from .domain import Sightline
 from .io import read_targets_yaml as load_targets

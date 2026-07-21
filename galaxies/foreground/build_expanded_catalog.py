@@ -12,7 +12,6 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
-from astropy.cosmology import Planck18
 
 from galaxies.foreground.census_registry import (
     load_adjudicated_masses,
@@ -155,7 +154,6 @@ def build_frame() -> tuple[pd.DataFrame, dict[str, Any]]:
     snapshots = _load_snapshots()
     indices = {name: _query_index(payload) for name, payload in snapshots.items()}
     masses, _ = _mass_authority()
-    h = float(Planck18.H0.value / 100.0)
     records: list[dict[str, Any]] = []
     for idx, row in registry.reset_index(drop=True).iterrows():
         record = {
@@ -214,7 +212,7 @@ def build_frame() -> tuple[pd.DataFrame, dict[str, Any]]:
         )
         record["cluver14_log_mstar"] = None
         record["cluver14_log_mstar_err"] = None
-        record["cluver14_method"] = "Cluver14_Eq1"
+        record["cluver14_method"] = "Cluver14_Eq2"
         record["cluver14_units"] = "dex(log10_Msun)"
         record["cluver14_authority"] = "diagnostic_only"
         record["cluver14_status"] = "not_rest_frame"
@@ -273,7 +271,7 @@ def build_frame() -> tuple[pd.DataFrame, dict[str, Any]]:
                 log_mstar, source = authority
                 m200 = mstar_to_mhalo(10.0**log_mstar, float(row.best_z))
                 r200 = m200c_to_r200c(m200, float(row.best_z))
-                c200 = dutton_maccio14_c200c(m200, float(row.best_z), h)
+                c200 = dutton_maccio14_c200c(m200, float(row.best_z))
                 record.update(
                     {
                         "adopted_log_mstar": log_mstar,

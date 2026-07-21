@@ -124,13 +124,13 @@ def cluver14_log_mstar(
     w2_error: float | None = None,
     distance_modulus_error: float | None = None,
 ) -> DerivedValue:
-    """Cluver et al. (2014) Equation 1 diagnostic stellar mass.
+    """Cluver et al. (2014) Equation 2 diagnostic stellar mass.
 
     The returned uncertainty propagates the supplied independent measurement
     errors. The paper-relation intrinsic scatter is not silently invented; it
     remains outside this measurement-only error and is named in ``method``.
     """
-    method = "Cluver14_Eq1_measurement_error_only"
+    method = "Cluver14_Eq2_measurement_error_only"
     base = dict(method=method, units="dex(log10_Msun)", authority="diagnostic")
     values = (w1, w2, distance_modulus)
     if not rest_frame:
@@ -180,14 +180,18 @@ def rho_critical_msun_kpc3(z: float) -> float:
     return float(Planck18.critical_density(float(z)).to_value(u.Msun / u.kpc**3))
 
 
-def dutton_maccio14_c200c(m200c_msun: float, z: float, h: float) -> float:
-    """Dutton & Macciò (2014) Planck ``c200c`` redshift evolution."""
-    if not all(np.isfinite(v) and float(v) > 0 for v in (m200c_msun, h)):
-        raise ValueError("mass and h must be positive and finite")
+def dutton_maccio14_c200c(m200c_msun: float, z: float) -> float:
+    """Dutton & Macciò (2014) Planck ``c200c`` redshift evolution.
+
+    Their published Planck calibration fixes ``h=0.671``. This is a fit
+    parameter, not the cosmology used to evaluate ``rho_critical(z)``.
+    """
+    if not np.isfinite(m200c_msun) or float(m200c_msun) <= 0:
+        raise ValueError("mass must be positive and finite")
     if not np.isfinite(z) or float(z) < 0:
         raise ValueError("z must be non-negative and finite")
     zf = float(z)
     b = -0.101 + 0.026 * zf
     a = 0.520 + (0.905 - 0.520) * np.exp(-0.617 * zf**1.21)
-    log_c = a + b * np.log10(float(m200c_msun) * float(h) / 1.0e12)
+    log_c = a + b * np.log10(float(m200c_msun) * 0.671 / 1.0e12)
     return float(10.0**log_c)

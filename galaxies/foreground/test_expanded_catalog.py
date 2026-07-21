@@ -52,7 +52,7 @@ def test_match_states_distinguish_empty_ambiguous_and_query_error() -> None:
     assert select_match(rows, (10.0, 20.0), 3.0, 0.05).status == "ambiguous"
 
 
-def test_cluver_equation_one_and_uncertainty() -> None:
+def test_cluver_equation_two_and_uncertainty() -> None:
     result = cluver14_log_mstar(
         15.0,
         14.8,
@@ -99,15 +99,15 @@ def test_r200c_enclosed_mass_identity() -> None:
 
 
 def test_moster_published_reference_case() -> None:
-    assert np.log10(mstar_to_mhalo(1.0e10, 0.2)) == pytest.approx(11.5997073, abs=1e-6)
+    assert np.log10(mstar_to_mhalo(1.0e10, 0.2)) == pytest.approx(11.5997072638, abs=1e-9)
 
 
 def test_dutton_maccio_published_parameterization() -> None:
-    mass, z, h = 1.0e12, 0.5, 0.6774
+    mass, z, h = 1.0e12, 0.5, 0.671
     a = 0.520 + (0.905 - 0.520) * np.exp(-0.617 * z**1.21)
     b = -0.101 + 0.026 * z
     expected = 10.0 ** (a + b * np.log10(mass * h / 1.0e12))
-    assert dutton_maccio14_c200c(mass, z, h) == pytest.approx(expected, rel=1e-12)
+    assert dutton_maccio14_c200c(mass, z) == pytest.approx(expected, rel=1e-12)
 
 
 def test_built_catalog_schema_and_registry_authority() -> None:

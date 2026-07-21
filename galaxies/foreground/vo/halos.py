@@ -74,7 +74,9 @@ def mstar_to_mhalo(mstar: float, z: float) -> float:
         sm_over_mh = 2.0 * N / (ratio**-beta + ratio**gamma)
         return (10.0**log_mh) * sm_over_mh - mstar
 
-    return 10.0 ** brentq(residual, 9.5, 16.0, xtol=1e-4)
+    # The expanded-catalog release contract independently checks the inversion
+    # to 1e-6 dex. Keep the solver floor well below that scientific tolerance.
+    return 10.0 ** brentq(residual, 9.5, 16.0, xtol=1e-10)
 
 
 @dataclass(frozen=True)

@@ -59,8 +59,8 @@ CHIME_COARSE_DF_MHZ = 0.390625  # CHIME coarse channel width (400 MHz / 1024)
 CHIME_NATIVE_DT_S = 2.56e-6  # CHIME single-pol baseband sample time
 
 ARC_VOS_ROOT = "arc:projects/chime_frb/data/chime/baseband/processed"  # vcp source (CADC vos URI)
-# All 12 singlebeam .h5 are already staged on h17 here -> use in place, no vcp / no arc dependency.
-LOCAL_H5_DIR = "/data/research/astrophysics/frbs/chime-dsa-codetections/chime_singlebeam"
+# All 12 singlebeam .h5 are staged by project ID on h17 -> use in place, no vcp / no arc dependency.
+LOCAL_H5_DIR = "/data/Faber2026/data/chime-frb"
 DEFAULT_SCRATCH = (
     "/data/jfaber/chime_singlebeam"  # vcp fallback landing if a file is NOT pre-staged
 )
@@ -204,13 +204,17 @@ def _sha256(path: str | Path) -> str:
     return digest.hexdigest()
 
 
-def _fetch_h5(relpath: str, scratch: str) -> str:
+def _local_h5_path(name: str, relpath: str) -> Path:
+    """Return the canonical h17 path for one project's staged singlebeam file."""
+    return Path(LOCAL_H5_DIR) / name / Path(relpath).name
+
+
+def _fetch_h5(name: str, relpath: str, scratch: str) -> str:
     """Locate the singlebeam .h5: prefer the h17 pre-staged copy; vcp from arc only if absent."""
-    name = Path(relpath).name
-    local = Path(LOCAL_H5_DIR) / name
+    local = _local_h5_path(name, relpath)
     if local.exists():
         return str(local)
-    dst = Path(scratch) / name
+    dst = Path(scratch) / Path(relpath).name
     if not dst.exists():
         dst.parent.mkdir(parents=True, exist_ok=True)
         subprocess.run(["vcp", f"{ARC_VOS_ROOT}/{relpath}", str(dst)], check=True)
@@ -338,7 +342,7 @@ def recover_target(
             f"Re-run with --run-unresolvable to produce a lower-confidence upper-bound spectrum."
         )
 
-    h5_path = _fetch_h5(t["h5_relpath"], scratch)
+    h5_path = _fetch_h5(name, t["h5_relpath"], scratch)
     U = t["upchan"]
     stokes_i, per_pol, freq, source_metadata, channelizer_metadata = _waterfall(
         h5_path,

@@ -51,8 +51,10 @@ print(res["percentiles"]["alpha"], res["percentiles"]["tau_1ghz"])
 
 from __future__ import annotations
 
+import hashlib
+import json
 import logging
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import replace
 from typing import Any
 
@@ -68,6 +70,20 @@ from .turbulence import (
 
 log = logging.getLogger(__name__)
 
+
+def _scientific_array_identity(array: NDArray) -> dict[str, Any]:
+    canonical = np.ascontiguousarray(array)
+    digest = hashlib.sha256()
+    digest.update(canonical.dtype.str.encode("ascii"))
+    digest.update(json.dumps(canonical.shape).encode("ascii"))
+    digest.update(canonical.tobytes())
+    return {
+        "shape": list(canonical.shape),
+        "dtype": canonical.dtype.str,
+        "sha256": digest.hexdigest(),
+    }
+
+
 __all__ = [
     "fit_joint_scattering",
     "JOINT_PARAM_NAMES",
@@ -76,6 +92,7 @@ __all__ = [
     "JOINT_PARAM_NAMES_GAIN_MULTI",
     "JOINT_PARAM_NAMES_GAIN_SHARED_ZETA",
     "_gain_marginal_multi_band",
+    "gain_marginal_multi_band_solution",
 ]
 
 # Joint 12-vector layout. First two are the shared sightline params; the rest
@@ -192,13 +209,13 @@ def JOINT_PARAM_NAMES_GAIN_MULTI(n_C: int = 1, n_D: int = 1) -> tuple[str, ...]:
     return tuple(names)
 
 
-def _gain_marginal_multi_band(
+def _gain_marginal_multi_band_impl(
     model: FRBModel,
     params_list: Sequence[FRBParams],
     model_keys: Sequence[str],
     s2: float | None = None,
     eig_rel_floor: float = 1e-6,
-) -> tuple[float, dict[str, Any]]:
+) -> tuple[float, dict[str, Any], NDArray[np.floating]]:
     """Per-channel linear-Gaussian gain-marginal evidence for ONE band.
 
     N temporal component kernels K_1..K_N per channel f; the per-component gains
@@ -245,12 +262,16 @@ def _gain_marginal_multi_band(
         raise RuntimeError("need data + noise_std")
     valid = model.valid
     if valid is None or not np.any(valid):
-        return -np.inf, {"frac_culled": 1.0, "max_abs_g": None, "s2": s2, "n_supported": 0}
+        return (
+            -np.inf,
+            {"frac_culled": 1.0, "max_abs_g": None, "s2": s2, "n_supported": 0},
+            np.empty((0, len(params_list))),
+        )
 
     Ks = np.stack(
         [
             model(replace(p, c0=1.0, gamma=0.0), mk, freq_subset=valid)
-            for p, mk in zip(params_list, model_keys)
+            for p, mk in zip(params_list, model_keys, strict=True)
         ]
     )  # (N, F, T)
     N, F, T = Ks.shape
@@ -365,7 +386,43 @@ def _gain_marginal_multi_band(
         "s2": s2_used,
         "n_supported": int(np.count_nonzero(ok)),
     }
-    return (lnZ if np.isfinite(lnZ) else -np.inf), diag
+    return (lnZ if np.isfinite(lnZ) else -np.inf), diag, g_all
+
+
+def _gain_marginal_multi_band(
+    model: FRBModel,
+    params_list: Sequence[FRBParams],
+    model_keys: Sequence[str],
+    s2: float | None = None,
+    eig_rel_floor: float = 1e-6,
+) -> tuple[float, dict[str, Any]]:
+    """Return proper-prior gain-marginal evidence and diagnostics for one band."""
+    evidence, diagnostics, _ = _gain_marginal_multi_band_impl(
+        model,
+        params_list,
+        model_keys,
+        s2=s2,
+        eig_rel_floor=eig_rel_floor,
+    )
+    return evidence, diagnostics
+
+
+def gain_marginal_multi_band_solution(
+    model: FRBModel,
+    params_list: Sequence[FRBParams],
+    model_keys: Sequence[str],
+    s2: float | None = None,
+    eig_rel_floor: float = 1e-6,
+) -> tuple[NDArray[np.floating], dict[str, Any]]:
+    """Return the exact maximum-posterior gains used by the multi-component likelihood."""
+    _, diagnostics, gains = _gain_marginal_multi_band_impl(
+        model,
+        params_list,
+        model_keys,
+        s2=s2,
+        eig_rel_floor=eig_rel_floor,
+    )
+    return gains, diagnostics
 
 
 def _dnu_d_bounds(freq_GHz: NDArray[np.floating]) -> tuple[float, float]:
@@ -948,6 +1005,8 @@ def fit_joint_scattering(
     force_multi: bool = False,
     fixed_delta_dm_C: float | None = None,
     fixed_delta_dm_D: float | None = None,
+    seed: int | None = None,
+    resolved_identity_callback: Callable[[dict[str, Any]], None] | None = None,
     **dynesty_kwargs,
 ) -> dict[str, Any]:
     """Run the joint CHIME+DSA nested fit; return posterior summary.
@@ -971,6 +1030,13 @@ def fit_joint_scattering(
         Gaussian gain prior used by the multi-component evidence kernel. Passing
         ``gain_s2`` also enables this path; keep ``gain_s2`` fixed when comparing
         evidence across component counts.
+    seed
+        Explicit random seed for dynesty. Controlled fits must provide one;
+        legacy callers may leave it unset.
+    resolved_identity_callback
+        Called after likelihood, priors, support, and ordered-component floors
+        are resolved but before the sampler is constructed. Controlled runners
+        use it to verify and record the exact fit identity.
 
     Returns
     -------
@@ -1066,6 +1132,47 @@ def fit_joint_scattering(
     ndim = len(spec)
     if ptform is None:
         ptform = _JointPriorTransform(spec)
+    if resolved_identity_callback is not None:
+        support = {}
+        for band, model in (("C", model_C), ("D", model_D)):
+            support[band] = {
+                "arrays": {
+                    name: _scientific_array_identity(np.asarray(getattr(model, name)))
+                    for name in ("time", "freq", "data", "noise_std", "valid")
+                },
+                "model_metadata": {
+                    "dm_init": float(model.dm_init),
+                    "df_MHz": float(model.df_MHz),
+                    "dispersion_beta": float(model.beta),
+                },
+            }
+        resolved_identity_callback(
+            {
+                "likelihood_class": type(loglike).__name__,
+                "parameter_names": list(names),
+                "fixed_parameters": fixed_parameters,
+                "prior_spec": [
+                    {
+                        "name": name,
+                        "lower": float(bounds[0]),
+                        "upper": float(bounds[1]),
+                        "log_uniform": bool(is_log),
+                    }
+                    for name, bounds, is_log in spec
+                ],
+                "ordered_component_minimum_separation_ms": (
+                    list(ptform.dt_min) if isinstance(ptform, _JointPriorTransformOrdered) else None
+                ),
+                "processed_support": support,
+                "sampler": {
+                    "nlive": int(nlive),
+                    "dlogz": float(dlogz),
+                    "sample": sample,
+                    "nproc": int(nproc) if nproc is not None else None,
+                    "seed": int(seed) if seed is not None else None,
+                },
+            }
+        )
     if ndim >= 12 and nlive < 800:
         log.info(
             f"Joint multi-component fit ndim={ndim} >= 12: recommend "
@@ -1086,6 +1193,10 @@ def fit_joint_scattering(
     maxcall = dynesty_kwargs.pop("maxcall", None)
     if maxcall is not None:
         run_kwargs["maxcall"] = int(maxcall)
+    if seed is not None:
+        if "rstate" in dynesty_kwargs:
+            raise ValueError("pass seed or rstate, not both")
+        dynesty_kwargs["rstate"] = np.random.default_rng(int(seed))
 
     if nproc is not None and nproc > 1:
         # fork so workers inherit memory instead of re-importing __main__ (spawn
@@ -1142,9 +1253,14 @@ def fit_joint_scattering(
         "log_evidence_err": float(results.logzerr[-1]),
         "samples": results.samples,
         "weights": weights,
+        "log_weight": np.asarray(results.logwt),
+        "log_evidence_history": np.asarray(results.logz),
+        "log_evidence_error_history": np.asarray(results.logzerr),
+        "ncall_history": np.asarray(results.ncall),
         "beta_bounds": tuple(beta_bounds),
         "alpha_bounds": alpha_bounds_out,
         "ncall": int(np.sum(results.ncall)),  # dynesty .ncall is per-iteration, sum for total
+        "seed": int(seed) if seed is not None else None,
     }
 
 

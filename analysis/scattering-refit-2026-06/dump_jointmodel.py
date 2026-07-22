@@ -14,7 +14,6 @@ script from git history.
 import json
 import os
 import sys
-from dataclasses import replace
 
 import numpy as np
 import yaml
@@ -23,11 +22,10 @@ REPO = os.environ.get("FLITS_REPO", "/home/jfaber/flits/dsa110-FLITS")
 RUNS = os.environ.get("FLITS_RUNS", "/central/scratch/jfaber/flits-runs")
 sys.path.insert(0, f"{REPO}/scattering")
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))  # so joint_tf_prep imports
-from scat_analysis.burstfit import FRBParams
-from scat_analysis.config_utils import load_telescope_block
-from scat_analysis.pipeline.io import BurstDataset
-
 import joint_tf_prep
+from scat_analysis.config_utils import load_telescope_block
+from scat_analysis.joint_model_grid import build_model_grid_arrays
+from scat_analysis.pipeline.io import BurstDataset
 
 
 def prepare(cfg_path, name, outdir):
@@ -49,57 +47,6 @@ def prepare(cfg_path, name, outdir):
     return m
 
 
-def recover(model, params_list):
-    Ks = np.stack([model(replace(p, c0=1.0, gamma=0.0), "M3") for p in params_list])  # (N,F,T)
-    d = np.asarray(model.data, float)
-    sig = np.clip(np.asarray(model.noise_std, float).reshape(-1), 1e-9, None)
-    M = np.einsum("nft,mft->fnm", Ks, Ks)
-    b = np.einsum("nft,ft->fn", Ks, d)
-    N = len(params_list)
-    jit = 1e-9 * max(float(np.einsum("fnn->f", M).mean()), 1e-30)
-    g = np.linalg.solve(M + jit * np.eye(N), b[..., None])[..., 0]
-    mod = np.einsum("fn,nft->ft", g, Ks)
-    valid = model.valid
-    v = np.ones(d.shape[0], bool) if valid is None else np.asarray(valid).reshape(-1).astype(bool)
-    r = ((d - mod) / sig[:, None])[v]
-    r = r[np.isfinite(r)]
-    chi2 = float(np.sum(r**2)) / max(int(r.size) - 7, 1)
-    # Per-component integrated flux (valid channels only): weight for the
-    # fluence-weighted TOA centroid. Negative-gain channels are physical noise
-    # excursions of the OLS solve, not real emission, so clip at 0 before summing.
-    gval = np.where(v[:, None], g, 0.0)
-    fluence = np.einsum("fn,nft->n", np.clip(gval, 0.0, None), Ks)
-    return dict(
-        data=d,
-        model=mod,
-        freq=np.asarray(model.freq, float),
-        time=np.asarray(model.time, float),
-        noise=sig,
-        valid=v,
-        fluence=np.asarray(fluence, float),
-    ), chi2
-
-
-def band_params(p, X, n, tau, beta):
-    ddm = float(p.get(f"delta_dm_{X}", 0.0))
-    out = []
-    for i in range(1, n + 1):
-        t0 = p.get(f"t0_{X}{i}", p.get(f"t0_{X}"))
-        ze = p.get(f"zeta_{X}{i}", p.get(f"zeta_{X}"))
-        out.append(
-            FRBParams(
-                c0=1.0,
-                t0=float(t0),
-                gamma=0.0,
-                zeta=float(ze),
-                tau_1ghz=tau,
-                beta=beta,
-                delta_dm=ddm,
-            )
-        )
-    return out
-
-
 def main():
     b = sys.argv[1]
     suf = sys.argv[2] if len(sys.argv) > 2 else ""
@@ -111,9 +58,7 @@ def main():
             f"{b}{suf}: no beta percentile -- alpha-era JSON; use the "
             "alpha-era dump_jointmodel.py from git history"
         )
-    tau, beta = p["tau_1ghz"], p["beta"]
-    al = d["alpha"]["median"]
-    nC, nD = int(d.get("components_C", 1)), int(d.get("components_D", 1))
+    tau = p["tau_1ghz"]
     cC = f"{RUNS}/configs/{b}_chime_run.yaml"
     cD = f"{RUNS}/configs/{b}_dsa_run.yaml"
     if joint_tf_prep._env_auto():
@@ -126,63 +71,14 @@ def main():
     else:
         mC = prepare(cC, f"{b}_chime", out)
         mD = prepare(cD, f"{b}_dsa", out)
-    if d.get("shared_zeta"):
-        zC = p["zeta_1ghz"] * np.asarray(mC.freq, float) ** p["x_zeta"]
-        zD = p["zeta_1ghz"] * np.asarray(mD.freq, float) ** p["x_zeta"]
-        psC = [
-            FRBParams(
-                c0=1.0,
-                t0=p["t0_C"],
-                gamma=0.0,
-                zeta=zC,
-                tau_1ghz=tau,
-                beta=beta,
-                delta_dm=p["delta_dm_C"],
-            )
-        ]
-        psD = [
-            FRBParams(
-                c0=1.0,
-                t0=p["t0_D"],
-                gamma=0.0,
-                zeta=zD,
-                tau_1ghz=tau,
-                beta=beta,
-                delta_dm=p["delta_dm_D"],
-            )
-        ]
-    else:
-        psC = band_params(p, "C", nC, tau, beta)
-        psD = band_params(p, "D", nD, tau, beta)
-    C, chiC = recover(mC, psC)
-    D, chiD = recover(mD, psD)
+    arrays = build_model_grid_arrays(mC, mD, d)
     fp = f"{out}/{b}_jointmodel{suf}.npz"
-    np.savez_compressed(
-        fp,
-        dataC=C["data"],
-        modelC=C["model"],
-        freqC=C["freq"],
-        timeC=C["time"],
-        noiseC=C["noise"],
-        validC=C["valid"],
-        dataD=D["data"],
-        modelD=D["model"],
-        freqD=D["freq"],
-        timeD=D["time"],
-        noiseD=D["noise"],
-        validD=D["valid"],
-        alpha=al,
-        beta=beta,
-        tau_1ghz=tau,
-        chi2C=chiC,
-        chi2D=chiD,
-        nC=nC,
-        nD=nD,
-        fluenceC=C["fluence"],
-        fluenceD=D["fluence"],
-        burst=b,
+    np.savez_compressed(fp, **arrays)
+    print(
+        f"{b}: wrote {fp}  alpha={arrays['alpha']:.3f} tau={tau:.4f} "
+        f"residual mean-square C={arrays['residual_mean_squareC']:.2f} "
+        f"D={arrays['residual_mean_squareD']:.2f}"
     )
-    print(f"{b}: wrote {fp}  alpha={al:.3f} tau={tau:.4f} chiC={chiC:.2f} chiD={chiD:.2f}")
 
 
 if __name__ == "__main__":

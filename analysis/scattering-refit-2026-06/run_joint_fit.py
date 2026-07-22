@@ -17,22 +17,35 @@ import argparse
 import json
 import os
 import sys
+from pathlib import Path
 
 REPO = os.environ.get("FLITS_REPO", "/home/jfaber/flits/dsa110-FLITS")
 RUNS = os.environ.get("FLITS_RUNS", "/central/scratch/jfaber/flits-runs")
 sys.path.insert(0, f"{REPO}/scattering")  # so `scat_analysis` imports
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))  # so joint_tf_prep imports
 
+import joint_tf_prep
 import numpy as np
+import scat_analysis.burstfit_joint as burstfit_joint_module
+import scat_analysis.controlled_run as controlled_run_module
+import scat_analysis.joint_fit_diagnostics as diagnostics_module
+import scat_analysis.joint_model_grid as model_grid_module
 import yaml
 from scat_analysis.burstfit import FRBParams
 from scat_analysis.burstfit_init import data_driven_initial_guess
 from scat_analysis.burstfit_joint import fit_joint_scattering
 from scat_analysis.config_utils import load_telescope_block
+from scat_analysis.controlled_run import (
+    DEPRECATED_ZACH_GUARDS,
+    ControlledRunError,
+    finalize_receipt,
+    identity_sha256,
+    preflight,
+    processing_environment_identity,
+    reverify_preflight,
+)
 from scat_analysis.pipeline.io import BurstDataset
 from scat_analysis.pipeline.optimization import refine_initial_guess_mle
-
-import joint_tf_prep
 
 
 def prepare(cfg_path, name, outdir):
@@ -92,11 +105,40 @@ def prepare_joint(cC, cD, burst, outdir):
     return model_C, init_C, model_D, init_D
 
 
-def main():
+def main(*, controlled: bool = False):
     ap = argparse.ArgumentParser()
     ap.add_argument("burst")
     ap.add_argument("nlive", nargs="?", type=int, default=600)
     ap.add_argument("nproc", nargs="?", type=int, default=8)
+    ap.add_argument(
+        "--seed",
+        type=int,
+        required=controlled,
+        help="dynesty random seed; required and recorded by the controlled entrypoint",
+    )
+    ap.add_argument(
+        "--contract",
+        type=Path,
+        required=controlled,
+        help="frozen source/input/configuration contract to verify before sampling",
+    )
+    ap.add_argument(
+        "--receipt",
+        type=Path,
+        required=controlled,
+        help="new preflight/output receipt path; existing files are rejected",
+    )
+    ap.add_argument(
+        "--dlogz",
+        type=float,
+        default=0.5,
+        help="nested-sampling stopping threshold in log-evidence units",
+    )
+    ap.add_argument(
+        "--resolved-identity-output",
+        type=Path,
+        help="write the resolved pre-sampler identity for contract preparation",
+    )
     # beta is the sampled parameter (ADR-0006); --beta-lo/--beta-hi drive the
     # prior directly. --alpha-lo/--alpha-hi is the deprecated alias (mapped via
     # beta_bounds_from_alpha_bounds; only alpha >= 4 is reachable thin-screen).
@@ -191,16 +233,109 @@ def main():
     # gain_s2 fixed also forces the multi likelihood (burstfit_joint threads it there),
     # so a fixed-s2 C1D1 is normalization-matched to the C2 rungs it is compared against.
     multi = a.components_C > 1 or a.components_D > 1 or a.force_multi or a.gain_s2 is not None
+    if controlled and a.gain_s2 is None:
+        ap.error("controlled component-count fits require a fixed --gain-s2")
+    if controlled and (a.marginalize_gain or a.marginalize_gain_gp):
+        ap.error("controlled component-count fits do not accept alternate gain likelihoods")
+    if controlled and (a.fixed_delta_dm_C is not None or a.fixed_delta_dm_D is not None):
+        ap.error("controlled component-count fits do not accept fixed residual dispersion measure")
+    effective_shared_zeta = bool(a.shared_zeta) and not multi
 
     cfg_dir = f"{RUNS}/configs"
     out_dir = f"{RUNS}/data/joint"
     os.makedirs(out_dir, exist_ok=True)
+    if multi:
+        tag = f"_C{a.components_C}D{a.components_D}"
+    elif not a.shared_zeta:
+        tag = "_perbandzeta"
+    else:
+        tag = ""
+    if a.gain_s2 is not None:
+        tag += f"_s2-{a.gain_s2}"
+    out = Path(out_dir) / f"{a.burst}_joint_fit{tag}.json"
+    samples_out = Path(out_dir) / f"{a.burst}_joint_samples{tag}.npz"
+    model_grid_out = Path(out_dir) / f"{a.burst}_jointmodel{tag}.npz"
+    diagnostics_out = Path(out_dir) / f"{a.burst}_joint_diagnostics{tag}.json"
+    panel_out = Path(out_dir) / f"{a.burst}_joint_panel{tag}.svg"
+    if controlled:
+        for output_path in (
+            out,
+            samples_out,
+            model_grid_out,
+            diagnostics_out,
+            panel_out,
+        ):
+            if output_path.exists():
+                ap.error(f"refusing to overwrite controlled output: {output_path}")
 
     cC = f"{cfg_dir}/{a.burst}_chime_run.yaml"
     cD = f"{cfg_dir}/{a.burst}_dsa_run.yaml"
     for c in (cC, cD):
         if not os.path.exists(c):
             sys.exit(f"missing config: {c}")
+
+    receipt = None
+    processing_environment = processing_environment_identity(Path(REPO), Path(RUNS))
+    invocation = {
+        "burst": a.burst,
+        "nlive": a.nlive,
+        "nproc": a.nproc,
+        "dlogz": a.dlogz,
+        "sample": "rwalk",
+        "seed": a.seed,
+        "beta_bounds": list(beta_bounds) if beta_bounds is not None else None,
+        "alpha_bounds": None if beta_bounds else [a.alpha_lo, a.alpha_hi],
+        "marginalize_gain": bool(a.marginalize_gain),
+        "marginalize_gain_gp": bool(a.marginalize_gain_gp),
+        "mu_degree": a.mu_degree,
+        "components_C": a.components_C,
+        "components_D": a.components_D,
+        "force_multi": bool(a.force_multi),
+        "gain_s2": a.gain_s2,
+        "fixed_delta_dm_C": a.fixed_delta_dm_C,
+        "fixed_delta_dm_D": a.fixed_delta_dm_D,
+        "shared_zeta": effective_shared_zeta,
+    }
+    if controlled:
+        configs = {
+            "chime_config": Path(cC).resolve(),
+            "dsa_config": Path(cD).resolve(),
+        }
+        loaded_configs = {
+            band: yaml.safe_load(path.read_text(encoding="utf-8")) for band, path in configs.items()
+        }
+        resolved_files = {
+            **configs,
+            "chime_input": Path(loaded_configs["chime_config"]["path"]).expanduser().resolve(),
+            "dsa_input": Path(loaded_configs["dsa_config"]["path"]).expanduser().resolve(),
+            "chime_telescope_config": Path(loaded_configs["chime_config"]["telcfg_path"])
+            .expanduser()
+            .resolve(),
+            "dsa_telescope_config": Path(loaded_configs["dsa_config"]["telcfg_path"])
+            .expanduser()
+            .resolve(),
+            "environment_lock": (Path(REPO) / "uv.lock").resolve(),
+            "controlled_entrypoint": Path(sys.argv[0]).resolve(),
+            "fit_driver": Path(__file__).resolve(),
+            "joint_tf_prep_source": Path(joint_tf_prep.__file__).resolve(),
+            "burstfit_joint_source": Path(burstfit_joint_module.__file__).resolve(),
+            "controlled_run_source": Path(controlled_run_module.__file__).resolve(),
+            "model_grid_source": Path(model_grid_module.__file__).resolve(),
+            "diagnostic_source": Path(diagnostics_module.__file__).resolve(),
+        }
+        if a.receipt.exists():
+            ap.error(f"receipt already exists: {a.receipt}")
+        receipt = preflight(
+            contract_path=a.contract,
+            repo=Path(REPO),
+            invocation=invocation,
+            resolved_files=resolved_files,
+            argv=[str(Path(sys.executable).resolve()), *sys.argv],
+            cwd=Path.cwd(),
+            environment_variables=processing_environment,
+        )
+        a.receipt.parent.mkdir(parents=True, exist_ok=True)
+        a.receipt.write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
     print(f"[{a.burst}] preparing CHIME + DSA models ...", flush=True)
     model_C, init_C, model_D, init_D = prepare_joint(cC, cD, a.burst, out_dir)
@@ -210,6 +345,38 @@ def main():
         flush=True,
     )
 
+    resolved_identity_callback = None
+    if controlled:
+        contract = json.loads(a.contract.read_text(encoding="utf-8"))
+
+        def verify_resolved_identity(identity):
+            digest = identity_sha256(identity)
+            if a.resolved_identity_output is not None:
+                a.resolved_identity_output.parent.mkdir(parents=True, exist_ok=True)
+                a.resolved_identity_output.write_text(
+                    json.dumps(
+                        {"identity": identity, "identity_sha256": digest},
+                        indent=2,
+                        sort_keys=True,
+                    )
+                    + "\n",
+                    encoding="utf-8",
+                )
+            if digest != contract.get("resolved_fit_identity_sha256"):
+                raise ControlledRunError(
+                    "resolved likelihood, priors, or fitted support do not match contract"
+                )
+            receipt["resolved_fit_identity"] = identity
+            receipt["resolved_fit_identity_sha256"] = digest
+            reverify_preflight(receipt)
+            receipt["post_preparation_reverification_passed"] = True
+            a.receipt.write_text(
+                json.dumps(receipt, indent=2, sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
+
+        resolved_identity_callback = verify_resolved_identity
+
     res = fit_joint_scattering(
         model_C=model_C,
         init_C=init_C,
@@ -218,10 +385,12 @@ def main():
         beta_bounds=beta_bounds,
         alpha_bounds=None if beta_bounds else (a.alpha_lo, a.alpha_hi),
         nlive=a.nlive,
+        dlogz=a.dlogz,
         nproc=a.nproc,
+        seed=a.seed,
         marginalize_gain=a.marginalize_gain,
         marginalize_gain_gp=a.marginalize_gain_gp,
-        shared_zeta=a.shared_zeta,
+        shared_zeta=effective_shared_zeta,
         mu_degree=a.mu_degree,
         components_C=a.components_C,
         components_D=a.components_D,
@@ -229,6 +398,7 @@ def main():
         gain_s2=a.gain_s2,
         fixed_delta_dm_C=a.fixed_delta_dm_C,
         fixed_delta_dm_D=a.fixed_delta_dm_D,
+        resolved_identity_callback=resolved_identity_callback,
     )
 
     pct = res["percentiles"]
@@ -245,7 +415,7 @@ def main():
         "burst": a.burst,
         "marginalize_gain": bool(a.marginalize_gain),
         "marginalize_gain_gp": bool(a.marginalize_gain_gp),
-        "shared_zeta": bool(a.shared_zeta) and not multi,  # shared zeta is a no-op for multi
+        "shared_zeta": effective_shared_zeta,
         # beta first: gate_one's beta-native path keys off "beta" in fit and
         # rails against beta_bounds; alpha is the derived report-only value.
         "beta": {"median": b_m, "err_minus": b_lo, "err_plus": b_hi},
@@ -260,10 +430,27 @@ def main():
         # None => s2 was profiled (lnZ NOT cross-N comparable; ADR-0003). A float =>
         # fixed s2, so this lnZ IS a valid cross-N rung at that s2.
         "gain_s2": a.gain_s2,
+        "gain_model": "proper_gaussian" if multi else "ordinary_least_squares",
+        "force_multi": bool(a.force_multi),
+        "mu_degree": a.mu_degree,
+        "nlive": a.nlive,
+        "nproc": a.nproc,
         "fixed_parameters": res.get("fixed_parameters", {}),
         "percentiles": pct,
         "ncall": res["ncall"],
+        "seed": res["seed"],
+        "dlogz": a.dlogz,
+        "sample": "rwalk",
     }
+    if controlled:
+        summary.update(
+            {
+                "controlled_contract_sha256": receipt["contract"]["sha256"],
+                "resolved_fit_identity_sha256": receipt["resolved_fit_identity_sha256"],
+                "source_revision": receipt["source"]["revision"],
+                "required_post_fit_guards": DEPRECATED_ZACH_GUARDS,
+            }
+        )
 
     # Recover the per-channel gain spectra at the medians (scintillation probe).
     gain_C = gain_D = None
@@ -338,19 +525,7 @@ def main():
         }
         summary["scint"] = scint
 
-    if multi:
-        tag = f"_C{a.components_C}D{a.components_D}"
-    elif not a.shared_zeta:
-        tag = (
-            "_perbandzeta"  # non-default per-band run kept beside the canonical shared-zeta output
-        )
-    else:
-        tag = ""
-    if a.gain_s2 is not None:
-        # _s2verdict.parse_tag expects an integer suffix; keep the fixed-s2 grid on ints.
-        tag += f"_s2-{a.gain_s2}"
-    out = f"{out_dir}/{a.burst}_joint_fit{tag}.json"
-    json.dump(summary, open(out, "w"), indent=2)
+    out.write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
     # Persist the full weighted posterior + recovered gains + per-band freq axes so
     # corner plots / tau(nu) ladders / scintillation (Delta-nu_d) analysis can be
@@ -358,7 +533,12 @@ def main():
     npz = dict(
         samples=res["samples"],
         weights=res["weights"],
+        log_weight=res["log_weight"],
+        log_evidence_history=res["log_evidence_history"],
+        log_evidence_error_history=res["log_evidence_error_history"],
+        ncall_history=res["ncall_history"],
         param_names=np.array(names, dtype=object),
+        beta_bounds=np.array(res["beta_bounds"], dtype=float),
         alpha_bounds=np.array(res["alpha_bounds"], dtype=float),
         freq_C=model_C.freq,
         freq_D=model_D.freq,
@@ -379,7 +559,29 @@ def main():
         npz["scint_freq_D_MHz"] = sumD["freq_MHz"]
         npz["scint_ahat_D"] = sumD["ahat"]
         npz["scint_mu_D"] = sumD["mu"]
-    np.savez_compressed(f"{out_dir}/{a.burst}_joint_samples{tag}.npz", **npz)
+    np.savez_compressed(samples_out, **npz)
+    if controlled:
+        model_grid = model_grid_module.build_model_grid_arrays(model_C, model_D, summary)
+        np.savez_compressed(model_grid_out, **model_grid)
+        diagnostics = diagnostics_module.build_diagnostics(
+            summary,
+            model_grid,
+            samples=res["samples"],
+            weights=res["weights"],
+            param_names=res["param_names"],
+        )
+        diagnostics_module.write_diagnostics(diagnostics_out, diagnostics)
+        diagnostics_module.render_fit_panel(model_grid, panel_out)
+        finalize_receipt(
+            a.receipt,
+            {
+                "fit_summary": out,
+                "weighted_samples": samples_out,
+                "model_grid": model_grid_out,
+                "diagnostics": diagnostics_out,
+                "panel": panel_out,
+            },
+        )
 
     # Rail check on the SAMPLED parameter (ADR-0004: median within ~3 sigma of
     # a beta prior bound; the beta=4 rail is the ADR-0007 re-open trigger).

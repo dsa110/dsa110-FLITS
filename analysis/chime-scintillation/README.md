@@ -11,5 +11,5 @@ That campaign contains one qualified high-resolution CHIME record
 
 The former zero-measurement inventory and its machine-readable
 `INVENTORY.yaml` were moved, without deletion, to
-[`quarantine/2026-07-17-outdated-science/analysis/chime-scintillation/`](../../quarantine/2026-07-17-outdated-science/analysis/chime-scintillation/).
+[`.archive/outdated-science/2026-07-17/analysis/chime-scintillation/`](../../.archive/outdated-science/2026-07-17/analysis/chime-scintillation/).
 The experiment directories here remain valid historical negative evidence.

@@ -67,7 +67,7 @@ Canonical machine-readable SSOT at `galaxies/foreground/data/intervening_census_
 _Avoid_: `sightline_budget` reading `{nickname}_galaxies.csv` without registry join, or `make_catalog_table` merging scratch CSVs ad hoc.
 
 **Sightline attribution matrix**:
-The former per-burst attribution matrix used revoked free-alpha scattering fits and legacy bandwidths. It is preserved only at `quarantine/2026-07-17-outdated-science/galaxies/foreground/data/sightline_attribution_matrix.csv` and is not a canonical science surface. Current screen attribution fails closed pending fixed-index `tau_consistency` refits and qualified same-sightline bandwidths.
+The former per-burst attribution matrix used revoked free-alpha scattering fits and legacy bandwidths. It is preserved only at `.archive/outdated-science/2026-07-17/galaxies/foreground/data/sightline_attribution_matrix.csv` and is not a canonical science surface. Current screen attribution fails closed pending fixed-index `tau_consistency` refits and qualified same-sightline bandwidths.
 _Avoid_: prose-only cross-checks that cannot be validated against the matrix.
 
 **Multi-screen triggers** (two-screen analysis entry points):

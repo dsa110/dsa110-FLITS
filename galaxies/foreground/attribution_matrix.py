@@ -1,4 +1,4 @@
-"""Historical sightline-attribution matrix, retained only in quarantine.
+"""Historical sightline-attribution matrix, retained only in the archive.
 
 The calculation consumes revoked free-alpha tau values and legacy bandwidths.
 It is reproducible for audit purposes but is not a current attribution source.
@@ -30,12 +30,12 @@ from galaxies.foreground.tau_consistency import (
 
 PACKAGE_DIR = Path(__file__).resolve().parent
 DATA_DIR = PACKAGE_DIR / "data"
-QUARANTINE_SNAPSHOT_PATH = (
-    PACKAGE_DIR.parents[1] / "quarantine" / "2026-07-17-outdated-science" /
+ARCHIVE_SNAPSHOT_PATH = (
+    PACKAGE_DIR.parents[1] / ".archive" / "outdated-science" / "2026-07-17" /
     "galaxies" / "foreground" / "data" / "sightline_attribution_matrix.csv"
 )
-QUARANTINE_REGENERATED_PATH = (
-    PACKAGE_DIR.parents[1] / "quarantine" / "2026-07-17-outdated-science" /
+ARCHIVE_REGENERATED_PATH = (
+    PACKAGE_DIR.parents[1] / ".archive" / "outdated-science" / "2026-07-17" /
     "regenerated" / "galaxies" / "foreground" / "data" /
     "sightline_attribution_matrix.csv"
 )
@@ -230,14 +230,14 @@ def build_attribution_matrix(
 
 
 def write_attribution_matrix(path: Path | str | None = None) -> Path:
-    out = Path(path) if path is not None else QUARANTINE_REGENERATED_PATH
+    out = Path(path) if path is not None else ARCHIVE_REGENERATED_PATH
     out.parent.mkdir(parents=True, exist_ok=True)
     build_attribution_matrix().to_csv(out, index=False)
     return out
 
 
 def main() -> int:
-    """Regenerate the quarantined attribution-matrix artifact."""
+    """Regenerate the archived attribution-matrix artifact."""
     out = write_attribution_matrix()
     print(f"wrote {out}")
     return 0

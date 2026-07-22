@@ -81,7 +81,7 @@ strongly structured data) and is excluded from all citable products.
 joint-fit tau with DSA bandwidths. The accepted policy requires fixed-index
 `tau_consistency` refits, so none of the former same-screen/different-screen
 verdicts is current. Exact JSON/Markdown outputs are preserved under
-`quarantine/2026-07-17-outdated-science/analysis/beta_campaign/` for audit.
+`.archive/outdated-science/2026-07-17/analysis/beta_campaign/` for audit.
 
 ## Sightline budget integration (`results/sightline_dm_scattering_budget.*`)
 
@@ -102,7 +102,7 @@ above); chromatica carries no measured τ.
 - `citable_alpha_roster.json` — re-locked roster (7A / 3B / exemplar / 1 excluded)
 - `beta_table_rows.tex` — manuscript tab:beta rows (11 rows; chromatica in the
   excluded comment)
-- `quarantine/2026-07-17-outdated-science/analysis/beta_campaign/two_screen_consistency.{json,md}` — invalid historical τ×Δν calculation retained for provenance
+- `.archive/outdated-science/2026-07-17/analysis/beta_campaign/two_screen_consistency.{json,md}` — invalid historical τ×Δν calculation retained for provenance
 - `fits/` — citable fit JSONs + PPC summaries
 - `fleet_status.json` — per-burst fit/PPC completion ledger
 - `results/sightline_dm_scattering_budget.{csv,md,svg,png,pdf}` — regenerated

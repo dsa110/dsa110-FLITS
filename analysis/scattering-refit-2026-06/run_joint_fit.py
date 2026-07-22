@@ -41,6 +41,7 @@ from scat_analysis.controlled_run import (
     finalize_receipt,
     identity_sha256,
     preflight,
+    processing_environment_identity,
     reverify_preflight,
 )
 from scat_analysis.pipeline.io import BurstDataset
@@ -274,16 +275,7 @@ def main(*, controlled: bool = False):
             sys.exit(f"missing config: {c}")
 
     receipt = None
-    processing_environment = {
-        name: os.environ.get(name, default)
-        for name, default in {
-            "FLITS_JOINT_AUTO_TF": "1",
-            "FLITS_ONPULSE_CROP": "1",
-            "FLITS_ONPULSE_PAD": "0.5",
-            "FLITS_SNR_TARGET": "10.0",
-            "FLITS_MAX_CHANNELS": "64",
-        }.items()
-    }
+    processing_environment = processing_environment_identity(Path(REPO), Path(RUNS))
     invocation = {
         "burst": a.burst,
         "nlive": a.nlive,

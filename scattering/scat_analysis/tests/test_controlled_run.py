@@ -22,6 +22,7 @@ from scattering.scat_analysis.controlled_run import (
     finalize_receipt,
     identity_sha256,
     preflight,
+    processing_environment_identity,
     reverify_preflight,
     sha256,
 )
@@ -337,6 +338,29 @@ def test_distribution_snapshot_rejects_internal_file_mutation(tmp_path: Path) ->
 
     with pytest.raises(ControlledRunError, match="differs from installed RECORD"):
         _hash_distribution_snapshot(snapshot())
+
+
+def test_processing_environment_resolves_relative_and_symlinked_roots(
+    tmp_path: Path, monkeypatch
+) -> None:
+    source = tmp_path / "source"
+    runs = tmp_path / "runs"
+    source.mkdir()
+    runs.mkdir()
+    source_link = tmp_path / "source-link"
+    runs_link = tmp_path / "runs-link"
+    source_link.symlink_to(source, target_is_directory=True)
+    runs_link.symlink_to(runs, target_is_directory=True)
+    monkeypatch.chdir(tmp_path)
+
+    identity = processing_environment_identity(
+        Path("source-link"),
+        Path("runs-link"),
+        {"FLITS_REPO": "wrong", "FLITS_RUNS": "wrong"},
+    )
+
+    assert identity["FLITS_REPO"] == str(source.resolve())
+    assert identity["FLITS_RUNS"] == str(runs.resolve())
 
 
 def test_preflight_rejects_missing_seed(tmp_path: Path) -> None:

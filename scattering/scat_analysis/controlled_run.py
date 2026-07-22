@@ -50,10 +50,32 @@ CONTROLLED_SOURCE_NAMES = frozenset(
         "diagnostic_source",
     }
 )
+PROCESSING_ENVIRONMENT_DEFAULTS = {
+    "FLITS_JOINT_AUTO_TF": "1",
+    "FLITS_ONPULSE_CROP": "1",
+    "FLITS_ONPULSE_PAD": "0.5",
+    "FLITS_SNR_TARGET": "10.0",
+    "FLITS_MAX_CHANNELS": "64",
+}
 
 
 class ControlledRunError(RuntimeError):
     """A controlled run cannot prove its required identity."""
+
+
+def processing_environment_identity(
+    repo: Path, runs: Path, environ: Mapping[str, str] | None = None
+) -> dict[str, str]:
+    """Resolve path controls and record the five effective preprocessing controls."""
+    environment = os.environ if environ is None else environ
+    return {
+        "FLITS_REPO": str(Path(repo).resolve()),
+        "FLITS_RUNS": str(Path(runs).resolve()),
+        **{
+            name: environment.get(name, default)
+            for name, default in PROCESSING_ENVIRONMENT_DEFAULTS.items()
+        },
+    }
 
 
 def sha256(path: Path) -> str:

@@ -74,6 +74,8 @@ The contract schema is `flits-controlled-joint-fit-contract/v1`:
     "diagnostic_source": {"path": "<absolute path>", "sha256": "<sha256>"}
   },
   "environment_variables": {
+    "FLITS_REPO": "<absolute clean source checkout>",
+    "FLITS_RUNS": "<absolute isolated run root>",
     "FLITS_JOINT_AUTO_TF": "1",
     "FLITS_ONPULSE_CROP": "1",
     "FLITS_ONPULSE_PAD": "0.5",

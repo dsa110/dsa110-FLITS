@@ -370,8 +370,10 @@ def main():
     for ext in ("pdf", "svg", "png"):
         path = os.path.join(args.out_dir, f"sightline_halo_grid.{ext}")
         # Save geometry is pinned at import (savefig.bbox='standard') so the
-        # output is identical from any working directory.
-        fig.savefig(path)
+        # output is identical from any working directory. Matplotlib otherwise
+        # inserts the current time into each PDF, so omit both PDF timestamps.
+        metadata = {"CreationDate": None, "ModDate": None} if ext == "pdf" else None
+        fig.savefig(path, metadata=metadata)
         print(f"wrote {path}")
     plt.close(fig)
 

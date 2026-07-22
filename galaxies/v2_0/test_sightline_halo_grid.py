@@ -2,6 +2,12 @@
 
 from __future__ import annotations
 
+import os
+import subprocess
+import sys
+import time
+from pathlib import Path
+
 import numpy as np
 
 from galaxies.foreground.build_sightline_halo_grid_input import build_frame
@@ -35,3 +41,37 @@ def test_budget_flag_is_overlay_not_admission_rule() -> None:
     drawn = frame[(frame.row_kind == "system") & (frame.geometry_status == "pass")]
     assert (~drawn.budget_eligible.astype(bool)).any()
     assert drawn.budget_eligible.astype(bool).any()
+
+
+def test_pdf_is_byte_identical_across_processes_without_timestamp_env(tmp_path: Path) -> None:
+    halo_csv = tmp_path / "minimal-grid.csv"
+    halo_csv.write_text(
+        "row_kind,frb_name,frb_z,geometry_status,system_z,impact_kpc,mass_msun,"
+        "radius_kpc,candidate_dec_deg,frb_dec_deg,system_type,budget_eligible\n"
+        "host,FRB test,0.1,,,,,,,,,\n",
+        encoding="utf-8",
+    )
+    script = Path(__file__).with_name("sightline_halo_grid.py")
+    env = os.environ.copy()
+    env.pop("SOURCE_DATE_EPOCH", None)
+    outputs = []
+    for name in ("first", "second"):
+        out_dir = tmp_path / name
+        subprocess.run(
+            [
+                sys.executable,
+                str(script),
+                "--halo-csv",
+                str(halo_csv),
+                "--out-dir",
+                str(out_dir),
+            ],
+            check=True,
+            capture_output=True,
+            env=env,
+            text=True,
+        )
+        outputs.append((out_dir / "sightline_halo_grid.pdf").read_bytes())
+        time.sleep(1.1)
+
+    assert outputs[0] == outputs[1]

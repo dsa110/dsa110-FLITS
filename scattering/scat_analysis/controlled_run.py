@@ -63,6 +63,63 @@ class ControlledRunError(RuntimeError):
     """A controlled run cannot prove its required identity."""
 
 
+def python_runtime_options() -> dict[str, Any]:
+    """Return every named interpreter flag plus non-argv runtime options."""
+    flags = {}
+    for name in dir(sys.flags):
+        if name.startswith("_"):
+            continue
+        value = getattr(sys.flags, name)
+        if not callable(value) and isinstance(value, (bool, int, str, type(None))):
+            flags[name] = value
+    return {
+        "flags": flags,
+        "xoptions": {str(name): value for name, value in sorted(sys._xoptions.items())},
+        "warnoptions": list(sys.warnoptions),
+    }
+
+
+def _default_python_runtime_options(executable: Path) -> dict[str, Any]:
+    code = """
+import json
+import sys
+flags = {}
+for name in dir(sys.flags):
+    if name.startswith('_'):
+        continue
+    value = getattr(sys.flags, name)
+    if not callable(value) and isinstance(value, (bool, int, str, type(None))):
+        flags[name] = value
+print(json.dumps({
+    'flags': flags,
+    'xoptions': {str(name): value for name, value in sorted(sys._xoptions.items())},
+    'warnoptions': list(sys.warnoptions),
+}, sort_keys=True))
+"""
+    try:
+        result = subprocess.run(
+            [str(executable), "-c", code],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except subprocess.CalledProcessError as error:
+        raise ControlledRunError("cannot verify default Python runtime options") from error
+    return json.loads(result.stdout)
+
+
+def controlled_python_argv(
+    argv: Sequence[str], executable: str | Path | None = None
+) -> list[str]:
+    """Record the invoked interpreter path without resolving away a virtualenv."""
+    invoked = Path(sys.executable if executable is None else executable).absolute()
+    if python_runtime_options() != _default_python_runtime_options(invoked):
+        raise ControlledRunError(
+            "interpreter flags or options cannot be replayed by the controlled command"
+        )
+    return [str(invoked), *map(str, argv)]
+
+
 def processing_environment_identity(
     repo: Path, runs: Path, environ: Mapping[str, str] | None = None
 ) -> dict[str, str]:
@@ -576,7 +633,11 @@ def environment_identity(environment_lock: Path) -> dict[str, Any]:
     observed = {
         "python": platform.python_version(),
         "python_implementation": platform.python_implementation(),
-        "python_executable": str(Path(sys.executable).resolve()),
+        "python_executable": str(Path(sys.executable).absolute()),
+        "python_executable_resolved": str(Path(sys.executable).resolve()),
+        "python_prefix": str(Path(sys.prefix).absolute()),
+        "python_base_prefix": str(Path(sys.base_prefix).absolute()),
+        "python_runtime_options": python_runtime_options(),
         "operating_system": {
             "system": platform.system(),
             "release": platform.release(),

@@ -38,6 +38,7 @@ from scat_analysis.config_utils import load_telescope_block
 from scat_analysis.controlled_run import (
     DEPRECATED_ZACH_GUARDS,
     ControlledRunError,
+    controlled_python_argv,
     finalize_receipt,
     identity_sha256,
     preflight,
@@ -330,7 +331,7 @@ def main(*, controlled: bool = False):
             repo=Path(REPO),
             invocation=invocation,
             resolved_files=resolved_files,
-            argv=[str(Path(sys.executable).resolve()), *sys.argv],
+            argv=controlled_python_argv(sys.argv),
             cwd=Path.cwd(),
             environment_variables=processing_environment,
         )

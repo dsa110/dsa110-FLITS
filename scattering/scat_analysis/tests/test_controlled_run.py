@@ -4,6 +4,8 @@ import base64
 import hashlib
 import json
 import subprocess
+import sys
+import venv
 from pathlib import Path
 
 import numpy as np
@@ -18,6 +20,7 @@ from scattering.scat_analysis.controlled_run import (
     ControlledRunError,
     _hash_distribution_snapshot,
     canonical_npz_sha256,
+    controlled_python_argv,
     environment_identity,
     finalize_receipt,
     identity_sha256,
@@ -307,6 +310,20 @@ def test_preflight_binds_clean_source_contract_command_and_environment(
     assert receipt["command"]["working_directory"] == str(repo.resolve())
     assert receipt["files"]["chime_input"]["sha256"] == sha256(files["chime_input"])
     assert len(receipt["environment"]["identity_sha256"]) == 64
+    assert receipt["environment"]["python_executable"] == str(
+        Path(sys.executable).absolute()
+    )
+    assert receipt["environment"]["python_executable_resolved"] == str(
+        Path(sys.executable).resolve()
+    )
+    assert receipt["environment"]["python_prefix"] == str(Path(sys.prefix).absolute())
+    assert receipt["environment"]["python_base_prefix"] == str(
+        Path(sys.base_prefix).absolute()
+    )
+    flags = receipt["environment"]["python_runtime_options"]["flags"]
+    assert flags["optimize"] == sys.flags.optimize
+    assert flags["safe_path"] == sys.flags.safe_path
+    assert flags["no_user_site"] == sys.flags.no_user_site
     assert receipt["required_post_fit_guards"]["broad_width_to_window_ratio"] == 5.0
     assert receipt["required_post_fit_guards"]["low_fluence_fraction"] == 0.05
 
@@ -361,6 +378,49 @@ def test_processing_environment_resolves_relative_and_symlinked_roots(
 
     assert identity["FLITS_REPO"] == str(source.resolve())
     assert identity["FLITS_RUNS"] == str(runs.resolve())
+
+
+def test_controlled_python_argv_preserves_virtual_environment_symlink(
+    tmp_path: Path,
+) -> None:
+    environment = tmp_path / ".venv"
+    venv.EnvBuilder(with_pip=False, symlinks=True).create(environment)
+    interpreter = environment / "bin" / "python"
+    purelib = subprocess.run(
+        [str(interpreter), "-c", "import sysconfig; print(sysconfig.get_path('purelib'))"],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    Path(purelib, "controlled_venv_sentinel.py").write_text("VALUE = 1\n")
+
+    argv = controlled_python_argv(
+        ["-c", "import controlled_venv_sentinel"], executable=interpreter
+    )
+
+    assert argv[0] == str(interpreter.absolute())
+    assert argv[0] != str(interpreter.resolve())
+    subprocess.run(argv, check=True)
+    resolved = subprocess.run(
+        [str(interpreter.resolve()), "-c", "import controlled_venv_sentinel"],
+        capture_output=True,
+    )
+    assert resolved.returncode != 0
+
+
+def test_controlled_python_argv_rejects_unreplayed_interpreter_flags() -> None:
+    code = (
+        "from scattering.scat_analysis.controlled_run import controlled_python_argv; "
+        "controlled_python_argv(['run_controlled_joint_fit.py'])"
+    )
+    result = subprocess.run(
+        [sys.executable, "-P", "-c", code],
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode != 0
+    assert "interpreter flags or options cannot be replayed" in result.stderr
 
 
 def test_preflight_rejects_missing_seed(tmp_path: Path) -> None:

@@ -1,5 +1,8 @@
 """Tests for intervening census registry."""
 
+from pathlib import Path
+
+import pandas as pd
 
 from galaxies.foreground.census_registry import (
     budget_eligible,
@@ -7,6 +10,20 @@ from galaxies.foreground.census_registry import (
     registry_to_matches,
     scratch_codetection_dir,
 )
+
+
+def test_verdi_host_redshift_source_is_applied_without_inference():
+    data = Path(__file__).parent / "data" / "frozen_census"
+    bursts = pd.read_csv(data / "bursts.csv").set_index("nickname")
+    source = pd.read_csv(data / "verdi2025_host_redshift_extract.csv").set_index(
+        "mapped_nickname"
+    )
+
+    assert source.loc["johndoeII", "source_status"] == "reported_repeater"
+    assert bursts.loc["johndoeII", "z_spec"] == source.loc["johndoeII", "redshift"]
+    assert source.loc["wilhelm", "source_status"] == "missing"
+    assert pd.isna(source.loc["wilhelm", "redshift"])
+    assert pd.isna(bursts.loc["wilhelm", "z_spec"])
 
 
 def test_scratch_codetection_exists():

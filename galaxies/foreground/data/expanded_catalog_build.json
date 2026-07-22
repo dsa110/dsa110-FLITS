@@ -8,14 +8,14 @@
       "catalog_identifier"
     ]
   },
-  "output_sha256": "17ef142bc5d57f0f1f42d11a397c084de2b9763fbb7543ce82e90e1a6d6ef727",
+  "output_sha256": "ad2e3689c4fb85102792450b2b14148be833b4a1e2c557bd5feb56d2448244f3",
   "physics": {
     "concentration": "Dutton and Maccio 2014 Planck c200c",
     "halo_mass": "Moster et al. 2013 Table 1 redshift-dependent M200c",
     "radius": "R200c at 200 times Planck18 critical density",
     "stellar_mass_authority": "adjudicated census masses plus overrides"
   },
-  "registry_sha256": "8e1998fd41b42e982cb2cdf4967e69eb028df1037caa1cf061578bb6ec2cab97",
+  "registry_sha256": "e9675336d3666efbb970e0ea3b87df32070198bff429bb46ae8ce2efee50b2de",
   "row_count": 52,
   "schema_version": 1,
   "snapshot_sha256": {

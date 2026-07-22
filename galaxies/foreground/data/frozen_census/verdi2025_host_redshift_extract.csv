@@ -1,0 +1,10 @@
+source_event,mapped_nickname,mapped_tns,redshift,source_status
+20221113A,isha,FRB 20221113A,0.2505,reported
+20221203A,wilhelm,FRB 20221203A,,missing
+20230307A,phineas,FRB 20230307A,0.2710,reported
+20230325C,freya,FRB 20230325A,,missing
+20230814B*,johndoeII,FRB 20230814B,0.5535,reported_repeater
+20230913G,hamilton,FRB 20230913A,0.3024,reported
+20240122E,mahi,FRB 20240122A,,missing
+20240203D,chromatica,FRB 20240203A,0.0740,reported
+20240229A,casey,FRB 20240229A,0.2870,reported

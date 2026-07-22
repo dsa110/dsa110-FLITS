@@ -1,3 +1,5 @@
+import hashlib
+import json
 from pathlib import Path
 
 import pandas as pd
@@ -5,6 +7,7 @@ import pandas as pd
 DATA = Path(__file__).parent / "data"
 REGISTRY = DATA / "intervening_census_registry.csv"
 PROVENANCE = DATA / "candidate_redshift_provenance.csv"
+REPLAY = DATA / "candidate_redshift_replay_2026-07-22.json"
 
 
 REQUIRED_COLUMNS = {
@@ -76,3 +79,20 @@ def test_every_adopted_candidate_redshift_has_frozen_source_identity():
         "catalog_cluster",
         "no_trustworthy_redshift",
     }
+
+
+def test_candidate_redshift_ledger_uses_portable_line_endings():
+    assert b"\r\n" not in PROVENANCE.read_bytes()
+
+
+def test_live_replay_receipt_binds_the_current_ledger():
+    receipt = json.loads(REPLAY.read_text())
+    assert receipt["rows"] == 52
+    assert receipt["adopted_redshift_rows"] == 46
+    assert receipt["stable_source_id_changes"] == 0
+    assert receipt["source_row_sha256_changes"] == 0
+    assert receipt["adopted_redshift_changes"] == 0
+    assert receipt["verdict_changes"] == 0
+    assert receipt["budget_eligibility_changes"] == 0
+    assert receipt["query_response_sha256_changes"] == 7
+    assert hashlib.sha256(PROVENANCE.read_bytes()).hexdigest() == receipt["ledger_sha256"]

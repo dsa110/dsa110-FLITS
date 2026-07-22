@@ -11,5 +11,5 @@ The CSV preserves only the nine rows relevant to this sample. TNS suffix
 differences are mapped explicitly; only redshift assignment is adopted. A
 source `--` is stored as a missing value. No redshift is inferred.
 
-Zach, Whitney, and Oran predate this source table; their existing redshifts are
-outside this extract and remain subject to their own provenance checks.
+Zach, Whitney, and Oran predate this source table; their published source rows
+are frozen separately in `law2024_host_redshift_extract.csv`.

@@ -26,6 +26,20 @@ def test_verdi_host_redshift_source_is_applied_without_inference():
     assert pd.isna(bursts.loc["wilhelm", "z_spec"])
 
 
+def test_law2024_host_redshifts_bind_the_three_older_sightlines():
+    data = Path(__file__).parent / "data" / "frozen_census"
+    bursts = pd.read_csv(data / "bursts.csv").set_index("nickname")
+    source = pd.read_csv(data / "law2024_host_redshift_extract.csv").set_index(
+        "mapped_nickname"
+    )
+
+    assert set(source.index) == {"zach", "whitney", "oran"}
+    assert set(source["measurement_kind"]) == {"spectroscopic"}
+    for nickname, row in source.iterrows():
+        assert bursts.loc[nickname, "z_spec"] == row["adopted_redshift"]
+        assert abs(row["published_redshift"] - row["adopted_redshift"]) <= 0.0011
+
+
 def test_scratch_codetection_exists():
     assert scratch_codetection_dir().is_dir()
 

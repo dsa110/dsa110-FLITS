@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "base_commit": "b6f4754",
+  "retrieved_at_utc": "2026-07-22T12:11:40+00:00",
+  "rows": 52,
+  "adopted_redshift_rows": 46,
+  "stable_source_id_changes": 0,
+  "source_row_sha256_changes": 0,
+  "adopted_redshift_changes": 0,
+  "verdict_changes": 0,
+  "budget_eligibility_changes": 0,
+  "query_response_sha256_changes": 7,
+  "query_response_drift_keys": [
+    "whitney|cluster|J085808.2+731234, 1161367",
+    "phineas|cluster|J115128.2+713637, 1254415",
+    "phineas|cluster|J114944.0+714348, 1253496",
+    "phineas|cluster|J115400.9+713320, 1255773",
+    "phineas|cluster|J115436.9+713930, 1256077",
+    "phineas|cluster|J114928.5+712526, 1253366",
+    "casey|cluster|J112235.5+705438, 1239515"
+  ],
+  "interpretation": "Live source rows and all adopted science fields are unchanged. Seven DESI response sets changed around the same selected stable source rows.",
+  "ledger_sha256": "d83b8266c460980a60a42f40224c90a88c1a5f1bc741b2f40efb5991aba7a971"
+}

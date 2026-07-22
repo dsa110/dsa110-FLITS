@@ -13,7 +13,12 @@ working-directory drift, runtime-environment drift, missing or changed
 inputs/configuration, changed resolved priors/support, and existing outputs.
 Runtime identity verifies every installed NumPy, SciPy, dynesty, PyYAML, and
 Matplotlib file against its wheel record and hashes their full contents,
-including compiled libraries.
+including compiled libraries. It separately records the invoked Python path,
+its resolved base-interpreter path, virtual-environment and base prefixes, and
+the complete named runtime flags, extended options, and warning options.
+Interpreter-only flags that the frozen command cannot replay are rejected.
+Resolving a virtual-environment interpreter symlink is not a valid substitute
+for the invoked path.
 
 The contract schema is `flits-controlled-joint-fit-contract/v1`:
 

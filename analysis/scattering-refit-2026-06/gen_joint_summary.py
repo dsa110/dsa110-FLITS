@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Reproduce the quarantined legacy joint-fit summary table.
+"""Reproduce the archived legacy joint-fit summary table.
 
 Reads the in-repo `joint_json/*_joint_fit.json` (sibling dir) and writes
-`quarantine/2026-07-17-outdated-science/results/joint_fit_summary.md`. Both the source JSONs and this generator are
+`.archive/outdated-science/2026-07-17/results/joint_fit_summary.md`. Both the source JSONs and this generator are
 committed, so the summary is reproducible from a clean checkout:
 
     python analysis/scattering-refit-2026-06/gen_joint_summary.py
@@ -18,8 +18,8 @@ from pathlib import Path
 
 JOINT_DIR = Path(__file__).parent / "joint_json"
 OUT = (
-    Path(__file__).resolve().parents[2] / "quarantine" /
-    "2026-07-17-outdated-science" / "regenerated" /
+    Path(__file__).resolve().parents[2] / ".archive" / "outdated-science" /
+    "2026-07-17" / "regenerated" /
     "results" / "joint_fit_summary.md"
 )
 

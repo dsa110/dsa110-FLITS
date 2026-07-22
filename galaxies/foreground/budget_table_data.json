@@ -203,16 +203,16 @@
       "dm_obs": 272,
       "dm_mw": 111,
       "dm_cos": 62,
-      "dm_int": 26,
+      "dm_int": 0,
       "dm_int_note": "",
-      "regime": "CGM",
-      "mass": "measured",
+      "regime": "none",
+      "mass": "",
       "dm_host": [
-        72,
-        33,
-        39
+        102,
+        31,
+        37
       ],
-      "tau_int": "0.0034"
+      "tau_int": "0"
     },
     {
       "burst": "FRB 20240229A",

@@ -1,24 +1,43 @@
 {
   "schema_version": 1,
-  "base_commit": "b6f4754",
-  "retrieved_at_utc": "2026-07-22T12:11:40+00:00",
+  "base_commit": "88971ab",
+  "retrieved_at_utc": "2026-07-22T12:29:15+00:00",
   "rows": 52,
   "adopted_redshift_rows": 46,
   "stable_source_id_changes": 0,
-  "source_row_sha256_changes": 0,
+  "source_row_sha256_changes": 2,
   "adopted_redshift_changes": 0,
-  "verdict_changes": 0,
-  "budget_eligibility_changes": 0,
-  "query_response_sha256_changes": 7,
+  "measurement_kind_changes": 1,
+  "verdict_changes": 1,
+  "budget_eligibility_changes": 1,
+  "query_response_sha256_changes": 20,
+  "source_row_sha256_change_keys": [
+    "chromatica|halo|196733128040225775",
+    "phineas|cluster|WHL J115048.0+714428"
+  ],
   "query_response_drift_keys": [
+    "whitney|halo|1472",
+    "whitney|halo|1473",
+    "whitney|halo|1582",
+    "whitney|halo|196191347354360083",
+    "whitney|cluster|J085546.0+732230, 1160094",
     "whitney|cluster|J085808.2+731234, 1161367",
+    "phineas|halo|194031778315722893",
+    "phineas|cluster|J115120.4+714435, 1254337",
     "phineas|cluster|J115128.2+713637, 1254415",
     "phineas|cluster|J114944.0+714348, 1253496",
+    "phineas|cluster|J115140.5+712732, 1254506",
     "phineas|cluster|J115400.9+713320, 1255773",
     "phineas|cluster|J115436.9+713930, 1256077",
     "phineas|cluster|J114928.5+712526, 1253366",
-    "casey|cluster|J112235.5+705438, 1239515"
+    "chromatica|halo|196733128040225775",
+    "casey|halo|825",
+    "casey|cluster|J111929.5+705441, 1237905",
+    "casey|cluster|J112235.5+705438, 1239515",
+    "casey|cluster|J112350.9+704142, 1240175",
+    "casey|cluster|J111930.9+702041, 1237924"
   ],
-  "interpretation": "Live source rows and all adopted science fields are unchanged. Seven DESI response sets changed around the same selected stable source rows.",
-  "ledger_sha256": "d83b8266c460980a60a42f40224c90a88c1a5f1bc741b2f40efb5991aba7a971"
+  "interpretation": "Stable source identities and adopted redshift values are unchanged. Query hashes now bind canonically sorted full response payloads; NED also binds the detailed redshift table. The NED PUN flag identifies the Chromatica value as photometric with no reported uncertainty, so that row is demoted to inconclusive and budget-ineligible. The WHL selected-row hash now consistently excludes computed angular separation.",
+  "ledger_sha256": "7235219a0dee7e2dd0be2f10fd524f2739fcce51eed6f0fe0af484d6c79026cf",
+  "payload_sha256": "f1c21a95f174bd1ec0bbbf4bb4e82e15a0cac2442d3a529000eeb26787e75dd7"
 }

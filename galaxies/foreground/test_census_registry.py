@@ -15,9 +15,7 @@ from galaxies.foreground.census_registry import (
 def test_verdi_host_redshift_source_is_applied_without_inference():
     data = Path(__file__).parent / "data" / "frozen_census"
     bursts = pd.read_csv(data / "bursts.csv").set_index("nickname")
-    source = pd.read_csv(data / "verdi2025_host_redshift_extract.csv").set_index(
-        "mapped_nickname"
-    )
+    source = pd.read_csv(data / "verdi2025_host_redshift_extract.csv").set_index("mapped_nickname")
 
     assert source.loc["johndoeII", "source_status"] == "reported_repeater"
     assert bursts.loc["johndoeII", "z_spec"] == source.loc["johndoeII", "redshift"]
@@ -29,9 +27,7 @@ def test_verdi_host_redshift_source_is_applied_without_inference():
 def test_law2024_host_redshifts_bind_the_three_older_sightlines():
     data = Path(__file__).parent / "data" / "frozen_census"
     bursts = pd.read_csv(data / "bursts.csv").set_index("nickname")
-    source = pd.read_csv(data / "law2024_host_redshift_extract.csv").set_index(
-        "mapped_nickname"
-    )
+    source = pd.read_csv(data / "law2024_host_redshift_extract.csv").set_index("mapped_nickname")
 
     assert set(source.index) == {"zach", "whitney", "oran"}
     assert set(source["measurement_kind"]) == {"spectroscopic"}
@@ -48,8 +44,8 @@ def test_registry_row_count_and_verdicts():
     df = build_intervening_census_registry()
     assert len(df) == 52
     counts = df.final_verdict.value_counts()
-    assert counts["confirmed"] == 30
-    assert counts["inconclusive"] == 15
+    assert counts["confirmed"] == 29
+    assert counts["inconclusive"] == 16
     assert counts["refuted"] == 7
 
 
@@ -85,6 +81,15 @@ def test_registry_budget_eligible_counts():
     clusters = eligible[eligible.type == "cluster"]
     assert len(clusters) == 1
     assert clusters.iloc[0].nickname == "phineas"
+
+
+def test_ned_photo_z_without_uncertainty_is_not_budget_eligible():
+    df = build_intervening_census_registry()
+    row = df[(df.nickname == "chromatica") & (df.obj.astype(str) == "196733128040225775")].iloc[0]
+    assert row.final_verdict == "inconclusive"
+    assert not bool(row.registry_tier)
+    assert not bool(row.budget_eligible)
+    assert "no reported uncertainty" in row.final_reason
 
 
 def test_registry_to_matches_budget_eligible_only():

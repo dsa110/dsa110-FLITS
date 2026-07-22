@@ -1,0 +1,2140 @@
+{
+  "entries": [
+    {
+      "key": "casey|cluster|J111929.5+705441, 1237905",
+      "query_response": {
+        "query": "SELECT targetid, mean_fiber_ra, mean_fiber_dec, z, zerr, zwarn, spectype, survey, program FROM desi_dr1.zpix WHERE mean_fiber_dec BETWEEN 70.88631 AND 70.93631 AND mean_fiber_ra BETWEEN 169.79644473252446 AND 169.94933526747556 AND zwarn = 0",
+        "rows": [
+          {
+            "mean_fiber_dec": 70.88659781759111,
+            "mean_fiber_ra": 169.9285097822027,
+            "program": "backup",
+            "spectype": "STAR",
+            "survey": "sv1",
+            "targetid": 39633497748409386,
+            "z": -0.0001368581295271015,
+            "zerr": 6.621449951210955e-07,
+            "zwarn": 0
+          },
+          {
+            "mean_fiber_dec": 70.89202352867453,
+            "mean_fiber_ra": 169.8382884367234,
+            "program": "backup",
+            "spectype": "STAR",
+            "survey": "sv1",
+            "targetid": 39633497748408861,
+            "z": -0.0006282948501349055,
+            "zerr": 1.269823536517886e-05,
+            "zwarn": 0
+          },
+          {
+            "mean_fiber_dec": 70.90081061952162,
+            "mean_fiber_ra": 169.8621183667084,
+            "program": "backup",
+            "spectype": "STAR",
+            "survey": "sv1",
+            "targetid": 39633497748409006,
+            "z": -0.0009453457625916656,
+            "zerr": 4.626381845187526e-06,
+            "zwarn": 0
+          },
+          {
+            "mean_fiber_dec": 70.90123999544973,
+            "mean_fiber_ra": 169.884823184425,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633497748409121,
+            "z": 0.3280432216524072,
+            "zerr": 8.870815907119009e-06,
+            "zwarn": 0
+          },
+          {
+            "mean_fiber_dec": 70.90124476020513,
+            "mean_fiber_ra": 169.8615634419871,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633497748409001,
+            "z": 0.2161681592953575,
+            "zerr": 7.460362593286919e-05,
+            "zwarn": 0
+          },
+          {
+            "mean_fiber_dec": 70.9085621345835,
+            "mean_fiber_ra": 169.828396140171,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633497748408812,
+            "z": 0.2149365045619893,
+            "zerr": 2.932495061065366e-06,
+            "zwarn": 0
+          }
+        ],
+        "service": "NOIRLab Data Lab TAP"
+      },
+      "selected_row": {
+        "mean_fiber_dec": 70.90124476020513,
+        "mean_fiber_ra": 169.8615634419871,
+        "program": "bright",
+        "spectype": "GALAXY",
+        "survey": "main",
+        "targetid": 39633497748409001,
+        "z": 0.2161681592953575,
+        "zerr": 7.460362593286919e-05,
+        "zwarn": 0
+      }
+    },
+    {
+      "key": "casey|cluster|J111930.9+702041, 1237924",
+      "query_response": {
+        "query": "SELECT targetid, mean_fiber_ra, mean_fiber_dec, z, zerr, zwarn, spectype, survey, program FROM desi_dr1.zpix WHERE mean_fiber_dec BETWEEN 70.31975 AND 70.36975000000001 AND mean_fiber_ra BETWEEN 169.8042648355649 AND 169.9529151644351 AND zwarn = 0",
+        "rows": [
+          {
+            "mean_fiber_dec": 70.32336595843776,
+            "mean_fiber_ra": 169.9320023770342,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633491696026653,
+            "z": 0.1719710009279111,
+            "zerr": 2.931762718482061e-05,
+            "zwarn": 0
+          },
+          {
+            "mean_fiber_dec": 70.3257869060518,
+            "mean_fiber_ra": 169.9379822502306,
+            "program": "backup",
+            "spectype": "STAR",
+            "survey": "sv1",
+            "targetid": 39633491696026685,
+            "z": 1.14761624986965e-05,
+            "zerr": 8.703778605078002e-07,
+            "zwarn": 0
+          },
+          {
+            "mean_fiber_dec": 70.36636309454325,
+            "mean_fiber_ra": 169.8936740001701,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633491696026483,
+            "z": 0.09073318845268824,
+            "zerr": 4.222006098930055e-06,
+            "zwarn": 0
+          }
+        ],
+        "service": "NOIRLab Data Lab TAP"
+      },
+      "selected_row": {
+        "mean_fiber_dec": 70.36636309454325,
+        "mean_fiber_ra": 169.8936740001701,
+        "program": "bright",
+        "spectype": "GALAXY",
+        "survey": "main",
+        "targetid": 39633491696026483,
+        "z": 0.09073318845268824,
+        "zerr": 4.222006098930055e-06,
+        "zwarn": 0
+      }
+    },
+    {
+      "key": "casey|cluster|J112235.5+705438, 1239515",
+      "query_response": {
+        "query": "SELECT targetid, mean_fiber_ra, mean_fiber_dec, z, zerr, zwarn, spectype, survey, program FROM desi_dr1.zpix WHERE mean_fiber_dec BETWEEN 70.88557999999999 AND 70.93558 AND mean_fiber_ra BETWEEN 170.57145754690282 AND 170.72434245309717 AND zwarn = 0",
+        "rows": [
+          {
+            "mean_fiber_dec": 70.8952750827267,
+            "mean_fiber_ra": 170.6603369422712,
+            "program": "backup",
+            "spectype": "STAR",
+            "survey": "sv1",
+            "targetid": 39633497752603269,
+            "z": -9.120942441116915e-05,
+            "zerr": 2.317618435610444e-06,
+            "zwarn": 0
+          },
+          {
+            "mean_fiber_dec": 70.89838945211623,
+            "mean_fiber_ra": 170.6383374316149,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633497752603170,
+            "z": 0.2149721755100154,
+            "zerr": 4.756014978041012e-06,
+            "zwarn": 0
+          },
+          {
+            "mean_fiber_dec": 70.901796111842,
+            "mean_fiber_ra": 170.6080095057255,
+            "program": "backup",
+            "spectype": "STAR",
+            "survey": "sv1",
+            "targetid": 2305843017216428355,
+            "z": -9.757342035102204e-05,
+            "zerr": 8.033755540064839e-07,
+            "zwarn": 0
+          },
+          {
+            "mean_fiber_dec": 70.91057638987861,
+            "mean_fiber_ra": 170.6479485556623,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633497752603209,
+            "z": 0.2158435784763192,
+            "zerr": 3.598344049301566e-05,
+            "zwarn": 0
+          },
+          {
+            "mean_fiber_dec": 70.91104981539807,
+            "mean_fiber_ra": 170.6384143484645,
+            "program": "backup",
+            "spectype": "STAR",
+            "survey": "sv1",
+            "targetid": 39633497752603173,
+            "z": -0.0003809492377314775,
+            "zerr": 5.841923110740334e-06,
+            "zwarn": 0
+          },
+          {
+            "mean_fiber_dec": 70.91358680919176,
+            "mean_fiber_ra": 170.5868690303791,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633497752602913,
+            "z": 0.1537323885259626,
+            "zerr": 6.114321930756735e-05,
+            "zwarn": 0
+          },
+          {
+            "mean_fiber_dec": 70.91733473631817,
+            "mean_fiber_ra": 170.6322700289925,
+            "program": "backup",
+            "spectype": "STAR",
+            "survey": "sv1",
+            "targetid": 39633497752603136,
+            "z": -0.000176319072715186,
+            "zerr": 3.98764157329388e-06,
+            "zwarn": 0
+          },
+          {
+            "mean_fiber_dec": 70.91975170717203,
+            "mean_fiber_ra": 170.7215455735038,
+            "program": "backup",
+            "spectype": "STAR",
+            "survey": "sv1",
+            "targetid": 39633497752603562,
+            "z": -6.302764779251932e-05,
+            "zerr": 7.198458832973057e-07,
+            "zwarn": 0
+          }
+        ],
+        "service": "NOIRLab Data Lab TAP"
+      },
+      "selected_row": {
+        "mean_fiber_dec": 70.91057638987861,
+        "mean_fiber_ra": 170.6479485556623,
+        "program": "bright",
+        "spectype": "GALAXY",
+        "survey": "main",
+        "targetid": 39633497752603209,
+        "z": 0.2158435784763192,
+        "zerr": 3.598344049301566e-05,
+        "zwarn": 0
+      }
+    },
+    {
+      "key": "casey|cluster|J112350.9+704142, 1240175",
+      "query_response": {
+        "query": "SELECT targetid, mean_fiber_ra, mean_fiber_dec, z, zerr, zwarn, spectype, survey, program FROM desi_dr1.zpix WHERE mean_fiber_dec BETWEEN 70.66999 AND 70.71999000000001 AND mean_fiber_ra BETWEEN 170.88628921041368 AND 171.0375307895863 AND zwarn = 0",
+        "rows": [
+          {
+            "mean_fiber_dec": 70.68866445531765,
+            "mean_fiber_ra": 171.0065969882626,
+            "program": "backup",
+            "spectype": "STAR",
+            "survey": "sv1",
+            "targetid": 39633495764500777,
+            "z": -8.082911211862907e-05,
+            "zerr": 2.035824736487226e-06,
+            "zwarn": 0
+          },
+          {
+            "mean_fiber_dec": 70.69749358890954,
+            "mean_fiber_ra": 170.9601032666404,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633495760309668,
+            "z": 0.2132708317633555,
+            "zerr": 4.246560302865915e-05,
+            "zwarn": 0
+          }
+        ],
+        "service": "NOIRLab Data Lab TAP"
+      },
+      "selected_row": {
+        "mean_fiber_dec": 70.69749358890954,
+        "mean_fiber_ra": 170.9601032666404,
+        "program": "bright",
+        "spectype": "GALAXY",
+        "survey": "main",
+        "targetid": 39633495760309668,
+        "z": 0.2132708317633555,
+        "zerr": 4.246560302865915e-05,
+        "zwarn": 0
+      }
+    },
+    {
+      "key": "casey|halo|192821699728654764",
+      "query_response": {
+        "query": "SELECT t.ls_id, t.ra, t.dec, t.type, p.z_phot_mean, p.z_phot_std, p.z_phot_median, p.z_spec FROM ls_dr9.tractor t JOIN ls_dr9.photo_z p ON t.ls_id = p.ls_id WHERE t.dec BETWEEN 70.68527237111111 AND 70.68805014888888 AND t.ra BETWEEN 169.96854478764197 AND 169.976943612358",
+        "rows": [
+          {
+            "dec": 70.68610947891135,
+            "ls_id": 9907741444212974,
+            "ra": 169.97615760828944,
+            "type": "REX",
+            "z_phot_mean": 0.421671986579895,
+            "z_phot_median": 0.4189299941062927,
+            "z_phot_std": 0.09531299769878387,
+            "z_spec": -99.0
+          },
+          {
+            "dec": 70.68665443546246,
+            "ls_id": 9907741444212955,
+            "ra": 169.97276895655375,
+            "type": "REX",
+            "z_phot_mean": 0.374673992395401,
+            "z_phot_median": 0.3718029856681824,
+            "z_phot_std": 0.04914899915456772,
+            "z_spec": -99.0
+          }
+        ],
+        "service": "NOIRLab Data Lab TAP"
+      },
+      "selected_row": {
+        "dec": 70.68665443546246,
+        "ls_id": 9907741444212955,
+        "ra": 169.97276895655375,
+        "type": "REX",
+        "z_phot_mean": 0.374673992395401,
+        "z_phot_median": 0.3718029856681824,
+        "z_phot_std": 0.04914899915456772,
+        "z_spec": -99.0
+      }
+    },
+    {
+      "key": "casey|halo|192821700026167542",
+      "query_response": {
+        "query": "SELECT targetid, mean_fiber_ra, mean_fiber_dec, z, zerr, zwarn, spectype, survey, program FROM desi_dr1.zpix WHERE mean_fiber_dec BETWEEN 70.68758158111112 AND 70.69035935888888 AND mean_fiber_ra BETWEEN 169.99835810464063 AND 170.00675789535936 AND zwarn = 0",
+        "rows": [
+          {
+            "mean_fiber_dec": 70.68897589234935,
+            "mean_fiber_ra": 170.0025341917376,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633495756114277,
+            "z": 0.202814403668982,
+            "zerr": 5.208357834566213e-05,
+            "zwarn": 0
+          }
+        ],
+        "service": "NOIRLab Data Lab TAP"
+      },
+      "selected_row": {
+        "mean_fiber_dec": 70.68897589234935,
+        "mean_fiber_ra": 170.0025341917376,
+        "program": "bright",
+        "spectype": "GALAXY",
+        "survey": "main",
+        "targetid": 39633495756114277,
+        "z": 0.202814403668982,
+        "zerr": 5.208357834566213e-05,
+        "zwarn": 0
+      }
+    },
+    {
+      "key": "casey|halo|192831699797402822",
+      "query_response": {
+        "query": "SELECT t.ls_id, t.ra, t.dec, t.type, p.z_phot_mean, p.z_phot_std, p.z_phot_median, p.z_spec FROM ls_dr9.tractor t JOIN ls_dr9.photo_z p ON t.ls_id = p.ls_id WHERE t.dec BETWEEN 70.69200595111111 AND 70.69478372888888 AND t.ra BETWEEN 169.97562937889654 AND 169.98403102110348",
+        "rows": [
+          {
+            "dec": 70.69339832050359,
+            "ls_id": 9907741444212992,
+            "ra": 169.9798299747946,
+            "type": "SER",
+            "z_phot_mean": 0.23975199460983276,
+            "z_phot_median": 0.24098099768161774,
+            "z_phot_std": 0.011958999559283257,
+            "z_spec": -99.0
+          }
+        ],
+        "service": "NOIRLab Data Lab TAP"
+      },
+      "selected_row": {
+        "dec": 70.69339832050359,
+        "ls_id": 9907741444212992,
+        "ra": 169.9798299747946,
+        "type": "SER",
+        "z_phot_mean": 0.23975199460983276,
+        "z_phot_median": 0.24098099768161774,
+        "z_phot_std": 0.011958999559283257,
+        "z_spec": -99.0
+      }
+    },
+    {
+      "key": "casey|halo|660",
+      "query_response": {
+        "query": "SELECT t.ls_id, t.ra, t.dec, t.type, p.z_phot_mean, p.z_phot_std, p.z_phot_median, p.z_spec FROM ls_dr9.tractor t JOIN ls_dr9.photo_z p ON t.ls_id = p.ls_id WHERE t.dec BETWEEN 70.67490784111112 AND 70.67768561888889 AND t.ra BETWEEN 169.9811222540669 AND 169.98951674593312",
+        "rows": [
+          {
+            "dec": 70.67629641154954,
+            "ls_id": 9907741444213014,
+            "ra": 169.9853238680563,
+            "type": "REX",
+            "z_phot_mean": 0.3727380037307739,
+            "z_phot_median": 0.37762099504470825,
+            "z_phot_std": 0.06695900112390518,
+            "z_spec": -99.0
+          }
+        ],
+        "service": "NOIRLab Data Lab TAP"
+      },
+      "selected_row": {
+        "dec": 70.67629641154954,
+        "ls_id": 9907741444213014,
+        "ra": 169.9853238680563,
+        "type": "REX",
+        "z_phot_mean": 0.3727380037307739,
+        "z_phot_median": 0.37762099504470825,
+        "z_phot_std": 0.06695900112390518,
+        "z_spec": -99.0
+      }
+    },
+    {
+      "key": "casey|halo|795",
+      "query_response": {
+        "query": "SELECT t.ls_id, t.ra, t.dec, t.type, p.z_phot_mean, p.z_phot_std, p.z_phot_median, p.z_spec FROM ls_dr9.tractor t JOIN ls_dr9.photo_z p ON t.ls_id = p.ls_id WHERE t.dec BETWEEN 70.68526578111111 AND 70.68804355888888 AND t.ra BETWEEN 169.9685705890202 AND 169.9769694109798",
+        "rows": [
+          {
+            "dec": 70.68610947891135,
+            "ls_id": 9907741444212974,
+            "ra": 169.97615760828944,
+            "type": "REX",
+            "z_phot_mean": 0.421671986579895,
+            "z_phot_median": 0.4189299941062927,
+            "z_phot_std": 0.09531299769878387,
+            "z_spec": -99.0
+          },
+          {
+            "dec": 70.68665443546246,
+            "ls_id": 9907741444212955,
+            "ra": 169.97276895655375,
+            "type": "REX",
+            "z_phot_mean": 0.374673992395401,
+            "z_phot_median": 0.3718029856681824,
+            "z_phot_std": 0.04914899915456772,
+            "z_spec": -99.0
+          }
+        ],
+        "service": "NOIRLab Data Lab TAP"
+      },
+      "selected_row": {
+        "dec": 70.68665443546246,
+        "ls_id": 9907741444212955,
+        "ra": 169.97276895655375,
+        "type": "REX",
+        "z_phot_mean": 0.374673992395401,
+        "z_phot_median": 0.3718029856681824,
+        "z_phot_std": 0.04914899915456772,
+        "z_spec": -99.0
+      }
+    },
+    {
+      "key": "casey|halo|796",
+      "query_response": {
+        "query": "SELECT t.ls_id, t.ra, t.dec, t.type, p.z_phot_mean, p.z_phot_std, p.z_phot_median, p.z_spec FROM ls_dr9.tractor t JOIN ls_dr9.photo_z p ON t.ls_id = p.ls_id WHERE t.dec BETWEEN 70.68472601111112 AND 70.68750378888889 AND t.ra BETWEEN 169.97195170190304 AND 169.98035029809694",
+        "rows": [
+          {
+            "dec": 70.68610947891135,
+            "ls_id": 9907741444212974,
+            "ra": 169.97615760828944,
+            "type": "REX",
+            "z_phot_mean": 0.421671986579895,
+            "z_phot_median": 0.4189299941062927,
+            "z_phot_std": 0.09531299769878387,
+            "z_spec": -99.0
+          },
+          {
+            "dec": 70.68665443546246,
+            "ls_id": 9907741444212955,
+            "ra": 169.97276895655375,
+            "type": "REX",
+            "z_phot_mean": 0.374673992395401,
+            "z_phot_median": 0.3718029856681824,
+            "z_phot_std": 0.04914899915456772,
+            "z_spec": -99.0
+          }
+        ],
+        "service": "NOIRLab Data Lab TAP"
+      },
+      "selected_row": {
+        "dec": 70.68610947891135,
+        "ls_id": 9907741444212974,
+        "ra": 169.97615760828944,
+        "type": "REX",
+        "z_phot_mean": 0.421671986579895,
+        "z_phot_median": 0.4189299941062927,
+        "z_phot_std": 0.09531299769878387,
+        "z_spec": -99.0
+      }
+    },
+    {
+      "key": "casey|halo|824",
+      "query_response": {
+        "query": "SELECT targetid, mean_fiber_ra, mean_fiber_dec, z, zerr, zwarn, spectype, survey, program FROM desi_dr1.zpix WHERE mean_fiber_dec BETWEEN 70.68757990111112 AND 70.69035767888889 AND mean_fiber_ra BETWEEN 169.99835570499206 AND 170.00675549500792 AND zwarn = 0",
+        "rows": [
+          {
+            "mean_fiber_dec": 70.68897589234935,
+            "mean_fiber_ra": 170.0025341917376,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633495756114277,
+            "z": 0.202814403668982,
+            "zerr": 5.208357834566213e-05,
+            "zwarn": 0
+          }
+        ],
+        "service": "NOIRLab Data Lab TAP"
+      },
+      "selected_row": {
+        "mean_fiber_dec": 70.68897589234935,
+        "mean_fiber_ra": 170.0025341917376,
+        "program": "bright",
+        "spectype": "GALAXY",
+        "survey": "main",
+        "targetid": 39633495756114277,
+        "z": 0.202814403668982,
+        "zerr": 5.208357834566213e-05,
+        "zwarn": 0
+      }
+    },
+    {
+      "key": "casey|halo|825",
+      "query_response": {
+        "query": "SELECT t.ls_id, t.ra, t.dec, t.type, p.z_phot_mean, p.z_phot_std, p.z_phot_median, p.z_spec FROM ls_dr9.tractor t JOIN ls_dr9.photo_z p ON t.ls_id = p.ls_id WHERE t.dec BETWEEN 70.68894998111112 AND 70.69172775888889 AND t.ra BETWEEN 169.9958821183663 AND 170.0042824816337",
+        "rows": [
+          {
+            "dec": 70.68896965901959,
+            "ls_id": 9907741444213093,
+            "ra": 170.00255898017966,
+            "type": "SER",
+            "z_phot_mean": 0.20517000555992126,
+            "z_phot_median": 0.2033260017633438,
+            "z_phot_std": 0.013825999572873116,
+            "z_spec": -99.0
+          },
+          {
+            "dec": 70.69031954486596,
+            "ls_id": 9907741444213082,
+            "ra": 170.00037831795856,
+            "type": "REX",
+            "z_phot_mean": 0.3482950031757355,
+            "z_phot_median": 0.3064950108528137,
+            "z_phot_std": 0.20311899483203888,
+            "z_spec": -99.0
+          },
+          {
+            "dec": 70.69080714577237,
+            "ls_id": 9907741444213094,
+            "ra": 170.0030247119933,
+            "type": "PSF",
+            "z_phot_mean": 0.9749559760093689,
+            "z_phot_median": 0.9867680072784424,
+            "z_phot_std": 0.20219199359416962,
+            "z_spec": -99.0
+          }
+        ],
+        "service": "NOIRLab Data Lab TAP"
+      },
+      "selected_row": {
+        "dec": 70.69031954486596,
+        "ls_id": 9907741444213082,
+        "ra": 170.00037831795856,
+        "type": "REX",
+        "z_phot_mean": 0.3482950031757355,
+        "z_phot_median": 0.3064950108528137,
+        "z_phot_std": 0.20311899483203888,
+        "z_spec": -99.0
+      }
+    },
+    {
+      "key": "casey|halo|827",
+      "query_response": {
+        "query": "SELECT t.ls_id, t.ra, t.dec, t.type, p.z_phot_mean, p.z_phot_std, p.z_phot_median, p.z_spec FROM ls_dr9.tractor t JOIN ls_dr9.photo_z p ON t.ls_id = p.ls_id WHERE t.dec BETWEEN 70.69200943111112 AND 70.69478720888888 AND t.ra BETWEEN 169.9756291781682 AND 169.9840308218318",
+        "rows": [
+          {
+            "dec": 70.69339832050359,
+            "ls_id": 9907741444212992,
+            "ra": 169.9798299747946,
+            "type": "SER",
+            "z_phot_mean": 0.23975199460983276,
+            "z_phot_median": 0.24098099768161774,
+            "z_phot_std": 0.011958999559283257,
+            "z_spec": -99.0
+          }
+        ],
+        "service": "NOIRLab Data Lab TAP"
+      },
+      "selected_row": {
+        "dec": 70.69339832050359,
+        "ls_id": 9907741444212992,
+        "ra": 169.9798299747946,
+        "type": "SER",
+        "z_phot_mean": 0.23975199460983276,
+        "z_phot_median": 0.24098099768161774,
+        "z_phot_std": 0.011958999559283257,
+        "z_spec": -99.0
+      }
+    },
+    {
+      "key": "chromatica|halo|196673126794497004",
+      "query_response": null,
+      "selected_row": null
+    },
+    {
+      "key": "chromatica|halo|196723126173351736",
+      "query_response": null,
+      "selected_row": {
+        "class": "GALAXY",
+        "decMean": 73.93405297,
+        "extrapolation_Photoz": 1,
+        "objID": 196723126173351736,
+        "prob_Galaxy": 0.8195953999999999,
+        "raMean": 312.61730964,
+        "z_phot": 0.4751024544239044,
+        "z_phot0": 0.4729857,
+        "z_photErr": 0.04382356494558887
+      }
+    },
+    {
+      "key": "chromatica|halo|196733128040225775",
+      "query_response": {
+        "redshift_query": {
+          "object_name": "WISEA J205112.95+735644.9",
+          "table": "redshifts"
+        },
+        "redshift_rows": [
+          {
+            "Apex": "",
+            "Apex Coordinate System": "",
+            "Comments": "",
+            "Epoch": "",
+            "Frequency Targeted": "",
+            "Latitude of the Apex": "",
+            "Longitude of the Apex": "",
+            "Measurement Mode Features": "",
+            "Measurement Mode Technique": "",
+            "Name in publication": "",
+            "No.": 1,
+            "Published Dec": "",
+            "Published Equinox": "",
+            "Published RA": "",
+            "Published Redshift": 0.054338,
+            "Published Redshift Uncertainty": 0.0,
+            "Published Velocity": 16290,
+            "Published Velocity Uncertainty": 0,
+            "Qualifiers": "Uncertain origin",
+            "Refcode": "2014ApJS..210....9B",
+            "Reference Frame": "Heliocentric velocity or redshift",
+            "Spatial Mode": "",
+            "Spectral Range": "",
+            "Spectrograph": "",
+            "Unc. Significance": "no unc. reported"
+          },
+          {
+            "Apex": "",
+            "Apex Coordinate System": "",
+            "Comments": "",
+            "Epoch": "",
+            "Frequency Targeted": "",
+            "Latitude of the Apex": "",
+            "Longitude of the Apex": "",
+            "Measurement Mode Features": "",
+            "Measurement Mode Technique": "",
+            "Name in publication": "WISEA J205112.95+735644.9",
+            "No.": 0,
+            "Published Dec": "",
+            "Published Equinox": "",
+            "Published RA": "",
+            "Published Redshift": 0.054338,
+            "Published Redshift Uncertainty": 0.0,
+            "Published Velocity": 16290,
+            "Published Velocity Uncertainty": 0,
+            "Qualifiers": "",
+            "Refcode": "2014ApJS..210....9B",
+            "Reference Frame": "",
+            "Spatial Mode": "",
+            "Spectral Range": "",
+            "Spectrograph": "",
+            "Unc. Significance": ""
+          }
+        ],
+        "region_query": {
+          "dec_deg": 73.94584168,
+          "ra_deg": 312.8039777,
+          "radius_arcsec": 5.0
+        },
+        "region_rows": [
+          {
+            "Associations": 0,
+            "DEC": 73.94583,
+            "Diameter Points": 2,
+            "Magnitude and Filter": "",
+            "No.": 1,
+            "Notes": 0,
+            "Object Name": "WISEA J205112.95+735644.9",
+            "Photometry Points": 27,
+            "Positions": 4,
+            "RA": 312.80398,
+            "Redshift": 0.054338,
+            "Redshift Flag": "PUN",
+            "Redshift Points": 1,
+            "References": 1,
+            "Separation": 0.001,
+            "Type": "G",
+            "Velocity": 16290.0
+          }
+        ],
+        "service": "NASA/IPAC Extragalactic Database"
+      },
+      "selected_row": {
+        "object_result": {
+          "Associations": 0,
+          "DEC": 73.94583,
+          "Diameter Points": 2,
+          "Magnitude and Filter": "",
+          "No.": 1,
+          "Notes": 0,
+          "Object Name": "WISEA J205112.95+735644.9",
+          "Photometry Points": 27,
+          "Positions": 4,
+          "RA": 312.80398,
+          "Redshift": 0.054338,
+          "Redshift Flag": "PUN",
+          "Redshift Points": 1,
+          "References": 1,
+          "Separation": 0.001,
+          "Type": "G",
+          "Velocity": 16290.0
+        },
+        "redshift_record": {
+          "Apex": "",
+          "Apex Coordinate System": "",
+          "Comments": "",
+          "Epoch": "",
+          "Frequency Targeted": "",
+          "Latitude of the Apex": "",
+          "Longitude of the Apex": "",
+          "Measurement Mode Features": "",
+          "Measurement Mode Technique": "",
+          "Name in publication": "",
+          "No.": 1,
+          "Published Dec": "",
+          "Published Equinox": "",
+          "Published RA": "",
+          "Published Redshift": 0.054338,
+          "Published Redshift Uncertainty": 0.0,
+          "Published Velocity": 16290,
+          "Published Velocity Uncertainty": 0,
+          "Qualifiers": "Uncertain origin",
+          "Refcode": "2014ApJS..210....9B",
+          "Reference Frame": "Heliocentric velocity or redshift",
+          "Spatial Mode": "",
+          "Spectral Range": "",
+          "Spectrograph": "",
+          "Unc. Significance": "no unc. reported"
+        }
+      }
+    },
+    {
+      "key": "freya|halo|197030881733398302",
+      "query_response": null,
+      "selected_row": {
+        "class": "GALAXY",
+        "decMean": 74.1978583,
+        "extrapolation_Photoz": 0,
+        "objID": 197030881733398302,
+        "prob_Galaxy": 0.8896739999999999,
+        "raMean": 88.1728915,
+        "z_phot": 0.304726094007492,
+        "z_phot0": 0.2799109,
+        "z_photErr": 0.06798591016101065
+      }
+    },
+    {
+      "key": "freya|halo|197040882212782495",
+      "query_response": null,
+      "selected_row": {
+        "class": "GALAXY",
+        "decMean": 74.20138355,
+        "extrapolation_Photoz": 0,
+        "objID": 197040882212782495,
+        "prob_Galaxy": 0.9546297,
+        "raMean": 88.22134965,
+        "z_phot": 0.6175214052200317,
+        "z_phot0": 0.6069858,
+        "z_photErr": 0.1255208599054298
+      }
+    },
+    {
+      "key": "hamilton|halo|192943050854547067",
+      "query_response": null,
+      "selected_row": null
+    },
+    {
+      "key": "hamilton|halo|192963050359413614",
+      "query_response": null,
+      "selected_row": {
+        "class": "GALAXY",
+        "decMean": 70.80239717,
+        "extrapolation_Photoz": 0,
+        "objID": 192963050359413614,
+        "prob_Galaxy": 0.9775194,
+        "raMean": 305.03613793,
+        "z_phot": 0.3078607320785522,
+        "z_phot0": 0.29046842,
+        "z_photErr": 0.07270311687166107
+      }
+    },
+    {
+      "key": "isha|halo|WISEA J044538.83+701843.3",
+      "query_response": null,
+      "selected_row": null
+    },
+    {
+      "key": "oran|halo|195393180643665627",
+      "query_response": null,
+      "selected_row": null
+    },
+    {
+      "key": "oran|halo|WISEA J211150.32+724807.8",
+      "query_response": null,
+      "selected_row": null
+    },
+    {
+      "key": "phineas|cluster|J114928.5+712526, 1253366",
+      "query_response": {
+        "query": "SELECT targetid, mean_fiber_ra, mean_fiber_dec, z, zerr, zwarn, spectype, survey, program FROM desi_dr1.zpix WHERE mean_fiber_dec BETWEEN 71.39903 AND 71.44903000000001 AND mean_fiber_ra BETWEEN 177.29039228798177 AND 177.4473477120182 AND zwarn = 0",
+        "rows": [
+          {
+            "mean_fiber_dec": 71.40467653802224,
+            "mean_fiber_ra": 177.3090214458093,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633501699442755,
+            "z": 0.1985399717351134,
+            "zerr": 4.326553456053538e-06,
+            "zwarn": 0
+          },
+          {
+            "mean_fiber_dec": 71.40531218027738,
+            "mean_fiber_ra": 177.426652448607,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633501699443347,
+            "z": 0.3289667169103607,
+            "zerr": 8.37482619345178e-05,
+            "zwarn": 0
+          },
+          {
+            "mean_fiber_dec": 71.41495564649932,
+            "mean_fiber_ra": 177.3654831662687,
+            "program": "backup",
+            "spectype": "STAR",
+            "survey": "sv1",
+            "targetid": 39633501699443026,
+            "z": -0.0001092461529989764,
+            "zerr": 3.396216537783021e-06,
+            "zwarn": 0
+          },
+          {
+            "mean_fiber_dec": 71.42442467114408,
+            "mean_fiber_ra": 177.3323866441732,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633501699442860,
+            "z": 0.1506384924474737,
+            "zerr": 8.008630819298096e-05,
+            "zwarn": 0
+          },
+          {
+            "mean_fiber_dec": 71.44303521929818,
+            "mean_fiber_ra": 177.397093982661,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633501699443192,
+            "z": 0.1516517114750207,
+            "zerr": 1.250621422008361e-05,
+            "zwarn": 0
+          }
+        ],
+        "service": "NOIRLab Data Lab TAP"
+      },
+      "selected_row": {
+        "mean_fiber_dec": 71.41495564649932,
+        "mean_fiber_ra": 177.3654831662687,
+        "program": "backup",
+        "spectype": "STAR",
+        "survey": "sv1",
+        "targetid": 39633501699443026,
+        "z": -0.0001092461529989764,
+        "zerr": 3.396216537783021e-06,
+        "zwarn": 0
+      }
+    },
+    {
+      "key": "phineas|cluster|J114944.0+714348, 1253496",
+      "query_response": {
+        "query": "SELECT targetid, mean_fiber_ra, mean_fiber_dec, z, zerr, zwarn, spectype, survey, program FROM desi_dr1.zpix WHERE mean_fiber_dec BETWEEN 71.70509999999999 AND 71.7551 AND mean_fiber_ra BETWEEN 177.35345356497606 AND 177.51294643502393 AND zwarn = 0",
+        "rows": [
+          {
+            "mean_fiber_dec": 71.7075602704842,
+            "mean_fiber_ra": 177.4521486032884,
+            "program": "backup",
+            "spectype": "STAR",
+            "survey": "sv1",
+            "targetid": 39633503616239990,
+            "z": -7.494873509981152e-05,
+            "zerr": 3.660603853547975e-06,
+            "zwarn": 0
+          },
+          {
+            "mean_fiber_dec": 71.71291946481323,
+            "mean_fiber_ra": 177.3541192540426,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633503616239551,
+            "z": 0.4282960731370642,
+            "zerr": 5.877894619338464e-05,
+            "zwarn": 0
+          },
+          {
+            "mean_fiber_dec": 71.72207369661986,
+            "mean_fiber_ra": 177.4343344736022,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633503616239923,
+            "z": 0.2433702259602958,
+            "zerr": 8.308687679733832e-05,
+            "zwarn": 0
+          },
+          {
+            "mean_fiber_dec": 71.72441565372428,
+            "mean_fiber_ra": 177.3975646536512,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633503616239744,
+            "z": 0.2496472220921091,
+            "zerr": 1.778401187226146e-05,
+            "zwarn": 0
+          },
+          {
+            "mean_fiber_dec": 71.73010222946243,
+            "mean_fiber_ra": 177.4332436772912,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633503616239915,
+            "z": 0.2440166613482867,
+            "zerr": 4.155026838108388e-05,
+            "zwarn": 0
+          },
+          {
+            "mean_fiber_dec": 71.73828099687475,
+            "mean_fiber_ra": 177.4999888260168,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633503616240187,
+            "z": 0.2116320389262271,
+            "zerr": 4.981379360744097e-05,
+            "zwarn": 0
+          },
+          {
+            "mean_fiber_dec": 71.74181383539864,
+            "mean_fiber_ra": 177.4181928566595,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633503616239840,
+            "z": 0.2450745747531737,
+            "zerr": 5.863373575931596e-05,
+            "zwarn": 0
+          }
+        ],
+        "service": "NOIRLab Data Lab TAP"
+      },
+      "selected_row": {
+        "mean_fiber_dec": 71.73010222946243,
+        "mean_fiber_ra": 177.4332436772912,
+        "program": "bright",
+        "spectype": "GALAXY",
+        "survey": "main",
+        "targetid": 39633503616239915,
+        "z": 0.2440166613482867,
+        "zerr": 4.155026838108388e-05,
+        "zwarn": 0
+      }
+    },
+    {
+      "key": "phineas|cluster|J115031.4+715735, 1253898",
+      "query_response": {
+        "query": "SELECT targetid, mean_fiber_ra, mean_fiber_dec, z, zerr, zwarn, spectype, survey, program FROM desi_dr1.zpix WHERE mean_fiber_dec BETWEEN 71.93464999999999 AND 71.98465 AND mean_fiber_ra BETWEEN 177.5499532500239 AND 177.71140674997613 AND zwarn = 0",
+        "rows": [
+          {
+            "mean_fiber_dec": 71.94585355296206,
+            "mean_fiber_ra": 177.6221288840325,
+            "program": "backup",
+            "spectype": "STAR",
+            "survey": "sv1",
+            "targetid": 39633505512063162,
+            "z": -0.0005965630496195105,
+            "zerr": 1.411266715874157e-05,
+            "zwarn": 0
+          },
+          {
+            "mean_fiber_dec": 71.95017556573207,
+            "mean_fiber_ra": 177.6439193660673,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633505512063276,
+            "z": 0.2695769281733815,
+            "zerr": 7.944948537204203e-05,
+            "zwarn": 0
+          },
+          {
+            "mean_fiber_dec": 71.97214379447196,
+            "mean_fiber_ra": 177.6012722215074,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633505512063072,
+            "z": 0.2678702865275903,
+            "zerr": 9.701175455429114e-05,
+            "zwarn": 0
+          }
+        ],
+        "service": "NOIRLab Data Lab TAP"
+      },
+      "selected_row": {
+        "mean_fiber_dec": 71.95017556573207,
+        "mean_fiber_ra": 177.6439193660673,
+        "program": "bright",
+        "spectype": "GALAXY",
+        "survey": "main",
+        "targetid": 39633505512063276,
+        "z": 0.2695769281733815,
+        "zerr": 7.944948537204203e-05,
+        "zwarn": 0
+      }
+    },
+    {
+      "key": "phineas|cluster|J115120.4+714435, 1254337",
+      "query_response": {
+        "query": "SELECT targetid, mean_fiber_ra, mean_fiber_dec, z, zerr, zwarn, spectype, survey, program FROM desi_dr1.zpix WHERE mean_fiber_dec BETWEEN 71.71818999999999 AND 71.76819 AND mean_fiber_ra BETWEEN 177.7550783377965 AND 177.9146816622035 AND zwarn = 0",
+        "rows": [
+          {
+            "mean_fiber_dec": 71.72128783472363,
+            "mean_fiber_ra": 177.8698455340246,
+            "program": "backup",
+            "spectype": "STAR",
+            "survey": "sv1",
+            "targetid": 39633503620432994,
+            "z": -1.705891305172973e-05,
+            "zerr": 2.799425226753249e-06,
+            "zwarn": 0
+          },
+          {
+            "mean_fiber_dec": 71.73439000074477,
+            "mean_fiber_ra": 177.7686200377573,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633503620432519,
+            "z": 0.1921882910147153,
+            "zerr": 9.259812460904208e-06,
+            "zwarn": 0
+          },
+          {
+            "mean_fiber_dec": 71.74485774347238,
+            "mean_fiber_ra": 177.8207701626989,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633503620432753,
+            "z": 0.2000304441831005,
+            "zerr": 0.0001008145572217087,
+            "zwarn": 0
+          },
+          {
+            "mean_fiber_dec": 71.76404493676117,
+            "mean_fiber_ra": 177.8860047943849,
+            "program": "bright",
+            "spectype": "STAR",
+            "survey": "main",
+            "targetid": 39633503620433065,
+            "z": -0.0001413333908737948,
+            "zerr": 4.248755389941075e-06,
+            "zwarn": 0
+          },
+          {
+            "mean_fiber_dec": 71.76451270929083,
+            "mean_fiber_ra": 177.8971116874086,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633503620433120,
+            "z": 0.1016027761649317,
+            "zerr": 8.650545914955999e-06,
+            "zwarn": 0
+          },
+          {
+            "mean_fiber_dec": 71.76799112991253,
+            "mean_fiber_ra": 177.8566660022968,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633503620432929,
+            "z": 0.2117643957173088,
+            "zerr": 7.710208475089489e-06,
+            "zwarn": 0
+          }
+        ],
+        "service": "NOIRLab Data Lab TAP"
+      },
+      "selected_row": {
+        "mean_fiber_dec": 71.74485774347238,
+        "mean_fiber_ra": 177.8207701626989,
+        "program": "bright",
+        "spectype": "GALAXY",
+        "survey": "main",
+        "targetid": 39633503620432753,
+        "z": 0.2000304441831005,
+        "zerr": 0.0001008145572217087,
+        "zwarn": 0
+      }
+    },
+    {
+      "key": "phineas|cluster|J115128.2+713637, 1254415",
+      "query_response": {
+        "query": "SELECT targetid, mean_fiber_ra, mean_fiber_dec, z, zerr, zwarn, spectype, survey, program FROM desi_dr1.zpix WHERE mean_fiber_dec BETWEEN 71.58524 AND 71.63524000000001 AND mean_fiber_ra BETWEEN 177.78836553502714 AND 177.9468544649729 AND zwarn = 0",
+        "rows": [
+          {
+            "mean_fiber_dec": 71.59337715340524,
+            "mean_fiber_ra": 177.825165834224,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633501703635882,
+            "z": 0.1554380858430048,
+            "zerr": 1.245284269464982e-05,
+            "zwarn": 0
+          },
+          {
+            "mean_fiber_dec": 71.59801331081725,
+            "mean_fiber_ra": 177.8852210398406,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633501703636269,
+            "z": 0.1865584714211777,
+            "zerr": 8.015240855804883e-05,
+            "zwarn": 0
+          },
+          {
+            "mean_fiber_dec": 71.60638066841946,
+            "mean_fiber_ra": 177.8498983007617,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633501703636074,
+            "z": 0.1915992539483878,
+            "zerr": 7.63714037739639e-05,
+            "zwarn": 0
+          },
+          {
+            "mean_fiber_dec": 71.62727346743195,
+            "mean_fiber_ra": 177.8349810770435,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633503620432830,
+            "z": 0.2699616822574343,
+            "zerr": 1.192512152186124e-05,
+            "zwarn": 0
+          }
+        ],
+        "service": "NOIRLab Data Lab TAP"
+      },
+      "selected_row": {
+        "mean_fiber_dec": 71.60638066841946,
+        "mean_fiber_ra": 177.8498983007617,
+        "program": "bright",
+        "spectype": "GALAXY",
+        "survey": "main",
+        "targetid": 39633501703636074,
+        "z": 0.1915992539483878,
+        "zerr": 7.63714037739639e-05,
+        "zwarn": 0
+      }
+    },
+    {
+      "key": "phineas|cluster|J115140.5+712732, 1254506",
+      "query_response": {
+        "query": "SELECT targetid, mean_fiber_ra, mean_fiber_dec, z, zerr, zwarn, spectype, survey, program FROM desi_dr1.zpix WHERE mean_fiber_dec BETWEEN 71.43392 AND 71.48392000000001 AND mean_fiber_ra BETWEEN 177.84010981693783 AND 177.9973501830622 AND zwarn = 0",
+        "rows": [
+          {
+            "mean_fiber_dec": 71.44941911923596,
+            "mean_fiber_ra": 177.9954353709925,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633501703636897,
+            "z": 0.1731466676483658,
+            "zerr": 5.181967687983935e-05,
+            "zwarn": 0
+          },
+          {
+            "mean_fiber_dec": 71.45155443372089,
+            "mean_fiber_ra": 177.8913397284171,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633501703636293,
+            "z": 0.1544340293401046,
+            "zerr": 1.509614396796534e-05,
+            "zwarn": 0
+          },
+          {
+            "mean_fiber_dec": 71.45624305706173,
+            "mean_fiber_ra": 177.9912761345147,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633501703636865,
+            "z": 0.176795408196459,
+            "zerr": 8.842176021798662e-05,
+            "zwarn": 0
+          },
+          {
+            "mean_fiber_dec": 71.45892012041104,
+            "mean_fiber_ra": 177.9187563645639,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633501703636447,
+            "z": 0.1758073840466206,
+            "zerr": 6.724733556395304e-05,
+            "zwarn": 0
+          },
+          {
+            "mean_fiber_dec": 71.45897516916109,
+            "mean_fiber_ra": 177.9202129215505,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633501703636454,
+            "z": 0.1760520929985527,
+            "zerr": 5.97617781838448e-05,
+            "zwarn": 0
+          },
+          {
+            "mean_fiber_dec": 71.47080792562102,
+            "mean_fiber_ra": 177.8463732259694,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633501703636046,
+            "z": 0.1760674355012633,
+            "zerr": 4.841766686889679e-05,
+            "zwarn": 0
+          }
+        ],
+        "service": "NOIRLab Data Lab TAP"
+      },
+      "selected_row": {
+        "mean_fiber_dec": 71.45892012041104,
+        "mean_fiber_ra": 177.9187563645639,
+        "program": "bright",
+        "spectype": "GALAXY",
+        "survey": "main",
+        "targetid": 39633501703636447,
+        "z": 0.1758073840466206,
+        "zerr": 6.724733556395304e-05,
+        "zwarn": 0
+      }
+    },
+    {
+      "key": "phineas|cluster|J115400.9+713320, 1255773",
+      "query_response": {
+        "query": "SELECT targetid, mean_fiber_ra, mean_fiber_dec, z, zerr, zwarn, spectype, survey, program FROM desi_dr1.zpix WHERE mean_fiber_dec BETWEEN 71.53066 AND 71.58066000000001 AND mean_fiber_ra BETWEEN 178.42479191227795 AND 178.58282808772202 AND zwarn = 0",
+        "rows": [
+          {
+            "mean_fiber_dec": 71.53151774173335,
+            "mean_fiber_ra": 178.5767664041855,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633501707830052,
+            "z": 0.191238878606066,
+            "zerr": 6.70746022317578e-05,
+            "zwarn": 0
+          },
+          {
+            "mean_fiber_dec": 71.54803428366482,
+            "mean_fiber_ra": 178.5014752816658,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633501707829654,
+            "z": 0.1549452747807319,
+            "zerr": 2.772212691424698e-05,
+            "zwarn": 0
+          },
+          {
+            "mean_fiber_dec": 71.55156652249077,
+            "mean_fiber_ra": 178.4464682083552,
+            "program": "bright",
+            "spectype": "STAR",
+            "survey": "main",
+            "targetid": 39633501707829330,
+            "z": -0.000232028739372032,
+            "zerr": 4.158935025894312e-06,
+            "zwarn": 0
+          },
+          {
+            "mean_fiber_dec": 71.56223686584198,
+            "mean_fiber_ra": 178.5174205096572,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633501707829757,
+            "z": 0.4573163132286597,
+            "zerr": 2.838561953232803e-06,
+            "zwarn": 0
+          },
+          {
+            "mean_fiber_dec": 71.57520115607602,
+            "mean_fiber_ra": 178.5414864715473,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633501707829884,
+            "z": 0.1197143281317069,
+            "zerr": 2.985877852566391e-05,
+            "zwarn": 0
+          },
+          {
+            "mean_fiber_dec": 71.57676846117647,
+            "mean_fiber_ra": 178.4496198456657,
+            "program": "bright",
+            "spectype": "STAR",
+            "survey": "main",
+            "targetid": 2782269991288832,
+            "z": -8.859400121657232e-05,
+            "zerr": 8.895002927373146e-06,
+            "zwarn": 0
+          }
+        ],
+        "service": "NOIRLab Data Lab TAP"
+      },
+      "selected_row": {
+        "mean_fiber_dec": 71.54803428366482,
+        "mean_fiber_ra": 178.5014752816658,
+        "program": "bright",
+        "spectype": "GALAXY",
+        "survey": "main",
+        "targetid": 39633501707829654,
+        "z": 0.1549452747807319,
+        "zerr": 2.772212691424698e-05,
+        "zwarn": 0
+      }
+    },
+    {
+      "key": "phineas|cluster|J115436.9+713930, 1256077",
+      "query_response": {
+        "query": "SELECT targetid, mean_fiber_ra, mean_fiber_dec, z, zerr, zwarn, spectype, survey, program FROM desi_dr1.zpix WHERE mean_fiber_dec BETWEEN 71.63322 AND 71.68322 AND mean_fiber_ra BETWEEN 178.57433539838414 AND 178.7332246016159 AND zwarn = 0",
+        "rows": [
+          {
+            "mean_fiber_dec": 71.65037356864548,
+            "mean_fiber_ra": 178.703978293735,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633503624627584,
+            "z": 0.25112988464486,
+            "zerr": 0.0001487375302137795,
+            "zwarn": 0
+          },
+          {
+            "mean_fiber_dec": 71.65599713509262,
+            "mean_fiber_ra": 178.6177545767422,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633503624627105,
+            "z": 0.2627751291890956,
+            "zerr": 5.423695612722966e-05,
+            "zwarn": 0
+          },
+          {
+            "mean_fiber_dec": 71.67839547500435,
+            "mean_fiber_ra": 178.701546363827,
+            "program": "bright",
+            "spectype": "STAR",
+            "survey": "main",
+            "targetid": 39633503624627571,
+            "z": 0.0002535131761982564,
+            "zerr": 5.229250829546478e-06,
+            "zwarn": 0
+          }
+        ],
+        "service": "NOIRLab Data Lab TAP"
+      },
+      "selected_row": {
+        "mean_fiber_dec": 71.65599713509262,
+        "mean_fiber_ra": 178.6177545767422,
+        "program": "bright",
+        "spectype": "GALAXY",
+        "survey": "main",
+        "targetid": 39633503624627105,
+        "z": 0.2627751291890956,
+        "zerr": 5.423695612722966e-05,
+        "zwarn": 0
+      }
+    },
+    {
+      "key": "phineas|cluster|WHL J115048.0+714428",
+      "query_response": {
+        "catalog": "J/ApJS/199/34/table1",
+        "query": {
+          "dec_deg": 71.74124,
+          "ra_deg": 177.69998,
+          "radius_arcmin": 2.0
+        },
+        "rows": [
+          {
+            "DEJ2000": 71.74124,
+            "N200": 12,
+            "Other": "",
+            "RAJ2000": 177.69998,
+            "RL*": 12.029999732971191,
+            "WHL": "J115048.0+714428",
+            "_r": 0.0003,
+            "r200": 0.9200000166893005,
+            "recno": 63769,
+            "rmag": 16.940000534057617,
+            "zph": 0.18930000066757202,
+            "zsp": null
+          }
+        ],
+        "service": "VizieR"
+      },
+      "selected_row": {
+        "DEJ2000": 71.74124,
+        "N200": 12,
+        "Other": "",
+        "RAJ2000": 177.69998,
+        "RL*": 12.029999732971191,
+        "WHL": "J115048.0+714428",
+        "_r": 0.0003,
+        "r200": 0.9200000166893005,
+        "recno": 63769,
+        "rmag": 16.940000534057617,
+        "zph": 0.18930000066757202,
+        "zsp": null
+      }
+    },
+    {
+      "key": "phineas|halo|1072",
+      "query_response": {
+        "query": "SELECT t.ls_id, t.ra, t.dec, t.type, p.z_phot_mean, p.z_phot_std, p.z_phot_median, p.z_spec FROM ls_dr9.tractor t JOIN ls_dr9.photo_z p ON t.ls_id = p.ls_id WHERE t.dec BETWEEN 71.69911766111112 AND 71.70189543888888 AND t.ra BETWEEN 177.76602126245504 AND 177.77486813754498",
+        "rows": [
+          {
+            "dec": 71.70050717654722,
+            "ls_id": 9907741567091347,
+            "ra": 177.7704435535906,
+            "type": "EXP",
+            "z_phot_mean": 0.2995710074901581,
+            "z_phot_median": 0.305418998003006,
+            "z_phot_std": 0.0792590007185936,
+            "z_spec": -99.0
+          }
+        ],
+        "service": "NOIRLab Data Lab TAP"
+      },
+      "selected_row": {
+        "dec": 71.70050717654722,
+        "ls_id": 9907741567091347,
+        "ra": 177.7704435535906,
+        "type": "EXP",
+        "z_phot_mean": 0.2995710074901581,
+        "z_phot_median": 0.305418998003006,
+        "z_phot_std": 0.0792590007185936,
+        "z_spec": -99.0
+      }
+    },
+    {
+      "key": "phineas|halo|1153",
+      "query_response": {
+        "query": "SELECT targetid, mean_fiber_ra, mean_fiber_dec, z, zerr, zwarn, spectype, survey, program FROM desi_dr1.zpix WHERE mean_fiber_dec BETWEEN 71.70420330111112 AND 71.70698107888889 AND mean_fiber_ra BETWEEN 177.77362947488186 AND 177.78247872511812 AND zwarn = 0",
+        "rows": [
+          {
+            "mean_fiber_dec": 71.70557180044803,
+            "mean_fiber_ra": 177.7780536577397,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633503620432567,
+            "z": 0.2146200469829769,
+            "zerr": 4.267617329507113e-05,
+            "zwarn": 0
+          }
+        ],
+        "service": "NOIRLab Data Lab TAP"
+      },
+      "selected_row": {
+        "mean_fiber_dec": 71.70557180044803,
+        "mean_fiber_ra": 177.7780536577397,
+        "program": "bright",
+        "spectype": "GALAXY",
+        "survey": "main",
+        "targetid": 39633503620432567,
+        "z": 0.2146200469829769,
+        "zerr": 4.267617329507113e-05,
+        "zwarn": 0
+      }
+    },
+    {
+      "key": "phineas|halo|1190",
+      "query_response": {
+        "query": "SELECT targetid, mean_fiber_ra, mean_fiber_dec, z, zerr, zwarn, spectype, survey, program FROM desi_dr1.zpix WHERE mean_fiber_dec BETWEEN 71.70838652111112 AND 71.71116429888889 AND mean_fiber_ra BETWEEN 177.77669599753304 AND 177.78554720246697 AND zwarn = 0",
+        "rows": [
+          {
+            "mean_fiber_dec": 71.70976289056483,
+            "mean_fiber_ra": 177.7811776992405,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633503620432581,
+            "z": 0.1096068304867437,
+            "zerr": 4.290510354694542e-05,
+            "zwarn": 0
+          }
+        ],
+        "service": "NOIRLab Data Lab TAP"
+      },
+      "selected_row": {
+        "mean_fiber_dec": 71.70976289056483,
+        "mean_fiber_ra": 177.7811776992405,
+        "program": "bright",
+        "spectype": "GALAXY",
+        "survey": "main",
+        "targetid": 39633503620432581,
+        "z": 0.1096068304867437,
+        "zerr": 4.290510354694542e-05,
+        "zwarn": 0
+      }
+    },
+    {
+      "key": "phineas|halo|194021777634832653",
+      "query_response": {
+        "query": "SELECT t.ls_id, t.ra, t.dec, t.type, p.z_phot_mean, p.z_phot_std, p.z_phot_median, p.z_spec FROM ls_dr9.tractor t JOIN ls_dr9.photo_z p ON t.ls_id = p.ls_id WHERE t.dec BETWEEN 71.68347914111112 AND 71.68625691888889 AND t.ra BETWEEN 177.75914801007502 AND 177.76798758992499",
+        "rows": [
+          {
+            "dec": 71.6848624368746,
+            "ls_id": 9907741567091313,
+            "ra": 177.76356652438304,
+            "type": "DEV",
+            "z_phot_mean": 0.19249099493026733,
+            "z_phot_median": 0.19020000100135803,
+            "z_phot_std": 0.028387999162077904,
+            "z_spec": -99.0
+          }
+        ],
+        "service": "NOIRLab Data Lab TAP"
+      },
+      "selected_row": {
+        "dec": 71.6848624368746,
+        "ls_id": 9907741567091313,
+        "ra": 177.76356652438304,
+        "type": "DEV",
+        "z_phot_mean": 0.19249099493026733,
+        "z_phot_median": 0.19020000100135803,
+        "z_phot_std": 0.028387999162077904,
+        "z_spec": -99.0
+      }
+    },
+    {
+      "key": "phineas|halo|194031778315722893",
+      "query_response": {
+        "query": "SELECT t.ls_id, t.ra, t.dec, t.type, p.z_phot_mean, p.z_phot_std, p.z_phot_median, p.z_spec FROM ls_dr9.tractor t JOIN ls_dr9.photo_z p ON t.ls_id = p.ls_id WHERE t.dec BETWEEN 71.69861111111112 AND 71.70138888888889 AND t.ra BETWEEN 177.82695128070526 AND 177.83579791929475",
+        "rows": [
+          {
+            "dec": 71.70066806903083,
+            "ls_id": 9907741567091619,
+            "ra": 177.83102052638316,
+            "type": "REX",
+            "z_phot_mean": 0.8840519785881042,
+            "z_phot_median": 0.8835939764976501,
+            "z_phot_std": 0.11548399925231934,
+            "z_spec": -99.0
+          },
+          {
+            "dec": 71.70110555795377,
+            "ls_id": 9907741567091603,
+            "ra": 177.82777651197893,
+            "type": "REX",
+            "z_phot_mean": 1.0586129426956177,
+            "z_phot_median": 1.0708889961242676,
+            "z_phot_std": 0.2262430042028427,
+            "z_spec": -99.0
+          }
+        ],
+        "service": "NOIRLab Data Lab TAP"
+      },
+      "selected_row": {
+        "dec": 71.70066806903083,
+        "ls_id": 9907741567091619,
+        "ra": 177.83102052638316,
+        "type": "REX",
+        "z_phot_mean": 0.8840519785881042,
+        "z_phot_median": 0.8835939764976501,
+        "z_phot_std": 0.11548399925231934,
+        "z_spec": -99.0
+      }
+    },
+    {
+      "key": "phineas|halo|194041777780157594",
+      "query_response": {
+        "query": "SELECT targetid, mean_fiber_ra, mean_fiber_dec, z, zerr, zwarn, spectype, survey, program FROM desi_dr1.zpix WHERE mean_fiber_dec BETWEEN 71.70420070111112 AND 71.70697847888889 AND mean_fiber_ra BETWEEN 177.77364287548914 AND 177.78249212451084 AND zwarn = 0",
+        "rows": [
+          {
+            "mean_fiber_dec": 71.70557180044803,
+            "mean_fiber_ra": 177.7780536577397,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633503620432567,
+            "z": 0.2146200469829769,
+            "zerr": 4.267617329507113e-05,
+            "zwarn": 0
+          }
+        ],
+        "service": "NOIRLab Data Lab TAP"
+      },
+      "selected_row": {
+        "mean_fiber_dec": 71.70557180044803,
+        "mean_fiber_ra": 177.7780536577397,
+        "program": "bright",
+        "spectype": "GALAXY",
+        "survey": "main",
+        "targetid": 39633503620432567,
+        "z": 0.2146200469829769,
+        "zerr": 4.267617329507113e-05,
+        "zwarn": 0
+      }
+    },
+    {
+      "key": "phineas|halo|194051777813062524",
+      "query_response": {
+        "query": "SELECT targetid, mean_fiber_ra, mean_fiber_dec, z, zerr, zwarn, spectype, survey, program FROM desi_dr1.zpix WHERE mean_fiber_dec BETWEEN 71.70838529111111 AND 71.71116306888888 AND mean_fiber_ra BETWEEN 177.7767065978205 AND 177.7855578021795 AND zwarn = 0",
+        "rows": [
+          {
+            "mean_fiber_dec": 71.70976289056483,
+            "mean_fiber_ra": 177.7811776992405,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633503620432581,
+            "z": 0.1096068304867437,
+            "zerr": 4.290510354694542e-05,
+            "zwarn": 0
+          }
+        ],
+        "service": "NOIRLab Data Lab TAP"
+      },
+      "selected_row": {
+        "mean_fiber_dec": 71.70976289056483,
+        "mean_fiber_ra": 177.7811776992405,
+        "program": "bright",
+        "spectype": "GALAXY",
+        "survey": "main",
+        "targetid": 39633503620432581,
+        "z": 0.1096068304867437,
+        "zerr": 4.290510354694542e-05,
+        "zwarn": 0
+      }
+    },
+    {
+      "key": "phineas|halo|832",
+      "query_response": {
+        "query": "SELECT t.ls_id, t.ra, t.dec, t.type, p.z_phot_mean, p.z_phot_std, p.z_phot_median, p.z_spec FROM ls_dr9.tractor t JOIN ls_dr9.photo_z p ON t.ls_id = p.ls_id WHERE t.dec BETWEEN 71.68347509111112 AND 71.68625286888889 AND t.ra BETWEEN 177.75914741101886 AND 177.76798698898116",
+        "rows": [
+          {
+            "dec": 71.6848624368746,
+            "ls_id": 9907741567091313,
+            "ra": 177.76356652438304,
+            "type": "DEV",
+            "z_phot_mean": 0.19249099493026733,
+            "z_phot_median": 0.19020000100135803,
+            "z_phot_std": 0.028387999162077904,
+            "z_spec": -99.0
+          }
+        ],
+        "service": "NOIRLab Data Lab TAP"
+      },
+      "selected_row": {
+        "dec": 71.6848624368746,
+        "ls_id": 9907741567091313,
+        "ra": 177.76356652438304,
+        "type": "DEV",
+        "z_phot_mean": 0.19249099493026733,
+        "z_phot_median": 0.19020000100135803,
+        "z_phot_std": 0.028387999162077904,
+        "z_spec": -99.0
+      }
+    },
+    {
+      "key": "phineas|halo|953",
+      "query_response": {
+        "query": "SELECT targetid, mean_fiber_ra, mean_fiber_dec, z, zerr, zwarn, spectype, survey, program FROM desi_dr1.zpix WHERE mean_fiber_dec BETWEEN 71.69198030111112 AND 71.69475807888888 AND mean_fiber_ra BETWEEN 177.82698062800213 AND 177.83582417199787 AND zwarn = 0",
+        "rows": [
+          {
+            "mean_fiber_dec": 71.69336695207477,
+            "mean_fiber_ra": 177.8314436963207,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633503620432806,
+            "z": 0.1990638847824674,
+            "zerr": 4.953432982739382e-06,
+            "zwarn": 0
+          }
+        ],
+        "service": "NOIRLab Data Lab TAP"
+      },
+      "selected_row": {
+        "mean_fiber_dec": 71.69336695207477,
+        "mean_fiber_ra": 177.8314436963207,
+        "program": "bright",
+        "spectype": "GALAXY",
+        "survey": "main",
+        "targetid": 39633503620432806,
+        "z": 0.1990638847824674,
+        "zerr": 4.953432982739382e-06,
+        "zwarn": 0
+      }
+    },
+    {
+      "key": "phineas|halo|983",
+      "query_response": {
+        "query": "SELECT t.ls_id, t.ra, t.dec, t.type, p.z_phot_mean, p.z_phot_std, p.z_phot_median, p.z_spec FROM ls_dr9.tractor t JOIN ls_dr9.photo_z p ON t.ls_id = p.ls_id WHERE t.dec BETWEEN 71.69362242111112 AND 71.69640019888888 AND t.ra BETWEEN 177.81189864492046 AND 177.82074295507954",
+        "rows": [
+          {
+            "dec": 71.69501162744997,
+            "ls_id": 9907741567091553,
+            "ra": 177.8163172926103,
+            "type": "EXP",
+            "z_phot_mean": 0.16492000222206116,
+            "z_phot_median": 0.1652050018310547,
+            "z_phot_std": 0.058451998978853226,
+            "z_spec": -99.0
+          }
+        ],
+        "service": "NOIRLab Data Lab TAP"
+      },
+      "selected_row": {
+        "dec": 71.69501162744997,
+        "ls_id": 9907741567091553,
+        "ra": 177.8163172926103,
+        "type": "EXP",
+        "z_phot_mean": 0.16492000222206116,
+        "z_phot_median": 0.1652050018310547,
+        "z_phot_std": 0.058451998978853226,
+        "z_spec": -99.0
+      }
+    },
+    {
+      "key": "phineas|halo|986",
+      "query_response": {
+        "query": "SELECT t.ls_id, t.ra, t.dec, t.type, p.z_phot_mean, p.z_phot_std, p.z_phot_median, p.z_spec FROM ls_dr9.tractor t JOIN ls_dr9.photo_z p ON t.ls_id = p.ls_id WHERE t.dec BETWEEN 71.69395767111112 AND 71.69673544888889 AND t.ra BETWEEN 177.72653706670312 AND 177.73538153329687",
+        "rows": [
+          {
+            "dec": 71.69534630745075,
+            "ls_id": 9907741567091138,
+            "ra": 177.7309614044243,
+            "type": "REX",
+            "z_phot_mean": 0.2081799954175949,
+            "z_phot_median": 0.21248100697994232,
+            "z_phot_std": 0.06666400283575058,
+            "z_spec": -99.0
+          }
+        ],
+        "service": "NOIRLab Data Lab TAP"
+      },
+      "selected_row": {
+        "dec": 71.69534630745075,
+        "ls_id": 9907741567091138,
+        "ra": 177.7309614044243,
+        "type": "REX",
+        "z_phot_mean": 0.2081799954175949,
+        "z_phot_median": 0.21248100697994232,
+        "z_phot_std": 0.06666400283575058,
+        "z_spec": -99.0
+      }
+    },
+    {
+      "key": "whitney|cluster|J085531.9+732432, 1159975",
+      "query_response": {
+        "query": "SELECT targetid, mean_fiber_ra, mean_fiber_dec, z, zerr, zwarn, spectype, survey, program FROM desi_dr1.zpix WHERE mean_fiber_dec BETWEEN 73.38386999999999 AND 73.43387 AND mean_fiber_ra BETWEEN 133.7951665940738 AND 133.9702734059262 AND zwarn = 0",
+        "rows": [
+          {
+            "mean_fiber_dec": 73.42223735961201,
+            "mean_fiber_ra": 133.8290140419709,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633516157207233,
+            "z": 0.4023026176141762,
+            "zerr": 0.0001276498292802368,
+            "zwarn": 0
+          }
+        ],
+        "service": "NOIRLab Data Lab TAP"
+      },
+      "selected_row": {
+        "mean_fiber_dec": 73.42223735961201,
+        "mean_fiber_ra": 133.8290140419709,
+        "program": "bright",
+        "spectype": "GALAXY",
+        "survey": "main",
+        "targetid": 39633516157207233,
+        "z": 0.4023026176141762,
+        "zerr": 0.0001276498292802368,
+        "zwarn": 0
+      }
+    },
+    {
+      "key": "whitney|cluster|J085546.0+732230, 1160094",
+      "query_response": {
+        "query": "SELECT targetid, mean_fiber_ra, mean_fiber_dec, z, zerr, zwarn, spectype, survey, program FROM desi_dr1.zpix WHERE mean_fiber_dec BETWEEN 73.34993999999999 AND 73.39994 AND mean_fiber_ra BETWEEN 133.85429025353918 AND 134.0290497464608 AND zwarn = 0",
+        "rows": [
+          {
+            "mean_fiber_dec": 73.37491783876207,
+            "mean_fiber_ra": 133.9472372594379,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633514408182928,
+            "z": 0.1276785728454136,
+            "zerr": 1.412286489740153e-05,
+            "zwarn": 0
+          },
+          {
+            "mean_fiber_dec": 73.39419358862992,
+            "mean_fiber_ra": 134.0091978687626,
+            "program": "backup",
+            "spectype": "STAR",
+            "survey": "main",
+            "targetid": 2305843017585532216,
+            "z": -0.0002591690492647358,
+            "zerr": 3.344263669302656e-06,
+            "zwarn": 0
+          }
+        ],
+        "service": "NOIRLab Data Lab TAP"
+      },
+      "selected_row": {
+        "mean_fiber_dec": 73.37491783876207,
+        "mean_fiber_ra": 133.9472372594379,
+        "program": "bright",
+        "spectype": "GALAXY",
+        "survey": "main",
+        "targetid": 39633514408182928,
+        "z": 0.1276785728454136,
+        "zerr": 1.412286489740153e-05,
+        "zwarn": 0
+      }
+    },
+    {
+      "key": "whitney|cluster|J085808.2+731234, 1161367",
+      "query_response": {
+        "query": "SELECT targetid, mean_fiber_ra, mean_fiber_dec, z, zerr, zwarn, spectype, survey, program FROM desi_dr1.zpix WHERE mean_fiber_dec BETWEEN 73.18453 AND 73.23453 AND mean_fiber_ra BETWEEN 134.44760664739772 AND 134.6206933526023 AND zwarn = 0",
+        "rows": [
+          {
+            "mean_fiber_dec": 73.1982812010305,
+            "mean_fiber_ra": 134.5734044888158,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633514412376115,
+            "z": 0.3153126381234977,
+            "zerr": 6.096028265004076e-05,
+            "zwarn": 0
+          },
+          {
+            "mean_fiber_dec": 73.20979970325381,
+            "mean_fiber_ra": 134.4867183094359,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633514408185212,
+            "z": 0.3255912291352798,
+            "zerr": 0.0001555434717073861,
+            "zwarn": 0
+          },
+          {
+            "mean_fiber_dec": 73.21012482773148,
+            "mean_fiber_ra": 134.5701915414489,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633514408185609,
+            "z": 0.2571591579717415,
+            "zerr": 1.270886230186347e-05,
+            "zwarn": 0
+          },
+          {
+            "mean_fiber_dec": 73.21488366126118,
+            "mean_fiber_ra": 134.5871063321475,
+            "program": "backup",
+            "spectype": "STAR",
+            "survey": "main",
+            "targetid": 2305843017585534663,
+            "z": -0.0002806771884167491,
+            "zerr": 6.06766513964833e-06,
+            "zwarn": 0
+          },
+          {
+            "mean_fiber_dec": 73.23376628073062,
+            "mean_fiber_ra": 134.5243504539244,
+            "program": "bright",
+            "spectype": "GALAXY",
+            "survey": "main",
+            "targetid": 39633514408185404,
+            "z": 0.1842316223924261,
+            "zerr": 6.609222244484262e-05,
+            "zwarn": 0
+          }
+        ],
+        "service": "NOIRLab Data Lab TAP"
+      },
+      "selected_row": {
+        "mean_fiber_dec": 73.21012482773148,
+        "mean_fiber_ra": 134.5701915414489,
+        "program": "bright",
+        "spectype": "GALAXY",
+        "survey": "main",
+        "targetid": 39633514408185609,
+        "z": 0.2571591579717415,
+        "zerr": 1.270886230186347e-05,
+        "zwarn": 0
+      }
+    },
+    {
+      "key": "whitney|halo|1472",
+      "query_response": {
+        "query": "SELECT t.ls_id, t.ra, t.dec, t.type, p.z_phot_mean, p.z_phot_std, p.z_phot_median, p.z_spec FROM ls_dr9.tractor t JOIN ls_dr9.photo_z p ON t.ls_id = p.ls_id WHERE t.dec BETWEEN 73.48964598111111 AND 73.49242375888888 AND t.ra BETWEEN 134.73068399214324 AND 134.74045920785673",
+        "rows": [
+          {
+            "dec": 73.49081215041937,
+            "ls_id": 9907741763044057,
+            "ra": 134.73953270035304,
+            "type": "REX",
+            "z_phot_mean": 0.358473002910614,
+            "z_phot_median": 0.3355939984321594,
+            "z_phot_std": 0.11319500207901001,
+            "z_spec": -99.0
+          },
+          {
+            "dec": 73.49103420098956,
+            "ls_id": 9907741763044040,
+            "ra": 134.7355653667216,
+            "type": "REX",
+            "z_phot_mean": 0.5550550222396851,
+            "z_phot_median": 0.5521230101585388,
+            "z_phot_std": 0.0455470010638237,
+            "z_spec": -99.0
+          }
+        ],
+        "service": "NOIRLab Data Lab TAP"
+      },
+      "selected_row": {
+        "dec": 73.49103420098956,
+        "ls_id": 9907741763044040,
+        "ra": 134.7355653667216,
+        "type": "REX",
+        "z_phot_mean": 0.5550550222396851,
+        "z_phot_median": 0.5521230101585388,
+        "z_phot_std": 0.0455470010638237,
+        "z_spec": -99.0
+      }
+    },
+    {
+      "key": "whitney|halo|1473",
+      "query_response": {
+        "query": "SELECT t.ls_id, t.ra, t.dec, t.type, p.z_phot_mean, p.z_phot_std, p.z_phot_median, p.z_spec FROM ls_dr9.tractor t JOIN ls_dr9.photo_z p ON t.ls_id = p.ls_id WHERE t.dec BETWEEN 73.48942101111112 AND 73.49219878888889 AND t.ra BETWEEN 134.734636556893 AND 134.74441164310701",
+        "rows": [
+          {
+            "dec": 73.49081215041937,
+            "ls_id": 9907741763044057,
+            "ra": 134.73953270035304,
+            "type": "REX",
+            "z_phot_mean": 0.358473002910614,
+            "z_phot_median": 0.3355939984321594,
+            "z_phot_std": 0.11319500207901001,
+            "z_spec": -99.0
+          },
+          {
+            "dec": 73.49103420098956,
+            "ls_id": 9907741763044040,
+            "ra": 134.7355653667216,
+            "type": "REX",
+            "z_phot_mean": 0.5550550222396851,
+            "z_phot_median": 0.5521230101585388,
+            "z_phot_std": 0.0455470010638237,
+            "z_spec": -99.0
+          }
+        ],
+        "service": "NOIRLab Data Lab TAP"
+      },
+      "selected_row": {
+        "dec": 73.49081215041937,
+        "ls_id": 9907741763044057,
+        "ra": 134.73953270035304,
+        "type": "REX",
+        "z_phot_mean": 0.358473002910614,
+        "z_phot_median": 0.3355939984321594,
+        "z_phot_std": 0.11319500207901001,
+        "z_spec": -99.0
+      }
+    },
+    {
+      "key": "whitney|halo|1582",
+      "query_response": {
+        "query": "SELECT t.ls_id, t.ra, t.dec, t.type, p.z_phot_mean, p.z_phot_std, p.z_phot_median, p.z_spec FROM ls_dr9.tractor t JOIN ls_dr9.photo_z p ON t.ls_id = p.ls_id WHERE t.dec BETWEEN 73.49626312111111 AND 73.49904089888888 AND t.ra BETWEEN 134.72349458682984 AND 134.73327361317016",
+        "rows": [
+          {
+            "dec": 73.49765102843477,
+            "ls_id": 9907741763044020,
+            "ra": 134.72842595345224,
+            "type": "EXP",
+            "z_phot_mean": 0.4712490141391754,
+            "z_phot_median": 0.4279179871082306,
+            "z_phot_std": 0.19000299274921417,
+            "z_spec": -99.0
+          },
+          {
+            "dec": 73.4986620230184,
+            "ls_id": 9907741763044021,
+            "ra": 134.72891291817703,
+            "type": "PSF",
+            "z_phot_mean": 0.7282549738883972,
+            "z_phot_median": 0.9519169926643372,
+            "z_phot_std": 0.7128369808197021,
+            "z_spec": -99.0
+          }
+        ],
+        "service": "NOIRLab Data Lab TAP"
+      },
+      "selected_row": {
+        "dec": 73.49765102843477,
+        "ls_id": 9907741763044020,
+        "ra": 134.72842595345224,
+        "type": "EXP",
+        "z_phot_mean": 0.4712490141391754,
+        "z_phot_median": 0.4279179871082306,
+        "z_phot_std": 0.19000299274921417,
+        "z_spec": -99.0
+      }
+    },
+    {
+      "key": "whitney|halo|196191347354360083",
+      "query_response": {
+        "query": "SELECT t.ls_id, t.ra, t.dec, t.type, p.z_phot_mean, p.z_phot_std, p.z_phot_median, p.z_spec FROM ls_dr9.tractor t JOIN ls_dr9.photo_z p ON t.ls_id = p.ls_id WHERE t.dec BETWEEN 73.48966511111112 AND 73.49244288888889 AND t.ra BETWEEN 134.73078158663725 AND 134.74055681336273",
+        "rows": [
+          {
+            "dec": 73.49081215041937,
+            "ls_id": 9907741763044057,
+            "ra": 134.73953270035304,
+            "type": "REX",
+            "z_phot_mean": 0.358473002910614,
+            "z_phot_median": 0.3355939984321594,
+            "z_phot_std": 0.11319500207901001,
+            "z_spec": -99.0
+          },
+          {
+            "dec": 73.49103420098956,
+            "ls_id": 9907741763044040,
+            "ra": 134.7355653667216,
+            "type": "REX",
+            "z_phot_mean": 0.5550550222396851,
+            "z_phot_median": 0.5521230101585388,
+            "z_phot_std": 0.0455470010638237,
+            "z_spec": -99.0
+          }
+        ],
+        "service": "NOIRLab Data Lab TAP"
+      },
+      "selected_row": {
+        "dec": 73.49103420098956,
+        "ls_id": 9907741763044040,
+        "ra": 134.7355653667216,
+        "type": "REX",
+        "z_phot_mean": 0.5550550222396851,
+        "z_phot_median": 0.5521230101585388,
+        "z_phot_std": 0.0455470010638237,
+        "z_spec": -99.0
+      }
+    },
+    {
+      "key": "wilhelm|halo|194453151328186646",
+      "query_response": null,
+      "selected_row": null
+    },
+    {
+      "key": "zach|halo|195373100910393540",
+      "query_response": null,
+      "selected_row": {
+        "class": "GALAXY",
+        "decMean": 72.81041703,
+        "extrapolation_Photoz": 1,
+        "objID": 195373100910393540,
+        "prob_Galaxy": 0.8806085,
+        "raMean": 310.09129027,
+        "z_phot": 0.4693608582019805,
+        "z_phot0": 0.46879995,
+        "z_photErr": 0.04709798524882289
+      }
+    }
+  ],
+  "retrieved_at_utc": "2026-07-22T12:29:15+00:00",
+  "schema_version": 1
+}

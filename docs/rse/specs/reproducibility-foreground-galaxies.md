@@ -53,13 +53,23 @@ scratch/codetection/source/DSA110_CHIME_Codetection_BurstProperties_Foreground  
 Validated foreground census inputs:
 
 ```text
-ce14b474424efb5ff442c5206020609475ff7b0675aa370cb026a47cc8ff4766  scratch/codetection/foreground_final.csv
-38ed01ac7561eddcbd33500e2fabeeb4130c22c4fdca791967415656a4d0cd15  scratch/codetection/foreground.csv
-c18fa388cd421d6a90e65b77edceca00afe9c8a9e4cc7feb31a52f468c6e79d7  scratch/codetection/foreground_validated.csv
-204fb79727ff71f15269f3d5564215e34d8f027aedbd82719dfda162bdcfb644  scratch/codetection/bursts.csv
-f3dbb32e590f9d5b953919e6de2b9e9473b3ccda36492e7010ee0fd557daf8b7  scratch/codetection/ps1_strm_resolution.csv
+2bbaca82846c70fb3227be4d5ca3378dc337e593555909fd6bc34b726e50a41e  scratch/codetection/foreground_final.csv
+cd72547d51172866d67c2685d2da963e55d6811667a88a544bad583151d700bb  scratch/codetection/foreground.csv
+b8becfd36190923843f554665422d412f7978d5e7de5b0bf686096096c093698  scratch/codetection/foreground_validated.csv
+def09acddc832285ef4ff65b9576cf74ead6378d1b9cea3566a3e03b14f0e1f1  scratch/codetection/bursts.csv
+18947acafc02b9781c4ac9612b9570d02eedd46c0115c9f73b5f3d79ec2c354e  scratch/codetection/ps1_strm_resolution.csv
 42e576a234ac9ab471b695e89b6f25c3ad6875e1914c8ccb3ee518739fd04870  scratch/codetection/strm_catalog_rows.csv
 ```
+
+The 2026-07-22 Verdi roster repair and source replay superseded the earlier
+hashes for `bursts.csv` (`204fb797...`), `foreground.csv` (`38ed01ac...`),
+`foreground_final.csv` (`ce14b474...`), `foreground_validated.csv`
+(`c18fa388...`), and `ps1_strm_resolution.csv` (`f3dbb32e...`). The roster
+repair changed host-redshift-bearing rows without inference. The subsequent
+Chromatica change affects only its final/validated verdict row: the NED `PUN`
+photometric redshift has no reported uncertainty, so it is inconclusive and
+budget-ineligible. The frozen live source rows and response payloads are recorded in
+`galaxies/foreground/data/candidate_redshift_source_payloads_2026-07-22.json`.
 
 Grand-figure photo-z-corrected galaxy inputs:
 

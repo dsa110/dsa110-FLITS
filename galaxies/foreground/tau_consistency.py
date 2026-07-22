@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import csv
 import json
 import os
+import re
+from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
@@ -19,6 +22,9 @@ CHIME_REF_MHZ = 600.0
 DSA_REF_MHZ = 1400.0
 
 JOINT_GATE_CSV = REPO_ROOT / "analysis" / "scattering-refit-2026-06" / "joint_gate_verdicts.csv"
+JULY_ADJUDICATION_CSV = (
+    REPO_ROOT / "analysis" / "scattering-dm-locked-2026-07-14" / "results" / "fit_adjudication.csv"
+)
 REFIT_DIR = REPO_ROOT / "analysis" / "scattering-refit-2026-06"
 CITABLE_ROSTER_JSON = REFIT_DIR / "citable_alpha_roster.json"
 TAU_CONSISTENCY_DIR = DATA_DIR / "tau_consistency"
@@ -53,6 +59,18 @@ ALLEXP_FITS_DIR = _resolve_repo_or_library(
 )
 
 
+@dataclass(frozen=True)
+class JulyMorphology:
+    nickname: str
+    variant: str
+    components_C: int
+    components_D: int
+    fixed_delta_dm_C: float
+    fixed_delta_dm_D: float
+    fit_json: str
+    tns: str
+
+
 def co_detected_nicknames() -> list[str]:
     from galaxies.foreground.config import TARGETS
 
@@ -71,7 +89,59 @@ def scale_tau_1ghz_ms(
 
 
 def _normalize_burst(name: str) -> str:
-    return str(name).lower().replace("johndoeii", "johndoeii")
+    return str(name).lower()
+
+
+def parse_cxdy_variant(variant: str) -> tuple[int, int]:
+    match = re.fullmatch(r"C(\d+)D(\d+)", str(variant))
+    if match is None:
+        raise ValueError(f"invalid component variant: {variant!r}")
+    return int(match.group(1)), int(match.group(2))
+
+
+def load_july_accepted_morphologies(path: Path | None = None) -> dict[str, JulyMorphology]:
+    csv_path = Path(path) if path is not None else JULY_ADJUDICATION_CSV
+    if not csv_path.is_file():
+        raise FileNotFoundError(f"missing July adjudication CSV: {csv_path}")
+
+    morphologies: dict[str, JulyMorphology] = {}
+    with csv_path.open(newline="") as fh:
+        for row in csv.DictReader(fh):
+            if row.get("adjudication") != "accepted_physical":
+                continue
+            nickname = _normalize_burst(row.get("burst", ""))
+            variant = row.get("variant", "")
+            if not nickname or not variant:
+                raise ValueError(f"incomplete accepted morphology row: {row}")
+            if nickname in morphologies:
+                raise ValueError(f"duplicate accepted morphology for {nickname}")
+            components_C, components_D = parse_cxdy_variant(variant)
+            morphologies[nickname] = JulyMorphology(
+                nickname=nickname,
+                variant=variant,
+                components_C=components_C,
+                components_D=components_D,
+                fixed_delta_dm_C=float(row["fixed_delta_dm_C"]),
+                fixed_delta_dm_D=float(row["fixed_delta_dm_D"]),
+                fit_json=row.get("fit_json", ""),
+                tns=row.get("tns", ""),
+            )
+
+    expected = {
+        "whitney": "C2D3",
+        "oran": "C2D1",
+        "isha": "C2D1",
+        "phineas": "C3D3",
+        "freya": "C1D1",
+        "johndoeii": "C2D2",
+        "mahi": "C1D2",
+    }
+    actual = {nickname: morph.variant for nickname, morph in morphologies.items()}
+    if actual != expected:
+        raise ValueError(
+            f"July accepted morphology roster mismatch: expected {expected}, got {actual}"
+        )
+    return morphologies
 
 
 def _posterior_median(block: object, nested_key: str = "median") -> float:
@@ -123,8 +193,8 @@ def find_allexp_joint_json(burst: str, search_dir: Path | None = None) -> Path |
     if not matches:
         matches = [
             p
-        for p in sorted(root.glob("*joint*pbf-exp-exp.json"))
-        if burst in p.name.lower() and "ppc" not in p.name.lower()
+            for p in sorted(root.glob("*joint*pbf-exp-exp.json"))
+            if burst in p.name.lower() and "ppc" not in p.name.lower()
         ]
     if burst == "johndoeii":
         c2d2 = [p for p in matches if "c2d2" in p.name.lower()]
@@ -295,11 +365,28 @@ def load_joint_free_alpha(burst: str) -> dict:
 
 def load_alpha4_refit(burst: str) -> dict | None:
     burst = _normalize_burst(burst)
-    path = TAU_CONSISTENCY_DIR / f"{burst}_joint_alpha4_pbf-exp-exp.json"
+    path = alpha4_refit_path(burst)
     if not path.exists():
         return None
     with open(path) as fh:
         return json.load(fh)
+
+
+def alpha4_refit_path(burst: str, morph: JulyMorphology | None = None) -> Path:
+    burst = _normalize_burst(burst)
+    explicit_morph = morph is not None
+    if morph is None:
+        morph = load_july_accepted_morphologies().get(burst)
+    if morph is not None:
+        preferred = TAU_CONSISTENCY_DIR / f"{burst}_joint_alpha4_{morph.variant}.json"
+        if explicit_morph or preferred.exists():
+            return preferred
+    legacy = TAU_CONSISTENCY_DIR / f"{burst}_joint_alpha4_pbf-exp-exp.json"
+    if legacy.exists():
+        return legacy
+    if morph is not None:
+        return TAU_CONSISTENCY_DIR / f"{burst}_joint_alpha4_{morph.variant}.json"
+    return legacy
 
 
 def tau_consistency_from_refit(payload: dict) -> dict:
@@ -320,7 +407,7 @@ def build_tau_consistency_row(burst: str) -> dict:
     alpha4 = load_alpha4_refit(burst)
     row = {"nickname": burst, **free}
     if alpha4 is not None:
-        alpha4["_source_path"] = str(TAU_CONSISTENCY_DIR / f"{burst}_joint_alpha4_pbf-exp-exp.json")
+        alpha4["_source_path"] = str(alpha4_refit_path(burst))
         row.update(tau_consistency_from_refit(alpha4))
     else:
         row.update(

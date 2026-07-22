@@ -12,6 +12,9 @@ from scattering.scat_analysis.burst_metadata import load_tns_name
 def test_load_tns_name_corrected_designations():
     assert load_tns_name("mahi") == "FRB 20240122A"  # was 20240119A
     assert load_tns_name("johndoeii") == "FRB 20230814B"  # DSA-110 archive (a.k.a. johndoe)
+    assert load_tns_name("freya") == "FRB 20230325C"
+    assert load_tns_name("hamilton") == "FRB 20230913G"
+    assert load_tns_name("chromatica") == "FRB 20240203D"
 
 
 def test_load_tns_name_anchors_and_case_insensitive():

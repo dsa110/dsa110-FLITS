@@ -25,14 +25,14 @@ no hand-maintained second map.
 
 | nickname | TNS | nickname | TNS |
 |---|---|---|---|
-| zach | FRB 20220207C | freya | FRB 20230325A |
+| zach | FRB 20220207C | freya | FRB 20230325C |
 | whitney | FRB 20220310F | johndoeii | FRB 20230814B |
-| oran | FRB 20220506D | hamilton | FRB 20230913A |
+| oran | FRB 20220506D | hamilton | FRB 20230913G |
 | isha | FRB 20221113A | mahi | FRB 20240122A |
-| wilhelm | FRB 20221203A | chromatica | FRB 20240203A |
+| wilhelm | FRB 20221203A | chromatica | FRB 20240203D |
 | phineas | FRB 20230307A | casey | FRB 20240229A |
 
-`FRB 20240203A` (chromatica) and `FRB 20230814B` (johndoeii) are **distinct
+`FRB 20240203D` (chromatica) and `FRB 20230814B` (johndoeii) are **distinct
 bursts** (different chime_id, MJD, DM), not aliases. johndoeii was double-reported
 to TNS (also as …0814A); the DSA-110 archive files it under **B**, which is
 canonical here. Nicknames are the internal key; TNS designations are the **only**
@@ -50,3 +50,7 @@ identifiers in the manuscript and published figures.
   hard-code them.
 - Future TNS corrections edit `bursts.yaml`/`_FALLBACK_TNS` + this table in one
   commit; downstream regenerates.
+
+Freya, Hamilton, and Chromatica use the source-event identifiers adopted from
+the owner-approved Verdi et al. table; older frozen discovery inputs retain the
+local `A` suffixes as historical evidence.

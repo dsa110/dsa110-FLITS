@@ -4,6 +4,8 @@ from pathlib import Path
 
 import pandas as pd
 
+from scattering.scat_analysis.burst_metadata import load_tns_name
+
 from galaxies.foreground.census_registry import (
     budget_eligible,
     build_intervening_census_registry,
@@ -34,6 +36,19 @@ def test_law2024_host_redshifts_bind_the_three_older_sightlines():
     for nickname, row in source.iterrows():
         assert bursts.loc[nickname, "z_spec"] == row["adopted_redshift"]
         assert abs(row["published_redshift"] - row["adopted_redshift"]) <= 0.0011
+
+
+def test_registry_uses_owner_approved_verdi_identifiers_and_keeps_whitney_value():
+    registry = build_intervening_census_registry()
+    expected = {
+        "freya": "FRB 20230325C",
+        "hamilton": "FRB 20230913G",
+        "chromatica": "FRB 20240203D",
+    }
+    for nickname, tns in expected.items():
+        assert load_tns_name(nickname) == tns
+        assert set(registry.loc[registry.nickname == nickname, "tns"]) == {tns}
+    assert set(registry.loc[registry.nickname == "whitney", "host_z_spec"]) == {0.479}
 
 
 def test_scratch_codetection_exists():

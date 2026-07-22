@@ -8,6 +8,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from scattering.scat_analysis.burst_metadata import load_tns_name
+
 PACKAGE_DIR = Path(__file__).resolve().parent
 DATA_DIR = PACKAGE_DIR / "data"
 DEFAULT_SCRATCH_CODETECTION = PACKAGE_DIR.parents[1] / "scratch" / "codetection"
@@ -150,7 +152,7 @@ def build_intervening_census_registry(scratch_dir: Path | str | None = None) -> 
     for frame in (fin, fgr, val):
         frame["obj"] = frame["obj"].astype(str)
 
-    tns = dict(zip(bur.nickname, bur.tns, strict=True))
+    tns = {nickname: load_tns_name(nickname) for nickname in bur.nickname}
     fgr_i = fgr.set_index(["nickname", "type", "obj"])
     val_i = val.set_index(["nickname", "type", "obj"])
 

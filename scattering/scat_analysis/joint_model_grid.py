@@ -15,7 +15,8 @@ from .burstfit_joint import gain_marginal_multi_band_solution
 def recover(model, params_list):
     kernels = np.stack([model(replace(params, c0=1.0, gamma=0.0), "M3") for params in params_list])
     data = np.asarray(model.data, float)
-    noise = np.clip(np.asarray(model.noise_std, float).reshape(-1), 1e-9, None)
+    noise_support = np.asarray(model.noise_std).reshape(-1)
+    noise = np.clip(np.asarray(noise_support, dtype=float), 1e-9, None)
     matrix = np.einsum("nft,mft->fnm", kernels, kernels)
     right = np.einsum("nft,ft->fn", kernels, data)
     count = len(params_list)
@@ -38,7 +39,7 @@ def recover(model, params_list):
         "model": prediction,
         "freq": np.asarray(model.freq, float),
         "time": np.asarray(model.time, float),
-        "noise": noise,
+        "noise": noise_support,
         "valid": valid,
         "fluence": np.asarray(fluence, float),
     }, residual_mean_square
@@ -63,7 +64,8 @@ def recover_proper_gain(model, params_list, s2: float | None):
     data = np.asarray(model.data, dtype=float)
     prediction = np.zeros_like(data)
     prediction[valid] = prediction_valid
-    noise = np.clip(np.asarray(model.noise_std, dtype=float).reshape(-1), 1e-9, None)
+    noise_support = np.asarray(model.noise_std).reshape(-1)
+    noise = np.clip(np.asarray(noise_support, dtype=float), 1e-9, None)
     residual = (data[valid] - prediction_valid) / noise[valid, None]
     residual = residual[np.isfinite(residual)]
     residual_mean_square = float(np.mean(residual**2))
@@ -74,7 +76,7 @@ def recover_proper_gain(model, params_list, s2: float | None):
             "model": prediction,
             "freq": np.asarray(model.freq, float),
             "time": np.asarray(model.time, float),
-            "noise": noise,
+            "noise": noise_support,
             "valid": valid,
             "fluence": np.asarray(fluence, float),
         },

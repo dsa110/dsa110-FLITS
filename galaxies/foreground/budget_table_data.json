@@ -128,7 +128,7 @@
       "tau_int": "0.015"
     },
     {
-      "burst": "FRB 20230325A",
+      "burst": "FRB 20230325C",
       "burst_note": "u",
       "z": null,
       "z_note": "p",
@@ -162,7 +162,7 @@
       "tau_int": "0"
     },
     {
-      "burst": "FRB 20230913A",
+      "burst": "FRB 20230913G",
       "burst_note": "u",
       "z": 0.302,
       "z_note": "",
@@ -196,7 +196,7 @@
       "tau_int": "0"
     },
     {
-      "burst": "FRB 20240203A",
+      "burst": "FRB 20240203D",
       "burst_note": "u",
       "z": 0.074,
       "z_note": "",

@@ -156,6 +156,9 @@ def test_seed_reaches_multiprocess_dynesty_sampler(monkeypatch) -> None:
 def test_proper_gain_model_grid_matches_analytic_ridge_solution() -> None:
     model_c, init_c = _model_and_init()
     model_d, _ = _model_and_init()
+    model_c.noise_std = model_c.noise_std.astype(np.float32)
+    model_c.noise_std[0] = 0.0
+    model_c.valid[0] = False
 
     def percentile(value: float) -> dict[str, float]:
         return {
@@ -197,7 +200,16 @@ def test_proper_gain_model_grid_matches_analytic_ridge_solution() -> None:
     )
     expected = gain[:, None] * kernel
     np.testing.assert_allclose(grid["modelC"][valid], expected, rtol=1e-13, atol=1e-13)
+    np.testing.assert_array_equal(grid["noiseC"], model_c.noise_std)
+    assert grid["noiseC"].dtype == model_c.noise_std.dtype
+    assert grid["noiseC"][0] == 0.0
     assert grid["gain_s2_C"] == summary["gain_s2"]
+
+    ordinary_summary = {**summary, "gain_model": "ordinary_least_squares"}
+    ordinary_grid = build_model_grid_arrays(model_c, model_d, ordinary_summary)
+    np.testing.assert_array_equal(ordinary_grid["noiseC"], model_c.noise_std)
+    assert ordinary_grid["noiseC"].dtype == model_c.noise_std.dtype
+    assert ordinary_grid["noiseC"][0] == 0.0
 
 
 def _write_packet(

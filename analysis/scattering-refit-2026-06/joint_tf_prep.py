@@ -49,7 +49,7 @@ from dataclasses import dataclass
 
 import numpy as np
 import yaml
-from scat_analysis.burstfit import FRBModel, downsample
+from scat_analysis.burstfit import FRBModel
 from scat_analysis.config_utils import load_telescope_block
 from scat_analysis.pipeline.io import BurstDataset
 from scipy.ndimage import gaussian_filter1d
@@ -342,55 +342,53 @@ def choose_resolution(
 ) -> tuple[int, int]:
     """Finest ``(f_factor, t_factor)`` whose on-pulse S/N clears ``snr_target``.
 
-    Time: pick the finest ``t_factor`` (power of two) whose band-integrated profile
-    peak per-bin S/N still clears ``snr_target`` -- the finest time binning the
-    burst brightness supports (bright -> fine bins resolve the tail; faint ->
-    coarser bins respect the S/N floor). Frequency: at that ``t_factor``, keep the
+    Search time factors from finest to coarsest. At each time factor, keep the
     MOST channels (finest ``f_factor``) within ``[min_channels, max_channels]``
-    whose median on-pulse channel still clears ``snr_target``; if none do, fall
-    back to the coarsest allowed (fewest, brightest channels)."""
+    for which BOTH the band-integrated profile and median on-pulse channel clear
+    ``snr_target``. This joint search matters for faint bursts: a time factor can
+    clear the profile floor while every frequency choice still fails the channel
+    floor. In that case, continue to coarser time bins instead of returning a
+    combination that the publication gate must reject.
+
+    The qualification calculation uses the same mask-aware downsampling as the
+    final model. If no candidate clears both floors, return the candidate whose
+    weaker statistic is strongest; the caller records it as explicitly
+    unqualified rather than silently publishing it.
+    """
     nf, nt = data_native.shape
 
-    # --- time factor: finest (smallest t) that clears the profile S/N floor ---
-    # Per-bin profile S/N rises with coarser binning (more averaging) until the
-    # bin outgrows the burst, so the smallest passing t is the finest honest
-    # binning. If none pass (faint burst), take the t that maximizes S/N. A floor
-    # keeps the window under MAX_TIME_BINS (tractability + no sub-feature over-res).
+    # A floor keeps the window under MAX_TIME_BINS (tractability + no
+    # sub-feature over-resolution).
     win_native_span = max(1, win_native[1] - win_native[0])
     t_floor = max(1, int(np.ceil(win_native_span / MAX_TIME_BINS)))
     t_cands = [t for t in _POW2 if t >= t_floor and t <= max(t_floor, nt // 8)]
     if not t_cands:
         t_cands = [next(t for t in _POW2 if t >= t_floor)]
-    t_snr: list[tuple[int, float]] = []
-    chosen_t = None
-    for t in t_cands:
-        d_t = downsample(data_native, 1, t)
-        win_t = _downsample_window(win_native, t, d_t.shape[1])
-        if win_t[1] - win_t[0] < 3:
-            continue
-        snr = _profile_peak_snr(d_t, win_t)
-        t_snr.append((t, snr))
-        if chosen_t is None and snr >= snr_target:
-            chosen_t = t
-    if chosen_t is None:
-        chosen_t = max(t_snr, key=lambda x: x[1])[0] if t_snr else t_cands[0]
-
-    # --- freq factor at the chosen time binning: most channels (smallest f)
-    # whose median on-pulse channel still clears the floor; else fewest (coarsest).
     f_cands = sorted(
         f for f in _POW2 if nf % f == 0 and min_channels <= nf // f <= max_channels
     )
     if not f_cands:  # native count not divisible into the band bounds; nearest
         f_cands = [max(1, int(round(nf / np.sqrt(min_channels * max_channels))))]
-    d_full_t = downsample(data_native, 1, chosen_t)
-    win_ct = _downsample_window(win_native, chosen_t, d_full_t.shape[1])
-    chosen_f = f_cands[-1]  # coarsest allowed = fewest, brightest channels
-    for f in f_cands:  # smallest f first = most channels
-        d_ft = downsample(d_full_t, f, 1)
-        if _median_channel_snr(d_ft, win_ct) >= snr_target:
-            chosen_f = f
-            break
-    return int(chosen_f), int(chosen_t)
+
+    candidates: list[tuple[float, int, int]] = []
+    for t in t_cands:  # smallest first = finest time resolution
+        for f in f_cands:  # smallest first = most frequency channels
+            binned, valid_frac = _masked_downsample(data_native, f, t)
+            binned[valid_frac < MIN_VALID_FRAC] = 0.0
+            win_ds = _downsample_window(win_native, t, binned.shape[1])
+            if win_ds[1] - win_ds[0] < 3:
+                continue
+            profile_snr, channel_snr, qualified = resolution_snr_status(
+                binned, win_ds, snr_target
+            )
+            candidates.append((min(profile_snr, channel_snr), f, t))
+            if qualified:
+                return int(f), int(t)
+
+    if not candidates:
+        return int(f_cands[-1]), int(t_cands[0])
+    _, best_f, best_t = max(candidates, key=lambda item: (item[0], -item[2], -item[1]))
+    return int(best_f), int(best_t)
 
 
 @dataclass
@@ -448,7 +446,8 @@ def _build_model(p: _Probe, win_native: tuple[int, int]) -> tuple[FRBModel, Band
     # the linspace below stays a valid uniform f_min->f_max map for the survivors.
     binned[valid_frac < MIN_VALID_FRAC] = 0.0
     win_ds = _downsample_window(win_native, t_factor, binned.shape[1])
-    if win_ds[1] - win_ds[0] < 3:  # degenerate crop guard
+    crop_qualified = win_ds[1] - win_ds[0] >= 3
+    if not crop_qualified:  # retain a debuggable model, but fail the science gate
         win_ds = (0, binned.shape[1])
     noise_ds = _channel_noise(binned, win_ds)
     lo, hi = win_ds
@@ -462,6 +461,7 @@ def _build_model(p: _Probe, win_native: tuple[int, int]) -> tuple[FRBModel, Band
     peak_profile_snr, median_channel_snr, snr_qualified = resolution_snr_status(
         binned, win_ds, p.snr_target
     )
+    snr_qualified = bool(crop_qualified and snr_qualified)
     meta = BandPrep(
         f_factor=p.f_factor,
         t_factor=t_factor,
@@ -534,6 +534,15 @@ def prepare_pair(
     pC = _probe_band(cfg_C, f"{name}_chime", outdir, snr_target=snr_target)
     pD = _probe_band(cfg_D, f"{name}_dsa", outdir, snr_target=snr_target)
     winC, winD = _common_peak_relative_window([pC, pD])
+    # The common span can contain more off-pulse baseline than either band's
+    # own window. Re-select against the exact final windows so a choice that only
+    # qualified before reconciliation cannot slip into the fit contract.
+    pC.f_factor, pC.t_factor = choose_resolution(
+        pC.native, winC, pC.native.shape[0], snr_target=snr_target
+    )
+    pD.f_factor, pD.t_factor = choose_resolution(
+        pD.native, winD, pD.native.shape[0], snr_target=snr_target
+    )
     return _build_model(pC, winC), _build_model(pD, winD)
 
 

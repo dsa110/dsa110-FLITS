@@ -7,6 +7,7 @@ returns the finest binning that clears the S/N floor and coarsens for faint burs
 """
 import os
 import sys
+from types import SimpleNamespace
 
 import numpy as np
 import pytest
@@ -105,6 +106,69 @@ def test_resolution_coarsens_for_faint():
     assert t_faint > t_bright, (
         f"faint burst should bin coarser in time (bright t={t_bright}, faint t={t_faint})"
     )
+
+
+def test_resolution_retries_coarser_time_when_channels_fail(monkeypatch):
+    data = np.zeros((128, 4096))
+    win = (1000, 1200)
+
+    def qualification_by_time(data_ds, _win_ds, _target):
+        # At native time resolution the integrated profile passes but every
+        # channel fails. One factor coarser makes both statistics pass.
+        if data_ds.shape[1] == 4096:
+            return 20.0, 2.0, False
+        return 20.0, 12.0, True
+
+    monkeypatch.setattr(J, "resolution_snr_status", qualification_by_time)
+    f, t = J.choose_resolution(data, win, data.shape[0], snr_target=10.0)
+    assert (f, t) == (2, 2)
+
+
+def test_pair_reselects_resolution_against_final_common_windows(monkeypatch):
+    native = np.zeros((16, 64))
+    probe_c = J._Probe(native, 1.0, object(), 20, (10, 20), 1, 1, 5.0)
+    probe_d = J._Probe(native, 1.0, object(), 30, (25, 35), 1, 1, 5.0)
+    probes = iter((probe_c, probe_d))
+    monkeypatch.setattr(J, "_probe_band", lambda *_args, **_kwargs: next(probes))
+    monkeypatch.setattr(J, "_common_peak_relative_window", lambda _probes: [(5, 25), (20, 40)])
+
+    seen_windows = []
+
+    def choose(_native, window, _nchan, **_kwargs):
+        seen_windows.append(window)
+        return (2, 4) if window == (5, 25) else (4, 8)
+
+    monkeypatch.setattr(J, "choose_resolution", choose)
+    monkeypatch.setattr(J, "_build_model", lambda probe, window: ((probe.f_factor, probe.t_factor), window))
+
+    result_c, result_d = J.prepare_pair("c.yaml", "d.yaml", "burst", "out", snr_target=5.0)
+    assert seen_windows == [(5, 25), (20, 40)]
+    assert result_c == ((2, 4), (5, 25))
+    assert result_d == ((4, 8), (20, 40))
+
+
+def test_degenerate_final_window_cannot_become_qualified_after_full_trace_fallback():
+    rng = np.random.default_rng(44)
+    native = rng.normal(0.0, 1.0, (16, 512))
+    native[:, 250] += 400.0
+    final_window = (250, 251)
+    f_factor, t_factor = J.choose_resolution(
+        native, final_window, native.shape[0], snr_target=10.0
+    )
+    probe = J._Probe(
+        native=native,
+        dt_native=1.0,
+        tel=SimpleNamespace(f_min_GHz=1.0, f_max_GHz=2.0, df_MHz_raw=1.0),
+        peak=250,
+        win=final_window,
+        f_factor=f_factor,
+        t_factor=t_factor,
+        snr_target=10.0,
+    )
+    _, meta = J._build_model(probe, final_window)
+    assert meta.peak_profile_snr > 10.0
+    assert meta.median_channel_snr > 10.0
+    assert meta.snr_qualified is False
 
 
 def test_unreachable_snr_floor_is_explicitly_unqualified():

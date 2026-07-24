@@ -1,9 +1,12 @@
 # Data Locations for CHIME-DSA Co-Detection Project
 
-**Cloud authority (2026-06-26):** Google Drive **jakobtfaber@gmail.com** — `Research/CHIME_DSA_Codetections/` (~280 GiB target from iacobus staging).  
-**4-host model:** jakob-mbp (code), **gdrive** (data authority), iacobus (staging source), arc (`.npy`/CANFAR), h17 (compute). Retired hosts h23, hpcc, dsacamera are read-only quarantine references only.
+**Raw-data authority (2026-07-24):** **h17** (`lxd110h17`) — `/data/Faber2026/data/`. Every raw CHIME/FRB baseband and DSA-110 filterbank used by this project is pulled from h17 and from nowhere else. Full inventory with checksums: Faber2026 `docs/rse/ops/raw-data-provenance.md`; ledger at `h17:/data/Faber2026/provenance/h17-source-data-migration-20260721.json`.
 
-Plan: [`docs/infrastructure/MIGRATION_PLAN_4HOST.md`](docs/infrastructure/MIGRATION_PLAN_4HOST.md) · Inventory: [`machine_inventory.yaml`](machine_inventory.yaml) · Query: [`scripts/query_machine_inventory.py`](scripts/query_machine_inventory.py) · Upload: [`scripts/migration/iacobus_to_gdrive.sh`](scripts/migration/iacobus_to_gdrive.sh)
+**Processed-data archive (2026-06-26):** Google Drive **jakobtfaber@gmail.com** — `Research/CHIME_DSA_Codetections/` (~280 GiB). This is the bulk store for *derived* products — burst pickles, full-Stokes waterfalls, fit results — not a raw-data access point and not an authority for anything raw.
+
+**Host roles:** jakob-mbp (code), **h17** (raw-data authority + compute), gdrive (processed-data archive), arc/CANFAR (CHIME baseband upstream origin; `.npy` replica). Retired hosts h23, hpcc, dsacamera are read-only quarantine references only. `iacobus` (`iacobus-bkp-mbp`) was the staging source; its tree was drained 2026-07-13 and it is not an access path for anything.
+
+History of the host migration that produced this layout: [`docs/infrastructure/MIGRATION_PLAN_4HOST.md`](docs/infrastructure/MIGRATION_PLAN_4HOST.md) (describes a superseded authority model; kept as a record) · Inventory: [`machine_inventory.yaml`](machine_inventory.yaml) · Query: [`scripts/query_machine_inventory.py`](scripts/query_machine_inventory.py) · Upload: [`scripts/migration/iacobus_to_gdrive.sh`](scripts/migration/iacobus_to_gdrive.sh)
 
 ## Code (GitHub canonical)
 
@@ -14,9 +17,26 @@ Plan: [`docs/infrastructure/MIGRATION_PLAN_4HOST.md`](docs/infrastructure/MIGRAT
 
 Do not develop on hpcc, arc checkout, or h23 trees. h17 may hold an optional clone for docker workflows.
 
-## Processed data (Google Drive authority)
+## Raw data (h17 authority)
 
-**Canonical:** `gdrive-jakob:Research/CHIME_DSA_Codetections/` (rclone remote on iacobus; account **jakobtfaber@gmail.com**).
+Raw input for all twelve co-detected bursts:
+
+| Instrument | Path on h17 |
+|---|---|
+| CHIME/FRB singlebeam baseband | `/data/Faber2026/data/chime-frb/<burst>/singlebeam_<chime_event_id>.h5` |
+| DSA-110 filterbank, Stokes I | `/data/Faber2026/data/dsa-110/<burst>/<dsa_observation_id>_dev_polcal_I.fil` |
+
+`/data` is a separate 13 TB volume on h17, not part of its root filesystem — a search rooted at `/` with `-xdev` misses all of it.
+
+Upstream origins, recorded for auditing and **not** access paths: CANFAR `arc:projects/chime_frb/data/chime/baseband/processed/…` for CHIME baseband; `dsa-storage` (`dsa-storage.ovro.pvt`) and `h23` for DSA filterbanks.
+
+Stokes Q, U and V were not migrated — h17 is authoritative for total intensity only. Polarisation work needs the four-Stokes sets staged there first.
+
+Derived `.npy` waterfalls under `h17:/home/ubuntu/flits-runs/data/` are **not** raw data: the dispersion measure is baked into the filename and the array, so they cannot be used to revalidate a dispersion measure.
+
+## Processed data (Google Drive archive)
+
+**Bulk archive, not an authority:** `gdrive-jakob:Research/CHIME_DSA_Codetections/` (rclone remote; account **jakobtfaber@gmail.com**).
 
 | Access | Path |
 |--------|------|
@@ -89,9 +109,12 @@ search for CHIME/FRB products under the DSA-110 root.
 
 ## Compute workspace (h17)
 
+Distinct from the raw-data root above. `/data/Faber2026/data/` is authoritative raw input; the paths below are working space.
+
 | Path | Size | Notes |
 |------|------|-------|
-| `/data/research/astrophysics/frbs/chime-dsa-codetections` | ~72G | Compute + artifact cache (not a git source of truth) |
+| `/data/Faber2026/` | ~24G | **Raw-data authority** — see the raw data section above; also holds `evidence/` and `provenance/` |
+| `/data/research/astrophysics/frbs/chime-dsa-codetections` | ~72G | Compute + artifact cache (not a git source of truth). Held the raw files before the 2026-07-21 migration; paths into it for raw input are stale |
 | `.../dsa110-FLITS/` | clone | Canonical FLITS checkout on h17 (`jakobtfaber/dsa110-FLITS`) |
 | `.../upchan_codetections` | ~1.8G | Upchan products (12-target table in baseband_recovery worker) |
 | `.../archive/arc_trash_2026-06` | 36G | arc trash copy; optional dedupe → iacobus |
@@ -111,8 +134,8 @@ Override: `FABER2026_RESULTS_LIBRARY`.
 |------|------|
 | Library root | `~/Data/Faber2026/results-library/` |
 | Index | `$FABER2026_RESULTS_LIBRARY/INDEX.md` |
-| Catalog (git) | Faber2026 `scripts/results_library_catalog.yaml` |
-| Materialize | `python3 scripts/materialize_results_library.py` |
+| Catalog (git) | sibling analysis repo `../analysis/scripts/results_library_catalog.yaml` |
+| Materialize | `python3 ../analysis/scripts/materialize_results_library.py` |
 
 Phase B moves bulk campaign `results/`, `_a1_fits/`, `joint_json/`, and `pipeline/results` into the library; in-repo paths are local symlinks (gitignored). Driver `.py` stays in FLITS / parent `analysis/`. Overleaf `figures/` stay in Faber2026 git (link-only).
 

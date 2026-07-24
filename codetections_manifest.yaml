@@ -2,6 +2,21 @@
 # Generated UTC: 2026-04-24T02:29:51.071693Z
 # Host        : Iacobuss-MacBook-Pro.local
 # Base        : /Users/iacobus/Research/CHIME_DSA_Codetections
+#
+# STATUS: SUPERSEDED AS AN AUTHORITY, RETAINED AS A MEASUREMENT RECORD.
+# The `canonical_target` and `cloud_docs_mirror` values below describe where
+# this data sat on 2026-04-24. That staging tree was drained on 2026-07-13 and
+# the host is not an access path. Raw data for this project is pulled from h17
+# at /data/Faber2026/data/ and nowhere else -- see DATA_LOCATIONS.md and
+# Faber2026 docs/rse/ops/raw-data-provenance.md.
+#
+# Everything below is left exactly as generated. The file counts, byte totals
+# and sentinel sha256 values are evidence of what was verified at that date;
+# editing them to match a later layout would destroy the record.
+#
+status: superseded-authority-retained-as-record
+superseded_utc: "2026-07-24"
+superseded_by: "h17:/data/Faber2026/provenance/h17-source-data-migration-20260721.json"
 schema: 1
 generated_utc: 2026-04-24T02:29:51.071693Z
 host: Iacobuss-MacBook-Pro.local

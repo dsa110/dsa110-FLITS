@@ -5,8 +5,11 @@ from pathlib import Path
 import pandas as pd
 
 from galaxies.foreground.freeze_candidate_redshift_provenance import (
+    FROZEN,
     PAYLOADS,
+    STRM,
     _canonical_json,
+    _source_for,
     verify_frozen_payloads,
 )
 
@@ -14,6 +17,7 @@ DATA = Path(__file__).parent / "data"
 REGISTRY = DATA / "intervening_census_registry.csv"
 PROVENANCE = DATA / "candidate_redshift_provenance.csv"
 REPLAY = DATA / "candidate_redshift_replay_2026-07-22.json"
+IDENTITY_REPAIR = DATA / "candidate_identity_repair_2026-07-23.json"
 
 
 REQUIRED_COLUMNS = {
@@ -96,6 +100,34 @@ def test_frozen_payloads_replay_every_source_hash():
     verify_frozen_payloads()
 
 
+def test_six_redshiftless_identities_are_reproducibly_frozen():
+    registry = pd.read_csv(REGISTRY)
+    validated = pd.read_csv(FROZEN / "foreground_validated.csv")
+    strm_rows = pd.read_csv(STRM).to_dict("records")
+    strm_by_obj = {str(row["objID"]): row for row in strm_rows}
+    expected = {
+        ("oran", "195393180643665627"): "PS1-STRM",
+        ("wilhelm", "194453151328186646"): "PS1-STRM",
+        ("hamilton", "192943050854547067"): "PS1-STRM",
+        ("chromatica", "196673126794497004"): "PS1-STRM",
+        ("isha", "WISEA J044538.83+701843.3"): "AllWISE",
+        ("oran", "WISEA J211150.32+724807.8"): "AllWISE",
+    }
+    ledger = _keyed(pd.read_csv(PROVENANCE, dtype=str).fillna(""))
+    for row in registry.itertuples(index=False):
+        key = (row.nickname, str(row.obj))
+        if key not in expected:
+            continue
+        source = _source_for(row, validated, strm_by_obj)
+        payload = source.pop("_payload")
+        frozen = ledger.loc[(row.nickname, row.type, str(row.obj))]
+        assert source["source_family"] == expected[key]
+        assert source["stable_source_id"] == frozen["stable_source_id"]
+        assert source["source_row_sha256"] == frozen["source_row_sha256"]
+        assert source["query_response_sha256"] == frozen["query_response_sha256"]
+        assert payload["selected_row"] is not None
+
+
 def test_frozen_query_rows_have_deterministic_order():
     payload = json.loads(PAYLOADS.read_text())
     for entry in payload["entries"]:
@@ -133,7 +165,7 @@ def test_every_confirmed_photometric_redshift_clears_its_uncertainty_gate():
         assert row.best_z + row.best_z_err < row.host_z_spec, key
 
 
-def test_live_replay_receipt_binds_the_current_ledger():
+def test_historical_live_replay_receipt_records_its_change_counts():
     receipt = json.loads(REPLAY.read_text())
     assert receipt["rows"] == 52
     assert receipt["adopted_redshift_rows"] == 46
@@ -144,5 +176,15 @@ def test_live_replay_receipt_binds_the_current_ledger():
     assert receipt["verdict_changes"] == 1
     assert receipt["budget_eligibility_changes"] == 1
     assert receipt["query_response_sha256_changes"] == 20
+
+
+def test_identity_repair_receipt_binds_the_current_ledger_without_science_changes():
+    receipt = json.loads(IDENTITY_REPAIR.read_text())
+    assert len(receipt["identity_repair_keys"]) == 6
+    assert receipt["source_verified_rows_before"] == 46
+    assert receipt["source_verified_rows_after"] == 52
+    assert receipt["adopted_redshift_changes"] == 0
+    assert receipt["verdict_changes"] == 0
+    assert receipt["budget_eligibility_changes"] == 0
     assert hashlib.sha256(PROVENANCE.read_bytes()).hexdigest() == receipt["ledger_sha256"]
     assert hashlib.sha256(PAYLOADS.read_bytes()).hexdigest() == receipt["payload_sha256"]

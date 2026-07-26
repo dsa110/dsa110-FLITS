@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "base_commit": "fba755ad7edbd69dece059c8c5f0868da41e3f2b",
+  "retrieved_at_utc": "2026-07-23T23:42:13+00:00",
+  "identity_repair_keys": [
+    "chromatica|halo|196673126794497004",
+    "hamilton|halo|192943050854547067",
+    "isha|halo|WISEA J044538.83+701843.3",
+    "oran|halo|195393180643665627",
+    "oran|halo|WISEA J211150.32+724807.8",
+    "wilhelm|halo|194453151328186646"
+  ],
+  "source_verified_rows_before": 46,
+  "source_verified_rows_after": 52,
+  "adopted_redshift_changes": 0,
+  "verdict_changes": 0,
+  "budget_eligibility_changes": 0,
+  "live_oracle": {
+    "service": "CDS VizieR",
+    "table": "II/328/allwise",
+    "isha_designation": "J044538.83+701843.3",
+    "oran_designation": "J211150.32+724807.8",
+    "result": "both exact designations returned within 3 arcsec"
+  },
+  "ledger_sha256": "0a2ba35f3dd7dfdcc855d4d589e062c08e5788e135970802cb7b7b798c47afe7",
+  "payload_sha256": "814845249e0acae8091f7177a56a08015ace03bfdf5786c75198f3e34f4b6cee",
+  "disposition": "identity evidence repaired; no scientific verdict or budget promoted"
+}

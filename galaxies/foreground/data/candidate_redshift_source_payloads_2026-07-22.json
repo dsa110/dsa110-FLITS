@@ -607,7 +607,17 @@
     {
       "key": "chromatica|halo|196673126794497004",
       "query_response": null,
-      "selected_row": null
+      "selected_row": {
+        "class": "UNSURE",
+        "decMean": 73.89685483,
+        "extrapolation_Photoz": -999,
+        "objID": 196673126794497004,
+        "prob_Galaxy": 0.6925151,
+        "raMean": 312.67943802,
+        "z_phot": -999.0,
+        "z_phot0": -999.0,
+        "z_photErr": -999.0
+      }
     },
     {
       "key": "chromatica|halo|196723126173351736",
@@ -797,7 +807,17 @@
     {
       "key": "hamilton|halo|192943050854547067",
       "query_response": null,
-      "selected_row": null
+      "selected_row": {
+        "class": "UNSURE",
+        "decMean": 70.78860013,
+        "extrapolation_Photoz": -999,
+        "objID": 192943050854547067,
+        "prob_Galaxy": 0.6076532599999999,
+        "raMean": 305.08533991,
+        "z_phot": -999.0,
+        "z_phot0": -999.0,
+        "z_photErr": -999.0
+      }
     },
     {
       "key": "hamilton|halo|192963050359413614",
@@ -816,18 +836,104 @@
     },
     {
       "key": "isha|halo|WISEA J044538.83+701843.3",
-      "query_response": null,
-      "selected_row": null
+      "query_response": {
+        "catalog": "allwise",
+        "release": "AllWISE",
+        "retrieved_at_utc": "2026-07-21T07:38:07+00:00",
+        "rows": [
+          {
+            "AllWISE": "J044538.83+701843.3",
+            "W1mag": 15.098999977111816,
+            "W2mag": 14.937999725341797,
+            "catalog_id": "J044538.83+701843.3",
+            "ccf": "0000",
+            "e_W1mag": 0.035999998450279236,
+            "e_W2mag": 0.06300000101327896,
+            "ex": 0,
+            "match_dec_deg": 70.3120481,
+            "match_ra_deg": 71.4118072,
+            "qph": "AABU",
+            "separation_arcsec": 0.0004340947444772247
+          }
+        ],
+        "search_radius_arcsec": 3.0,
+        "service": "CDS VizieR",
+        "table": "II/328/allwise",
+        "target_dec_deg": 70.312048,
+        "target_ra_deg": 71.411807
+      },
+      "selected_row": {
+        "AllWISE": "J044538.83+701843.3",
+        "W1mag": 15.098999977111816,
+        "W2mag": 14.937999725341797,
+        "catalog_id": "J044538.83+701843.3",
+        "ccf": "0000",
+        "e_W1mag": 0.035999998450279236,
+        "e_W2mag": 0.06300000101327896,
+        "ex": 0,
+        "match_dec_deg": 70.3120481,
+        "match_ra_deg": 71.4118072,
+        "qph": "AABU",
+        "separation_arcsec": 0.0004340947444772247
+      }
     },
     {
       "key": "oran|halo|195393180643665627",
       "query_response": null,
-      "selected_row": null
+      "selected_row": {
+        "class": "UNSURE",
+        "decMean": 72.82903471,
+        "extrapolation_Photoz": -999,
+        "objID": 195393180643665627,
+        "prob_Galaxy": 0.6923395399999999,
+        "raMean": 318.06435812,
+        "z_phot": -999.0,
+        "z_phot0": -999.0,
+        "z_photErr": -999.0
+      }
     },
     {
       "key": "oran|halo|WISEA J211150.32+724807.8",
-      "query_response": null,
-      "selected_row": null
+      "query_response": {
+        "catalog": "allwise",
+        "release": "AllWISE",
+        "retrieved_at_utc": "2026-07-21T07:38:07+00:00",
+        "rows": [
+          {
+            "AllWISE": "J211150.32+724807.8",
+            "W1mag": 13.057999610900879,
+            "W2mag": 12.901000022888184,
+            "catalog_id": "J211150.32+724807.8",
+            "ccf": "0000",
+            "e_W1mag": 0.023000000044703484,
+            "e_W2mag": 0.023000000044703484,
+            "ex": 1,
+            "match_dec_deg": 72.8021769,
+            "match_ra_deg": 317.9596933,
+            "qph": "AAAB",
+            "separation_arcsec": 0.04636825089652165
+          }
+        ],
+        "search_radius_arcsec": 3.0,
+        "service": "CDS VizieR",
+        "table": "II/328/allwise",
+        "target_dec_deg": 72.8021667,
+        "target_ra_deg": 317.9596667
+      },
+      "selected_row": {
+        "AllWISE": "J211150.32+724807.8",
+        "W1mag": 13.057999610900879,
+        "W2mag": 12.901000022888184,
+        "catalog_id": "J211150.32+724807.8",
+        "ccf": "0000",
+        "e_W1mag": 0.023000000044703484,
+        "e_W2mag": 0.023000000044703484,
+        "ex": 1,
+        "match_dec_deg": 72.8021769,
+        "match_ra_deg": 317.9596933,
+        "qph": "AAAB",
+        "separation_arcsec": 0.04636825089652165
+      }
     },
     {
       "key": "phineas|cluster|J114928.5+712526, 1253366",
@@ -2117,7 +2223,17 @@
     {
       "key": "wilhelm|halo|194453151328186646",
       "query_response": null,
-      "selected_row": null
+      "selected_row": {
+        "class": "UNSURE",
+        "decMean": 72.04657129,
+        "extrapolation_Photoz": -999,
+        "objID": 194453151328186646,
+        "prob_Galaxy": 0.6826086599999999,
+        "raMean": 315.13293667,
+        "z_phot": -999.0,
+        "z_phot0": -999.0,
+        "z_photErr": -999.0
+      }
     },
     {
       "key": "zach|halo|195373100910393540",

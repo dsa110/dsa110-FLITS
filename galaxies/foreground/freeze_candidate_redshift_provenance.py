@@ -25,6 +25,7 @@ FROZEN = DATA / "frozen_census"
 REGISTRY = DATA / "intervening_census_registry.csv"
 VALIDATED = FROZEN / "foreground_validated.csv"
 STRM = FROZEN / "strm_catalog_rows.csv"
+ALLWISE = DATA / "catalog_crossmatch_snapshots" / "allwise.json"
 OUT = DATA / "candidate_redshift_provenance.csv"
 PAYLOADS = DATA / "candidate_redshift_source_payloads_2026-07-22.json"
 
@@ -206,9 +207,47 @@ def _strm_source(obj: str, row_by_obj: dict[str, dict[str, Any]]) -> dict[str, s
                 if _clean(row.get("z_phot")) not in (None, -999.0)
                 else "no_trustworthy_redshift"
             ),
+            "source_disposition": (
+                "frozen_not_admitted"
+                if _clean(row.get("z_phot")) not in (None, -999.0)
+                else "identity_verified_no_catalog_redshift"
+            ),
         },
         selected_row=selected,
         query_response=None,
+    )
+
+
+def _allwise_identity_source(row) -> dict[str, str]:
+    snapshot = json.loads(ALLWISE.read_text())
+    key = f"{row.nickname}|{row.type}|{row.obj}"
+    query = next(item for item in snapshot["queries"] if item["key"] == key)
+    designation = str(row.obj).removeprefix("WISEA ")
+    selected = next(item for item in query["rows"] if item["AllWISE"] == designation)
+    response = {
+        "catalog": snapshot["catalog"],
+        "release": snapshot["release"],
+        "retrieved_at_utc": snapshot["retrieved_at_utc"],
+        "search_radius_arcsec": snapshot["search_radius_arcsec"],
+        "service": "CDS VizieR",
+        "table": snapshot["table"],
+        "target_dec_deg": query["target_dec_deg"],
+        "target_ra_deg": query["target_ra_deg"],
+        "rows": query["rows"],
+    }
+    return _with_payload(
+        {
+            "source_family": "AllWISE",
+            "source_release": "CDS VizieR II/328/allwise (AllWISE)",
+            "retrieved_at_utc": snapshot["retrieved_at_utc"],
+            "stable_source_id": f"AllWISE:{designation}",
+            "source_row_sha256": _sha256(selected),
+            "query_response_sha256": _sha256(response),
+            "measurement_kind": "identity_only",
+            "source_disposition": "identity_verified_catalog_has_no_redshift",
+        },
+        selected_row=selected,
+        query_response=response,
     )
 
 
@@ -323,6 +362,10 @@ def _blank_source() -> dict[str, str]:
 def _source_for(row, validated, strm_by_obj: dict[str, dict[str, Any]]) -> dict[str, str]:
     expected_z = _clean(row.best_z)
     source = str(row.best_z_source)
+    if expected_z is None and "PS1-STRM" in source:
+        return _strm_source(str(row.obj), strm_by_obj)
+    if expected_z is None and str(row.obj).startswith("WISEA "):
+        return _allwise_identity_source(row)
     if expected_z is None:
         return _blank_source()
     if "LS/Zhou" in source:
@@ -395,6 +438,8 @@ def main(argv: list[str] | None = None) -> None:
         source = _source_for(row, validated, strm_by_obj)
         _validate_source_admission(row, source)
         source_payload = source.pop("_payload")
+        retrieved_at_utc = source.pop("retrieved_at_utc", RETRIEVED_AT_UTC)
+        source_disposition = source.pop("source_disposition", None)
         payload_entries.append(
             {
                 "key": f"{row.nickname}|{row.type}|{row.obj}",
@@ -408,10 +453,11 @@ def main(argv: list[str] | None = None) -> None:
                 "type": row.type,
                 "obj": str(row.obj),
                 **source,
-                "retrieved_at_utc": RETRIEVED_AT_UTC,
+                "retrieved_at_utc": retrieved_at_utc,
                 "adopted_z": "" if _clean(row.best_z) is None else row.best_z,
                 "adopted_z_err": ("" if _clean(row.best_z_err) is None else row.best_z_err),
-                "source_disposition": (
+                "source_disposition": source_disposition
+                or (
                     "frozen_admitted"
                     if has_z and row.final_verdict == "confirmed"
                     else "frozen_not_admitted"

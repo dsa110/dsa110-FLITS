@@ -15,5 +15,5 @@ flits_py -m galaxies.foreground.sightline_budget
 flits_py -m galaxies.v2_0.systems_figures --out-dir scratch/repro-foreground-figures
 flits_py tools/sync_figures.py --apply
 
-echo "Synced -> ~/Developer/overleaf/Faber2026/figures/"
+echo "Synced -> ~/Developer/repos/github.com/jakobtfaber/Faber2026/figures/"
 echo "Visually review results/sightline_dm_scattering_budget.png and scratch/repro-foreground-figures/*.png before committing."

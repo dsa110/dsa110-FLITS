@@ -26,7 +26,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
 DEFAULT_MANIFEST = REPO / "results" / "figures.manifest.json"
-DEFAULT_MANUSCRIPT = Path("~/Developer/overleaf/Faber2026").expanduser()
+DEFAULT_MANUSCRIPT = Path("~/Developer/repos/github.com/jakobtfaber/Faber2026").expanduser()
 
 
 def bound_entries(manifest: dict) -> list[tuple[str, dict]]:

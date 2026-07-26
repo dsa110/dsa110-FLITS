@@ -18,10 +18,10 @@ nlive: 400
 nlive_walks: 15
 nproc: 8
 outer_trim: 0.15
-path: /Users/jakobfaber/Developer/overleaf/Faber2026/pipeline/data/dsa/freya_dsa_I_912_4_2500b_cntr_bpc.npy
+path: /Users/jakobfaber/Data/Faber2026/dsa110/DSA_bursts/freya_dsa_I_912_4_2500b_cntr_bpc.npy
 plot: true
-sampcfg_path: /Users/jakobfaber/Developer/overleaf/Faber2026/pipeline/scattering/configs/sampler.yaml
+sampcfg_path: /Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS/scattering/configs/sampler.yaml
 steps: 10000
 t_factor: 2
-telcfg_path: /Users/jakobfaber/Developer/overleaf/Faber2026/pipeline/scattering/configs/telescopes.yaml
+telcfg_path: /Users/jakobfaber/Developer/repos/github.com/jakobtfaber/dsa110-FLITS/scattering/configs/telescopes.yaml
 telescope: dsa

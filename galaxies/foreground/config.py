@@ -56,6 +56,9 @@ VIZIER_CATALOGS = {
     "GLADE+": "VII/291/gladep",  # GLADE+ (2022); Vizier renamed table glade -> gladep
     "DESI_DR8_NORTH": "VII/292/north",  # High-Dec northern sky coverage
     "SDSS_DR12": "V/147/sdss12",  # Stable spectroscopic/photometric catalog
+    "GSC242": "I/353/gsc242",  # Guide Star Catalog 2.4.2 (star/galaxy morphology classification)
+    "CATWISE2020": "II/365/catwise",  # CatWISE2020 IR proper motion & photometry
+    "UNWISE": "II/363/unwise",  # unWISE deep co-adds
 }
 
 # Opt-in extra search engines (TAP-backed). Disabled by default so run_search()
@@ -68,6 +71,9 @@ LEGACY_DR9_PHOTOZ_CACHE_ENV = "FLITS_LEGACY_DR9_SWEEP_CACHE"
 ENRICHER_CATALOGS = {
     "DESI_LS_DR10": "ls_dr10.tractor",
     "ALLWISE": "II/328/allwise",
+    "CATWISE2020": "II/365/catwise",
+    "UNWISE": "II/363/unwise",
+    "GSC242": "I/353/gsc242",
     "GALEX_AIS": "II/335/galex_ais",
     "2MASS_XSC": "VII/233/xsc",
 }

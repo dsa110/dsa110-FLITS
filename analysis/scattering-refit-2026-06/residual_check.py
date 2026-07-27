@@ -38,6 +38,19 @@ RESID_SIGMA = 5.0        # contiguous run threshold (sigma), owner spec ~5
 MIN_CONTIG = 2           # min contiguous bins above threshold to count (reject 1-bin RFI)
 ONPULSE_FRAC = 0.01      # on-pulse = model band-profile above this fraction of its peak
 POS_DOMINANCE = 1.5      # emission excess must exceed POS_DOMINANCE x |negative dip| to escalate
+# A shape_mismatch driven by a NARROW (few-bin matched-filter) +/- dipole is the
+# signature of a sub-bin timing/width mismatch -- often just under-resolution of a
+# bright narrow feature. The owner rule (2026-07-17): a single-bin matched dipole
+# in a band => drop that band's time binning one level and refit, UNLESS the band
+# is already at its native product resolution, in which case no finer bin exists
+# and the dipole is a genuine pulse-shape (PBF model-family) limit -> shape-model
+# review. A BROAD dipole (wide matched width) is a diffuse envelope/tail mismatch
+# that finer binning would not fix -> shape-model review regardless.
+NARROW_DIPOLE_MAXW = 2   # matched-filter width (bins) at/below which a dipole is "narrow"
+# Native product time-sample floors (ms) = telescopes.yaml dt_ms_raw. A band whose
+# fit bin width is within ~1.5x of this is already at native -> cannot bin finer.
+NATIVE_DT_MS = {"CHIME": 2.56e-3, "DSA": 32.768e-3}
+NATIVE_DT_TOL = 1.5
 
 
 def _runs_above(mask: np.ndarray) -> list[tuple[int, int]]:
@@ -71,8 +84,32 @@ def _matched_max(prof: np.ndarray, max_width: int | None = None) -> tuple[float,
     return best
 
 
-def band_residual(data, model, noise, valid, *, band=""):
-    """Per-band residual metrics from a dumped data/model/noise/valid grid."""
+def _dipole_recommendation(shape_mismatch, matched_w, at_native):
+    """Owner rule: what to do about a shape_mismatch dipole.
+
+    Narrow single-bin dipole + a finer bin available -> "refine_time" (the
+    under-resolution fix). Narrow dipole already at native -> "shape_model_review"
+    (no finer bin; it is a PBF pulse-shape limit). Broad dipole -> "shape_model_review"
+    regardless. ``at_native=None`` (band resolution unknown) keeps the branch open.
+    Returns None when there is no shape_mismatch to act on."""
+    if not shape_mismatch:
+        return None
+    narrow = matched_w <= NARROW_DIPOLE_MAXW
+    if not narrow:
+        return "shape_model_review"      # diffuse envelope/tail mismatch
+    if at_native is True:
+        return "shape_model_review"      # narrow dipole but no finer bin -> shape model
+    if at_native is False:
+        return "refine_time"             # narrow dipole, finer bin exists -> drop one level
+    return "refine_time_unless_native"   # narrow dipole, native-ness not resolved here
+
+
+def band_residual(data, model, noise, valid, *, band="", at_native=None):
+    """Per-band residual metrics from a dumped data/model/noise/valid grid.
+
+    ``at_native`` (bool | None): whether this band is already at its native
+    product time resolution, used to branch the shape_mismatch recommendation
+    (see :func:`_dipole_recommendation`)."""
     data = np.asarray(data, float)
     model = np.asarray(model, float)
     sig = np.clip(np.asarray(noise, float).reshape(-1), 1e-9, None)
@@ -109,6 +146,7 @@ def band_residual(data, model, noise, valid, *, band=""):
     pos_dominated = resid_prof_max > POS_DOMINANCE * abs(resid_prof_min)
     escalate = bool(contig and pos_dominated)
     shape_mismatch = bool(contig and not pos_dominated and abs(resid_prof_min) > RESID_SIGMA)
+    recommend = _dipole_recommendation(shape_mismatch, int(matched_w), at_native)
     return dict(
         band=band,
         resid_prof_max=resid_prof_max,
@@ -120,15 +158,30 @@ def band_residual(data, model, noise, valid, *, band=""):
         onpulse_bins=int(hi - lo),
         escalate=escalate,
         shape_mismatch=shape_mismatch,
+        at_native=(None if at_native is None else bool(at_native)),
+        recommend=recommend,
     )
+
+
+def _at_native(z, key: str, band: str) -> bool | None:
+    """Is this band's fit bin width within NATIVE_DT_TOL of the native product
+    floor (telescopes.yaml dt_ms_raw)? Derived from the dumped time axis (ms)."""
+    t = np.asarray(z[key], float) if key in z.files else None
+    floor = NATIVE_DT_MS.get(band)
+    if t is None or t.size < 2 or floor is None:
+        return None
+    dt = float(np.median(np.diff(t)))
+    return bool(dt <= NATIVE_DT_TOL * floor)
 
 
 def check_dump(npz_path) -> dict:
     z = np.load(npz_path, allow_pickle=True)
     out = {"npz": str(npz_path), "burst": str(z["burst"]) if "burst" in z else "?",
            "nC": int(z["nC"]) if "nC" in z else 1, "nD": int(z["nD"]) if "nD" in z else 1}
-    out["C"] = band_residual(z["dataC"], z["modelC"], z["noiseC"], z["validC"], band="CHIME")
-    out["D"] = band_residual(z["dataD"], z["modelD"], z["noiseD"], z["validD"], band="DSA")
+    out["C"] = band_residual(z["dataC"], z["modelC"], z["noiseC"], z["validC"],
+                             band="CHIME", at_native=_at_native(z, "timeC", "CHIME"))
+    out["D"] = band_residual(z["dataD"], z["modelD"], z["noiseD"], z["validD"],
+                             band="DSA", at_native=_at_native(z, "timeD", "DSA"))
     out["escalate_C"] = out["C"]["escalate"]
     out["escalate_D"] = out["D"]["escalate"]
     out["escalate"] = out["escalate_C"] or out["escalate_D"]
@@ -138,9 +191,12 @@ def check_dump(npz_path) -> dict:
 
 def _fmt(r):
     flag = " ESCALATE" if r["escalate"] else (" SHAPE-MISMATCH" if r["shape_mismatch"] else "")
+    rec = r.get("recommend")
+    nat = {True: " @native", False: " sub-native", None: ""}[r.get("at_native")]
+    rec_s = f" -> {rec}{nat}" if rec else ""
     return (f"{r['band']:5s} resid_max={r['resid_prof_max']:+6.2f}s "
             f"(min {r['resid_prof_min']:+.2f}) matched={r['matched_resid_snr']:.2f}s "
-            f"w={r['matched_width']} contig5s={r['n_contig_5sig']}bin{flag}")
+            f"w={r['matched_width']} contig5s={r['n_contig_5sig']}bin{flag}{rec_s}")
 
 
 def main(argv):

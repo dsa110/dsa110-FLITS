@@ -243,3 +243,55 @@ hypothesis**, adjudicated by the v2 windowed-prior re-runs launched 2026-07-19
 are visually vetted, **do not trust the CHIME structure of these two TOA rows and
 do not rewrite the counts**. The DSA structure of both is clean (in-window, tight).
 v1 as-fitted evidences snapshotted at `_v1_preclamp_20260719/`.
+
+<!-- Section recovered from the h17 joint-tf-fits worktree snapshot (archive/h17-joint-tf-fits-snapshot-20260727); it replaced the t0-clamp sections in that local copy and is appended here so both records survive. -->
+
+## v2 re-run harvest (jobs 169–182) — 2026-07-19
+
+**Prior-spec:** v2 windowed t0 (PR #205). Do not cross-compare lnZ with any pre-2026-07-19 v1 evidence.
+**Products:** `~/flits-runs/data/joint/{oran,johndoeII,zach}_joint_fit_*` (mtime 14:55–17:53 PDT);
+vet figures `~/flits-runs/data/joint/_v2_harvest_20260719/{v2_harvest_vet,zach_v2_ladder_vet}.png`.
+**All 14 jobs RC=0** (169–176 oran/johndoeII; 177–182 zach fine C2D3/D4/D5 × s2{10,100}).
+
+### oran C1D1 vs C2D1 (production ghost remediation)
+
+| arm | C1D1 lnZ / β | C2D1 lnZ / β | ΔlnZ(C2−C1) | C2 t0 / ζ |
+|---|---:|---:|---:|---|
+| s2=10 | 13634.95 / 3.965 | 13625.93 / 3.806 | **−9.0** | 16.65 / 0.021 |
+| s2=100 | 13603.01 / 3.988 | 13603.16 / 3.929 | +0.1 | 19.00 / **737** |
+
+v1 ghost had t0_C1 ≈ −5.2 ms off-window. Under v2 every t0 is in-window; the extra CHIME component is either fluence-null (s2=10) or ζ-runaway (s2=100). **Verdict: DROP to C1D1.** Production TOA CHIME structure for oran is single-component under v2.
+
+### johndoeII C1D2 vs C2D2
+
+| arm | C1D2 lnZ / β | C2D2 lnZ / β | ΔlnZ(C2−C1) | C2 t0 / ζ |
+|---|---:|---:|---:|---|
+| s2=10 | 11725.69 / 3.799 | 11723.33 / 3.748 | **−2.4** | 7.01 / **90** |
+| s2=100 | 11679.91 / 3.866 | 11678.68 / 3.519 | **−1.2** | 11.12 / **757** |
+
+v1 ghost had t0_C1 ≈ −6.2 ms, fluence 26 vs real 8. Under v2 the extra CHIME component is ζ-runaway on both arms; C1 wins both. **Verdict: DROP to C1D2.**
+
+### zach fine ladder C2D3 / C2D4 / C2D5 (task #10)
+
+| count | s2=10 lnZ / β | s2=100 lnZ / β |
+|---|---:|---:|
+| C2D3 | 25134.98 / **3.178** | 25074.60 / **3.165** |
+| C2D4 | 26560.30 / **3.979** | 25064.50 / **3.166** |
+| C2D5 | 26584.89 / **3.979** | 25081.73 / **3.161** |
+
+**s2=10:** D3→D4 is a **MODE JUMP** (β 3.18→3.98, ΔlnZ +1425). INVALID as a count Bayes factor (same trap class as pre-clamp +3550, different mechanism: ceiling-β family vs interior). D5−D4 within the ceiling family is only +25.
+
+**s2=100 (mode-continuous β≈3.16):**
+- ΔlnZ(D4−D3) = **−10.1** → D3 preferred
+- ΔlnZ(D5−D4) = +17.2; ΔlnZ(D5−D3) = +7.1
+- Every count still carries one high-ζ null-like DSA member (ζ ∼ 170–450, broad t0 or dead fluence)
+- Real DSA peaks under s2=100: initial ~1.5 ms + cluster ~3.5–4.0 ms; owner’s three-member cluster is not cleanly resolved as three tight components
+
+**Verdict (task #10 under v2):** owner D=4 is **NOT supported**. Prefer **C2D3** on the mode-continuous s2=100 arm; do not publish s2=10 D4/D5 ΔlnZ. Residual structure around the cluster remains (see `zach_v2_ladder_vet.png`) but is not resolved by adding D4/D5 under windowed priors.
+
+### Standing consequences
+
+1. Production counts: oran → C1D1; johndoeII → C1D2 (both were C2 ghosts under v1).
+2. TOA table (task #6): rewrite oran/johndoeII CHIME rows as single-component; flag prior production rows SUSPECT→SUPERSEDED by v2.
+3. zach task #10: close as **D3 stands under v2 fine binning**; D4/D5 not evidence-backed once mode-check applied.
+4. Prior-spec split remains: never mix v1/v2 lnZ.

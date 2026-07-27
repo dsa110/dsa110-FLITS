@@ -56,10 +56,16 @@ Validated foreground census inputs:
 2bbaca82846c70fb3227be4d5ca3378dc337e593555909fd6bc34b726e50a41e  scratch/codetection/foreground_final.csv
 cd72547d51172866d67c2685d2da963e55d6811667a88a544bad583151d700bb  scratch/codetection/foreground.csv
 b8becfd36190923843f554665422d412f7978d5e7de5b0bf686096096c093698  scratch/codetection/foreground_validated.csv
-def09acddc832285ef4ff65b9576cf74ead6378d1b9cea3566a3e03b14f0e1f1  scratch/codetection/bursts.csv
+6610aabb1527137c647149b86f6f65a3a1c4782680d618dd5c5f712b9f3c4536  scratch/codetection/bursts.csv
 18947acafc02b9781c4ac9612b9570d02eedd46c0115c9f73b5f3d79ec2c354e  scratch/codetection/ps1_strm_resolution.csv
 42e576a234ac9ab471b695e89b6f25c3ad6875e1914c8ccb3ee518739fd04870  scratch/codetection/strm_catalog_rows.csv
 ```
+
+The 2026-07-26 transient-identifier correction superseded the roster hash
+`def09acd...` for `bursts.csv`: three TNS names were aligned to the
+`load_tns_name` authority and the pinned census registry (FRB 20230325C,
+FRB 20230913G, FRB 20240203D; adopted in #225), correcting the stale
+A-suffixed names that the Figure 3 input builder was propagating.
 
 The 2026-07-22 Verdi roster repair and source replay superseded the earlier
 hashes for `bursts.csv` (`204fb797...`), `foreground.csv` (`38ed01ac...`),

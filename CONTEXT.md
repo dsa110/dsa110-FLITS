@@ -15,7 +15,7 @@ The pair of well-separated observing frequencies (CHIME ~0.6 GHz, DSA ~1.4 GHz) 
 Pulse-broadening timescale referenced to 1 GHz, in ms. Fitted by the scattering kernel (`burstfit.py`, models M0–M3).
 
 **Scattering index** (α):
-Exponent in τ ∝ ν^(−α). Kolmogorov thin screen ≈ 4.0–4.4. Prior bounds typically 1.0–6.0. The operative joint-gate hard-FAIL floor is **1.0** (`gate_joint_committed.py:26`; [ADR-0004](docs/adr/0004-l1-sub-kolmogorov-alpha-floor.md)): 1.0 ≤ α < 2.0 is a flagged **sub-Kolmogorov** L3 MARGINAL (physically admissible — multi-screen / anisotropic scattering), not a FAIL. A fit railed at *either* prior bound is **not a measurement** (weak/unresolved scattering), regardless of the value or how tight the posterior looks.
+Exponent in τ ∝ ν^(−α). Kolmogorov thin screen ≈ 4.0–4.4. Prior bounds typically 1.0–6.0. The operative joint-gate hard-FAIL floor is **1.0** (`gate_joint_committed.py:28`; [ADR-0004](docs/adr/0004-l1-sub-kolmogorov-alpha-floor.md)): 1.0 ≤ α < 2.0 is a flagged **sub-Kolmogorov** L3 MARGINAL (physically admissible — multi-screen / anisotropic scattering), not a FAIL. A fit railed at *either* prior bound is **not a measurement** (weak/unresolved scattering), regardless of the value or how tight the posterior looks.
 _Avoid_: bare "alpha" — see Flagged ambiguities.
 
 **Scintillation bandwidth** (`dν`, Δν):
@@ -99,7 +99,7 @@ A posterior whose median sits within ~3σ of *either* prior bound. The number is
 A burst whose joint fit yields a citable α — single dominant screen, un-railed, PBF-insensitive, quality-passing. The set is locked by the all-exp campaign + final component counts, not by figure color.
 
 **Per-section sample rule**:
-Every manuscript subset analysis (energies, joint-α, scintillation, …) states *its own* sample and justifies excluded bursts; the 12-burst co-detection set is the superset, not the per-analysis denominator. See `plan-manuscript-completion.md`'s exclusion table.
+Every manuscript subset analysis (energies, joint-α, scintillation, …) states *its own* sample and justifies excluded bursts; the 12-burst co-detection set is the superset, not the per-analysis denominator.
 
 ## Relationships
 
